@@ -1,0 +1,48 @@
+Short term
+ * Add connectionWatch into database config options
+       config.setDisableConnectionTracking(true);
+       config.setCloseConnectionWatch(true);
+       config.setCloseConnectionWatchTimeout(10, TimeUnit.SECONDS);
+ * availability alert (test)
+ * find bugs maven, small scale stuff
+ * MetricRecentValues via get, not post
+ * separate notifications groups for caution and danger
+ * make alert suspension datetime bars be full width of column
+ * limit results on ajax lookups (optional parameter)
+ * Add healthcheck servlet
+ * unit tests for set & timer
+ * new option -- limit metric # in webui (and in underlying code)
+ * enable alert by default
+ * alert on positive by default
+ * 'disabled' for caution/danger alert type (threshold, avali, disabled)
+ * db config -- use file separator property
+
+Before open source release 
+ * mysql support
+ * documentation/help page (wip)
+ 
+ 
+Medium term
+ * tweak webui "alert details" output (two columns)
+ * tweak webui "details" to have links to cool shit
+ * debug mode for "details" pages
+ * alert by individual metric
+ * Statsd upper nth %
+ * only check read-only once (when getting the connection) 
+ * calculator/aggregator
+ * events log w/ UI component
+ * when altering alerts & stuff is in an alerted status, don't null the alert status if the alert status is the same
+ * if database doesn't work, display message on homepage
+ * webui - alter metric groups in a single db transaction
+ * Statsd histograms
+ 
+ 
+Long term
+ * server-side tables
+ * authentication
+ * postgres support
+ * immediately add raw gauges to db?
+ * db_cleanup every once now & then
+ * bind to specific address
+ * repeater
+ 
