@@ -13,6 +13,7 @@ import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -67,8 +68,8 @@ public class GlobalVariables {
     // k=MetricKey, v="The most timestamp that this metric was received by this program"
     public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(); 
     
-    // k=MetricGroupId, v=Map<k=MetricKey,v=Boolean: "is the metric key associated with a specific metric group?">
-    public final static ConcurrentHashMap<Integer,Map<String,Boolean>> metricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 
+    // k=MetricKey, v=[0] "list of metric groups ids with negative associations with the metric key", [1] "list of metric groups ids with positive associations with the metric key"
+    public final static ConcurrentHashMap<String,ArrayList[]> metricGroupsAssociatedWithMetricKeys = new ConcurrentHashMap<>(); 
     
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 

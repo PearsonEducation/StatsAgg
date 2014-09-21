@@ -96,17 +96,21 @@ public class Cleanup {
         if (metricKey == null) {
             return;
         }
-        
-        for (Integer metricGroupId : GlobalVariables.metricKeysAssociatedWithMetricGroup.keySet()) {
-            Map<String, Boolean> metricKeyAssociationWithMetricGroup = GlobalVariables.metricKeysAssociatedWithMetricGroup.get(metricGroupId);
-            metricKeyAssociationWithMetricGroup.remove(metricKey);
-        }
 
         for (Integer metricGroupId : GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet()) {
             Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
             matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
         }
-
+        
+        List[] associationLists = GlobalVariables.metricGroupsAssociatedWithMetricKeys.get(metricKey);
+        if (associationLists != null) {
+            associationLists[0].clear();
+            associationLists[0] = null;
+            associationLists[1].clear();
+            associationLists[1] = null;
+            GlobalVariables.metricGroupsAssociatedWithMetricKeys.remove(metricKey);
+        }
+        
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
         
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
