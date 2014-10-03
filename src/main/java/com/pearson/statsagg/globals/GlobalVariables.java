@@ -1,8 +1,6 @@
 package com.pearson.statsagg.globals;
 
 import java.math.BigDecimal;
-import java.util.Calendar;
-import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,10 +40,13 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphiteAggregatorMetricsRaw = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphitePassthroughMetricsRaw = new ConcurrentHashMap<>();
     
-    // k=MetricPath, v="Aggregated metric object"
+    // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricAggregated> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
+
+    // k=MetricKey, v="SHA-1(MetricKey)"
+    public final static ConcurrentHashMap<String,String> statsdGaugeBucketDigests = new ConcurrentHashMap<>();
     
     // k=MetricKey, v=MetricKey (k=v. Both are a strings that specify the metric key of a metric to 'forget'.
     public final static ConcurrentHashMap<String,String> forgetMetrics = new ConcurrentHashMap<>();
@@ -62,7 +63,7 @@ public class GlobalVariables {
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
     
-    // k=metric group ids, v="Remove","Alter" 
+    // k=MetricGroupId, v="Remove","Alter" 
     public final static ConcurrentHashMap<Integer,String> metricGroupChanges = new ConcurrentHashMap<>();
             
     // k=MetricKey, v="The most timestamp that this metric was received by this program"

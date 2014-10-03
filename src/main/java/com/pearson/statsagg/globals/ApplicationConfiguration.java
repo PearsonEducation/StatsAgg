@@ -74,10 +74,12 @@ public class ApplicationConfiguration {
     private static int statsdNthPercentileThreshold_ = VALUE_NOT_SET_CODE;
     
     private static boolean alertRoutineEnabled_ = false;
-    private static boolean alertSendEmailEnabled_ = false;  
-    private static String alertStatsAggLocation_ = null;
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
+    private static boolean alertSendEmailEnabled_ = false;  
     private static int alertMaxMetricsInEmail_ = VALUE_NOT_SET_CODE;
+    private static boolean alertOutputAlertStatusToGraphite_ = false;
+    private static String alertOutputAlertStatusToGraphiteMetricPrefix_ = null;
+    private static String alertStatsAggLocation_ = null;
     private static long alertWaitTimeAfterRestart_ = VALUE_NOT_SET_CODE;
     private static String alertSmtpHost_ = null;
     private static int alertSmtpPort_ = VALUE_NOT_SET_CODE;
@@ -167,10 +169,12 @@ public class ApplicationConfiguration {
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.getBoolean("alert_routine_enabled", true);
-            alertSendEmailEnabled_ = applicationConfiguration_.getBoolean("alert_send_email_enabled", false);
-            alertStatsAggLocation_ = applicationConfiguration_.getString("alert_statsagg_location", "");
             alertRoutineInterval_ = applicationConfiguration_.getInteger("alert_routine_interval", 5000);
+            alertSendEmailEnabled_ = applicationConfiguration_.getBoolean("alert_send_email_enabled", false);
             alertMaxMetricsInEmail_ = applicationConfiguration_.getInteger("alert_max_metrics_in_email", 100);
+            alertOutputAlertStatusToGraphite_ = applicationConfiguration_.getBoolean("alert_output_alert_status_to_graphite", true);
+            alertOutputAlertStatusToGraphiteMetricPrefix_ = applicationConfiguration_.getString("alert_output_alert_status_to_graphite_metric_prefix", "StatsAgg-Alerts");
+            alertStatsAggLocation_ = applicationConfiguration_.getString("alert_statsagg_location", "");
             alertWaitTimeAfterRestart_ = applicationConfiguration_.getInteger("alert_wait_time_after_restart", 120000);
                     
             alertSmtpHost_ = applicationConfiguration_.getString("alert_smtp_host", "127.0.0.1");
@@ -439,23 +443,31 @@ public class ApplicationConfiguration {
     public static boolean isAlertRoutineEnabled() {
         return alertRoutineEnabled_;
     }
-
-    public static boolean isAlertSendEmailEnabled() {
-        return alertSendEmailEnabled_;
-    }
-    
-    public static String getAlertStatsAggLocation() {
-        return alertStatsAggLocation_;
-    }
     
     public static int getAlertRoutineInterval() {
         return alertRoutineInterval_;
     }
 
+    public static boolean isAlertSendEmailEnabled() {
+        return alertSendEmailEnabled_;
+    }
+    
     public static int getAlertMaxMetricsInEmail() {
         return alertMaxMetricsInEmail_;
     }
     
+    public static boolean isAlertOutputAlertStatusToGraphite() {
+        return alertOutputAlertStatusToGraphite_;
+    }
+
+    public static String getAlertOutputAlertStatusToGraphiteMetricPrefix() {
+        return alertOutputAlertStatusToGraphiteMetricPrefix_;
+    }
+
+    public static String getAlertStatsAggLocation() {
+        return alertStatsAggLocation_;
+    }
+
     public static long getAlertWaitTimeAfterRestart() {
         return alertWaitTimeAfterRestart_;
     }

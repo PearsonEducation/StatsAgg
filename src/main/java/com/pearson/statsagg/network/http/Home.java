@@ -15,7 +15,6 @@ import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
-import org.apache.commons.lang3.time.FastDateParser;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -165,7 +164,7 @@ public class Home extends HttpServlet {
             "        </div>\n" +
             "        <div class=\"panel-footer\">\n" +
             "            Last refreshed: " + dateAndTimeFormat.format(homeLastRefreshedTimestamp.getTime()) + "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" + 
-            "            Version: " + com.pearson.statsagg.controller.Version.getProjectVersion() + "\n" +
+            "            Version: " + com.pearson.statsagg.controller.Version.getProjectVersion() + "-" + com.pearson.statsagg.controller.Version.getBuildTimestamp() + "\n" +
             "        </div>\n" +
             "    </div>\n" +
             "</div>";

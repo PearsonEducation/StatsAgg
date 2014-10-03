@@ -224,7 +224,15 @@ public class StatsdMetricAggregator {
                             ApplicationConfiguration.getStatsdUseStatsaggOutputNamingConvention());
                 }
                 else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugesDao != null)) {
-                    Gauge gauge = gaugesDao.getGauge(bucket);
+                    String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + bucket;
+                    Map<String,String> statsdGaugeBucketDigests = GlobalVariables.statsdGaugeBucketDigests;
+                    String bucketSha1 = statsdGaugeBucketDigests.get(prefixedBucketName);
+                    Gauge gauge = null;
+                    
+                    if (bucketSha1 != null) {
+                        gauge = gaugesDao.getGauge(bucketSha1);
+                    }
+                    
                     singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gauge);
                 }
                 else if (metricTypeKey == StatsdMetricRaw.SET_TYPE) {

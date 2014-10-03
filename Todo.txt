@@ -1,10 +1,5 @@
 Short term
- * Add connectionWatch into database config options
-       config.setDisableConnectionTracking(true);
-       config.setCloseConnectionWatch(true);
-       config.setCloseConnectionWatchTimeout(10, TimeUnit.SECONDS);
  * availability alert (test)
- * find bugs maven, small scale stuff
  * MetricRecentValues via get, not post
  * separate notifications groups for caution and danger
  * make alert suspension datetime bars be full width of column
@@ -13,16 +8,23 @@ Short term
  * unit tests for set & timer
  * new option -- limit metric # in webui (and in underlying code)
  * enable alert by default
+ * make program more db-avail failure proof
  * alert on positive by default
  * 'disabled' for caution/danger alert type (threshold, avali, disabled)
- * db config -- use file separator property
+ * db config -- use file separator property if derby
+ * sql update -- change name of notification group PK to match NG convention
+ * sql update -- make gauge-bucket not-null
 
 Before open source release 
- * mysql support
  * documentation/help page (wip)
+ * comments in database.properties
  
  
 Medium term
+ * Add connectionWatch into database config options
+       config.setDisableConnectionTracking(true);
+       config.setCloseConnectionWatch(true);
+       config.setCloseConnectionWatchTimeout(10, TimeUnit.SECONDS);
  * tweak webui "alert details" output (two columns)
  * tweak webui "details" to have links to cool shit
  * debug mode for "details" pages

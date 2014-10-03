@@ -13,16 +13,16 @@ public class AlertSuspensionsSql {
     protected final static String DropTable_AlertSuspensions = 
                     "DROP TABLE ALERT_SUSPENSIONS";
     
-    protected final static String CreateTable_AlertSuspensions =  
+    protected final static String CreateTable_AlertSuspensions_Derby =  
                     "CREATE TABLE ALERT_SUSPENSIONS (" + 
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
-                    "NAME VARCHAR(32000) NOT NULL, " + 
-                    "UPPERCASE_NAME VARCHAR(32000) NOT NULL, " + 
+                    "NAME VARCHAR(500) NOT NULL, " + 
+                    "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
                     "IS_ENABLED BOOLEAN NOT NULL, " + 
                     "SUSPEND_BY INTEGER NOT NULL, " + 
                     "ALERT_ID INTEGER, " +
-                    "METRIC_GROUP_TAGS_INCLUSIVE VARCHAR(32000), " + 
-                    "METRIC_GROUP_TAGS_EXCLUSIVE VARCHAR(32000), " + 
+                    "METRIC_GROUP_TAGS_INCLUSIVE CLOB(1048576), " + 
+                    "METRIC_GROUP_TAGS_EXCLUSIVE CLOB(1048576), " + 
                     "IS_ONE_TIME BOOLEAN NOT NULL, " + 
                     "IS_SUSPEND_NOTIFICATION_ONLY BOOLEAN NOT NULL, " + 
                     "IS_RECUR_SUNDAY BOOLEAN NOT NULL, " + 
@@ -37,6 +37,32 @@ public class AlertSuspensionsSql {
                     "DURATION INTEGER NOT NULL, " + 
                     "DELETE_AT_TIMESTAMP TIMESTAMP " + 
                     ")";
+    
+    protected final static String CreateTable_AlertSuspensions_MySQL =  
+                    "CREATE TABLE ALERT_SUSPENSIONS (" + 
+                    "ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, " + 
+                    "NAME VARCHAR(500) NOT NULL, " + 
+                    "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
+                    "IS_ENABLED BOOLEAN NOT NULL, " + 
+                    "SUSPEND_BY INTEGER NOT NULL, " + 
+                    "ALERT_ID INTEGER, " +
+                    "METRIC_GROUP_TAGS_INCLUSIVE MEDIUMTEXT, " + 
+                    "METRIC_GROUP_TAGS_EXCLUSIVE MEDIUMTEXT, " + 
+                    "IS_ONE_TIME BOOLEAN NOT NULL, " + 
+                    "IS_SUSPEND_NOTIFICATION_ONLY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_SUNDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_MONDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_TUESDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_WEDNESDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_THURSDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_FRIDAY BOOLEAN NOT NULL, " + 
+                    "IS_RECUR_SATURDAY BOOLEAN NOT NULL, " +
+                    "START_DATE TIMESTAMP NOT NULL, " + 
+                    "START_TIME TIMESTAMP NOT NULL, " +
+                    "DURATION INTEGER NOT NULL, " + 
+                    "DELETE_AT_TIMESTAMP TIMESTAMP " + 
+                    ") " +
+                    "ROW_FORMAT=DYNAMIC";
     
     protected final static String CreateIndex_AlertSuspensions_PrimaryKey =
                     "ALTER TABLE ALERT_SUSPENSIONS " +

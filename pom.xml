@@ -10,7 +10,7 @@
 
     <properties>
         <timestamp>${maven.build.timestamp}</timestamp>
-        <maven.build.timestamp.format>yyyyMMdd-HHmmss</maven.build.timestamp.format>
+        <maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
         <endorsed.dir>${project.build.directory}/endorsed</endorsed.dir>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
@@ -150,6 +150,12 @@
             <artifactId>derbyclient</artifactId>
             <version>10.11.1.1</version>
         </dependency>
+
+        <dependency>
+            <groupId>mysql</groupId>
+            <artifactId>mysql-connector-java</artifactId>
+            <version>5.1.32</version>
+        </dependency>
         
         <!--
         <dependency>
@@ -164,7 +170,7 @@
             <artifactId>bonecp</artifactId>
             <version>0.8.0.RELEASE</version>
         </dependency>
-       
+
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>

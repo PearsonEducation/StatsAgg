@@ -18,9 +18,12 @@ import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
+import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.Threads;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
@@ -105,6 +108,16 @@ public class AlertThread implements Runnable {
                 long alertRoutineStartTime = System.currentTimeMillis();
                 runAlertRoutine(alerts);
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
+                
+                if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
+                    // generate messages for graphite
+                    List<GraphiteMetricAggregated> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
+                    List<String> outputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(alertStatusMetricsForGraphite,
+                            ApplicationConfiguration.getGraphiteMaxBatchSize());
+
+                    // send to graphite
+                    GraphiteOutputModule.sendMetricsToGraphiteEndpoints(outputMessagesForGraphite, threadId_);
+                }
             }
         }
 
@@ -129,7 +142,7 @@ public class AlertThread implements Runnable {
         isThreadCurrentlyRunning_.set(false);
         
     }
-    
+
     private void runAlertRoutine(List<Alert> alerts) {
         
         if (alerts == null) {
@@ -1303,4 +1316,54 @@ public class AlertThread implements Runnable {
         return null;
     }
 
+    public List<GraphiteMetricAggregated> generateAlertStatusMetricsForGraphite(List<Alert> alerts) {
+        
+        if ((alerts == null) || alerts.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        long timestamp = System.currentTimeMillis();
+
+        List<GraphiteMetricAggregated> alertStatusGraphiteMetrics = new ArrayList<>();
+        Set<String> alertStatusGraphiteMetricNames = new HashSet<>();
+
+        for (Alert alert : alerts) {
+            if ((alert.getName() == null) || (alert.getId() == null)) continue;
+            
+            BigDecimal alertGraphiteMetricValue;
+
+            StringBuilder graphiteFormattedAlertName = new StringBuilder("");
+            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
+            graphiteFormattedAlertName.append(com.pearson.statsagg.metric_aggregation.graphite.Common.getGraphiteFormattedMetricPath(alert.getName()));
+            graphiteFormattedAlertName.append("~~").append(alert.getId());
+            
+            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
+                alertGraphiteMetricValue = new BigDecimal(3);
+            }
+            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
+                alertGraphiteMetricValue = new BigDecimal(2);
+            }
+            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
+                alertGraphiteMetricValue = new BigDecimal(1);
+            }
+            else {
+                alertGraphiteMetricValue = BigDecimal.ZERO;
+            }
+            
+            // correct for duplicate names by adding a '+' sign to the end of the alert name
+            while(alertStatusGraphiteMetricNames.contains(graphiteFormattedAlertName.toString())) {
+                graphiteFormattedAlertName.append("+");
+            }
+            
+            String graphiteFormattedAlertName_Final = graphiteFormattedAlertName.toString();
+            alertStatusGraphiteMetricNames.add(graphiteFormattedAlertName_Final);
+            GraphiteMetricAggregated graphiteMetricAggregated = new GraphiteMetricAggregated(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
+            alertStatusGraphiteMetrics.add(graphiteMetricAggregated);
+        }
+        
+        return alertStatusGraphiteMetrics;
+    }
+
+    
 }

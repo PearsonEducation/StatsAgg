@@ -146,15 +146,19 @@ public class MetricGroups extends HttpServlet {
             MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
             List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
             TreeSet<String> allMetricGroupRegexs = new TreeSet<>();
-            for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
-                allMetricGroupRegexs.add(currentMetricGroupRegex.getPattern());
+            if (metricGroupRegexs != null) {
+                for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
+                    allMetricGroupRegexs.add(currentMetricGroupRegex.getPattern());
+                }
             }
 
             MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
             List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
             TreeSet<String> allMetricGroupTags = new TreeSet<>();
-            for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
-                allMetricGroupTags.add(currentMetricGroupTag.getTag());
+            if (metricGroupTags != null) {
+                for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
+                    allMetricGroupTags.add(currentMetricGroupTag.getTag());
+                }
             }
 
             MetricGroup clonedMetricGroup = MetricGroup.copy(metricGroup);

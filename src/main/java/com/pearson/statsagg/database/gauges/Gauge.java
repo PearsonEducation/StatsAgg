@@ -3,6 +3,7 @@ package com.pearson.statsagg.database.gauges;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import com.pearson.statsagg.database.DatabaseObject;
+import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,11 +14,13 @@ public class Gauge extends DatabaseObject<Gauge> {
     
     private static final Logger logger = LoggerFactory.getLogger(Gauge.class.getName());
    
+    private final String bucketSha1_;
     private final String bucket_;
     private final BigDecimal metricValue_;
     private final Timestamp lastModified_;
     
-    public Gauge(String bucket, BigDecimal metricValue, Timestamp lastModified) {
+    public Gauge(String bucketSha1, String bucket, BigDecimal metricValue, Timestamp lastModified) {
+        this.bucketSha1_ = bucketSha1;
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
         
@@ -29,7 +32,8 @@ public class Gauge extends DatabaseObject<Gauge> {
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder("");
         
-        stringBuilder.append("bucket=").append(bucket_).append(", metricValue=").append(metricValue_).append(", lastModified=").append(lastModified_.getTime());
+        stringBuilder.append("bucket_sha1=").append(bucketSha1_).append(", bucket=").append(bucket_).append(", metricValue=")
+                .append(metricValue_).append(", lastModified=").append(lastModified_.getTime());
 
         return stringBuilder.toString();
     }
@@ -37,30 +41,28 @@ public class Gauge extends DatabaseObject<Gauge> {
     @Override
     public boolean isEqual(Gauge gauge) {
         
-        boolean isEquals = true;
+        if (gauge == null) return false;
+        if (gauge == this) return true;
+        if (gauge.getClass() != getClass()) return false;
         
-        if (isEquals && (bucket_ != null)) {
-            isEquals = bucket_.equals(gauge.getBucket());
+        boolean isMetricValueEqual = false;
+        if ((metricValue_ != null) && (gauge.getMetricValue() != null)) {
+            isMetricValueEqual = metricValue_.compareTo(gauge.getMetricValue()) == 0;
         }
-        else if (isEquals && (bucket_ == null)) {
-            isEquals = gauge.getBucket() == null;
-        }
-
-        if (isEquals && (metricValue_ != null)) {
-            isEquals = (metricValue_.compareTo(gauge.getMetricValue()) == 0);
-        }
-        else if (isEquals && (metricValue_ == null)) {
-            isEquals = gauge.getMetricValue() == null;
+        else if (metricValue_ == null) {
+            isMetricValueEqual = gauge.getMetricValue() == null;
         }
         
-        if (isEquals && (lastModified_ != null)) {
-            isEquals = (lastModified_.getTime() == gauge.getLastModified().getTime());
-        }
-        else {
-            isEquals = gauge.getLastModified() == null;
-        }
-        
-        return isEquals;
+        return new EqualsBuilder()
+                .append(bucketSha1_, gauge.getBucketSha1())
+                .append(bucket_, gauge.getBucket())
+                .append(isMetricValueEqual, true)
+                .append(lastModified_, gauge.getLastModified())
+                .isEquals();
+    }
+    
+    public String getBucketSha1() {
+        return bucketSha1_;
     }
     
     public String getBucket() {

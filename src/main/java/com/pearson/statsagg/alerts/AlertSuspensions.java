@@ -304,8 +304,10 @@ public class AlertSuspensions {
         MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
         List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
 
-        for (MetricGroupTag metricGroupTag : metricGroupTags) {
-            metricGroupTagsSet.add(metricGroupTag.getTag());
+        if (metricGroupTags != null) {
+            for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                metricGroupTagsSet.add(metricGroupTag.getTag());
+            }
         }
 
         return metricGroupTagsSet;

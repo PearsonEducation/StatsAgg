@@ -13,12 +13,20 @@ public class MetricGroupRegexsSql {
     protected final static String DropTable_MetricGroupRegexs = 
                     "DROP TABLE METRIC_GROUP_REGEXS";
     
-    protected final static String CreateTable_MetricGroupRegexs =  
+    protected final static String CreateTable_MetricGroupRegexs_Derby =  
                     "CREATE TABLE METRIC_GROUP_REGEXS (" + 
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL," + 
-                    "PATTERN VARCHAR(32000) NOT NULL" + 
+                    "PATTERN CLOB(65535) NOT NULL" + 
                     ")";
+    
+    protected final static String CreateTable_MetricGroupRegexs_MySQL =  
+                    "CREATE TABLE METRIC_GROUP_REGEXS (" + 
+                    "ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, " + 
+                    "METRIC_GROUP_ID INTEGER NOT NULL," + 
+                    "PATTERN TEXT NOT NULL" + 
+                    ") " +
+                    "ROW_FORMAT=DYNAMIC";
     
     protected final static String CreateIndex_MetricGroupRegexs_PrimaryKey =
                     "ALTER TABLE METRIC_GROUP_REGEXS ADD CONSTRAINT MGR_PK PRIMARY KEY (" + 

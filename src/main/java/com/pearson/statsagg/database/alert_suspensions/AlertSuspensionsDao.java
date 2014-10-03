@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,8 +33,15 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateTable_AlertSuspensions);
-        databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_PrimaryKey);
+        
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateTable_AlertSuspensions_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateTable_AlertSuspensions_Derby);
+            databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_PrimaryKey);
+        }
+        
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_Unique_Name);
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_Unique_UppercaseName);
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_SuspendBy);

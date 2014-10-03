@@ -11,7 +11,6 @@ import java.util.Arrays;
 import java.util.List;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.sql.Clob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -420,6 +419,19 @@ public class DatabaseInterface {
         return endTransactionSuccess;
     }
     
+    public Boolean isConnectionReadOnly() {
+        try {
+            if ((connection_ == null) || connection_.isClosed()) {
+                return null;
+            }
+
+            return connection_.isReadOnly();
+        }
+        catch (Exception e) {
+            return null;
+        }
+    }
+    
     public boolean isConnectionValid() {
         if ((validityCheckTimeout_ == null) || (validityCheckTimeout_ < 0)) {
             return isConnectionValid(0);
@@ -453,7 +465,7 @@ public class DatabaseInterface {
             
             long timeElapsed = System.currentTimeMillis() - startTime;
             
-            logger.error("Method=IsConnectionValidTimeout" + ", TimeElapsed=" + timeElapsed + ", Exception=" + e.toString() + 
+            logger.error("Method=IsConnectionValid" + ", TimeElapsed=" + timeElapsed + ", Exception=" + e.toString() + 
                     System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             
             return false;

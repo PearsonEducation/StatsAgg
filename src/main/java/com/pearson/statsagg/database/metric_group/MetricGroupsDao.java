@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,10 +30,18 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(MetricGroupsSql.CreateTable_MetricGroups);
-        databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_PrimaryKey);
-        databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_Unique_Name);
         
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(MetricGroupsSql.CreateTable_MetricGroups_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(MetricGroupsSql.CreateTable_MetricGroups_Derby);
+            databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_PrimaryKey);
+        }
+        
+        databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_Unique_Name);
+        databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_Unique_UppercaseName);
+
         return createTable(databaseCreationSqlStatements);
     }
     
@@ -149,7 +158,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         try {
 
             if (!isConnectionValid()) {
-                return new ArrayList<>();
+                return null;
             }
 
             databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_DistinctMetricGroupIds, 1000);
@@ -172,7 +181,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
+            return null;
         }
         finally {
             databaseInterface_.cleanupAutomatic();

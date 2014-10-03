@@ -34,6 +34,10 @@ public class MetricAssociation {
   
         MetricGroupsDao metricGrouspDao = new MetricGroupsDao();
         List<Integer> metricGroupIds = metricGrouspDao.getAllMetricGroupIds();
+        if (metricGroupIds == null) {
+            logger.error("Failure reading metric group ids from the datbase. Aborting metric association routine.");
+            return;
+        }
         
         updateMergedRegexsForMetricGroups(metricGroupIds);
                 
@@ -194,9 +198,14 @@ public class MetricAssociation {
                     
         MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
         List<String> regexs = metricGroupRegexsDao.getPatterns(metricGroupId);
-        String mergedRegex = StringUtilities.createMergedRegex(regexs);
         
-        return mergedRegex;
+        if (regexs != null) {
+            String mergedRegex = StringUtilities.createMergedRegex(regexs);
+            return mergedRegex;
+        }
+        else {
+            return null;
+        }
     }
 
     public static Pattern getPatternFromRegexString(String regex) {

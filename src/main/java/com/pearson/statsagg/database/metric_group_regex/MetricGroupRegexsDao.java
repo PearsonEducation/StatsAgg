@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,8 +32,15 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateTable_MetricGroupRegexs);
-        databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateIndex_MetricGroupRegexs_PrimaryKey);
+        
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateTable_MetricGroupRegexs_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateTable_MetricGroupRegexs_Derby);
+            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateIndex_MetricGroupRegexs_PrimaryKey);
+        }
+        
         databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateIndex_MetricGroupRegexs_ForeignKey_MetricGroupId);
         
         return createTable(databaseCreationSqlStatements);
@@ -85,6 +93,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
             if (resultSet.wasNull()) mgId = null;
             
             String pattern = resultSet.getString("PATTERN");
+            if (resultSet.wasNull()) pattern = null;
 
             MetricGroupRegex metricGroupRegex = new MetricGroupRegex(id, mgId, pattern);
             
@@ -137,7 +146,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
         try {
 
             if (!isConnectionValid()) {
-                return new ArrayList<>();
+                return null;
             }
 
             databaseInterface_.createPreparedStatement(MetricGroupRegexsSql.Select_MetricGroupRegexs_ByMetricGroupId, 100);
@@ -145,7 +154,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {
-                return new ArrayList<>();
+                return null;
             }
 
             List<MetricGroupRegex> metricGroupRegexs = new ArrayList<>();
@@ -160,7 +169,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
+            return null;
         }
         finally {
             databaseInterface_.cleanupAutomatic();
@@ -176,14 +185,16 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     public List<String> getPatterns(Integer metricGroupId) {
 
         if (metricGroupId == null) {
-            return new ArrayList<>();
+            return null;
         }
 
-        List<String> patterns = new ArrayList<>();
+        List<String> patterns = null;
                 
         List<MetricGroupRegex> metricGroupRegexs = getMetricGroupRegexsByMetricGroupId(metricGroupId);
 
         if (metricGroupRegexs != null) {
+            patterns = new ArrayList<>();
+            
             for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
                 if (metricGroupRegex.getPattern() != null) {
                     patterns.add(metricGroupRegex.getPattern());

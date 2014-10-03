@@ -20,6 +20,7 @@ import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -215,15 +216,23 @@ public class StatsdAggregationThread implements Runnable {
         
         int arrayListInitialSize = (int) (statsdMetricsAggregatedGauges.size() * 1.3);
         List<Gauge> gauges = new ArrayList<>(arrayListInitialSize);
+        
         for (StatsdMetricAggregated statsdMetricsAggregatedGauge : statsdMetricsAggregatedGauges) {
+            String bucketSha1 = GlobalVariables.statsdGaugeBucketDigests.get(statsdMetricsAggregatedGauge.getBucket());
+            if (bucketSha1 == null) {
+                bucketSha1 = DigestUtils.sha1Hex(statsdMetricsAggregatedGauge.getBucket());
+                GlobalVariables.statsdGaugeBucketDigests.put(statsdMetricsAggregatedGauge.getBucket(), bucketSha1);
+            }
+            
             Timestamp gaugeTimestamp = new Timestamp(statsdMetricsAggregatedGauge.getTimestampInMilliseconds());
-            Gauge gauge = new Gauge(statsdMetricsAggregatedGauge.getBucket(), statsdMetricsAggregatedGauge.getMetricValue(), gaugeTimestamp);
+            
+            Gauge gauge = new Gauge(bucketSha1, statsdMetricsAggregatedGauge.getBucket(), statsdMetricsAggregatedGauge.getMetricValue(), gaugeTimestamp);
             gauges.add(gauge);
         }
         
         GaugesDao gaugesDao = new GaugesDao(false);
         
-        boolean upsertSucess = gaugesDao.upsert(gauges, true);
+        boolean upsertSucess = gaugesDao.batchUpsert(gauges);
         
         gaugesDao.close();
         
@@ -382,18 +391,26 @@ public class StatsdAggregationThread implements Runnable {
         }
             
         for (String bucketToForget : bucketsToForget) {
-            GlobalVariables.immediateCleanupMetrics.put(bucketToForget, bucketToForget);
+            GlobalVariables.immediateCleanupMetrics.put(bucketToForget, bucketToForget);            
             StatsdMetricAggregated statsdMetricAggregated = GlobalVariables.statsdMetricsAggregatedMostRecentValue.get(bucketToForget);
-            GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
-
+            
             if ((statsdMetricAggregated != null) && (statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.GAUGE_TYPE)) {
                 if (gaugesDao != null) {
-                    boolean deleteSuccess = gaugesDao.delete(bucketToForget);
+                    String bucketSha1 = GlobalVariables.statsdGaugeBucketDigests.get(bucketToForget);
+                    boolean deleteSuccess = false;
+                    if (bucketSha1 != null) deleteSuccess = gaugesDao.delete(bucketSha1);
 
-                    if (!deleteSuccess) {
-                        logger.error("Failed deleting gauge from the database.");
-                    }     
+                    if ((bucketSha1 != null) && deleteSuccess) {
+                        GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
+                        GlobalVariables.statsdGaugeBucketDigests.remove(bucketToForget);
+                    }  
+                    else {
+                        logger.error("Failed deleting gauge from the database. Gauge=\"" + bucketToForget + "\"");
+                    }
                 }
+            }
+            else {
+                GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
             }
         }
     }

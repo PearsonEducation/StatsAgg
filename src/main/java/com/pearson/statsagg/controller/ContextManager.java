@@ -351,11 +351,17 @@ public class ContextManager implements ServletContextListener {
         List<Gauge> gauges = gaugeDao.getAllDatabaseObjectsInTable();
         
         for (Gauge gauge : gauges) {
-            StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(gauge.getBucket(), gauge.getMetricValue(), 
-                    System.currentTimeMillis(), StatsdMetricAggregated.GAUGE_TYPE);
-            statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            
-            GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
+            try {
+                StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(gauge.getBucket(), gauge.getMetricValue(), 
+                        System.currentTimeMillis(), StatsdMetricAggregated.GAUGE_TYPE);
+                statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+
+                GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
+                GlobalVariables.statsdGaugeBucketDigests.putIfAbsent(gauge.getBucket(), gauge.getBucketSha1());
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
         return gauges.size();

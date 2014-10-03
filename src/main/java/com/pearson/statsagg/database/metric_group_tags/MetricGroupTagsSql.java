@@ -13,12 +13,20 @@ public class MetricGroupTagsSql {
     protected final static String DropTable_MetricGroupTags = 
                     "DROP TABLE METRIC_GROUP_TAGS";
     
-    protected final static String CreateTable_MetricGroupTags =  
+    protected final static String CreateTable_MetricGroupTags_Derby =  
                     "CREATE TABLE METRIC_GROUP_TAGS (" + 
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL," + 
-                    "TAG VARCHAR(32000) NOT NULL" + 
+                    "TAG CLOB(65535) NOT NULL" + 
                     ")";
+    
+    protected final static String CreateTable_MetricGroupTags_MySQL =  
+                    "CREATE TABLE METRIC_GROUP_TAGS (" + 
+                    "ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, " + 
+                    "METRIC_GROUP_ID INTEGER NOT NULL," + 
+                    "TAG TEXT NOT NULL" + 
+                    ") " +
+                    "ROW_FORMAT=DYNAMIC";
     
     protected final static String CreateIndex_MetricGroupTags_PrimaryKey =
                     "ALTER TABLE METRIC_GROUP_TAGS ADD CONSTRAINT MGT_PK PRIMARY KEY (" + 
@@ -29,9 +37,6 @@ public class MetricGroupTagsSql {
                     "ALTER TABLE METRIC_GROUP_TAGS " +
                     "ADD CONSTRAINT MGT_MGID_FK FOREIGN KEY (METRIC_GROUP_ID) " + 
                     "REFERENCES METRIC_GROUPS(ID)";
-    
-    public final static String CreateIndex_MetricGroupTags_Tags =
-                    "CREATE INDEX MGT_T ON METRIC_GROUP_TAGS(TAG)";
     
     protected final static String Select_MetricGroupTag_ByPrimaryKey = 
                     "SELECT * FROM METRIC_GROUP_TAGS " +

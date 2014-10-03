@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,10 +32,16 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateTable_MetricGroupTags);
-        databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_PrimaryKey);
+        
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateTable_MetricGroupTags_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateTable_MetricGroupTags_Derby);
+            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_PrimaryKey);
+        }
+        
         databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_ForeignKey_MetricGroupId);
-        databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_Tags);
 
         return createTable(databaseCreationSqlStatements);
     }
@@ -139,7 +146,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         try {
 
             if (!isConnectionValid()) {
-                return new ArrayList<>();
+                return null;
             }
 
             databaseInterface_.createPreparedStatement(MetricGroupTagsSql.Select_MetricGroupTags_ByMetricGroupId, 100);
@@ -147,7 +154,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {
-                return new ArrayList<>();
+                return null;
             }
 
             List<MetricGroupTag> metricGroupTags = new ArrayList<>();
@@ -163,7 +170,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
+            return null;
         }
         finally {
             databaseInterface_.cleanupAutomatic();

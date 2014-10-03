@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database.alerts;
 
-import com.pearson.statsagg.database.DatabaseInterface;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -9,8 +8,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.sql.Clob;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -35,8 +34,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(AlertsSql.CreateTable_Alerts);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_PrimaryKey);
+        
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(AlertsSql.CreateTable_Alerts_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(AlertsSql.CreateTable_Alerts_Derby);
+            databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_PrimaryKey);
+        }
+        
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_Name);
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_UppercaseName);
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_MetricGroupId);
@@ -160,9 +166,8 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Timestamp cautionAlertLastSentTimestamp = resultSet.getTimestamp("CAUTION_ALERT_LAST_SENT_TIMESTAMP");
             if (resultSet.wasNull()) cautionAlertLastSentTimestamp = null;
             
-            Clob cautionActiveAlertsSet = resultSet.getClob("CAUTION_ACTIVE_ALERTS_SET");
+            String cautionActiveAlertsSet = resultSet.getString("CAUTION_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) cautionActiveAlertsSet = null;
-            String cautionActiveAlertsSet_String = DatabaseInterface.getStringFromClob(cautionActiveAlertsSet);
 
             Integer dangerAlertType = resultSet.getInt("DANGER_ALERT_TYPE");
             if (resultSet.wasNull()) dangerAlertType = null;
@@ -191,16 +196,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Timestamp dangerAlertLastSentTimestamp = resultSet.getTimestamp("DANGER_ALERT_LAST_SENT_TIMESTAMP");
             if (resultSet.wasNull()) dangerAlertLastSentTimestamp = null;
             
-            Clob dangerActiveAlertsSet = resultSet.getClob("DANGER_ACTIVE_ALERTS_SET");
+            String dangerActiveAlertsSet = resultSet.getString("DANGER_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) dangerActiveAlertsSet = null;
-            String dangerActiveAlertsSet_String = DatabaseInterface.getStringFromClob(dangerActiveAlertsSet);
 
             Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, notificationGroupId, isEnabled, alertOnPositive, 
                     allowResendAlert, sendAlertEveryNumMilliseconds, 
                     cautionAlertType, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
-                    cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet_String,
+                    cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet,
                     dangerAlertType, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
-                    dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet_String);
+                    dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet);
             
             return alert;
         }

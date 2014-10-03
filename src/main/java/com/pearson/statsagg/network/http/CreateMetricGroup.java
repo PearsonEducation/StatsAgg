@@ -198,10 +198,12 @@ public class CreateMetricGroup extends HttpServlet {
             MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
             List<MetricGroupRegex> metricGroupRegexs =  metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
             
-            for (int i = 0; i < metricGroupRegexs.size(); i++) {
-                htmlBody.append(metricGroupRegexs.get(i).getPattern());
-                if ((i + 1) < metricGroupRegexs.size()) {
-                    htmlBody.append("\n");
+            if (metricGroupRegexs != null) {
+                for (int i = 0; i < metricGroupRegexs.size(); i++) {
+                    htmlBody.append(metricGroupRegexs.get(i).getPattern());
+                    if ((i + 1) < metricGroupRegexs.size()) {
+                        htmlBody.append("\n");
+                    }
                 }
             }
         }
@@ -217,10 +219,12 @@ public class CreateMetricGroup extends HttpServlet {
             MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
             List<MetricGroupTag> metricGroupTags =  metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
             
-            for (int i = 0; i < metricGroupTags.size(); i++) {
-                htmlBody.append(metricGroupTags.get(i).getTag());
-                if ((i + 1) < metricGroupTags.size()) {
-                    htmlBody.append("\n");
+            if (metricGroupTags != null) {
+                for (int i = 0; i < metricGroupTags.size(); i++) {
+                    htmlBody.append(metricGroupTags.get(i).getTag());
+                    if ((i + 1) < metricGroupTags.size()) {
+                        htmlBody.append("\n");
+                    }
                 }
             }
         }

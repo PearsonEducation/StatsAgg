@@ -249,7 +249,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFor
                     if (graphiteMetricRaw.getMetricTimestampInt() > currentMostRecentGraphiteMetricRaw.getMetricTimestampInt()) {
                         mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                     }
-                    else if (graphiteMetricRaw.getMetricTimestampInt().intValue() == currentMostRecentGraphiteMetricRaw.getMetricTimestampInt().intValue()) {
+                    else if (graphiteMetricRaw.getMetricTimestampInt().intValue() == currentMostRecentGraphiteMetricRaw.getMetricTimestampInt()) {
                         if (graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricReceivedTimestampInMilliseconds()) {
                             mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                         }

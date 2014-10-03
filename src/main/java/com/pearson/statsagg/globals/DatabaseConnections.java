@@ -4,6 +4,7 @@ import com.pearson.statsagg.utilities.StackTrace;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 import java.sql.Connection;
+import java.sql.Driver;
 import java.sql.DriverManager;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
@@ -16,7 +17,7 @@ public class DatabaseConnections {
     
     private static final Logger logger = LoggerFactory.getLogger(DatabaseConnections.class.getName());
 
-    protected static BoneCP connectionPool_ = null;
+    private static BoneCP connectionPool_ = null;
     private static String jdbc_ = null;
     
     public static void setDriver() {
@@ -25,8 +26,15 @@ public class DatabaseConnections {
         try {      
             if (DatabaseConfiguration.getType() == DatabaseConfiguration.DERBY_EMBEDDED) {
                 driver = "org.apache.derby.jdbc.EmbeddedDriver";
-                Class.forName(driver).newInstance();
             }
+            else if (DatabaseConfiguration.getType() == DatabaseConfiguration.DERBY_NETWORK) {
+                driver = "org.apache.derby.jdbc.ClientDriver";
+            }            
+            else if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                driver = "com.mysql.jdbc.Driver";
+            }
+            
+            Class.forName(driver).newInstance();
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
@@ -139,6 +147,22 @@ public class DatabaseConnections {
                 else {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
+            }
+        }
+        else if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            try {
+                com.mysql.jdbc.AbandonedConnectionCleanupThread.shutdown();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+            try {
+                Driver driver = DriverManager.getDriver(jdbc_);
+                DriverManager.deregisterDriver(driver);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
         

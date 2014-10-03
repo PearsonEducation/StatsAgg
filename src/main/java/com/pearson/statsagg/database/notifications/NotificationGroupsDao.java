@@ -4,6 +4,7 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,10 +32,18 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
-        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateTable_NotificationGroups);
-        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_PrimaryKey);
-        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_Unique_Name);
         
+        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateTable_NotificationGroups_MySQL);
+        }
+        else {
+            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateTable_NotificationGroups_Derby);
+            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_PrimaryKey);
+        }
+
+        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_Unique_Name);
+        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_Unique_UppercaseName);
+
         return createTable(databaseCreationSqlStatements);
     }
     

@@ -38,7 +38,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
         
         try {
             
-            if (!isConnectionValid() || databaseInterface_.getConnection().isReadOnly()) {
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
                 return false;
             }
              
@@ -67,7 +67,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
                 
         try {
             
-            if (!isConnectionValid() || databaseInterface_.getConnection().isReadOnly()) {
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
                 return false;
             }
 
@@ -238,7 +238,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
                 return true;
             }
 
-            if (!isConnectionValid() || databaseInterface_.getConnection().isReadOnly()) {
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
                 return false;
             }
             
@@ -301,7 +301,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
                 return true;
             }
 
-            if (!isConnectionValid() || databaseInterface_.getConnection().isReadOnly()) {
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
                 return false;
             }
             
@@ -355,7 +355,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
                 return false;
             }
         
-            if (!isConnectionValid() || databaseInterface_.getConnection().isReadOnly()) {
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
                 return false;
             }
             
