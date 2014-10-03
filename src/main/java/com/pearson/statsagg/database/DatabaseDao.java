@@ -180,4 +180,4 @@ public class DatabaseDao {
         return isConnectionReadOnly_;
     }
     
-}
+} 
