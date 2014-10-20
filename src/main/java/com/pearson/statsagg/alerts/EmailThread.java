@@ -67,9 +67,12 @@ public class EmailThread implements Runnable  {
         
         buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup);
         
-        List<String> emailAddesses = getToEmailsAddressesForAlert(alert_.getNotificationGroupId());
+        List<String> emailAddesses;
+        if (warningLevel_ == WARNING_LEVEL_CAUTION) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
+        else if (warningLevel_ == WARNING_LEVEL_DANGER) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerNotificationGroupId());
+        else emailAddesses = new ArrayList();
         
-        if (ApplicationConfiguration.isAlertSendEmailEnabled()) {
+        if (ApplicationConfiguration.isAlertSendEmailEnabled() && !emailAddesses.isEmpty()) {
             sendEmail(emailAddesses, subject_, body_);
         }
     }

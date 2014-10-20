@@ -1,9 +1,7 @@
 package com.pearson.statsagg.network.http;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -38,12 +36,9 @@ public class AlertDetails extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -52,12 +47,9 @@ public class AlertDetails extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -131,10 +123,12 @@ public class AlertDetails extends HttpServlet {
         Alert alert = alertsDao.getAlertByName(alertName);
         
         if (alert != null) {
-            NotificationGroup notificationGroup = null;
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            if (alert.getNotificationGroupId() != null) notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getNotificationGroupId());
-                
+            NotificationGroup cautionNotificationGroup = null, dangerNotificationGroup = null;
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
+            if (alert.getCautionNotificationGroupId() != null) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+            if (alert.getDangerNotificationGroupId() != null) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+            notificationGroupsDao.close();
+            
             MetricGroup metricGroup = null;
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
             if (alert.getMetricGroupId() != null) metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
@@ -151,10 +145,6 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Metric group name</b> = ");
             if (metricGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
             else outputString.append("<br>");
-           
-            outputString.append("<b>Notification group name</b> = ");
-            if (notificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName())).append("<br>");
-            else outputString.append("N/A <br>");
                     
             outputString.append("<b>Is Enabled?</b> = ").append(alert.isEnabled()).append("<br>");
             outputString.append("<b>Alert on positive?</b> = ").append(alert.isAlertOnPositive()).append("<br>");
@@ -176,6 +166,10 @@ public class AlertDetails extends HttpServlet {
                 else if (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
                 else outputString.append("N/A").append("<br>");
             }
+            else outputString.append("N/A <br>");
+            
+            outputString.append("<b>Caution notification group name</b> = ");
+            if (cautionNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName())).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution window duration</b> = ");
@@ -231,6 +225,10 @@ public class AlertDetails extends HttpServlet {
                 else if (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
                 else outputString.append("N/A").append("<br>");
             }
+            else outputString.append("N/A <br>");
+            
+            outputString.append("<b>Danger notification group name</b> = ");
+            if (dangerNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName())).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger window duration</b> = ");

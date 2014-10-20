@@ -1,6 +1,5 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database.DatabaseInterface;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -12,11 +11,6 @@ import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.sql.Clob;
-import java.sql.SQLException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.sql.rowset.serial.SerialClob;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -57,21 +51,21 @@ public class AlertThreadTest {
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 1100, new BigDecimal("79"), hashKeyGen_.incrementAndGet())); 
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 1200, new BigDecimal("80.1"), hashKeyGen_.incrementAndGet()));     
         
-        alert1_ = new Alert(1, "alert1", "alert1_description" , 11, 1, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+        alert1_ = new Alert(1, "alert1", "alert1_description" , 11, false, true, true, 300000, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
         
-        alert2_ = new Alert(2, "alert2", "alert2_description" , 11, 1, true, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null);
+        alert2_ = new Alert(2, "alert2", "alert2_description" , 11, true, true, true, 300000, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null);
         
-        alert3_ = new Alert(3, "alert3", "alert3_description" , 11, 1, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+        alert3_ = new Alert(3, "alert3", "alert3_description" , 11, false, true, true, 300000, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
   
-        alert4_ = new Alert(4, "alert4", "alert4_description" , 11, 1, true, false, true, 300000, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null); 
+        alert4_ = new Alert(4, "alert4", "alert4_description" , 11, true, false, true, 300000, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null); 
     }
     
     @AfterClass
@@ -94,9 +88,9 @@ public class AlertThreadTest {
         List<Alert> alerts = new ArrayList<>();
         
         for (int i = 1; i <= 7877; i++) {
-            Alert alert = new Alert(i, "alert-" + i, "alert-" + i , 11, 1, false, true, true, 300000, 
-                Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null,  
-                Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+            Alert alert = new Alert(i, "alert-" + i, "alert-" + i , 11, false, true, true, 300000, 
+                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null,  
+                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
             
             alerts.add(alert);
         }

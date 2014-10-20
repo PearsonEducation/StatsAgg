@@ -1,6 +1,5 @@
 package com.pearson.statsagg.network.http;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -10,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -59,8 +57,7 @@ public class NotificationGroups extends HttpServlet {
      * @param response servlet response
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processPostRequest(request, response);
     }
 
@@ -198,8 +195,7 @@ public class NotificationGroups extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        AlertsDao alertsDao = new AlertsDao();
-        Set<Integer> notificationGroupIdsAssociatedWithAlerts = alertsDao.getDistinctNotificationGroupIds();
+        Set<Integer> notificationGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctNotificationGroupIds();
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         List<NotificationGroup> notificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
@@ -280,9 +276,9 @@ public class NotificationGroups extends HttpServlet {
         String testAlertName = "Notification test - alert";
         Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(),
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
-                88888, 77777, true, false, false, 300000, 
-                Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900, 1, true, new Timestamp(System.currentTimeMillis()), null,
-                Alert.TYPE_THRESHOLD, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+                88888, true, false, false, 300000, 
+                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900, 1, true, new Timestamp(System.currentTimeMillis()), null,
+                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000, 2, true, new Timestamp(System.currentTimeMillis()), null);
         
         String testMetricGroupName = "Notification test - metric group";
         MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),

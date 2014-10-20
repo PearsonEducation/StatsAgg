@@ -20,12 +20,12 @@ public class AlertsSql {
                     "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
                     "DESCRIPTION CLOB(1048576), " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL, " +
-                    "NOTIFICATION_GROUP_ID INTEGER, " +
                     "IS_ENABLED BOOLEAN NOT NULL, " +
                     "ALERT_ON_POSITIIVE BOOLEAN NOT NULL, " + 
                     "ALLOW_RESEND_ALERT BOOLEAN NOT NULL, " + 
                     "SEND_ALERT_EVERY_NUM_MILLISECONDS INTEGER, " + 
                     "CAUTION_ALERT_TYPE INTEGER, " +
+                    "CAUTION_NOTIFICATION_GROUP_ID INTEGER, " +
                     "CAUTION_OPERATOR INTEGER, " + 
                     "CAUTION_COMBINATION INTEGER, " + 
                     "CAUTION_COMBINATION_COUNT INTEGER, " + 
@@ -36,6 +36,7 @@ public class AlertsSql {
                     "CAUTION_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP, " +
                     "CAUTION_ACTIVE_ALERTS_SET CLOB(1048576), " +
                     "DANGER_ALERT_TYPE INTEGER, " +
+                    "DANGER_NOTIFICATION_GROUP_ID INTEGER, " +
                     "DANGER_OPERATOR INTEGER, " + 
                     "DANGER_COMBINATION INTEGER, " + 
                     "DANGER_COMBINATION_COUNT INTEGER, " + 
@@ -54,12 +55,12 @@ public class AlertsSql {
                     "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
                     "DESCRIPTION MEDIUMTEXT, " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL, " +
-                    "NOTIFICATION_GROUP_ID INTEGER, " +
                     "IS_ENABLED BOOLEAN NOT NULL, " +
                     "ALERT_ON_POSITIIVE BOOLEAN NOT NULL, " + 
                     "ALLOW_RESEND_ALERT BOOLEAN NOT NULL, " + 
                     "SEND_ALERT_EVERY_NUM_MILLISECONDS INTEGER, " + 
                     "CAUTION_ALERT_TYPE INTEGER, " +
+                    "CAUTION_NOTIFICATION_GROUP_ID INTEGER, " +
                     "CAUTION_OPERATOR INTEGER, " + 
                     "CAUTION_COMBINATION INTEGER, " + 
                     "CAUTION_COMBINATION_COUNT INTEGER, " + 
@@ -70,6 +71,7 @@ public class AlertsSql {
                     "CAUTION_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP, " +
                     "CAUTION_ACTIVE_ALERTS_SET MEDIUMTEXT, " +
                     "DANGER_ALERT_TYPE INTEGER, " +
+                    "DANGER_NOTIFICATION_GROUP_ID INTEGER, " +
                     "DANGER_OPERATOR INTEGER, " + 
                     "DANGER_COMBINATION INTEGER, " + 
                     "DANGER_COMBINATION_COUNT INTEGER, " + 
@@ -101,9 +103,14 @@ public class AlertsSql {
                     "ADD CONSTRAINT A_MGID_FK FOREIGN KEY (METRIC_GROUP_ID) " + 
                     "REFERENCES METRIC_GROUPS(ID)";
     
-    protected final static String CreateIndex_Alerts_ForeignKey_NotificationGroupId =
+    protected final static String CreateIndex_Alerts_ForeignKey_CautionNotificationGroupId =
                     "ALTER TABLE ALERTS " +
-                    "ADD CONSTRAINT A_NGID_FK FOREIGN KEY (NOTIFICATION_GROUP_ID) " + 
+                    "ADD CONSTRAINT A_CNGID_FK FOREIGN KEY (CAUTION_NOTIFICATION_GROUP_ID) " + 
+                    "REFERENCES NOTIFICATION_GROUPS(ID)";
+    
+    protected final static String CreateIndex_Alerts_ForeignKey_DangerNotificationGroupId =
+                    "ALTER TABLE ALERTS " +
+                    "ADD CONSTRAINT A_DNGID_FK FOREIGN KEY (DANGER_NOTIFICATION_GROUP_ID) " + 
                     "REFERENCES NOTIFICATION_GROUPS(ID)";
     
     protected final static String Select_Alert_ByPrimaryKey = 
@@ -124,25 +131,28 @@ public class AlertsSql {
     protected final static String Select_DistinctMetricGroupIds = 
                     "SELECT DISTINCT(METRIC_GROUP_ID) FROM ALERTS";
     
-    protected final static String Select_DistinctNotificationGroupIds = 
-                    "SELECT DISTINCT(NOTIFICATION_GROUP_ID) FROM ALERTS";
+    protected final static String Select_DistinctCautionNotificationGroupIds = 
+                    "SELECT DISTINCT(CAUTION_NOTIFICATION_GROUP_ID) FROM ALERTS";
+    
+    protected final static String Select_DistinctDangerNotificationGroupIds = 
+                    "SELECT DISTINCT(DANGER_NOTIFICATION_GROUP_ID) FROM ALERTS";
     
     protected final static String Insert_Alert =
                     "INSERT INTO ALERTS " +
-                    "(NAME, UPPERCASE_NAME, DESCRIPTION, METRIC_GROUP_ID, NOTIFICATION_GROUP_ID, IS_ENABLED, ALERT_ON_POSITIIVE, ALLOW_RESEND_ALERT, SEND_ALERT_EVERY_NUM_MILLISECONDS, " + 
-                    "CAUTION_ALERT_TYPE, CAUTION_OPERATOR, CAUTION_COMBINATION, CAUTION_COMBINATION_COUNT, CAUTION_THRESHOLD, CAUTION_WINDOW_DURATION, " +
+                    "(NAME, UPPERCASE_NAME, DESCRIPTION, METRIC_GROUP_ID, IS_ENABLED, ALERT_ON_POSITIIVE, ALLOW_RESEND_ALERT, SEND_ALERT_EVERY_NUM_MILLISECONDS, " + 
+                    "CAUTION_ALERT_TYPE, CAUTION_NOTIFICATION_GROUP_ID, CAUTION_OPERATOR, CAUTION_COMBINATION, CAUTION_COMBINATION_COUNT, CAUTION_THRESHOLD, CAUTION_WINDOW_DURATION, " +
                     "CAUTION_MINIMUM_SAMPLE_COUNT, IS_CAUTION_ALERT_ACTIVE, CAUTION_ALERT_LAST_SENT_TIMESTAMP, CAUTION_ACTIVE_ALERTS_SET, " + 
-                    "DANGER_ALERT_TYPE, DANGER_OPERATOR, DANGER_COMBINATION, DANGER_COMBINATION_COUNT, DANGER_THRESHOLD, DANGER_WINDOW_DURATION, " +
+                    "DANGER_ALERT_TYPE, DANGER_NOTIFICATION_GROUP_ID, DANGER_OPERATOR, DANGER_COMBINATION, DANGER_COMBINATION_COUNT, DANGER_THRESHOLD, DANGER_WINDOW_DURATION, " +
                     "DANGER_MINIMUM_SAMPLE_COUNT, IS_DANGER_ALERT_ACTIVE, DANGER_ALERT_LAST_SENT_TIMESTAMP, DANGER_ACTIVE_ALERTS_SET) " + 
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     
     protected final static String Update_Alert_ByPrimaryKey =
                     "UPDATE ALERTS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ?, METRIC_GROUP_ID = ?, NOTIFICATION_GROUP_ID = ?, IS_ENABLED = ?, ALERT_ON_POSITIIVE = ?, " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ?, METRIC_GROUP_ID = ?, IS_ENABLED = ?, ALERT_ON_POSITIIVE = ?, " +
                     "ALLOW_RESEND_ALERT = ?, SEND_ALERT_EVERY_NUM_MILLISECONDS = ?, " +
-                    "CAUTION_ALERT_TYPE = ?, CAUTION_OPERATOR = ?, CAUTION_COMBINATION = ?, CAUTION_COMBINATION_COUNT = ?, CAUTION_THRESHOLD = ?, CAUTION_WINDOW_DURATION = ?, " +
+                    "CAUTION_ALERT_TYPE = ?, CAUTION_NOTIFICATION_GROUP_ID = ?, CAUTION_OPERATOR = ?, CAUTION_COMBINATION = ?, CAUTION_COMBINATION_COUNT = ?, CAUTION_THRESHOLD = ?, CAUTION_WINDOW_DURATION = ?, " +
                     "CAUTION_MINIMUM_SAMPLE_COUNT = ?, IS_CAUTION_ALERT_ACTIVE = ?, CAUTION_ALERT_LAST_SENT_TIMESTAMP = ?, CAUTION_ACTIVE_ALERTS_SET = ?, " +
-                    "DANGER_ALERT_TYPE = ?, DANGER_OPERATOR = ?, DANGER_COMBINATION = ?, DANGER_COMBINATION_COUNT = ?, DANGER_THRESHOLD = ?, DANGER_WINDOW_DURATION = ?, " +
+                    "DANGER_ALERT_TYPE = ?, DANGER_NOTIFICATION_GROUP_ID = ?, DANGER_OPERATOR = ?, DANGER_COMBINATION = ?, DANGER_COMBINATION_COUNT = ?, DANGER_THRESHOLD = ?, DANGER_WINDOW_DURATION = ?, " +
                     "DANGER_MINIMUM_SAMPLE_COUNT = ?, IS_DANGER_ALERT_ACTIVE = ?, DANGER_ALERT_LAST_SENT_TIMESTAMP = ?, DANGER_ACTIVE_ALERTS_SET = ? " +
                     "WHERE ID = ?";
     

@@ -1,12 +1,10 @@
 package com.pearson.statsagg.network.http;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -40,12 +38,9 @@ public class AlertPreview extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -54,12 +49,9 @@ public class AlertPreview extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -246,8 +238,9 @@ public class AlertPreview extends HttpServlet {
 
         alert.setId(99999);
         alert.setMetricGroupId(77777);
-        alert.setNotificationGroupId(77777);
-
+        alert.setCautionNotificationGroupId(77777);
+        alert.setDangerNotificationGroupId(77777);
+        
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
         if (metricGroup != null) metricGroup = new MetricGroup(88888, metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription());

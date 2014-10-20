@@ -241,6 +241,10 @@ ul.ColVis_collection {
 }
 
 button.ColVis_Button, ul.ColVis_collection li {
-    margin-left: 15px !important;
+    margin-left: 0px !important;
     margin-right: 0px !important;
+}
+
+.input-sm, .form-horizontal .form-group-sm .form-control {
+    margin-right: 15px !important;
 }

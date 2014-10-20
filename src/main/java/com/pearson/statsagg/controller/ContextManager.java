@@ -42,7 +42,6 @@ import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
 import com.pearson.statsagg.utilities.Threads;
-import java.util.Properties;
 import org.apache.commons.io.IOUtils;
 
 /**

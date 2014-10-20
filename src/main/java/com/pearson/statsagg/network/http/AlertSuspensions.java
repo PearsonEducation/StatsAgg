@@ -4,13 +4,11 @@ import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -55,8 +53,7 @@ public class AlertSuspensions extends HttpServlet {
      * @param response servlet response
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processPostRequest(request, response);
     }
 

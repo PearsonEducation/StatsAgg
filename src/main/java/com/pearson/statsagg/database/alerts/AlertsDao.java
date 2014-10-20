@@ -46,8 +46,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_Name);
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_UppercaseName);
         databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_MetricGroupId);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_NotificationGroupId);
-        
+        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_CautionNotificationGroupId);
+        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_DangerNotificationGroupId);
+
         return createTable(databaseCreationSqlStatements);
     }
 
@@ -64,13 +65,13 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         if (alert == null) return false;
         
         return insert(AlertsSql.Insert_Alert, 
-                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), alert.getNotificationGroupId(),
+                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
                 alert.isEnabled(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
-                alert.getCautionAlertType(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
+                alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
-                alert.getDangerAlertType(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
+                alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet()
         );
@@ -81,13 +82,13 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         if (alert == null) return false;
         
         return update(AlertsSql.Update_Alert_ByPrimaryKey, 
-                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), alert.getNotificationGroupId(), 
+                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
                 alert.isEnabled(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
-                alert.getCautionAlertType(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(), 
+                alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
-                alert.getDangerAlertType(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),
+                alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet(),
                 alert.getId());
@@ -124,9 +125,6 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Integer metricGroupId = resultSet.getInt("METRIC_GROUP_ID");
             if (resultSet.wasNull()) metricGroupId = null;
             
-            Integer notificationGroupId = resultSet.getInt("NOTIFICATION_GROUP_ID");
-            if (resultSet.wasNull()) notificationGroupId = null;
-            
             Boolean isEnabled = resultSet.getBoolean("IS_ENABLED");
             if (resultSet.wasNull()) isEnabled = null;
             
@@ -141,6 +139,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
             Integer cautionAlertType = resultSet.getInt("CAUTION_ALERT_TYPE");
             if (resultSet.wasNull()) cautionAlertType = null;
+            
+            Integer cautionNotificationGroupId = resultSet.getInt("CAUTION_NOTIFICATION_GROUP_ID");
+            if (resultSet.wasNull()) cautionNotificationGroupId = null;
             
             Integer cautionOperator = resultSet.getInt("CAUTION_OPERATOR");
             if (resultSet.wasNull()) cautionOperator = null;
@@ -172,6 +173,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Integer dangerAlertType = resultSet.getInt("DANGER_ALERT_TYPE");
             if (resultSet.wasNull()) dangerAlertType = null;
             
+            Integer dangerNotificationGroupId = resultSet.getInt("DANGER_NOTIFICATION_GROUP_ID");
+            if (resultSet.wasNull()) dangerNotificationGroupId = null;
+            
             Integer dangerOperator = resultSet.getInt("DANGER_OPERATOR");
             if (resultSet.wasNull()) dangerOperator = null;
             
@@ -199,11 +203,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             String dangerActiveAlertsSet = resultSet.getString("DANGER_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) dangerActiveAlertsSet = null;
 
-            Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, notificationGroupId, isEnabled, alertOnPositive, 
+            Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, alertOnPositive, 
                     allowResendAlert, sendAlertEveryNumMilliseconds, 
-                    cautionAlertType, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
+                    cautionAlertType, cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
                     cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet,
-                    dangerAlertType, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
+                    dangerAlertType, dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
                     dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet);
             
             return alert;
@@ -338,7 +342,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
     }
     
-    public Set<Integer> getDistinctNotificationGroupIds() {
+    public Set<Integer> getDistinctCautionNotificationGroupIds() {
         
         try {
 
@@ -346,7 +350,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 return null;
             }
 
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_DistinctNotificationGroupIds, 100);
+            databaseInterface_.createPreparedStatement(AlertsSql.Select_DistinctCautionNotificationGroupIds, 100);
             databaseInterface_.addPreparedStatementParameters();
             databaseInterface_.executePreparedStatement();
             
@@ -377,4 +381,58 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
     }
     
+    public Set<Integer> getDistinctDangerNotificationGroupIds() {
+        
+        try {
+
+            if (!isConnectionValid()) {
+                return null;
+            }
+
+            databaseInterface_.createPreparedStatement(AlertsSql.Select_DistinctDangerNotificationGroupIds, 100);
+            databaseInterface_.addPreparedStatementParameters();
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                return null;
+            }
+            
+            Set<Integer> notificationGroupIds = new HashSet<>();
+            
+            ResultSet resultSet = databaseInterface_.getResults();
+            
+            while (resultSet.next()) {
+                Integer notificationGroupId = resultSet.getInt(1);
+                if (resultSet.wasNull()) notificationGroupId = null;
+                
+                if (notificationGroupId != null) notificationGroupIds.add(notificationGroupId);
+            }
+
+            return notificationGroupIds;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
+        
+    }
+    
+    public static Set<Integer> getDistinctNotificationGroupIds() {
+        
+        Set distinctNotificationGroupIds = new HashSet<>();
+        
+        AlertsDao alertsDao = new AlertsDao(false);
+        Set<Integer> distinctCautionNotificationGroupIds = alertsDao.getDistinctCautionNotificationGroupIds();
+        Set<Integer> distinctDangerNotificationGroupIds = alertsDao.getDistinctDangerNotificationGroupIds();
+        alertsDao.close();
+        
+        if (distinctCautionNotificationGroupIds != null) distinctNotificationGroupIds.addAll(distinctCautionNotificationGroupIds);
+        if (distinctDangerNotificationGroupIds != null) distinctNotificationGroupIds.addAll(distinctDangerNotificationGroupIds);
+        
+        return distinctNotificationGroupIds;
+    }
+
 }

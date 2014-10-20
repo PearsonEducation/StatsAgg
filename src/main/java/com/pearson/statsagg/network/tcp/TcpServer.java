@@ -13,6 +13,7 @@ import io.netty.util.CharsetUtil;
 import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -103,16 +104,24 @@ public class TcpServer implements Runnable, NettyServer {
 
         try {
             if (workerGroup_ != null) {
-                workerGroup_.shutdownGracefully();
-            }
-            if (bossGroup_ != null) {
-                bossGroup_.shutdownGracefully();
+                Future futureWorkerGroup = workerGroup_.shutdownGracefully();
+                futureWorkerGroup.await();
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
+        try {
+            if (bossGroup_ != null) {
+                Future futureBossGroup = bossGroup_.shutdownGracefully();
+                futureBossGroup.await();
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+
         try {
             if (bossGroup_ != null) {
                 while ((bossGroup_ != null) && !bossGroup_.isTerminated()) {

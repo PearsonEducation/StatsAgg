@@ -1,15 +1,11 @@
 package com.pearson.statsagg.network.http;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeSet;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -18,7 +14,6 @@ import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -40,12 +35,9 @@ public class AlertAssociations extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -54,12 +46,9 @@ public class AlertAssociations extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -215,11 +204,6 @@ public class AlertAssociations extends HttpServlet {
                 for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysSorted) {
 
                     if (associationOutputCounter < 1000)  {
-                        List<KeyValue> keysAndValues = new ArrayList<>();
-                        keysAndValues.add(new KeyValue("MetricKey", activeCautionAlertMetricKey));
-                        String metricValuesLink = StatsAggHtmlFramework.buildJavaScriptPostLink("MetricValues_" + activeCautionAlertMetricKey, 
-                                "MetricRecentValues", StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey), keysAndValues);
-
                         String metricKeyAndMetricValue = null;
                         if (alert.getCautionAlertType() != null && alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY) {
                             metricKeyAndMetricValue = activeCautionAlertMetricKey;
@@ -231,8 +215,10 @@ public class AlertAssociations extends HttpServlet {
                             }
                         }
 
-                        outputString.append("<li>").append(metricValuesLink);
-                        if (metricKeyAndMetricValue != null) outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
+                        outputString.append("<li>");
+                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
+                        outputString.append(StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey)).append("</a>");
+                        outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
                         outputString.append("</li>");
                     }
                     else {
@@ -312,11 +298,6 @@ public class AlertAssociations extends HttpServlet {
                 for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysSorted) {
 
                     if (associationOutputCounter < 1000)  {
-                        List<KeyValue> keysAndValues = new ArrayList<>();
-                        keysAndValues.add(new KeyValue("MetricKey", activeDangerAlertMetricKey));
-                        String metricValuesLink = StatsAggHtmlFramework.buildJavaScriptPostLink("MetricValues_" + activeDangerAlertMetricKey, 
-                                "MetricRecentValues", StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey), keysAndValues);
-
                         String metricKeyAndMetricValue = null;
                         if (alert.getDangerAlertType() != null && alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY) {
                             metricKeyAndMetricValue = activeDangerAlertMetricKey;
@@ -328,8 +309,10 @@ public class AlertAssociations extends HttpServlet {
                             }
                         }
 
-                        outputString.append("<li>").append(metricValuesLink);
-                        if (metricKeyAndMetricValue != null) outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
+                        outputString.append("<li>");
+                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
+                        outputString.append(StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey)).append("</a>");
+                        outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
                         outputString.append("</li>");
                     }
                     else {

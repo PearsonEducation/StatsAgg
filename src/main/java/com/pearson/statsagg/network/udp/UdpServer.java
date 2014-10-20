@@ -8,6 +8,7 @@ import io.netty.channel.socket.nio.NioDatagramChannel;
 import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
+import io.netty.util.concurrent.Future;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +70,14 @@ public class UdpServer implements Runnable, NettyServer {
 
         try {
             if (group_ != null) {
-                group_.shutdownGracefully();
+                Future future = group_.shutdownGracefully();
+                
+                try {
+                    future.await();
+                }
+                catch (Exception e2) {
+                    logger.error(e2.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e2));
+                }
 
                 while ((group_ != null) && !group_.isTerminated()) {
                     Threads.sleepSeconds(1);

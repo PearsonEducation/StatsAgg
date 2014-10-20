@@ -1,9 +1,7 @@
 package com.pearson.statsagg.network.http;
 
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -36,12 +34,9 @@ public class CreateAlert extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         processGetRequest(request, response);
     }
 
@@ -50,12 +45,9 @@ public class CreateAlert extends HttpServlet {
      *
      * @param request servlet request
      * @param response servlet response
-     * @throws ServletException if a servlet-specific error occurs
-     * @throws IOException if an I/O error occurs
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processPostRequest(request, response);
     }
 
@@ -218,24 +210,6 @@ public class CreateAlert extends HttpServlet {
         }
 
         htmlBody.append(">\n</div>\n");
-        
-        
-        // notification group name
-        htmlBody.append(
-            "<div class=\"form-group\" id=\"NotificationGroupNameLookup\">\n" +
-            "  <label class=\"label_small_margin\">Notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group that is associated with this alert.\" autocomplete=\"off\" name=\"NotificationGroupName\" id=\"NotificationGroupName\" ");
-
-        if ((alert != null) && (alert.getNotificationGroupId() != null)) {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getNotificationGroupId());
-
-            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(notificationGroup.getName()).append("\"");
-            }
-        }
-        
-        htmlBody.append(">\n</div>\n");
 
         
         // is enabled?
@@ -244,10 +218,11 @@ public class CreateAlert extends HttpServlet {
             "  <label class=\"label_small_margin\">Is enabled?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"Enabled\" id=\"Enabled\" type=\"checkbox\" ");
 
-        if ((alert != null) && (alert.isEnabled() != null) && alert.isEnabled()) {
+        if (((alert != null) && (alert.isEnabled() != null) && alert.isEnabled()) || 
+                (alert == null) || (alert.isEnabled() == null)) {
             htmlBody.append(" checked=\"checked\"");
         }
-        
+
         htmlBody.append(">\n</div>\n");
 
         
@@ -256,8 +231,9 @@ public class CreateAlert extends HttpServlet {
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Alert on positive?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"AlertOnPositive\" id=\"AlertOnPositive\" type=\"checkbox\" ");
-
-        if ((alert != null) && (alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
+        
+        if (((alert != null) && (alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) || 
+                (alert == null) || (alert.isAlertOnPositive() == null)) {
             htmlBody.append(" checked=\"checked\"");
         }
 
@@ -318,10 +294,28 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append("<br><br>");
         
         
+        // caution notification group name
+        htmlBody.append(
+            "<div class=\"form-group\" id=\"CautionNotificationGroupNameLookup\">\n" +
+            "  <label id=\"CautionNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group that is associated with this alert.\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
+
+        if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) {
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+
+            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                htmlBody.append(" value=\"").append(notificationGroup.getName()).append("\"");
+            }
+        }
+        
+        htmlBody.append(">\n</div>\n");
+        
+        
         // caution window duration
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Caution window duration... (in seconds)</label>\n" +
+            "  <label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Window duration (in seconds)</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' seconds ago. Values that fall in this window are used in alert evaluation.\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
 
         if ((alert != null) && (alert.getCautionWindowDuration() != null)) {
@@ -336,7 +330,7 @@ public class CreateAlert extends HttpServlet {
         // caution minimum sample count
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionMinimumSampleCount_Label\" class=\"label_small_margin\">Caution alert minimum sample count</label>\n" +
+            "  <label id=\"CautionMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"An alert can only be triggered if there are at least X samples within specified the window duration.\" name=\"CautionMinimumSampleCount\" id=\"CautionMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getCautionMinimumSampleCount() != null)) {
@@ -349,7 +343,7 @@ public class CreateAlert extends HttpServlet {
         // caution operator
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionOperator_Label\" class=\"label_small_margin\">Caution operator</label>\n" +
+            "  <label id=\"CautionOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionOperator\" id=\"CautionOperator\">\n");
 
         htmlBody.append("<option");
@@ -384,7 +378,7 @@ public class CreateAlert extends HttpServlet {
         // caution combination
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionCombination_Label\" class=\"label_small_margin\">Caution combination</label>\n" +
+            "  <label id=\"CautionCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionCombination\" id=\"CautionCombination\">\n");
 
         if ((alert != null) && (alert.getCautionCombinationString() != null)) {
@@ -422,7 +416,7 @@ public class CreateAlert extends HttpServlet {
         // caution combination count
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionCombinationCount_Label\" class=\"label_small_margin\">Caution combination count</label>\n" +
+            "  <label id=\"CautionCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"If using a caution combination of 'at most' or 'at least', then you must specify a count.\" name=\"CautionCombinationCount\" id=\"CautionCombinationCount\" ");
 
         if ((alert != null) && (alert.getCautionCombinationCount() != null)) {
@@ -435,7 +429,7 @@ public class CreateAlert extends HttpServlet {
         // caution threshold
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionThreshold_Label\" class=\"label_small_margin\">Caution threshold</label>\n" +
+            "  <label id=\"CautionThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"The numeric threshold that, if crossed, will trigger the caution alert.\" name=\"CautionThreshold\" id=\"CautionThreshold\" ");
 
         if ((alert != null) && (alert.getCautionThreshold() != null)) {
@@ -468,10 +462,28 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append("<br><br>");
         
         
+        // danger notification group name
+        htmlBody.append(
+            "<div class=\"form-group\" id=\"DangerNotificationGroupNameLookup\">\n" +
+            "  <label id=\"DangerNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group that is associated with this alert.\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
+
+        if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) {
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+
+            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                htmlBody.append(" value=\"").append(notificationGroup.getName()).append("\"");
+            }
+        }
+        
+        htmlBody.append(">\n</div>\n");
+        
+        
         // danger window duration
         htmlBody.append(   
             "<div class=\"form-group\"> \n" +
-            "  <label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Danger window duration... (in seconds)</label>\n" +
+            "  <label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Window duration (in seconds)</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' seconds ago. Values that fall in this window are used in alert evaluation.\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\"");
 
         if ((alert != null) && (alert.getDangerWindowDuration() != null)) {
@@ -486,7 +498,7 @@ public class CreateAlert extends HttpServlet {
         // danger minimum sample count
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"DangerMinimumSampleCount_Label\" class=\"label_small_margin\">Danger alert minimum sample count</label>\n" +
+            "  <label id=\"DangerMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"An alert can only be triggered if there are at least X samples within specified the window duration.\" name=\"DangerMinimumSampleCount\" id=\"DangerMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getDangerMinimumSampleCount() != null)) {
@@ -499,7 +511,7 @@ public class CreateAlert extends HttpServlet {
         // danger operator 
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"DangerOperator_Label\" class=\"label_small_margin\">Danger operator</label>\n" +
+            "  <label id=\"DangerOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
         
         htmlBody.append("<option");
@@ -534,7 +546,7 @@ public class CreateAlert extends HttpServlet {
         // danger combination
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"DangerCombination_Label\" class=\"label_small_margin\">Danger combination</label>\n" +
+            "  <label id=\"DangerCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
         if ((alert != null) && (alert.getDangerCombinationString() != null)) {
@@ -572,7 +584,7 @@ public class CreateAlert extends HttpServlet {
         // danger combination count
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"DangerCombinationCount_Label\" class=\"label_small_margin\">Danger combination count</label>\n" +
+            "  <label id=\"DangerCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"If using a danger combination of 'at most' or 'at least', then you must specify a count.\" name=\"DangerCombinationCount\" id=\"DangerCombinationCount\"");
 
         if ((alert != null) && (alert.getDangerCombinationCount() != null)) {
@@ -585,7 +597,7 @@ public class CreateAlert extends HttpServlet {
         // danger threshold
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label id=\"DangerThreshold_Label\" class=\"label_small_margin\">Danger threshold</label>\n" +
+            "  <label id=\"DangerThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"The numeric threshold that, if crossed, will trigger the danger alert.\" name=\"DangerThreshold\" id=\"DangerThreshold\"");
 
         if ((alert != null) && (alert.getDangerThreshold() != null)) {
@@ -666,11 +678,6 @@ public class CreateAlert extends HttpServlet {
                 if (metricGroup != null) alert.setMetricGroupId(metricGroup.getId());
             }
 
-            parameter = request.getParameter("NotificationGroupName");
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
-            if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setNotificationGroupId(notificationGroup.getId());
-
             parameter = request.getParameter("Enabled");
             if ((parameter != null) && parameter.contains("on")) alert.setIsEnabled(true);
             else alert.setIsEnabled(false);
@@ -693,6 +700,11 @@ public class CreateAlert extends HttpServlet {
             parameter = request.getParameter("CreateAlertCaution_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setCautionAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
+            
+            parameter = request.getParameter("CautionNotificationGroupName");
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
+            if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionNotificationGroupId(notificationGroup.getId());
             
             parameter = request.getParameter("CautionWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
@@ -734,6 +746,11 @@ public class CreateAlert extends HttpServlet {
             parameter = request.getParameter("CreateAlertDanger_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setDangerAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
+            
+            parameter = request.getParameter("DangerNotificationGroupName");
+            notificationGroupsDao = new NotificationGroupsDao();
+            notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
+            if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
             
             parameter = request.getParameter("DangerWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {

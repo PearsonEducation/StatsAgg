@@ -1,15 +1,11 @@
 Short term
  * availability alert (test)
- * MetricRecentValues via get, not post
- * separate notifications groups for caution and danger
- * make alert suspension datetime bars be full width of column
  * limit results on ajax lookups (optional parameter)
  * Add healthcheck servlet
  * unit tests for set & timer
  * new option -- limit metric # in webui (and in underlying code)
- * enable alert by default
  * make program more db-avail failure proof
- * alert on positive by default
+ * Ajax html lookups needs to be html encoded
  * 'disabled' for caution/danger alert type (threshold, avali, disabled)
  * db config -- use file separator property if derby
  * sql update -- change name of notification group PK to match NG convention
@@ -28,9 +24,11 @@ Medium term
  * tweak webui "alert details" output (two columns)
  * tweak webui "details" to have links to cool shit
  * debug mode for "details" pages
+ * stop resending metric after X time of no updates
+ * option to skip persisting gauges in the db
  * alert by individual metric
+ * make alert suspension datetime bars be full width of column
  * Statsd upper nth %
- * only check read-only once (when getting the connection) 
  * calculator/aggregator
  * events log w/ UI component
  * when altering alerts & stuff is in an alerted status, don't null the alert status if the alert status is the same

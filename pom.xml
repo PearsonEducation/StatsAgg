@@ -154,7 +154,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.32</version>
+            <version>5.1.33</version>
         </dependency>
         
         <!--
@@ -216,7 +216,7 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>17.0</version>
+            <version>18.0</version>
             <type>jar</type>
         </dependency>
             
@@ -229,7 +229,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.7.3</version>
+            <version>1.8.1</version>
         </dependency> 
         
         <dependency>

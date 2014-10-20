@@ -60,8 +60,7 @@ public class Alerts extends HttpServlet {
      * @param response servlet response
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response)
-            throws ServletException, IOException {
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         processPostRequest(request, response);
     }
 
@@ -228,7 +227,8 @@ public class Alerts extends HttpServlet {
             "         <th>Alert name</th>\n" +
             "         <th>Metric Group Association</th>\n" +
             "         <th>Metric Group Tags</th>\n" +
-            "         <th>Notification Group Name</th>\n" +
+            "         <th>Caution Notification Group</th>\n" +
+            "         <th>Danger Notification Group</th>\n" +
             "         <th>Enabled?</th>\n" +
             "         <th>Suspended?</th>\n" +
             "         <th>Triggered?</th>\n" +
@@ -281,12 +281,25 @@ public class Alerts extends HttpServlet {
                 }
             }
             
-            String notificationGroupNameAndLink;
-            if ((notificationGroupNames_ById == null) || (alert.getNotificationGroupId() == null) || 
-                    !notificationGroupNames_ById.containsKey(alert.getNotificationGroupId())) notificationGroupNameAndLink = "N/A";
-            else notificationGroupNameAndLink = "<a href=\"NotificationGroupDetails?Name=" + 
-                    StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getNotificationGroupId())) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getNotificationGroupId())) + "</a>";
+            String cautionNotificationGroupNameAndLink;
+            if ((notificationGroupNames_ById == null) || (alert.getCautionNotificationGroupId() == null) || !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
+                cautionNotificationGroupNameAndLink = "N/A";
+            }
+            else {
+                cautionNotificationGroupNameAndLink = "<a href=\"NotificationGroupDetails?Name=" + 
+                    StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "</a>";
+            }
+
+            String dangerNotificationGroupNameAndLink;
+            if ((notificationGroupNames_ById == null) || (alert.getDangerNotificationGroupId() == null) || !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
+                dangerNotificationGroupNameAndLink = "N/A";
+            }
+            else {
+                dangerNotificationGroupNameAndLink = "<a href=\"NotificationGroupDetails?Name=" + 
+                    StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "</a>";
+            }
             
             Boolean isSuspended = GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId());
             if (isSuspended == null) isSuspended = false;
@@ -342,7 +355,8 @@ public class Alerts extends HttpServlet {
                     .append("<td>").append(alertDetails).append("</td>\n")
                     .append("<td>").append(metricGroupNameAndLink).append("</td>\n")
                     .append("<td>").append(tagsCsv.toString()).append("</td>\n")
-                    .append("<td>").append(notificationGroupNameAndLink).append("</td>\n")
+                    .append("<td>").append(cautionNotificationGroupNameAndLink).append("</td>\n")
+                    .append("<td>").append(dangerNotificationGroupNameAndLink).append("</td>\n")
                     .append("<td>").append(alert.isEnabled()).append("</td>\n")
                     .append("<td>").append(isSuspendedLink).append("</td>\n")
                     .append("<td>").append(triggeredLink).append("</td>\n")
@@ -362,6 +376,7 @@ public class Alerts extends HttpServlet {
                 + "<tfoot> \n"
                 + "  <tr class=\"statsagg_table_footer\" >\n" 
                 + "    <th>Filter</th>\n"
+                + "    <th>Filter</th>\n" 
                 + "    <th>Filter</th>\n" 
                 + "    <th>Filter</th>\n" 
                 + "    <th>Filter</th>\n" 
