@@ -289,7 +289,11 @@ public class CreateAlert extends HttpServlet {
         
         htmlBody.append("<input type=\"radio\" id=\"CreateAlertCaution_Type_Threshold\" name=\"CreateAlertCaution_Type\" value=\"Threshold\" ");
         if ((alert != null) && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Threshold\n");
+        htmlBody.append("> Threshold &nbsp;&nbsp;&nbsp;\n");
+        
+        htmlBody.append("<input type=\"radio\" id=\"CreateAlertCaution_Type_Disabled\" name=\"CreateAlertCaution_Type\" value=\"Disabled\" ");
+        if ((alert != null) && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_DISABLED)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("> Disabled\n");
         
         htmlBody.append("<br><br>");
         
@@ -457,7 +461,11 @@ public class CreateAlert extends HttpServlet {
         
         htmlBody.append("<input type=\"radio\" id=\"CreateAlertDanger_Type_Threshold\" name=\"CreateAlertDanger_Type\" value=\"Threshold\" ");
         if ((alert != null) && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Threshold\n");
+        htmlBody.append("> Threshold &nbsp;&nbsp;&nbsp;\n");
+        
+        htmlBody.append("<input type=\"radio\" id=\"CreateAlertDanger_Type_Disabled\" name=\"CreateAlertDanger_Type\" value=\"Disabled\" ");
+        if ((alert != null) && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_DISABLED)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("> Disabled\n");
         
         htmlBody.append("<br><br>");
         
@@ -700,6 +708,7 @@ public class CreateAlert extends HttpServlet {
             parameter = request.getParameter("CreateAlertCaution_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setCautionAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
+            else if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
             
             parameter = request.getParameter("CautionNotificationGroupName");
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
@@ -746,7 +755,8 @@ public class CreateAlert extends HttpServlet {
             parameter = request.getParameter("CreateAlertDanger_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setDangerAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
-            
+            else if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
+
             parameter = request.getParameter("DangerNotificationGroupName");
             notificationGroupsDao = new NotificationGroupsDao();
             notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());

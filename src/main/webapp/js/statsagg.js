@@ -10,35 +10,37 @@ function confirmAction(formName, confirmString) {
 
 function generateAlertPreviewLink(warningLevel) {
 
-    var warningLevelParameter = encodeURI("WarningLevel=" + warningLevel);
+    var warningLevelParameter = "WarningLevel=" + encodeURIComponent(warningLevel);
 
-    var nameParameter = encodeURI("Name=" + document.getElementById("Name").value.substring(0, 500));
-    var descriptionParameter = encodeURI("Description=" + document.getElementById("Description").value.substring(0, 500));
-    var metricGroupNameParameter = encodeURI("MetricGroupName=" + document.getElementById("MetricGroupName").value.substring(0, 500));
+    var nameParameter = "Name=" + encodeURIComponent(document.getElementById("Name").value.substring(0, 500));
+    var descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("Description").value.substring(0, 500));
+    var metricGroupNameParameter = "MetricGroupName=" + encodeURIComponent(document.getElementById("MetricGroupName").value.substring(0, 500));
 
     var cautionAlertTypeParameter;
-    if (document.getElementById("CreateAlertCaution_Type_Availability").checked === true) cautionAlertTypeParameter = encodeURI("CreateAlertCaution_Type=" + "Availability");
-    else if (document.getElementById("CreateAlertCaution_Type_Threshold").checked === true) cautionAlertTypeParameter = encodeURI("CreateAlertCaution_Type=" + "Threshold");
-    else cautionAlertTypeParameter = encodeURI("CreateAlertCaution_Type=" + "undefined");
+    if (document.getElementById("CreateAlertCaution_Type_Availability").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Availability");
+    else if (document.getElementById("CreateAlertCaution_Type_Threshold").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Threshold");
+    else if (document.getElementById("CreateAlertCaution_Type_Disabled").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Disabled");
+    else cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("undefined");
     
-    var cautionWindowDurationParameter = encodeURI("CautionWindowDuration=" + document.getElementById("CautionWindowDuration").value);
-    var cautionMinimumSampleCountParameter = encodeURI("CautionMinimumSampleCount=" + document.getElementById("CautionMinimumSampleCount").value);
-    var cautionOperatorParameter = encodeURI("CautionOperator=" + document.getElementById("CautionOperator").value);
-    var cautionCombinationParameter = encodeURI("CautionCombination=" + document.getElementById("CautionCombination").value);
-    var cautionCombinationCountParameter = encodeURI("CautionCombinationCount=" + document.getElementById("CautionCombinationCount").value);
-    var cautionThresholdParameter = encodeURI("CautionThreshold=" + document.getElementById("CautionThreshold").value);
+    var cautionWindowDurationParameter = "CautionWindowDuration=" + encodeURIComponent(document.getElementById("CautionWindowDuration").value);
+    var cautionMinimumSampleCountParameter = "CautionMinimumSampleCount=" + encodeURIComponent(document.getElementById("CautionMinimumSampleCount").value);
+    var cautionOperatorParameter = "CautionOperator=" + encodeURIComponent(document.getElementById("CautionOperator").value);
+    var cautionCombinationParameter = "CautionCombination=" + encodeURIComponent(document.getElementById("CautionCombination").value);
+    var cautionCombinationCountParameter = "CautionCombinationCount=" + encodeURIComponent(document.getElementById("CautionCombinationCount").value);
+    var cautionThresholdParameter = "CautionThreshold=" + encodeURIComponent(document.getElementById("CautionThreshold").value);
 
     var dangerAlertTypeParameter;
-    if (document.getElementById("CreateAlertDanger_Type_Availability").checked === true) dangerAlertTypeParameter = encodeURI("CreateAlertDanger_Type=" + "Availability");
-    else if (document.getElementById("CreateAlertDanger_Type_Threshold").checked === true) dangerAlertTypeParameter = encodeURI("CreateAlertDanger_Type=" + "Threshold");
-    else dangerAlertTypeParameter = encodeURI("CreateAlertDanger_Type=" + "undefined");
+    if (document.getElementById("CreateAlertDanger_Type_Availability").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Availability");
+    else if (document.getElementById("CreateAlertDanger_Type_Threshold").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Threshold");
+    else if (document.getElementById("CreateAlertDanger_Type_Disabled").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Disabled");
+    else dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("undefined");
 
-    var dangerWindowDurationParameter = encodeURI("DangerWindowDuration=" + document.getElementById("DangerWindowDuration").value);
-    var dangerMinimumSampleCountParameter = encodeURI("DangerMinimumSampleCount=" + document.getElementById("DangerMinimumSampleCount").value);
-    var dangerOperatorParameter = encodeURI("DangerOperator=" + document.getElementById("DangerOperator").value);
-    var dangerCombinationParameter = encodeURI("DangerCombination=" + document.getElementById("DangerCombination").value);
-    var dangerCombinationCountParameter = encodeURI("DangerCombinationCount=" + document.getElementById("DangerCombinationCount").value);
-    var dangerThresholdParameter = encodeURI("DangerThreshold=" + document.getElementById("DangerThreshold").value);
+    var dangerWindowDurationParameter = "DangerWindowDuration=" + encodeURIComponent(document.getElementById("DangerWindowDuration").value);
+    var dangerMinimumSampleCountParameter = "DangerMinimumSampleCount=" + encodeURIComponent(document.getElementById("DangerMinimumSampleCount").value);
+    var dangerOperatorParameter = "DangerOperator=" + encodeURIComponent(document.getElementById("DangerOperator").value);
+    var dangerCombinationParameter = "DangerCombination=" + encodeURIComponent(document.getElementById("DangerCombination").value);
+    var dangerCombinationCountParameter = "DangerCombinationCount=" + encodeURIComponent(document.getElementById("DangerCombinationCount").value);
+    var dangerThresholdParameter = "DangerThreshold=" + encodeURIComponent(document.getElementById("DangerThreshold").value);
 
     var uriEncodedLink = "AlertPreview?" + warningLevelParameter + "&" +
             nameParameter + "&" + descriptionParameter + "&" + metricGroupNameParameter + "&" +
@@ -59,14 +61,14 @@ function generateAlertPreviewLink(warningLevel) {
 function generateAlertSuspensionAssociationsPreviewLink() {
 
     var SuspendByParameter;
-    if (document.getElementById("CreateAlertSuspension_SuspendBy_AlertName_Radio").checked === true) SuspendByParameter = encodeURI("CreateAlertSuspension_SuspendBy=" + "AlertName");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Tags_Radio").checked === true) SuspendByParameter = encodeURI("CreateAlertSuspension_SuspendBy=" + "Tags");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Everything_Radio").checked === true) SuspendByParameter = encodeURI("CreateAlertSuspension_SuspendBy=" + "Everything");
-    else SuspendByParameter = encodeURI("CreateAlertSuspension_SuspendBy=" + "undefined");
+    if (document.getElementById("CreateAlertSuspension_SuspendBy_AlertName_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("AlertName");
+    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Tags_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Tags");
+    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Everything_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Everything");
+    else SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("undefined");
 
-    var AlertNameParameter = encodeURI("AlertName=" + document.getElementById("AlertName").value);
-    var MetricGroupTagsInclusiveParameter = encodeURI("MetricGroupTagsInclusive=" + document.getElementById("MetricGroupTagsInclusive").value);
-    var MetricGroupTagsExclusiveParameter = encodeURI("MetricGroupTagsExclusive=" + document.getElementById("MetricGroupTagsExclusive").value);
+    var AlertNameParameter = "AlertName=" + encodeURIComponent(document.getElementById("AlertName").value);
+    var MetricGroupTagsInclusiveParameter = "MetricGroupTagsInclusive=" + encodeURIComponent(document.getElementById("MetricGroupTagsInclusive").value);
+    var MetricGroupTagsExclusiveParameter = "MetricGroupTagsExclusive=" + encodeURIComponent(document.getElementById("MetricGroupTagsExclusive").value);
 
     var uriEncodedLink = "AlertSuspensionAlertAssociationsPreview?" + SuspendByParameter + "&" +
             AlertNameParameter + "&" + MetricGroupTagsInclusiveParameter + "&" + MetricGroupTagsExclusiveParameter;
@@ -75,13 +77,13 @@ function generateAlertSuspensionAssociationsPreviewLink() {
 }
 
 function generateForgetMetricsPreviewLink() {
-    var ForgetMetricRegexParameter = encodeURI("Regex=" + document.getElementById("ForgetMetricRegex").value);
+    var ForgetMetricRegexParameter = "Regex=" + encodeURIComponent(document.getElementById("ForgetMetricRegex").value);
     var uriEncodedLink = "ForgetMetricsPreview?" + ForgetMetricRegexParameter;
     document.getElementById("ForgetMetricsPreview").setAttribute("href", uriEncodedLink);    
 }
 
 function generateMergedRegexMetricsPreview() {
-    var RegexParameter = encodeURI("Regexs=" + document.getElementById("Regexs").value);
+    var RegexParameter = "Regexs=" + encodeURIComponent(document.getElementById("Regexs").value);
     var uriEncodedLink = "MergedRegexMetricsPreview?" + RegexParameter;
     document.getElementById("MergedRegexMetricsPreview").setAttribute("href", uriEncodedLink);    
 }
@@ -92,32 +94,38 @@ $(document).ready(function() {
 
 // On page load for 'CreateAlert', show and hide certain UI elements for 'type'
 $(document).ready(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
 });
 
 // On changing the alert-type radio buttons on the 'Create Alert' page, show and hide certain UI elements
 $('#CreateAlertCaution_Type_Availability').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
 });
 $('#CreateAlertCaution_Type_Threshold').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
+});
+$('#CreateAlertCaution_Type_Disabled').change(function() {
+    CreateAlert_Type_ShowAndHide();
 });
 $('#CreateAlertDanger_Type_Availability').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
 });
 $('#CreateAlertDanger_Type_Threshold').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
+});
+$('#CreateAlertDanger_Type_Disabled').change(function() {
+    CreateAlert_Type_ShowAndHide();
 });
 
 // On changing the value of the 'Combination' dropdown options on the 'Create Alert' page, show and hide certain UI elements
 $('#CautionCombination').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
 });
 $('#DangerCombination').change(function() {
-    CreateAlertCaution_Type_ShowAndHide();
+    CreateAlert_Type_ShowAndHide();
 });
 
-function CreateAlertCaution_Type_ShowAndHide() {
+function CreateAlert_Type_ShowAndHide() {
     // Caution
     if ($("#CreateAlertCaution_Type_Availability").prop('checked') === true) { 
         $("#CautionNotificationGroupName_Label").show();
@@ -543,7 +551,10 @@ $(document).ready(function() {
         AlertNameLookup_Bloodhound.initialize();
 
         $('#AlertNameLookup .typeahead').typeahead({
-            source: AlertNameLookup_Bloodhound.ttAdapter()
+            source: AlertNameLookup_Bloodhound.ttAdapter(),
+            updater: function (item) {
+                return $('<div/>').html(item).text();
+            }
         });
     }
 });
@@ -561,7 +572,10 @@ $(document).ready(function() {
         MetricGroupNameLookup_Bloodhound.initialize();
 
         $('#MetricGroupNameLookup .typeahead').typeahead({
-            source: MetricGroupNameLookup_Bloodhound.ttAdapter()
+            source: MetricGroupNameLookup_Bloodhound.ttAdapter(),
+            updater: function (item) {
+                return $('<div/>').html(item).text();
+            }
         });
     }
 });
@@ -579,7 +593,10 @@ $(document).ready(function() {
         NotificationGroupNameLookup_Bloodhound.initialize();
 
         $('#CautionNotificationGroupNameLookup .typeahead').typeahead({
-            source: NotificationGroupNameLookup_Bloodhound.ttAdapter()
+            source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+            updater: function (item) {
+                return $('<div/>').html(item).text();
+            }
         });
     }
 });
@@ -597,7 +614,10 @@ $(document).ready(function() {
         NotificationGroupNameLookup_Bloodhound.initialize();
 
         $('#DangerNotificationGroupNameLookup .typeahead').typeahead({
-            source: NotificationGroupNameLookup_Bloodhound.ttAdapter()
+            source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+            updater: function (item) {
+                return $('<div/>').html(item).text();
+            }
         });
     }
 });

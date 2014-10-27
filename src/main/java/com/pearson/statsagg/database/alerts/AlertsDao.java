@@ -228,7 +228,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 id); 
     }  
     
-    public List<String> getAlertNames(String prefixFilter) {
+    public List<String> getAlertNames(String prefixFilter, int resultSetLimit) {
         
         try {
 
@@ -238,7 +238,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
 
             List<String> alertNames = new ArrayList<>();
             
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alert_Names, 1000);
+            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alert_Names_OrderByName, 1000);
             databaseInterface_.addPreparedStatementParameters(prefixFilter + "%");
             databaseInterface_.executePreparedStatement();
             
@@ -248,11 +248,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
 
             ResultSet resultSet = databaseInterface_.getResults();
             
-            while (resultSet.next()) {
+            int rowCounter = 0;
+            while (resultSet.next() && (rowCounter < resultSetLimit)) {
                 String name = resultSet.getString("NAME");
                 if (resultSet.wasNull()) name = null;
                 
-                if (name != null) alertNames.add(name);
+                if (name != null) {
+                    alertNames.add(name);
+                    rowCounter++;
+                }
             }
             
             return alertNames;

@@ -125,7 +125,7 @@ public class DatabaseConnections {
 
         try {
             if (connectionPool_ != null) {
-                connectionPool_.close();
+                connectionPool_.shutdown();
                 connectionPool_ = null;
             }
         }

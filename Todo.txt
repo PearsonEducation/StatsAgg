@@ -1,15 +1,12 @@
 Short term
  * availability alert (test)
- * limit results on ajax lookups (optional parameter)
  * Add healthcheck servlet
  * unit tests for set & timer
  * new option -- limit metric # in webui (and in underlying code)
  * make program more db-avail failure proof
- * Ajax html lookups needs to be html encoded
  * 'disabled' for caution/danger alert type (threshold, avali, disabled)
  * db config -- use file separator property if derby
  * sql update -- change name of notification group PK to match NG convention
- * sql update -- make gauge-bucket not-null
 
 Before open source release 
  * documentation/help page (wip)

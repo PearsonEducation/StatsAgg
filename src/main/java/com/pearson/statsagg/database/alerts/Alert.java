@@ -17,6 +17,7 @@ public class Alert extends DatabaseObject<Alert> {
     
     public static final int TYPE_AVAILABILITY = 1001;
     public static final int TYPE_THRESHOLD = 1002;
+    public static final int TYPE_DISABLED = 1003;
     
     public static final Integer OPERATOR_GREATER = 1;
     public static final Integer OPERATOR_GREATER_EQUALS = 2;
@@ -264,6 +265,9 @@ public class Alert extends DatabaseObject<Alert> {
             if (!isValid_CautionWindowDuration()) return false;
             if (!isValid_CautionMinimumSampleCount()) return false;
         }
+        else if (cautionAlertType_ == TYPE_DISABLED) {
+            return false;
+        } 
         
         return true;
     }
@@ -282,6 +286,9 @@ public class Alert extends DatabaseObject<Alert> {
             if (!isValid_DangerWindowDuration()) return false;
             if (!isValid_DangerMinimumSampleCount()) return false;
         }
+        else if (dangerAlertType_ == TYPE_DISABLED) {
+            return false;
+        } 
         
         return true;
     }

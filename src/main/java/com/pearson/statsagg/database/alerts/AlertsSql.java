@@ -121,9 +121,10 @@ public class AlertsSql {
                     "SELECT * FROM ALERTS " +
                     "WHERE NAME = ?";
     
-    protected final static String Select_Alert_Names = 
+    protected final static String Select_Alert_Names_OrderByName = 
                     "SELECT NAME FROM ALERTS " +
-                    "WHERE NAME LIKE ?";
+                    "WHERE NAME LIKE ? " +
+                    "ORDER BY NAME";
     
     protected final static String Select_AllAlerts = 
                     "SELECT * FROM ALERTS";

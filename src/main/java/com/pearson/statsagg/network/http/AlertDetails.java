@@ -164,9 +164,12 @@ public class AlertDetails extends HttpServlet {
             if (alert.getCautionAlertType() != null) {
                 if (alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY) outputString.append("Availability").append("<br>");
                 else if (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
+                else if (alert.getCautionAlertType() == Alert.TYPE_DISABLED) outputString.append("Disabled").append("<br>");
                 else outputString.append("N/A").append("<br>");
             }
             else outputString.append("N/A <br>");
+            
+            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_DISABLED)) outputString.append("<del>");
             
             outputString.append("<b>Caution notification group name</b> = ");
             if (cautionNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName())).append("<br>");
@@ -180,7 +183,9 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_THRESHOLD)) outputString.append("<del>");
+            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_THRESHOLD) && 
+                    (alert.getCautionAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");
+            
             outputString.append("<b>Caution minimum sample count</b> = ");
             if (alert.getCautionMinimumSampleCount() != null) outputString.append(alert.getCautionMinimumSampleCount()).append("<br>");
             else outputString.append("N/A <br>");
@@ -223,9 +228,12 @@ public class AlertDetails extends HttpServlet {
             if (alert.getDangerAlertType() != null) {
                 if (alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY) outputString.append("Availability").append("<br>");
                 else if (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
+                else if (alert.getDangerAlertType() == Alert.TYPE_DISABLED) outputString.append("Disabled").append("<br>");
                 else outputString.append("N/A").append("<br>");
             }
             else outputString.append("N/A <br>");
+            
+            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_DISABLED)) outputString.append("<del>");
             
             outputString.append("<b>Danger notification group name</b> = ");
             if (dangerNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName())).append("<br>");
@@ -239,7 +247,8 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_THRESHOLD)) outputString.append("<del>");
+            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_THRESHOLD) 
+                    && (alert.getDangerAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");
             
             outputString.append("<b>Danger minimum sample count</b> = ");
             if (alert.getDangerMinimumSampleCount() != null) outputString.append(alert.getDangerMinimumSampleCount()).append("<br>");

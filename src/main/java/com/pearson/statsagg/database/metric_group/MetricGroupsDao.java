@@ -190,7 +190,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
     }
     
     
-    public List<String> getMetricGroupNames(String prefixFilter) {
+    public List<String> getMetricGroupNames(String prefixFilter, int resultSetLimit) {
         
         try {
 
@@ -200,7 +200,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
 
             List<String> metricGroupNames = new ArrayList<>();
             
-            databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroup_Names, 1000);
+            databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroup_Names_OrderByName, 1000);
             databaseInterface_.addPreparedStatementParameters(prefixFilter + "%");
             databaseInterface_.executePreparedStatement();
             
@@ -210,11 +210,15 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
 
             ResultSet resultSet = databaseInterface_.getResults();
             
-            while (resultSet.next()) {
+            int rowCounter = 0;
+            while (resultSet.next() && (rowCounter < resultSetLimit)) {
                 String name = resultSet.getString("NAME");
                 if (resultSet.wasNull()) name = null;
                 
-                if (name != null) metricGroupNames.add(name);
+                if (name != null) {
+                    metricGroupNames.add(name);
+                    rowCounter++;
+                }
             }
             
             return metricGroupNames;

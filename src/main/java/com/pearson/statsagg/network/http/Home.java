@@ -115,9 +115,26 @@ public class Home extends HttpServlet {
             statsaggStartTimestamp = dateAndTimeFormat.format(GlobalVariables.statsaggStartTimestamp.get());
         }
         
-        AlertsDao alertDao = new AlertsDao();
+        AlertsDao alertDao = new AlertsDao(false);
         List<Alert> alerts = alertDao.getAllDatabaseObjectsInTable();
+        boolean isConnectionValid = alertDao.getDatabaseInterface().isConnectionValid();
+        alertDao.close();
         
+        String errorBox = "";
+        if (!isConnectionValid) {
+            errorBox = "" +
+                "<div class=\"col-ld-12\">\n" +
+                "  <div class=\"panel panel-danger\">\n" +
+                "    <div class=\"panel-heading\">\n" +
+                "      Error\n" +
+                "    </div>\n" +
+                "    <div class=\"panel-body\">\n" +
+                "      <p>StatsAgg did not successfully connect to the database</p>\n" +
+                "    </div>\n" +
+                "  </div>\n" +
+                "</div>\n";
+        }
+
         int numCautionAlertsActive = 0;
         int numDangerAlertsActive = 0;
         
@@ -140,6 +157,7 @@ public class Home extends HttpServlet {
   
         String html = 
             "<div class=\"col-ld-12\" style=\"padding-left: 0; padding-right: 0;\">\n" +
+            errorBox + 
             "    <div class=\"panel panel-primary\">\n" +
             "        <div class=\"panel-heading\">\n" +
             "            Status\n" +

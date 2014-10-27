@@ -53,9 +53,10 @@ public class MetricGroupsSql {
                     "SELECT * FROM METRIC_GROUPS " +
                     "WHERE NAME = ?";
     
-    protected final static String Select_MetricGroup_Names = 
+    protected final static String Select_MetricGroup_Names_OrderByName = 
                     "SELECT NAME FROM METRIC_GROUPS " +
-                    "WHERE NAME LIKE ?";
+                    "WHERE NAME LIKE ? " +
+                    "ORDER BY NAME";
     
     protected final static String Select_AllMetricGroups = 
                     "SELECT * FROM METRIC_GROUPS";

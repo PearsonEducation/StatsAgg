@@ -137,6 +137,9 @@ public class AlertPreview extends HttpServlet {
             parameter = request.getParameter("CreateAlertCaution_Type");
             if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
             
+            parameter = request.getParameter("CreateAlertCaution_Type");
+            if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
+            
             parameter = request.getParameter("CautionWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
@@ -180,6 +183,9 @@ public class AlertPreview extends HttpServlet {
             parameter = request.getParameter("CreateAlertDanger_Type");
             if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
 
+            parameter = request.getParameter("CreateAlertDanger_Type");
+            if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
+            
             parameter = request.getParameter("DangerWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());

@@ -96,7 +96,7 @@ public class Lookup extends HttpServlet {
         }
         
         AlertsDao alertsDao = new AlertsDao();
-        List<String> alertNames = alertsDao.getAlertNames(alertNamesQuery);
+        List<String> alertNames = alertsDao.getAlertNames(alertNamesQuery, 10);
         
         StringBuilder json = new StringBuilder("");
         
@@ -104,7 +104,7 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : alertNames) {
-            json.append("\"").append(name).append("\"");
+            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
             if (i < alertNames.size()) json.append(",");
             i++;
         }
@@ -121,7 +121,7 @@ public class Lookup extends HttpServlet {
         }
         
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        List<String> metricGroupsNames = metricGroupsDao.getMetricGroupNames(metricGroupNamesQuery);
+        List<String> metricGroupsNames = metricGroupsDao.getMetricGroupNames(metricGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder("");
         
@@ -129,7 +129,7 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : metricGroupsNames) {
-            json.append("\"").append(name).append("\"");
+            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
             if (i < metricGroupsNames.size()) json.append(",");
             i++;
         }
@@ -146,7 +146,7 @@ public class Lookup extends HttpServlet {
         }
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        List<String> notificationGroupsNames = notificationGroupsDao.getNotificationGroupNames(notificationGroupNamesQuery);
+        List<String> notificationGroupsNames = notificationGroupsDao.getNotificationGroupNames(notificationGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder("");
         
@@ -154,7 +154,7 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : notificationGroupsNames) {
-            json.append("\"").append(name).append("\"");
+            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
             if (i < notificationGroupsNames.size()) json.append(",");
             i++;
         }
