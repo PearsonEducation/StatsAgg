@@ -44,13 +44,16 @@ public class DatabaseConnections {
     public static void createConnectionPool() {
  	BoneCPConfig config = new BoneCPConfig();
         config.setMaxConnectionsPerPartition(DatabaseConfiguration.getCpMaxConnections());
+        config.setAcquireRetryAttempts(DatabaseConfiguration.getCpAcquireRetryAttempts());
+        config.setAcquireRetryDelayInMs(DatabaseConfiguration.getCpAcquireRetryDelay());
+        config.setConnectionTimeoutInMs(DatabaseConfiguration.getCpConnectionTimeout());
         config.setStatisticsEnabled(DatabaseConfiguration.isCpEnableStatistics());
         config.setDisableConnectionTracking(true); // set this to true to avoid bonecp closing connections erroniously
         
  	config.setJdbcUrl(jdbc_);
         config.setUsername(DatabaseConfiguration.getUsername());
         config.setPassword(DatabaseConfiguration.getPassword());
-        config.setDefaultAutoCommit(DatabaseConfiguration.getDefaultAutoCommit());
+        config.setDefaultAutoCommit(DatabaseConfiguration.getCpDefaultAutoCommit());
  
         if (ApplicationConfiguration.isDebugModeEnabled()) {
             config.setCloseConnectionWatch(true);
@@ -156,16 +159,34 @@ public class DatabaseConnections {
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-            
+        }
+    }
+    
+    public static void deregisterJdbcDriver() {
+        
+        if (jdbc_ == null) {
+            return;
+        }
+        
+        ClassLoader cl = Thread.currentThread().getContextClassLoader();
+        Driver driver = null;
+        
+        try {
+            driver = DriverManager.getDriver(jdbc_);
+        }
+        catch (Exception e) {
+            logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        if ((driver != null) && (driver.getClass().getClassLoader() == cl)) {
             try {
-                Driver driver = DriverManager.getDriver(jdbc_);
                 DriverManager.deregisterDriver(driver);
+                logger.info("Successfully deregistered JDBC driver");
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
-        
     }
 
     public static String getJdbc() {

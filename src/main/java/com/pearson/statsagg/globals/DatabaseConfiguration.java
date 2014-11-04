@@ -28,7 +28,12 @@ public class DatabaseConfiguration {
     private static PropertiesConfiguration databaseConfiguration_ = null;
     
     private static int cpMaxConnections_ = VALUE_NOT_SET_CODE;
+    private static int cpAcquireRetryAttempts_ = VALUE_NOT_SET_CODE;
+    private static int cpAcquireRetryDelay_ = VALUE_NOT_SET_CODE;
+    private static int cpConnectionTimeout_ = VALUE_NOT_SET_CODE;
     private static boolean cpEnableStatistics_ = false;
+    private static boolean cpDefaultAutoCommit_ = false;
+    private static int connectionValidityCheckTimeout_ = VALUE_NOT_SET_CODE;
     
     private static int type_ = VALUE_NOT_SET_CODE;
     private static String hostname_ = null;
@@ -38,8 +43,7 @@ public class DatabaseConfiguration {
     private static String username_ = null;
     private static String password_ = null;    
     private static String attributes_ = null;
-    private static boolean defaultAutoCommit_ = true;
-    private static int connectionValidityCheckTimeout_ = VALUE_NOT_SET_CODE;
+    private static String customJdbc_ = null;
     
     private static String jdbcConnectionString_ = null;
  
@@ -89,7 +93,8 @@ public class DatabaseConfiguration {
         
         try {
             // determine database type
-            String type = databaseConfiguration_.getString("db_type", null);
+            String type = databaseConfiguration_.getString("db_type", "");
+            
             if (type.equalsIgnoreCase("derby_network")) {
                 type_ = DERBY_NETWORK;
             }
@@ -119,22 +124,28 @@ public class DatabaseConfiguration {
                 databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
                 databasePropertyValue = databasePropertyValue.replace("${db_name}", databaseName_);
                 databaseConfiguration_.setProperty(databasePropertyKey, databasePropertyValue);
+                
+                databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
+                databasePropertyValue = databasePropertyValue.replace("${file.separator}", File.separator);
+                databaseConfiguration_.setProperty(databasePropertyKey, databasePropertyValue);
             }
             
             // Connection pool
-            cpMaxConnections_ = databaseConfiguration_.getInt("cp_max_connections", VALUE_NOT_SET_CODE);
+            cpMaxConnections_ = databaseConfiguration_.getInt("cp_max_connections", 25);
+            cpAcquireRetryAttempts_ = databaseConfiguration_.getInt("cp_acquire_retry_attempts", 3);
+            cpAcquireRetryDelay_ = databaseConfiguration_.getInt("cp_acquire_retry_delay", 250);
+            cpConnectionTimeout_ = databaseConfiguration_.getInt("cp_connection_timeout", 5000);
             cpEnableStatistics_ = databaseConfiguration_.getBoolean("cp_enable_statistics", false);
-            
+            cpDefaultAutoCommit_ = databaseConfiguration_.getBoolean("cp_default_auto_commit", false);  
+            connectionValidityCheckTimeout_ = databaseConfiguration_.getInteger("connection_validity_check_timeout", 5);  
+
             // Standard
             hostname_ = databaseConfiguration_.getString("db_hostname", "");
             port_ = databaseConfiguration_.getString("db_port", "");
-            databaseLocalPath_ = databaseConfiguration_.getString("db_localpath", "");
-            databaseName_ = databaseConfiguration_.getString("db_name", "");
             username_ = databaseConfiguration_.getString("db_username", "");
             password_ = databaseConfiguration_.getString("db_password", "");
             attributes_ = databaseConfiguration_.getString("db_attributes", "");
-            defaultAutoCommit_ = databaseConfiguration_.getBoolean("db_default_auto_commit", true);  
-            connectionValidityCheckTimeout_ = databaseConfiguration_.getInteger("db_connection_validity_check_timeout", 0);  
+            customJdbc_ = databaseConfiguration_.getString("db_custom_jdbc", null);
 
             // Derby specific
             keys = databaseConfiguration_.getKeys("derby");
@@ -162,7 +173,10 @@ public class DatabaseConfiguration {
         
         String jdbc = null;
          
-        if (type_ == DERBY_NETWORK) {
+        if ((customJdbc_ != null) && !customJdbc_.isEmpty()) {
+            jdbc = customJdbc_;
+        }
+        else if (type_ == DERBY_NETWORK) {
             jdbc = "jdbc:derby://" + hostname_ + ":" + port_ + "/" + databaseName_ + 
                     ";user=" + username_ + ";password=" + password_ + ";" + attributes_;
         }
@@ -186,8 +200,28 @@ public class DatabaseConfiguration {
         return cpMaxConnections_;
     }
 
+    public static int getCpAcquireRetryAttempts() {
+        return cpAcquireRetryAttempts_;
+    }
+
+    public static int getCpAcquireRetryDelay() {
+        return cpAcquireRetryDelay_;
+    }
+
+    public static int getCpConnectionTimeout() {
+        return cpConnectionTimeout_;
+    }
+    
     public static boolean isCpEnableStatistics() {
         return cpEnableStatistics_;
+    }
+    
+    public static Boolean getCpDefaultAutoCommit() {
+        return cpDefaultAutoCommit_;
+    }
+    
+    public static int getConnectionValidityCheckTimeout() {
+        return connectionValidityCheckTimeout_;
     }
     
     public static int getType() {
@@ -226,12 +260,8 @@ public class DatabaseConfiguration {
         return attributes_;
     }
 
-    public static Boolean getDefaultAutoCommit() {
-        return defaultAutoCommit_;
-    }
-    
-    public static int getConnectionValidityCheckTimeout() {
-        return connectionValidityCheckTimeout_;
+    public static String getCustomJdbc() {
+        return customJdbc_;
     }
     
     public static String getJdbcConnectionString() {
@@ -241,5 +271,5 @@ public class DatabaseConfiguration {
     public static void setJdbcConnectionString(String jdbcConnectionString) {
         jdbcConnectionString_ = jdbcConnectionString;
     }
-    
+
 }

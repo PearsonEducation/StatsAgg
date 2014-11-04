@@ -2,32 +2,27 @@ Short term
  * availability alert (test)
  * Add healthcheck servlet
  * unit tests for set & timer
+ * remove statsagg statsd metric naming
  * new option -- limit metric # in webui (and in underlying code)
  * make program more db-avail failure proof
- * 'disabled' for caution/danger alert type (threshold, avali, disabled)
- * db config -- use file separator property if derby
+   * Alert suspensions -- reduce # of small queries
+   * Metric groups -- create in one transaction
  * sql update -- change name of notification group PK to match NG convention
 
 Before open source release 
  * documentation/help page (wip)
- * comments in database.properties
  
  
 Medium term
- * Add connectionWatch into database config options
-       config.setDisableConnectionTracking(true);
-       config.setCloseConnectionWatch(true);
-       config.setCloseConnectionWatchTimeout(10, TimeUnit.SECONDS);
+ * Migrate to HikariCP
  * tweak webui "alert details" output (two columns)
- * tweak webui "details" to have links to cool shit
+ * tweak webui "details" to have links to other "details" pages
  * debug mode for "details" pages
  * stop resending metric after X time of no updates
  * option to skip persisting gauges in the db
  * alert by individual metric
  * make alert suspension datetime bars be full width of column
  * Statsd upper nth %
- * calculator/aggregator
- * events log w/ UI component
  * when altering alerts & stuff is in an alerted status, don't null the alert status if the alert status is the same
  * if database doesn't work, display message on homepage
  * webui - alter metric groups in a single db transaction
@@ -35,11 +30,10 @@ Medium term
  
  
 Long term
+ * calculator/aggregator
+ * events log w/ UI component
  * server-side tables
  * authentication
- * postgres support
- * immediately add raw gauges to db?
- * db_cleanup every once now & then
- * bind to specific address
- * repeater
+ * postgres support for StatsAgg admin database
+ * Statsd repeater functionality
  

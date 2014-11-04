@@ -157,20 +157,20 @@
             <version>5.1.33</version>
         </dependency>
         
-        <!--
-        <dependency>
-            <groupId>com.jolbox</groupId>
-            <artifactId>bonecp</artifactId>
-            <version>0.7.1.RELEASE</version>
-        </dependency>
-        -->
-        
         <dependency>
             <groupId>com.jolbox</groupId>
             <artifactId>bonecp</artifactId>
             <version>0.8.0.RELEASE</version>
         </dependency>
-
+        
+        <!--
+        <dependency>
+            <groupId>com.zaxxer</groupId>
+            <artifactId>HikariCP</artifactId>
+            <version>2.1.0</version>
+        </dependency>
+        -->
+        
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-math3</artifactId>
@@ -248,6 +248,12 @@
             <groupId>net.sf.opencsv</groupId>
             <artifactId>opencsv</artifactId>
             <version>2.3</version>
+        </dependency>
+        
+        <dependency> 
+            <groupId>org.postgresql</groupId> 
+            <artifactId>postgresql</artifactId> 
+            <version>9.3-1102-jdbc41</version> 
         </dependency>
         
     </dependencies>

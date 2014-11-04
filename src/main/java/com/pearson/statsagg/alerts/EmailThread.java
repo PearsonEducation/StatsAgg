@@ -1,6 +1,5 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database.DatabaseInterface;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -14,7 +13,7 @@ import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.network.http.StatsAggHtmlFramework;
+import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.Arrays;

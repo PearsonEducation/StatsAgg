@@ -42,6 +42,7 @@ import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
 import com.pearson.statsagg.utilities.Threads;
+import java.io.ByteArrayInputStream;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -84,35 +85,32 @@ public class ContextManager implements ServletContextListener {
         
         initializerContext_ = contextEvent.getServletContext();
         
+        Threads.sleepSeconds(1);
+        
         shutdownServerListeners();
         
         shutdownInvokerThreads();
         
-        DatabaseConnections.disconnectAndShutdown();
-
         shutdownSendToGraphiteThreadPool();
                 
         shutdownSendEmailThreadPool();
-                
+        
+        DatabaseConnections.disconnectAndShutdown();
+        DatabaseConnections.deregisterJdbcDriver();
+        
         shutdownLogger();
         
         logger.info("Initializer - Context Destroyed");
     }
     
     private boolean initializeApplication() {
-
-        // load the application configuration file
-        InputStream applicationConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + 
-                "config" + File.separator + "application.properties"); 
-        boolean isApplicationConfigSuccess = ApplicationConfiguration.initialize(applicationConfigurationInputStream);
-        if ((ApplicationConfiguration.getApplicationConfiguration() == null) || !isApplicationConfigSuccess ) {
-            return false;
-        }
         
         // load the logger configuration file & initialize it
-        InputStream logbackConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + 
-                "config" + File.separator + "logback_config.xml");
+        InputStream logbackConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "logback_config.xml");
         boolean isLogbackSuccess = readAndSetLogbackConfiguration(logbackConfigurationInputStream);
+
+        // read & set the application configuration
+        boolean isApplicationConfigurationSuccess = readAndSetApplicationConfiguration();
 
         // read the database configuration & getConnection to the database
         boolean initializeDatabaseSuccess = initializeDatabaseFromContext();
@@ -129,11 +127,11 @@ public class ContextManager implements ServletContextListener {
             logger.info("Finished adding gauges from database to recent metric global history. NumGaugesFromDbAddedToGlobal=" + numGaugesFromDatabase);
         }
         
-        // start the thread pool that is responsible for threads sending metrics to graphite 
-        startSendToGraphiteThreadPool();
-        
         // start the thread pool that is responsible for sending alert emails 
         startSendEmailThreadPool();
+        
+        // start the thread pool that is responsible for threads sending metrics to graphite 
+        startSendToGraphiteThreadPool();
         
         // set last alert executed routine timestamp to '0', which indicates to the rest of the program that it has never been executed
         GlobalVariables.alertRountineLastExecutedTimestamp.set(0);
@@ -167,7 +165,7 @@ public class ContextManager implements ServletContextListener {
         GlobalVariables.statsaggStartTimestamp.set(System.currentTimeMillis());
 
         // return true if all startup routines were successful 
-        if (isLogbackSuccess && initializeDatabaseSuccess && isStartupServerListenersSuccess) {
+        if (isLogbackSuccess && isApplicationConfigurationSuccess && initializeDatabaseSuccess && isStartupServerListenersSuccess) {
             return true;
         }
         else {
@@ -217,17 +215,79 @@ public class ContextManager implements ServletContextListener {
         
     }
     
+    // try to load application.properties
+    private boolean readAndSetApplicationConfiguration() {
+        
+        InputStream applicationConfigurationInputStream = null;
+        boolean isUsingDefaultSettings = false, isConfigFileMissing = false;
+        
+        try {
+            applicationConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "application.properties"); 
+            if (applicationConfigurationInputStream.available() <= 0) isConfigFileMissing = true;
+        }
+        catch (Exception e) {
+            isConfigFileMissing = true;
+        }
+        
+        if (isConfigFileMissing) {
+            logger.warn("Failed to load application.properties. Using StatsAgg application configuration defaults...");
+            applicationConfigurationInputStream = new ByteArrayInputStream("".getBytes());
+            isUsingDefaultSettings = true;
+        }
+        
+        boolean isApplicationConfigSuccess = ApplicationConfiguration.initialize(applicationConfigurationInputStream, isUsingDefaultSettings);
+        if ((ApplicationConfiguration.getApplicationConfiguration() == null) || !isApplicationConfigSuccess) {
+            return false;
+        }
+        
+        if (applicationConfigurationInputStream != null) {
+            try {
+                applicationConfigurationInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
+        return true;
+    }
+    
     public boolean initializeDatabaseFromContext() {
        
-        boolean isDatabaseGetConfigSuccess = false;
-        boolean isDatabaseInitializeSuccess = false;
+        InputStream databaseConfigurationInputStream = null;
+        boolean isDatabaseInitializeSuccess = false, isDatabaseGetConfigSuccess = false, isConfigFileMissing = false;
 
-        InputStream databaseConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + 
-                "config" + File.separator + "database.properties");
+        try {
+            databaseConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "database.properties");
+            if (databaseConfigurationInputStream.available() <= 0) isConfigFileMissing = true;
+            else GlobalVariables.isStatsaggUsingInMemoryDatabase.set(false);
+        }
+        catch (Exception e) {
+            isConfigFileMissing = true;
+        }
+            
+        if (isConfigFileMissing) {
+            logger.warn("Failed to load database.properties. Using an ephemeral (in-memory) database...");
+
+            StringBuilder defaultDatabase = new StringBuilder("");
+            defaultDatabase.append("db_type = derby_embedded\n");
+            defaultDatabase.append("db_custom_jdbc = jdbc:derby:memory:statsagg_mem_db;create=true\n");
+            defaultDatabase.append("derby.storage.pageCacheSize = 15000\n");
+
+            databaseConfigurationInputStream = new ByteArrayInputStream(defaultDatabase.toString().getBytes());
+            GlobalVariables.isStatsaggUsingInMemoryDatabase.set(true);
+        }
+        
         isDatabaseGetConfigSuccess = readAndSetDatabaseConfiguration(databaseConfigurationInputStream);
-  
-        if (isDatabaseGetConfigSuccess) {
-            isDatabaseInitializeSuccess = connectToDatabase();
+        isDatabaseInitializeSuccess = connectToDatabase();
+     
+        if (databaseConfigurationInputStream != null) {
+            try {
+                databaseConfigurationInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
         return isDatabaseGetConfigSuccess && isDatabaseInitializeSuccess;

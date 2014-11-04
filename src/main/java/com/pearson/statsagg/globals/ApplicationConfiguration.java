@@ -2,7 +2,7 @@ package com.pearson.statsagg.globals;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
-import com.pearson.statsagg.network.http.HttpLink;
+import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import java.io.InputStream;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -21,9 +21,9 @@ public class ApplicationConfiguration {
     private static final Logger logger = LoggerFactory.getLogger(ApplicationConfiguration.class.getName());
     
     public static final int VALUE_NOT_SET_CODE = -4444;
-    
+
+    private static boolean isUsingDefaultSettings_ = false;
     private static boolean isInitializeSuccess_ = false; 
-    
     private static PropertiesConfiguration applicationConfiguration_ = null;
     
     private static int flushTimeAgg_ = VALUE_NOT_SET_CODE;
@@ -94,12 +94,13 @@ public class ApplicationConfiguration {
     private static final List<HttpLink> customActionUrls_ = new ArrayList<>();
     
     
-    public static boolean initialize(InputStream configurationInputStream) {
+    public static boolean initialize(InputStream configurationInputStream, boolean isUsingDefaultSettings) {
         
         if (configurationInputStream == null) {
             return false;
         }
         
+        isUsingDefaultSettings_ = isUsingDefaultSettings;
         PropertiesConfigurationWrapper propertiesConfigurationWrapper = new PropertiesConfigurationWrapper(configurationInputStream);
         
         if (!propertiesConfigurationWrapper.isValid()) {
@@ -270,6 +271,10 @@ public class ApplicationConfiguration {
         }
         
         return customActionUrls;
+    }
+    
+    public static boolean isUsingDefaultSettings() {
+        return isUsingDefaultSettings_;
     }
     
     public static PropertiesConfiguration getApplicationConfiguration() {

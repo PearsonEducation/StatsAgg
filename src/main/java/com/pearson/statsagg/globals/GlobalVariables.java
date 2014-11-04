@@ -13,12 +13,16 @@ import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * @author Jeffrey Schmidt
  */
 public class GlobalVariables {
 
+    // A flag that indicates whether the StatsAgg is using an in-memory database or not
+    public static AtomicBoolean isStatsaggUsingInMemoryDatabase = new AtomicBoolean(false);
+    
     // Used to determine how long StatsAgg has been running. Should be set by the initialization routine.
     public final static AtomicLong statsaggStartTimestamp = new AtomicLong(0);
     

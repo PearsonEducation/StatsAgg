@@ -35,7 +35,7 @@ public class MetricAssociation {
         MetricGroupsDao metricGrouspDao = new MetricGroupsDao();
         List<Integer> metricGroupIds = metricGrouspDao.getAllMetricGroupIds();
         if (metricGroupIds == null) {
-            logger.error("Failure reading metric group ids from the datbase. Aborting metric association routine.");
+            logger.error("Failure reading metric group ids from the database. Aborting metric association routine.");
             return;
         }
         
