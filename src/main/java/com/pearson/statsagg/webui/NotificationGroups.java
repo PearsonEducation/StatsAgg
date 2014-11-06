@@ -24,6 +24,7 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,8 +87,9 @@ public class NotificationGroups extends HttpServlet {
             Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(html);
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -202,28 +204,28 @@ public class NotificationGroups extends HttpServlet {
 
         for (NotificationGroup notificationGroup : notificationGroups) {     
             
-            String metricGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
+            String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
             String alter = "<a href=\"CreateNotificationGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">alter</a>";
 
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", notificationGroup.getName()));
+            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + notificationGroup.getName(), "NotificationGroups", "clone", cloneKeysAndValues);
             
             List<KeyValue> testKeysAndValues = new ArrayList<>();
             testKeysAndValues.add(new KeyValue("Operation", "Test"));
-            testKeysAndValues.add(new KeyValue("Name", notificationGroup.getName()));
+            testKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
             String test = StatsAggHtmlFramework.buildJavaScriptPostLink("Test_" + notificationGroup.getName(), "NotificationGroups", "test", 
-                    testKeysAndValues, true, "Are you sure you want to send a test email alert to \\'" + notificationGroup.getName() + "\\'?");
+                    testKeysAndValues, true, "Are you sure you want to send a test email alert to \\'" + Encode.forJavaScript(notificationGroup.getName()) + "\\'?");
             
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", notificationGroup.getName()));
+            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + notificationGroup.getName(), "NotificationGroups", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this notification group?");       
             
             htmlBodyStringBuilder.append("<tr>\n")
-                .append("<td>").append(metricGroupDetails).append("</td>\n")
+                .append("<td>").append(notificationGroupDetails).append("</td>\n")
                 .append("<td>").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses())).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
             

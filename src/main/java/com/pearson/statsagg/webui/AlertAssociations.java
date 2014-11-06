@@ -12,7 +12,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
@@ -107,8 +106,9 @@ public class AlertAssociations extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+//            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+//            else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -204,21 +204,21 @@ public class AlertAssociations extends HttpServlet {
                 for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysSorted) {
 
                     if (associationOutputCounter < 1000)  {
-                        String metricKeyAndMetricValue = null;
+                        String netricValueString = null;
                         if (alert.getCautionAlertType() != null && alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY) {
-                            metricKeyAndMetricValue = activeCautionAlertMetricKey;
+                            netricValueString = activeCautionAlertMetricKey;
                         }
                         else {
                             BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
                             if (alertMetricValue != null) {
-                                metricKeyAndMetricValue = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
+                                netricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
                             }
                         }
 
                         outputString.append("<li>");
                         outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
                         outputString.append(StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey)).append("</a>");
-                        outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
+                        outputString.append("&nbsp;=&nbsp;").append(netricValueString);
                         outputString.append("</li>");
                     }
                     else {
@@ -298,21 +298,21 @@ public class AlertAssociations extends HttpServlet {
                 for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysSorted) {
 
                     if (associationOutputCounter < 1000)  {
-                        String metricKeyAndMetricValue = null;
+                        String metricValueString = null;
                         if (alert.getDangerAlertType() != null && alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY) {
-                            metricKeyAndMetricValue = activeDangerAlertMetricKey;
+                            metricValueString = activeDangerAlertMetricKey;
                         }
                         else {
                             BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
                             if (alertMetricValue != null) {
-                                metricKeyAndMetricValue = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
+                                metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
                             }
                         }
 
                         outputString.append("<li>");
                         outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
                         outputString.append(StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey)).append("</a>");
-                        outputString.append("&nbsp;=&nbsp;").append(metricKeyAndMetricValue);
+                        outputString.append("&nbsp;=&nbsp;").append(metricValueString);
                         outputString.append("</li>");
                     }
                     else {

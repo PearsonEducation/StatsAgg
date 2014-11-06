@@ -245,6 +245,7 @@ button.ColVis_Button, ul.ColVis_collection li {
     margin-right: 0px !important;
 }
 
-.input-sm, .form-horizontal .form-group-sm .form-control {
+input[type="search"] {
+    margin-left: 5px !important;
     margin-right: 15px !important;
 }

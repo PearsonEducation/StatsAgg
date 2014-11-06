@@ -16,6 +16,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -90,8 +91,9 @@ public class CreateAlert extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -127,8 +129,9 @@ public class CreateAlert extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -155,7 +158,7 @@ public class CreateAlert extends HttpServlet {
             "    <div class=\"row create-alert-form-row\">\n");
 
         if ((alert != null) && (alert.getName() != null) && !alert.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(alert.getName()).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\">");
         }
         
         
@@ -174,7 +177,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this alert.\" name=\"Name\" id=\"Name\" ");
         
         if ((alert != null) && (alert.getName() != null)) {
-            htmlBody.append(" value=\"").append(alert.getName()).append("\"");
+            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
         }
 
         htmlBody.append(">\n</div>\n");
@@ -187,7 +190,7 @@ public class CreateAlert extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
 
         if ((alert != null) && (alert.getDescription() != null)) {
-            htmlBody.append(alert.getDescription());
+            htmlBody.append(Encode.forHtmlAttribute(alert.getDescription()));
         }
 
         htmlBody.append("</textarea>\n");
@@ -205,7 +208,7 @@ public class CreateAlert extends HttpServlet {
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
 
             if ((metricGroup != null) && (metricGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(metricGroup.getName()).append("\"");
+                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\"");
             }
         }
 
@@ -309,7 +312,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(notificationGroup.getName()).append("\"");
+                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
             }
         }
         
@@ -481,7 +484,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(notificationGroup.getName()).append("\"");
+                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
             }
         }
         

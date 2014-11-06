@@ -149,28 +149,34 @@ public class MetricAssociation {
                 
                 if (!isMetricGroupIdInNegativeList && !isMetricGroupIdInPositiveList) {
                     Pattern pattern = getPatternFromRegexString(regex);
-                    Matcher matcher = pattern.matcher(metricKey);
-                    boolean isMetricKeyAssociatedWithMetricGroup = matcher.matches();
                     
-                    if (isMetricKeyAssociatedWithMetricGroup) {
-                        positiveMatchList.add(metricGroupId);
-                        positiveMatchList.trimToSize();
-                    }
-                    else {
-                        negativeMatchList.add(metricGroupId);
-                        negativeMatchList.trimToSize();
-                    }
+                    if (pattern != null) {
+                        Matcher matcher = pattern.matcher(metricKey);
+                        boolean isMetricKeyAssociatedWithMetricGroup = matcher.matches();
 
-                    if (isMetricKeyAssociatedWithMetricGroup) {
-                        Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-
-                        if (matchingMetricKeyAssociationWithMetricGroup == null) {
-                            matchingMetricKeyAssociationWithMetricGroup = new HashSet<>();
-                            GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.put(metricGroupId, Collections.synchronizedSet(matchingMetricKeyAssociationWithMetricGroup));
+                        if (isMetricKeyAssociatedWithMetricGroup) {
+                            positiveMatchList.add(metricGroupId);
+                            positiveMatchList.trimToSize();
+                        }
+                        else {
+                            negativeMatchList.add(metricGroupId);
+                            negativeMatchList.trimToSize();
                         }
 
-                        matchingMetricKeyAssociationWithMetricGroup.add(metricKey);
-                        isMetricKeyAssociatedWithAnyMetricGroup = true;
+                        if (isMetricKeyAssociatedWithMetricGroup) {
+                            Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+
+                            if (matchingMetricKeyAssociationWithMetricGroup == null) {
+                                matchingMetricKeyAssociationWithMetricGroup = new HashSet<>();
+                                GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.put(metricGroupId, Collections.synchronizedSet(matchingMetricKeyAssociationWithMetricGroup));
+                            }
+
+                            matchingMetricKeyAssociationWithMetricGroup.add(metricKey);
+                            isMetricKeyAssociatedWithAnyMetricGroup = true;
+                        }
+                    }
+                    else {
+                        isMetricKeyAssociatedWithAnyMetricGroup = false;
                     }
                 }
                 else if (isMetricGroupIdInPositiveList) {
@@ -217,12 +223,16 @@ public class MetricAssociation {
         Pattern pattern = GlobalVariables.metricGroupRegexPatterns.get(regex);
 
         if (pattern == null) {
+            boolean isRegexBad = GlobalVariables.metricGroupRegexBlacklist.containsKey(regex);
+            if (isRegexBad) return null;
+            
             try {
                 pattern = Pattern.compile(regex);
                 GlobalVariables.metricGroupRegexPatterns.put(regex, pattern);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                GlobalVariables.metricGroupRegexBlacklist.put(regex, regex);
             }
         }
 

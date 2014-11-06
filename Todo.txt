@@ -2,15 +2,18 @@ Short term
  * availability alert (test)
  * Add healthcheck servlet
  * unit tests for set & timer
- * remove statsagg statsd metric naming
  * new option -- limit metric # in webui (and in underlying code)
  * make program more db-avail failure proof
    * Alert suspensions -- reduce # of small queries
    * Metric groups -- create in one transaction
  * sql update -- change name of notification group PK to match NG convention
+ * bug -- single bad regex ruins the party for all regexs
+ * bug -- special characters ruin json lookup
 
 Before open source release 
  * documentation/help page (wip)
+   * document war deployment
+   * document basic security in tomcat
  
  
 Medium term
@@ -32,8 +35,7 @@ Medium term
 Long term
  * calculator/aggregator
  * events log w/ UI component
- * server-side tables
- * authentication
+ * server-side webui tables
  * postgres support for StatsAgg admin database
  * Statsd repeater functionality
  

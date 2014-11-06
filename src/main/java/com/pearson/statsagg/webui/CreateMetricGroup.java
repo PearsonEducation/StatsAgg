@@ -18,6 +18,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -92,8 +93,9 @@ public class CreateMetricGroup extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -129,8 +131,9 @@ public class CreateMetricGroup extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -156,7 +159,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <form action=\"CreateMetricGroup\" method=\"POST\">\n");
         
         if ((metricGroup != null) && (metricGroup.getName() != null) && !metricGroup.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(metricGroup.getName()).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\">");
         }
         
         htmlBody.append(
@@ -165,7 +168,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this metric group.\" name=\"Name\" id=\"Name\" ");
 
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
-            htmlBody.append("value=\"").append(metricGroup.getName()).append("\"");
+            htmlBody.append("value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\"");
         }
 
         htmlBody.append(      
@@ -175,7 +178,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
 
         if ((metricGroup != null) && (metricGroup.getDescription() != null)) {
-            htmlBody.append(metricGroup.getDescription());
+            htmlBody.append(Encode.forHtmlAttribute(metricGroup.getDescription()));
         }
 
         htmlBody.append(
@@ -192,7 +195,7 @@ public class CreateMetricGroup extends HttpServlet {
             
             if (metricGroupRegexs != null) {
                 for (int i = 0; i < metricGroupRegexs.size(); i++) {
-                    htmlBody.append(metricGroupRegexs.get(i).getPattern());
+                    htmlBody.append(Encode.forHtmlAttribute(metricGroupRegexs.get(i).getPattern()));
                     if ((i + 1) < metricGroupRegexs.size()) {
                         htmlBody.append("\n");
                     }
@@ -213,7 +216,7 @@ public class CreateMetricGroup extends HttpServlet {
             
             if (metricGroupTags != null) {
                 for (int i = 0; i < metricGroupTags.size(); i++) {
-                    htmlBody.append(metricGroupTags.get(i).getTag());
+                    htmlBody.append(Encode.forHtmlAttribute(metricGroupTags.get(i).getTag()));
                     if ((i + 1) < metricGroupTags.size()) {
                         htmlBody.append("\n");
                     }

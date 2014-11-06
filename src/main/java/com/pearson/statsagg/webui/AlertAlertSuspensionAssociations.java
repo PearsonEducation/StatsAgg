@@ -10,7 +10,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
@@ -99,8 +98,9 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+//            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+//            else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

@@ -82,8 +82,9 @@ public class RegexTester extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -174,19 +175,29 @@ public class RegexTester extends HttpServlet {
             return "";
         }
         
-        Pattern pattern = Pattern.compile(regex);
+        Pattern pattern = null;
+        
+        try {
+            pattern = Pattern.compile(regex);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         List<String> matchingMetricKeys = new ArrayList<>();
 
-        int matchCounter = 0;
-        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
-            Matcher matcher = pattern.matcher(metricKey);
-            if (matcher.matches()) {
-                matchingMetricKeys.add(metricKey);
-                matchCounter++;
-            }
-            
-            if (matchCounter == (metricMatchLimit + 1)) {
-                break;
+        if (pattern != null) {
+            int matchCounter = 0;
+            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
+                Matcher matcher = pattern.matcher(metricKey);
+                if (matcher.matches()) {
+                    matchingMetricKeys.add(metricKey);
+                    matchCounter++;
+                }
+
+                if (matchCounter == (metricMatchLimit + 1)) {
+                    break;
+                }
             }
         }
         

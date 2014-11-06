@@ -91,6 +91,9 @@ public class GlobalVariables {
     // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."
     public final static ConcurrentHashMap<String,Pattern> metricGroupRegexPatterns = new ConcurrentHashMap<>(); 
     
+    // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern. If a regex pattern is bad (doesn't compile), then it is stored here so we don't try to recompile it."
+    public final static ConcurrentHashMap<String,String> metricGroupRegexBlacklist = new ConcurrentHashMap<>(); 
+    
     // k=AlertId, v=MetricKey
     public final static ConcurrentHashMap<Integer,List<String>> activeCautionAlertMetricKeysByAlertId = new ConcurrentHashMap<>(); 
     

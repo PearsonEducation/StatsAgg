@@ -220,8 +220,7 @@ public class StatsdMetricAggregator {
                 else if (metricTypeKey == StatsdMetricRaw.TIMER_TYPE) {
                     multipleStatsdMetricsAggregated = aggregateTimer(statsdMetricsByBucket, 
                             ApplicationConfiguration.getFlushTimeAgg(), 
-                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
-                            ApplicationConfiguration.getStatsdUseStatsaggOutputNamingConvention());
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
                 }
                 else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugesDao != null)) {
                     String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + bucket;
@@ -334,8 +333,7 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, long aggregationWindowLengthInMs, 
-            String aggregatedMetricsSeparator, boolean useStatsaggOutputNamingConvention) {
+    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, long aggregationWindowLengthInMs, String aggregatedMetricsSeparator) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
            return new ArrayList<>(); 
@@ -407,56 +405,47 @@ public class StatsdMetricAggregator {
                     
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
 
-            String metricLabel = useStatsaggOutputNamingConvention ? "Avg_Response_Time_ms" : "mean";
-            StatsdMetricAggregated statsdTimerAverageResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdTimerAverageResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean",  
                     averageMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerAverageResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerAverageResponseTime);
 
-            metricLabel = useStatsaggOutputNamingConvention ? "Median_Response_Time_ms" : "median";
-            StatsdMetricAggregated statsdTimerMedianResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdTimerMedianResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median",  
                     medianMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerMedianResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerMedianResponseTime);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Max_Response_Time_ms" : "upper";
-            StatsdMetricAggregated statsdTimerMaximumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdTimerMaximumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper",  
                     maximumMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerMaximumResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerMaximumResponseTime);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Min_Response_Time_ms" : "lower";
-            StatsdMetricAggregated statsdTimerMinimumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdTimerMinimumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower",  
                     minimumMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerMinimumResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerMinimumResponseTime);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Responses_Per_Interval" : "count";
-            StatsdMetricAggregated statsdTimerResponsesPerInterval = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel, 
+            StatsdMetricAggregated statsdTimerResponsesPerInterval = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count", 
                     responsesPerInterval, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerResponsesPerInterval.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerResponsesPerInterval);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Responses_Per_Second" : "count_ps";
-            StatsdMetricAggregated statsdTimerResponsesPerSecond = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel, 
+            StatsdMetricAggregated statsdTimerResponsesPerSecond = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps", 
                     responsesPerSecond, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdTimerResponsesPerSecond.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdTimerResponsesPerSecond);
     
-            metricLabel = useStatsaggOutputNamingConvention ? "Sum" : "sum";
-            StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum",  
                     sum, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdSum.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdSum);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Sum_of_Squares" : "sum_squares";
-            StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares",  
                     sumOfSquares, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdSumOfSquares.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdSumOfSquares);
             
-            metricLabel = useStatsaggOutputNamingConvention ? "Std_Deviation_ms" : "std";
-            StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel,  
+            StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std",  
                     standardDeviationResult, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
             statsdStandardDeviation.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdStandardDeviation);

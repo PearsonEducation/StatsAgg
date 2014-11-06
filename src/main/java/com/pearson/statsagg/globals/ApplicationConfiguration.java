@@ -70,7 +70,6 @@ public class ApplicationConfiguration {
     private static boolean graphiteAggregatorSendPreviousValue_ = false;
     private static boolean graphitePassthroughSendPreviousValue_ = false;      
     
-    private static boolean statsdUseStatsaggOutputNamingConvention_ = false;
     private static int statsdNthPercentileThreshold_ = VALUE_NOT_SET_CODE;
     
     private static boolean alertRoutineEnabled_ = false;
@@ -165,7 +164,6 @@ public class ApplicationConfiguration {
             graphitePassthroughSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_passthrough_send_previous_value", false);
 
             // statsd specific variables
-            statsdUseStatsaggOutputNamingConvention_ = applicationConfiguration_.getBoolean("statsd_use_statsagg_output_naming_convention", false);
             statsdNthPercentileThreshold_ = applicationConfiguration_.getInteger("statsd_nth_percentile_threshold", 90);
             
             // alerting variables
@@ -437,10 +435,6 @@ public class ApplicationConfiguration {
         return graphitePassthroughSendPreviousValue_;
     }
 
-    public static boolean getStatsdUseStatsaggOutputNamingConvention() {
-        return statsdUseStatsaggOutputNamingConvention_;
-    }
-    
     public static int getStatsdNthPercentileThreshold() {
         return statsdNthPercentileThreshold_;
     }

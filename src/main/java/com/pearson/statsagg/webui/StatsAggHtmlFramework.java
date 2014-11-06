@@ -167,6 +167,10 @@ public class StatsAggHtmlFramework {
     
     public static String buildJavaScriptPostLink(String plaintextFormId, String postEndpoint, String linkText, List<KeyValue> postParameters, boolean confirmAction, String confirmationText) {
         
+        if (plaintextFormId == null) {
+            return null;
+        }
+        
         StringBuilder stringBuilder = new StringBuilder("");
         
         String encodedFormId = "F_"  + DigestUtils.md5Hex(plaintextFormId);

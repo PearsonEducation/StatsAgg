@@ -9,13 +9,13 @@ import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -88,10 +88,11 @@ public class CreateAlertSuspension extends HttpServlet {
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
-            String html  = htmlDocument.toString();
+            String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(html);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -128,6 +129,8 @@ public class CreateAlertSuspension extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -155,7 +158,7 @@ public class CreateAlertSuspension extends HttpServlet {
         htmlBody.append("<div class=\"row create-alert-form-row\">"); 
 
         if ((alertSuspension != null) && (alertSuspension.getName() != null) && !alertSuspension.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(alertSuspension.getName()).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(alertSuspension.getName())).append("\">");
         }
         
         
@@ -173,7 +176,7 @@ public class CreateAlertSuspension extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\".\" name=\"Name\" id=\"Name\"");
         
         if ((alertSuspension != null) && (alertSuspension.getName() != null)) {
-            htmlBody.append(" value=\"").append(alertSuspension.getName()).append("\"");
+            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(alertSuspension.getName())).append("\"");
         }
 
         htmlBody.append(">\n" + "</div>\n");
@@ -247,7 +250,7 @@ public class CreateAlertSuspension extends HttpServlet {
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlert(alertSuspension.getAlertId());
             
-            if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(alert.getName()).append("\"");
+            if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
         }
  
         htmlBody.append("" +
@@ -264,7 +267,7 @@ public class CreateAlertSuspension extends HttpServlet {
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsInclusive\" id=\"MetricGroupTagsInclusive\" >");
         
         if ((alertSuspension != null) && (alertSuspension.getMetricGroupTagsInclusive() != null)) {
-            htmlBody.append(alertSuspension.getMetricGroupTagsInclusive());
+            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getMetricGroupTagsInclusive()));
         }
  
         htmlBody.append("" +
@@ -281,7 +284,7 @@ public class CreateAlertSuspension extends HttpServlet {
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsExclusive\" id=\"MetricGroupTagsExclusive\" >");
         
         if ((alertSuspension != null) && (alertSuspension.getMetricGroupTagsExclusive() != null)) {
-            htmlBody.append(alertSuspension.getMetricGroupTagsExclusive());
+            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getMetricGroupTagsExclusive()));
         }
  
         htmlBody.append("" +

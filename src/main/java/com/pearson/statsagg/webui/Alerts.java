@@ -2,14 +2,12 @@ package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -27,6 +25,7 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -86,13 +85,14 @@ public class Alerts extends HttpServlet {
         request.getSession().setAttribute(PAGE_NAME, out);
         
         try {
-            String htmlBuilder = buildAlertsHtml();
+            String html = buildAlertsHtml();
             
-            Document htmlDocument = Jsoup.parse(htmlBuilder);
+            Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder);
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+//            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder);
+//            else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -325,14 +325,14 @@ public class Alerts extends HttpServlet {
             if (alert.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", alert.getName()));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "disable", keysAndValues);
             }
             else {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", alert.getName()));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
             }
@@ -341,12 +341,12 @@ public class Alerts extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", alert.getName()));
+            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alert.getName(), "Alerts", "clone", cloneKeysAndValues);
                     
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", alert.getName()));
+            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alert.getName(), "Alerts", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this alert?");
 

@@ -20,6 +20,7 @@ import com.pearson.statsagg.utilities.StackTrace;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -79,13 +80,14 @@ public class AlertSuspensions extends HttpServlet {
         request.getSession().setAttribute(PAGE_NAME, out);
         
         try {
-            String htmlBuilder = buildAlertSuspensionsHtml();
+            String html = buildAlertSuspensionsHtml();
             
-            Document htmlDocument = Jsoup.parse(htmlBuilder);
+            Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder);
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -244,7 +246,7 @@ public class AlertSuspensions extends HttpServlet {
                 if (alertSuspension.getAlertId() != null) {
                     AlertsDao alertsDao = new AlertsDao();
                     Alert alert = alertsDao.getAlert(alertSuspension.getAlertId());
-                    if ((alert != null) && (alert.getName() != null)) suspendByDetails.append(alert.getName());
+                    if ((alert != null) && (alert.getName() != null)) suspendByDetails.append(StatsAggHtmlFramework.htmlEncode(alert.getName()));
                 }
             }
             else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
@@ -284,14 +286,14 @@ public class AlertSuspensions extends HttpServlet {
             if (alertSuspension.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", alertSuspension.getName()));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alertSuspension.getName(), "AlertSuspensions", "disable", keysAndValues);
             }
             else {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", alertSuspension.getName()));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alertSuspension.getName(), "AlertSuspensions", "enable", keysAndValues);
             }
@@ -300,12 +302,12 @@ public class AlertSuspensions extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", alertSuspension.getName()));
+            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alertSuspension.getName(), "AlertSuspensions", "clone", cloneKeysAndValues);
                     
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", alertSuspension.getName()));
+            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alertSuspension.getName(), "AlertSuspensions", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this alert suspension?");
 

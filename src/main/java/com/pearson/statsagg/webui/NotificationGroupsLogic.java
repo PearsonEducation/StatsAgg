@@ -74,6 +74,7 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         else {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
+            
             if (isNewNotificationGroup) returnString = "Failed to create notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             else returnString = "Failed to alter notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             logger.warn(returnString);

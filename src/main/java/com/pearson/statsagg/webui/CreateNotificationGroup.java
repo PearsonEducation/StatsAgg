@@ -11,6 +11,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,8 +86,9 @@ public class CreateNotificationGroup extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -122,8 +124,9 @@ public class CreateNotificationGroup extends HttpServlet {
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -149,7 +152,7 @@ public class CreateNotificationGroup extends HttpServlet {
             "     <form action=\"CreateNotificationGroup\" method=\"POST\">\n");
         
         if ((notificationGroup != null) && (notificationGroup.getName() != null) && !notificationGroup.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(notificationGroup.getName()).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\">");
         }
         
         htmlBody.append(
@@ -158,7 +161,7 @@ public class CreateNotificationGroup extends HttpServlet {
             "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this notification group.\" name=\"Name\" id=\"Name\" ");
 
         if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-            htmlBody.append("value=\"").append(notificationGroup.getName()).append("\"");
+            htmlBody.append("value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
         }
 
         htmlBody.append(
@@ -168,7 +171,7 @@ public class CreateNotificationGroup extends HttpServlet {
             "         <input class=\"form-control-statsagg\" placeholder=\"Enter a csv-delimited list of email addresses\" name=\"EmailAddresses\" id=\"EmailAddresses\" ");
 
         if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
-            htmlBody.append("value=\"").append(notificationGroup.getEmailAddresses()).append("\"");
+            htmlBody.append("value=\"").append(Encode.forHtmlAttribute(notificationGroup.getEmailAddresses())).append("\"");
         }
 
         htmlBody.append(

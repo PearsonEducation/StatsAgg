@@ -24,6 +24,7 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -81,13 +82,14 @@ public class MetricGroups extends HttpServlet {
         PrintWriter out = null;
 
         try {
-            String htmlBuilder = buildMetricGroupsHtml();
+            String html = buildMetricGroupsHtml();
             
-            Document htmlDocument = Jsoup.parse(htmlBuilder);
+            Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
-            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder);
-            else out.println(htmlFormatted);
+            out.println(htmlFormatted);
+            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
+            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -260,12 +262,12 @@ public class MetricGroups extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", metricGroup.getName()));
+            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(metricGroup.getName())));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + metricGroup.getName(), "MetricGroups", "clone", cloneKeysAndValues);
             
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", metricGroup.getName()));
+            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(metricGroup.getName())));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroup.getName(), "MetricGroups", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this metric group?");
             
