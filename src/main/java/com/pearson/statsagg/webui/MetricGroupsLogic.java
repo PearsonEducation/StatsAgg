@@ -64,11 +64,12 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             }
             
             metricGroupsDao.close();
-            
+                        
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to create metric group. A metric group with same name already exists. MetricGroupName=\"" + metricGroup.getName() + "\"";
-                logger.warn(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.warn(cleanReturnString);
                 return returnString;
             }
             else if (metricGroupUpsertSuccess && (newMetricGroupFromDb != null)) {
@@ -84,7 +85,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
                     if (isNewMetricGroup) returnString = "Successful metric group creation. MetricGroupName=\"" + metricGroup.getName() + "\"";
                     else returnString = "Successful metric group alteration. MetricGroupName=\"" + metricGroup.getName() + "\"";
-                    logger.info(returnString);
+                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    logger.info(cleanReturnString);
                 }
                 else { 
                     lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -102,7 +104,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                                 + ", MetricGroupTag_UpsertSuccess=" + isAllMetricGroupTagsUpsertSuccess;
                     }
                     
-                    logger.warn(returnString);
+                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    logger.warn(cleanReturnString);
                 }
 
                 return returnString;
@@ -112,7 +115,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
                 if (isNewMetricGroup) returnString = "Failed to create MetricGroup. " + "MetricGroupName=\"" + metricGroup.getName() + "\"";
                 else returnString = "Failed to alter MetricGroup. " + "MetricGroupName=\"" + metricGroup.getName() + "\"";
-                logger.warn(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.warn(cleanReturnString);
                 return returnString;
             }
         }
@@ -131,7 +135,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             boolean isMetricGroupRegexInsertSuccess = metricGroupRegexsDao.upsert(metricGroupRegex);
 
             if (!isMetricGroupRegexInsertSuccess) {
-                logger.warn("Failed to alter metric group regex. Regex=" + regex);
+                String cleanRegex = StatsAggHtmlFramework.removeNewlinesFromString(regex);
+                logger.warn("Failed to alter metric group regex. Regex=" + cleanRegex);
                 isAllMetricGroupRegexsUpsertSuccess = false;
             }
         }
@@ -153,7 +158,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             boolean isMetricGroupTagInsertSuccess = metricGroupTagsDao.upsert(metricGroupTag);
 
             if (!isMetricGroupTagInsertSuccess) {
-                logger.warn("Failed to alter metric group tag. Tag=" + tag);
+                String cleanTag = StatsAggHtmlFramework.removeNewlinesFromString(tag, ' ');
+                logger.warn("Failed to alter metric group tag. Tag=" + cleanTag);
                 isAllMetricGroupTagsUpsertSuccess = false;
             }
         }
@@ -194,7 +200,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
                         lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                         returnString = "Failed to delete metric group. MetricGroupName=\"" + metricGroupName + "\".";
-                        logger.warn(returnString);
+                        String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                        logger.warn(cleanReturnString);
                     }
                     else {
                         if (metricGroupFromDb.getId() != null) {
@@ -204,13 +211,15 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
                     lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                     returnString = "Delete metric group success. MetricGroupName=\"" + metricGroupName + "\".";
-                    logger.info(returnString);
+                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    logger.info(cleanReturnString);
                 }
 
                 else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                     returnString = "Failed to delete metric group regexs and/or tags. MetricGroupName=\"" + metricGroupName + "\".";
-                    logger.warn(returnString);
+                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    logger.warn(cleanReturnString);
                 }
 
                 metricGroupRegexsDao.close();
@@ -219,7 +228,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Metric group not found. MetricGroupName=\"" + metricGroupName + "\". Cancelling delete operation.";
-                logger.warn(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.warn(cleanReturnString);
             }
 
             metricGroupsDao.close();

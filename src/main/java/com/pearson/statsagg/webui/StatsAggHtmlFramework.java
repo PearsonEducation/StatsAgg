@@ -249,5 +249,27 @@ public class StatsAggHtmlFramework {
         htmlEscapedString = StringUtils.replace(htmlEscapedString, " ", "&nbsp;");
         return htmlEscapedString;
     }
+
+    public static String removeNewlinesFromString(String inputString) {
+
+        if ((inputString == null) || inputString.isEmpty()) {
+            return inputString;
+        }
+        
+        String cleanedString = StringUtils.remove(inputString, '\r');
+        cleanedString = StringUtils.remove(cleanedString, '\n');
+
+        return cleanedString;
+    }
+    
+    public static String removeNewlinesFromString(String inputString, char newlineReplacementCharacter) {
+
+        if ((inputString == null) || inputString.isEmpty()) {
+            return inputString;
+        }
+        
+        String cleanedString = inputString.replace('\n', newlineReplacementCharacter).replace('\r', newlineReplacementCharacter);
+        return cleanedString;
+    }
     
 }

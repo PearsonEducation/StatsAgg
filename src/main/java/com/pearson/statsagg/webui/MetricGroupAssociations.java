@@ -94,8 +94,6 @@ public class MetricGroupAssociations extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

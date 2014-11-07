@@ -62,21 +62,24 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
             returnString = "Failed to create alert suspension. An alert suspension with the same name already exists. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
         else if (isUpsertSuccess && (newAlertSuspensionFromDb != null)) {
             lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
             
             if (isNewAlertSuspension) returnString = "Successful alert suspension creation. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
             else returnString = "Successful alert suspension alteration. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            logger.info(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.info(cleanReturnString);
         }
         else {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
             if (isNewAlertSuspension) returnString = "Failed to create alert suspension. " + "AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
             else returnString = "Failed to alter alert suspension. " + "AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
             
         return returnString;
@@ -95,25 +98,28 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
         AlertSuspension alertSuspensionFromDb = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
-        
+                
         if (alertSuspensionFromDb != null) {
             boolean didDeleteSucceed = alertSuspensionsDao.delete(alertSuspensionFromDb);
             
             if (!didDeleteSucceed) {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to delete alert suspension. AlertSuspensionName=\"" + alertSuspensionName + "\".";
-                logger.warn(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.warn(cleanReturnString);
             }
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Delete alert suspension success. AlertSuspensionName=\"" + alertSuspensionName + "\".";
-                logger.info(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.info(cleanReturnString);
             }
         }
         else {
             lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
             returnString = "Alert suspension not found. AlertSuspensionName=\"" + alertSuspensionName + "\". Cancelling delete operation.";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
         
         alertSuspensionsDao.close();

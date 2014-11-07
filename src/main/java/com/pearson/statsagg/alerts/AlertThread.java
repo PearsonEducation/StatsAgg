@@ -22,6 +22,7 @@ import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated
 import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.Threads;
+import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.TreeSet;
@@ -280,7 +281,8 @@ public class AlertThread implements Runnable {
                 if (hasAlertReachedPreviousState) {
                     Alert alert = pendingCautionAlertsByAlertId_.get(alertId);
                     pendingCautionAlertsByAlertId_.remove(alertId);
-                    logger.info("Routine=AlertRecovery, AlertName=\"" + alert.getName() + "\", Message=\"Caution alerting enabled after reaching previous window state\"");
+                    String cleanAlertName = StatsAggHtmlFramework.removeNewlinesFromString(alert.getName(), ' ');
+                    logger.info("Routine=AlertRecovery, AlertName=\"" + cleanAlertName + "\", Message=\"Caution alerting enabled after reaching previous window state\"");
                 }
             }
         }
@@ -300,7 +302,8 @@ public class AlertThread implements Runnable {
                 if (hasAlertReachedPreviousState) {
                     Alert alert = pendingDangerAlertsByAlertId_.get(alertId);
                     pendingDangerAlertsByAlertId_.remove(alertId);
-                    logger.info("Routine=AlertRecovery, AlertName=\"" + alert.getName() + "\", Message=\"Danger alerting enabled after reaching previous window state\"");
+                    String cleanAlertName = StatsAggHtmlFramework.removeNewlinesFromString(alert.getName(), ' ');
+                    logger.info("Routine=AlertRecovery, AlertName=\"" + cleanAlertName + "\", Message=\"Danger alerting enabled after reaching previous window state\"");
                 }
             }
         }
@@ -323,7 +326,8 @@ public class AlertThread implements Runnable {
                 
                 if ((alert.getCautionWindowDuration() != null) && (timeSinceStartup >= alert.getCautionWindowDuration())) {
                     pendingCautionAlertsByAlertId_.remove(alertId);
-                    logger.info("Routine=AlertRecovery, AlertName=\"" + alert.getName() + "\", Message=\"Caution alerting enabled after reaching window duration (" + timeSinceStartup + "ms)\"");
+                    String cleanAlertName = StatsAggHtmlFramework.removeNewlinesFromString(alert.getName(), ' ');
+                    logger.info("Routine=AlertRecovery, AlertName=\"" + cleanAlertName + "\", Message=\"Caution alerting enabled after reaching window duration (" + timeSinceStartup + "ms)\"");
                 }
             }
         }
@@ -336,7 +340,8 @@ public class AlertThread implements Runnable {
                 
                 if ((alert.getDangerWindowDuration() != null) && (timeSinceStartup >= alert.getDangerWindowDuration())) {
                     pendingDangerAlertsByAlertId_.remove(alertId);
-                    logger.info("Routine=AlertRecovery, AlertName=\"" + alert.getName() + "\", Message=\"Danger alerting enabled after reaching window duration (" + timeSinceStartup + "ms)\"");
+                    String cleanAlertName = StatsAggHtmlFramework.removeNewlinesFromString(alert.getName(), ' ');
+                    logger.info("Routine=AlertRecovery, AlertName=\"" + cleanAlertName + "\", Message=\"Danger alerting enabled after reaching window duration (" + timeSinceStartup + "ms)\"");
                 }
             }
         }

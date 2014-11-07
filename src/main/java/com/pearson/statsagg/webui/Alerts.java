@@ -81,9 +81,7 @@ public class Alerts extends HttpServlet {
         
         response.setContentType("text/html");
         PrintWriter out = null;
-        
-        request.getSession().setAttribute(PAGE_NAME, out);
-        
+                
         try {
             String html = buildAlertsHtml();
             
@@ -91,8 +89,6 @@ public class Alerts extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-//            if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder);
-//            else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

@@ -78,8 +78,6 @@ public class ForgetMetrics extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -116,8 +114,6 @@ public class ForgetMetrics extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -199,7 +195,9 @@ public class ForgetMetrics extends HttpServlet {
                 GlobalVariables.forgetStatsdMetrics.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphiteAggregatedMetrics.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphitePassthroughMetrics.put(trimmedParameter, trimmedParameter);
-                logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + trimmedParameter + "\"");
+                
+                String cleanMetric = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
+                logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetric + "\"");
             }
             
             parameter = request.getParameter("ForgetMetricRegex");
@@ -210,7 +208,8 @@ public class ForgetMetrics extends HttpServlet {
                 GlobalVariables.forgetGraphiteAggregatedMetricsRegexs.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphitePassthroughMetricsRegexs.put(trimmedParameter, trimmedParameter);
                 
-                logger.info("Action=ForgetMetrics, " + "Rexex=\"" + trimmedParameter + "\"");
+                String cleanRegex = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
+                logger.info("Action=ForgetMetrics, " + "Rexex=\"" + cleanRegex + "\"");
             }
 
         }

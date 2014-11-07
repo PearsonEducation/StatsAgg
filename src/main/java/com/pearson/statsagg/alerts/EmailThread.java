@@ -244,7 +244,9 @@ public class EmailThread implements Runnable  {
         
         body_ = body.toString();
         
-        logger.debug(subject_ + "\n" + body_);
+        String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(subject_, ' ');
+        String cleanBody = StatsAggHtmlFramework.removeNewlinesFromString(body_, ' ');
+        logger.debug(cleanSubject + "\n" + cleanBody);
     }
     
     public void sendEmail(List<String> emailAddesses, String emailSubject, String emailBody) {
@@ -262,7 +264,8 @@ public class EmailThread implements Runnable  {
             String fromAddress, String fromName, List<String> toAddresses, String emailSubject, String emailBody) {
         
         if (toAddresses.isEmpty()) {
-            logger.debug("Message=\"Failed to send email alert. No valid recipients.\", EmailSubject=\"" + emailSubject + "\"");
+            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
+            logger.debug("Message=\"Failed to send email alert. No valid recipients.\", EmailSubject=\"" + cleanSubject + "\"");
             return;
         }
         
@@ -285,10 +288,12 @@ public class EmailThread implements Runnable  {
             email.setHtmlMsg(emailBody);
             email.send();
             
-            logger.info("Message=\"Send email alert\", EmailSubject=\"" + emailSubject + "\"");
+            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
+            logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"");
         }
         catch (Exception e) {
-            logger.error("Message=\"Failed to send email alert. SMTP failure.\", " + "EmailSubject=\"" + emailSubject + "\", " +
+            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
+            logger.error("Message=\"Failed to send email alert. SMTP failure.\", " + "EmailSubject=\"" + cleanSubject + "\", " +
                     e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }

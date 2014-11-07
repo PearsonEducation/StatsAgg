@@ -88,8 +88,6 @@ public class NotificationGroups extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -271,7 +269,8 @@ public class NotificationGroups extends HttpServlet {
         NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
         
         if (notificationGroup == null) {
-            logger.info("Failed to send email alert to notification group '" + notificationGroupName + "'. Notification group does not exist." );
+            String cleanNotificationGroupName = StatsAggHtmlFramework.removeNewlinesFromString(notificationGroupName, ' ');
+            logger.warn("Failed to send email alert to notification group '" + cleanNotificationGroupName + "'. Notification group does not exist." );
             return;
         }
         
@@ -307,7 +306,8 @@ public class NotificationGroups extends HttpServlet {
         
         emailThread.sendEmail(emailsAddresses, emailThread.getSubject(), emailThread.getBody());
 
-        logger.info("Sent test email alert to notification group '" + notificationGroup.getName() + "'");
+        String cleanNotificationGroupName = StatsAggHtmlFramework.removeNewlinesFromString(notificationGroup.getName(), ' ');
+        logger.info("Sent test email alert to notification group '" + cleanNotificationGroupName + "'");
     }
 
 }

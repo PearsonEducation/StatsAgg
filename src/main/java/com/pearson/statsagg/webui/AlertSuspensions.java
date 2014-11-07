@@ -76,9 +76,7 @@ public class AlertSuspensions extends HttpServlet {
         
         response.setContentType("text/html");
         PrintWriter out = null;
-        
-        request.getSession().setAttribute(PAGE_NAME, out);
-        
+                
         try {
             String html = buildAlertSuspensionsHtml();
             
@@ -86,8 +84,6 @@ public class AlertSuspensions extends HttpServlet {
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
             out.println(htmlFormatted);
-            //if (ApplicationConfiguration.isDebugModeEnabled()) out.println(htmlBuilder.toString());
-            //else out.println(htmlFormatted);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

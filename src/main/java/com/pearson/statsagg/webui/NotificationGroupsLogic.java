@@ -57,27 +57,29 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         }
 
         notificationGroupsDao.close();
-        
+                
         if (isOverwriteExistingAttempt) {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
             returnString = "Failed to create notification group. A notification group with the same name already exists. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
         else if (isUpsertSuccess && (newNotificationGroupFromDb != null)) {
             lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
             
             if (isNewNotificationGroup) returnString = "Successful notification group creation. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             else returnString = "Successful notification group alteration. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            logger.info(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.info(cleanReturnString);
         }
         else {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
-            
             if (isNewNotificationGroup) returnString = "Failed to create notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             else returnString = "Failed to alter notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
             
         return returnString;
@@ -96,25 +98,28 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
         NotificationGroup notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
-        
+                
         if (notificationGroupFromDb != null) {
             boolean didDeleteSucceed = notificationGroupsDao.delete(notificationGroupFromDb);
             
             if (!didDeleteSucceed) {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to delete notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
-                logger.warn(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.warn(cleanReturnString);
             }
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Delete notification group success. NotificationGroupName=\"" + notificationGroupName + "\".";
-                logger.info(returnString);
+                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                logger.info(cleanReturnString);
             }
         }
         else {
             lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
             returnString = "Notification group not found. NotificationGroupName=\"" + notificationGroupName + "\". Cancelling delete operation.";
-            logger.warn(returnString);
+            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            logger.warn(cleanReturnString);
         }
         
         notificationGroupsDao.close();

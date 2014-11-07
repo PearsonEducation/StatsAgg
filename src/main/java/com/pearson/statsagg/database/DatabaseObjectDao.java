@@ -502,12 +502,12 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
                 
                 if (!isUpdateSuccess) {
                     isBatchUpdateSuccess = false;
-                    logger.debug("Failed upserting " + getTableName().toLowerCase() + " in database. DatabaseObject=" + databaseObject.toString());
+                    logger.debug("Failed upserting in table: " + getTableName());
                 }
                 
                 if (!isInsertSuccess) {
                     isBatchInsertSuccess = false;
-                    logger.debug("Failed upserting " + getTableName().toLowerCase() + " in database. DatabaseObject=" + databaseObject.toString());
+                    logger.debug("Failed upserting in table: " + getTableName());
                 }
             }                
             

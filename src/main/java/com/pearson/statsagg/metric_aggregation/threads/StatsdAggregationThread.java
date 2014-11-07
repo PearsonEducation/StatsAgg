@@ -19,6 +19,7 @@ import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.math.BigDecimal;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -405,7 +406,8 @@ public class StatsdAggregationThread implements Runnable {
                         GlobalVariables.statsdGaugeBucketDigests.remove(bucketToForget);
                     }  
                     else {
-                        logger.error("Failed deleting gauge from the database. Gauge=\"" + bucketToForget + "\"");
+                        String cleanBucketToForget = StatsAggHtmlFramework.removeNewlinesFromString(bucketToForget);
+                        logger.error("Failed deleting gauge from the database. Gauge=\"" + cleanBucketToForget + "\"");
                     }
                 }
             }
