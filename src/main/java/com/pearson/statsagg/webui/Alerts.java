@@ -136,19 +136,22 @@ public class Alerts extends HttpServlet {
         
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(alertName);
-        alert.setIsEnabled(isEnabled);
-
-        if (!isEnabled) {
-            alert.setIsCautionAlertActive(false);
-            alert.setCautionAlertLastSentTimestamp(null);
-            alert.setCautionActiveAlertsSet(null);
-            alert.setIsDangerAlertActive(false);
-            alert.setDangerAlertLastSentTimestamp(null);
-            alert.setDangerActiveAlertsSet(null);
-        }
         
-        AlertsLogic alertsLogic = new AlertsLogic();
-        alertsLogic.alterRecordInDatabase(alert, alertName);
+        if (alert != null) {
+            alert.setIsEnabled(isEnabled);
+
+            if (!isEnabled) {
+                alert.setIsCautionAlertActive(false);
+                alert.setCautionAlertLastSentTimestamp(null);
+                alert.setCautionActiveAlertsSet(null);
+                alert.setIsDangerAlertActive(false);
+                alert.setDangerAlertLastSentTimestamp(null);
+                alert.setDangerActiveAlertsSet(null);
+            }
+
+            AlertsLogic alertsLogic = new AlertsLogic();
+            alertsLogic.alterRecordInDatabase(alert, alertName);
+        }
     }
 
     private void cloneAlert(String alertName) {
@@ -163,26 +166,30 @@ public class Alerts extends HttpServlet {
             List<Alert> allAlerts = alertsDao.getAllDatabaseObjectsInTable();
             alertsDao.close();
 
-            Set<String> allAlertNames = new HashSet<>();
-            for (Alert currentAlert : allAlerts) {
-                allAlertNames.add(currentAlert.getName());
+            if ((alert != null) && (alert.getName() != null)) {
+                Set<String> allAlertNames = new HashSet<>();
+                for (Alert currentAlert : allAlerts) {
+                    if (currentAlert.getName() != null) {
+                        allAlertNames.add(currentAlert.getName());
+                    }
+                }
+                
+                Alert clonedAlert = Alert.copy(alert);
+                clonedAlert.setId(-1);
+                String clonedAlertName = StatsAggHtmlFramework.createCloneName(alert.getName(), allAlertNames);
+
+                clonedAlert.setName(clonedAlertName);
+                clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
+                clonedAlert.setIsCautionAlertActive(false);
+                clonedAlert.setCautionAlertLastSentTimestamp(null);
+                clonedAlert.setCautionActiveAlertsSet(null);
+                clonedAlert.setIsDangerAlertActive(false);
+                clonedAlert.setDangerAlertLastSentTimestamp(null);
+                clonedAlert.setDangerActiveAlertsSet(null);
+
+                AlertsLogic alertsLogic = new AlertsLogic();
+                alertsLogic.alterRecordInDatabase(clonedAlert);
             }
-
-            Alert clonedAlert = Alert.copy(alert);
-            clonedAlert.setId(-1);
-            String clonedAlertName = StatsAggHtmlFramework.createCloneName(alert.getName(), allAlertNames);
-            
-            clonedAlert.setName(clonedAlertName);
-            clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
-            clonedAlert.setIsCautionAlertActive(false);
-            clonedAlert.setCautionAlertLastSentTimestamp(null);
-            alert.setCautionActiveAlertsSet(null);
-            clonedAlert.setIsDangerAlertActive(false);
-            clonedAlert.setDangerAlertLastSentTimestamp(null);
-            alert.setDangerActiveAlertsSet(null);
-
-            AlertsLogic alertsLogic = new AlertsLogic();
-            alertsLogic.alterRecordInDatabase(clonedAlert);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

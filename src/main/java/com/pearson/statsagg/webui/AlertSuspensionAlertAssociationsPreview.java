@@ -8,7 +8,6 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.sql.Timestamp;
 import java.util.ArrayList;

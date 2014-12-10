@@ -22,16 +22,21 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
     @Override
     public void run() {
 
-        while (continueRunning_) {
-            long currentTimeInMilliseconds = System.currentTimeMillis();
+        synchronized (lockObject_) {
+            while (continueRunning_) {
+                long currentTimeInMilliseconds = System.currentTimeMillis();
 
-            threadExecutor_.execute(new AlertThread(Long.valueOf(currentTimeInMilliseconds)));
+                threadExecutor_.execute(new AlertThread(currentTimeInMilliseconds));
 
-            Threads.sleepMilliseconds(ApplicationConfiguration.getAlertRoutineInterval());
+                try {
+                    lockObject_.wait(ApplicationConfiguration.getAlertRoutineInterval());
+                }
+                catch (Exception e) {}
+            }
         }
-                
+
         while (!threadExecutor_.isTerminated()) {
-            Threads.sleepMilliseconds(500);
+            Threads.sleepMilliseconds(100);
         }
         
         isShutdown_ = true;

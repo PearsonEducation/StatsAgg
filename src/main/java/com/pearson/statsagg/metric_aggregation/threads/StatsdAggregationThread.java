@@ -99,7 +99,7 @@ public class StatsdAggregationThread implements Runnable {
             
             // updates gauges db (blocking)
             long updateDatabaseTimeStart = System.currentTimeMillis();
-            updateStatsdGaugesInDatabase(statsdMetricsAggregatedGauges);
+            updateStatsdGaugesInDatabaseAndCache(statsdMetricsAggregatedGauges);
             long updateDatabaseTimeElasped = System.currentTimeMillis() - updateDatabaseTimeStart; 
             
             // update the global lists of statsd's most recent aggregated values
@@ -113,9 +113,10 @@ public class StatsdAggregationThread implements Runnable {
                     GlobalVariables.statsdMetricsAggregatedMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
 
-            // updates the global list that tracks the last time a metric was received. 
+            // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregatedMerged);
+            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregated);
+            Common.updateMetricLastSeenTimestamps_UpdateOnResend(statsdMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
@@ -209,32 +210,35 @@ public class StatsdAggregationThread implements Runnable {
         return statsdMetricsRaw;
     }
     
-    private void updateStatsdGaugesInDatabase(List<StatsdMetricAggregated> statsdMetricsAggregatedGauges) {
+    private void updateStatsdGaugesInDatabaseAndCache(List<StatsdMetricAggregated> statsdMetricsAggregatedGauges) {
         
         if ((statsdMetricsAggregatedGauges) == null || statsdMetricsAggregatedGauges.isEmpty()) {
             return;
         }
         
         int arrayListInitialSize = (int) (statsdMetricsAggregatedGauges.size() * 1.3);
-        List<Gauge> gauges = new ArrayList<>(arrayListInitialSize);
+        List<Gauge> gaugesToPutInDatabase = new ArrayList<>(arrayListInitialSize);
         
         for (StatsdMetricAggregated statsdMetricsAggregatedGauge : statsdMetricsAggregatedGauges) {
-            String bucketSha1 = GlobalVariables.statsdGaugeBucketDigests.get(statsdMetricsAggregatedGauge.getBucket());
-            if (bucketSha1 == null) {
-                bucketSha1 = DigestUtils.sha1Hex(statsdMetricsAggregatedGauge.getBucket());
-                GlobalVariables.statsdGaugeBucketDigests.put(statsdMetricsAggregatedGauge.getBucket(), bucketSha1);
-            }
+            Gauge gaugeFromCache = GlobalVariables.statsdGaugeCache.get(statsdMetricsAggregatedGauge.getBucket());
+            String bucketSha1;
+            if (gaugeFromCache == null) bucketSha1 = DigestUtils.sha1Hex(statsdMetricsAggregatedGauge.getBucket());
+            else bucketSha1 = gaugeFromCache.getBucketSha1();
             
             Timestamp gaugeTimestamp = new Timestamp(statsdMetricsAggregatedGauge.getTimestampInMilliseconds());
             
             Gauge gauge = new Gauge(bucketSha1, statsdMetricsAggregatedGauge.getBucket(), statsdMetricsAggregatedGauge.getMetricValue(), gaugeTimestamp);
-            gauges.add(gauge);
+            
+            if (gauge.isValid()) {
+                gaugesToPutInDatabase.add(gauge);
+
+                // put new gauge value in local cache
+                GlobalVariables.statsdGaugeCache.put(statsdMetricsAggregatedGauge.getBucket(), gauge);
+            }
         }
         
         GaugesDao gaugesDao = new GaugesDao(false);
-        
-        boolean upsertSucess = gaugesDao.batchUpsert(gauges);
-        
+        boolean upsertSucess = gaugesDao.batchUpsert(gaugesToPutInDatabase);
         gaugesDao.close();
         
         if (!upsertSucess) {
@@ -397,13 +401,17 @@ public class StatsdAggregationThread implements Runnable {
             
             if ((statsdMetricAggregated != null) && (statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.GAUGE_TYPE)) {
                 if (gaugesDao != null) {
-                    String bucketSha1 = GlobalVariables.statsdGaugeBucketDigests.get(bucketToForget);
+                    Gauge gauge = GlobalVariables.statsdGaugeCache.get(bucketToForget);
+                    String bucketSha1;
+                    if (gauge == null) bucketSha1 = DigestUtils.sha1Hex(bucketToForget);
+                    else bucketSha1 = gauge.getBucketSha1();
+                    
                     boolean deleteSuccess = false;
                     if (bucketSha1 != null) deleteSuccess = gaugesDao.delete(bucketSha1);
 
                     if ((bucketSha1 != null) && deleteSuccess) {
                         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
-                        GlobalVariables.statsdGaugeBucketDigests.remove(bucketToForget);
+                        GlobalVariables.statsdGaugeCache.remove(bucketToForget);
                     }  
                     else {
                         String cleanBucketToForget = StatsAggHtmlFramework.removeNewlinesFromString(bucketToForget);

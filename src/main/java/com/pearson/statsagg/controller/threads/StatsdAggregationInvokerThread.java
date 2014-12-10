@@ -22,18 +22,23 @@ public class StatsdAggregationInvokerThread extends InvokerThread {
     @Override
     public void run() {
 
-        while (continueRunning_) {
-            long currentTimeInMilliseconds = System.currentTimeMillis();
+        synchronized (lockObject_) {
+            while (continueRunning_) {
+                long currentTimeInMilliseconds = System.currentTimeMillis();
 
-            threadExecutor_.execute(new StatsdAggregationThread(currentTimeInMilliseconds));
+                threadExecutor_.execute(new StatsdAggregationThread(currentTimeInMilliseconds));
 
-            Threads.sleepMilliseconds(ApplicationConfiguration.getFlushTimeAgg());
+                try {
+                    lockObject_.wait(ApplicationConfiguration.getFlushTimeAgg());
+                }
+                catch (Exception e) {}
+            }
         }
 
         while (!threadExecutor_.isTerminated()) {
-            Threads.sleepSeconds(2);
+            Threads.sleepMilliseconds(100);
         }
-        
+
         isShutdown_ = true;
     }
     

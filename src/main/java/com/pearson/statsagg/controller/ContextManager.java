@@ -35,14 +35,20 @@ import com.pearson.statsagg.database.gauges.GaugesDao;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database.metric_last_seen.MetricLastSeen;
+import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
 import com.pearson.statsagg.utilities.Threads;
 import java.io.ByteArrayInputStream;
+import java.util.Collections;
+import java.util.Set;
+import java.util.TreeSet;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -120,6 +126,12 @@ public class ContextManager implements ServletContextListener {
             boolean createSchemaSuccess = createDatabaseSchemas();
             logger.debug("Create_schema_success=" + createSchemaSuccess);
         }
+        
+        // reads 'metric last seen' values from the database & loads the relevant values into memory. These are used by availability alerts.
+        if (initializeDatabaseSuccess) {
+            long numMetrics = readMetricLastSeenFromDatabaseAndAddToGlobalVariables();
+            logger.info("Finished reading 'metric last seen' values from database. NumMetricsRead=" + numMetrics);
+        }        
         
         // read the gauges from the database & add to the recent metric history global variables
         if (initializeDatabaseSuccess && ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
@@ -373,6 +385,9 @@ public class ContextManager implements ServletContextListener {
     }
     
     private static boolean createDatabaseSchemas() {
+        MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao();
+        boolean isMetricLastSeenDaoCreateSuccess = metricLastSeenDao.createTable();
+        
         GaugesDao gaugesDao = new GaugesDao();
         boolean isGaugesCreateSuccess = gaugesDao.createTable();
    
@@ -394,7 +409,8 @@ public class ContextManager implements ServletContextListener {
         AlertSuspensionsDao AlertSuspensionsDao = new AlertSuspensionsDao();
         boolean isAlertSuspensionsCreateSuccess = AlertSuspensionsDao.createTable();
         
-        boolean isSchemaCreateSuccess = isGaugesCreateSuccess 
+        boolean isSchemaCreateSuccess = isMetricLastSeenDaoCreateSuccess 
+                && isGaugesCreateSuccess 
                 && isMetricGroupsCreateSuccess 
                 && isMetricGroupRegexsCreateSuccess
                 && isMetricGroupTagsCreateSuccess
@@ -403,6 +419,35 @@ public class ContextManager implements ServletContextListener {
                 && isAlertSuspensionsCreateSuccess;
         
         return isSchemaCreateSuccess;
+    }
+
+    private static long readMetricLastSeenFromDatabaseAndAddToGlobalVariables() {
+        
+        MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao();
+        List<MetricLastSeen> metricLastSeens = metricLastSeenDao.getAllDatabaseObjectsInTable();
+        
+        for (MetricLastSeen metricLastSeen : metricLastSeens) {
+            try {
+                if ((metricLastSeen.getMetricKey() == null) || (metricLastSeen.getLastModified() == null)) continue;
+                
+                synchronized (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
+                    Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricLastSeen.getMetricKey());
+
+                    if (metricTimestampsAndValues == null) {
+                        metricTimestampsAndValues = Collections.synchronizedSet(new TreeSet<>(MetricTimestampAndValue.COMPARE_BY_TIMESTAMP));
+                        GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricLastSeen.getMetricKey(), metricTimestampsAndValues);
+                    }
+                }
+                
+                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(metricLastSeen.getMetricKey(), metricLastSeen.getLastModified().getTime());
+                GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.putIfAbsent(metricLastSeen.getMetricKey(), metricLastSeen.getLastModified().getTime());
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
+        return metricLastSeens.size();
     }
     
     private static long readGaugesFromDatabaseAndAddToGlobalVariables() {
@@ -416,7 +461,7 @@ public class ContextManager implements ServletContextListener {
                 statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
 
                 GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
-                GlobalVariables.statsdGaugeBucketDigests.putIfAbsent(gauge.getBucket(), gauge.getBucketSha1());
+                GlobalVariables.statsdGaugeCache.putIfAbsent(gauge.getBucket(), gauge);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

@@ -11,7 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.pearson.statsagg.database.gauges.Gauge;
-import com.pearson.statsagg.database.gauges.GaugesDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.MathUtilities;
@@ -47,9 +46,7 @@ public class StatsdMetricAggregator {
             List<StatsdMetricAggregated> statsdMetricsAggregatedByBucket;
             
             if (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) { 
-                GaugesDao gaugesDao = new GaugesDao(false);
-                statsdMetricsAggregatedByBucket = aggregateByBucketAndMetricTypeKey(statsdMetricsRawByBucket, gaugesDao);
-                gaugesDao.close();
+                statsdMetricsAggregatedByBucket = aggregateByBucketAndMetricTypeKey(statsdMetricsRawByBucket);
             }
             else {
                 statsdMetricsAggregatedByBucket = aggregateByBucketAndMetricTypeKey(statsdMetricsRawByBucket);
@@ -180,18 +177,14 @@ public class StatsdMetricAggregator {
         
         return statsdMetricsRawByBucket;
     }
-    
-    private static List<StatsdMetricAggregated> aggregateByBucketAndMetricTypeKey(Map<String,List<StatsdMetricRaw>> statsdMetricRawByBucketAndMetricType) {
-        return aggregateByBucketAndMetricTypeKey(statsdMetricRawByBucketAndMetricType, null);
-    }
-    
+
     /* 
      * This method assumes that all of the input statsd metrics are already separated by buck name & by metric type.
      * The key of the input Map is the assumed to be: bucketName
      * The values of the input Map are assumed to be arraylists of StatsdMetricRaw objects that have been pre-sorted by metric type
      * The gaugeDao object is only required for gauge aggregation. It can be null for other metric types.
      */
-    private static List<StatsdMetricAggregated> aggregateByBucketAndMetricTypeKey(Map<String,List<StatsdMetricRaw>> statsdMetricRawByBucketAndMetricType, GaugesDao gaugesDao) {
+    private static List<StatsdMetricAggregated> aggregateByBucketAndMetricTypeKey(Map<String,List<StatsdMetricRaw>> statsdMetricRawByBucketAndMetricType) {
         
         if ((statsdMetricRawByBucketAndMetricType == null) || statsdMetricRawByBucketAndMetricType.isEmpty()) {
             return new ArrayList<>();
@@ -222,17 +215,12 @@ public class StatsdMetricAggregator {
                             ApplicationConfiguration.getFlushTimeAgg(), 
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
                 }
-                else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugesDao != null)) {
+                else if (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) {
                     String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + bucket;
-                    Map<String,String> statsdGaugeBucketDigests = GlobalVariables.statsdGaugeBucketDigests;
-                    String bucketSha1 = statsdGaugeBucketDigests.get(prefixedBucketName);
-                    Gauge gauge = null;
-                    
-                    if (bucketSha1 != null) {
-                        gauge = gaugesDao.getGauge(bucketSha1);
-                    }
-                    
-                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gauge);
+                    Map<String,Gauge> statsdGaugeCache = GlobalVariables.statsdGaugeCache;
+                    Gauge gaugeFromCache = statsdGaugeCache.get(prefixedBucketName);
+
+                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gaugeFromCache);
                 }
                 else if (metricTypeKey == StatsdMetricRaw.SET_TYPE) {
                     singleStatsdMetricAggregated = aggregateSet(statsdMetricsByBucket);

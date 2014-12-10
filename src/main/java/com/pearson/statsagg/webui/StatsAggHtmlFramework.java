@@ -89,7 +89,7 @@ public class StatsAggHtmlFramework {
                 "        <a class=\"dropdown-toggle\" href=\"#\"> Actions&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
                 "        <ul class=\"dropdown-menu dropdown-menu-right\">\n");
         
-        body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Rexex Tester</a></li>\n");
+        body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
         body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
 
         for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
@@ -241,6 +241,7 @@ public class StatsAggHtmlFramework {
     }
     
     public static String htmlEncode(String unencodedString) {
+        
         if (unencodedString == null || unencodedString.isEmpty()) {
             return unencodedString;
         }
@@ -249,7 +250,7 @@ public class StatsAggHtmlFramework {
         htmlEscapedString = StringUtils.replace(htmlEscapedString, " ", "&nbsp;");
         return htmlEscapedString;
     }
-
+    
     public static String removeNewlinesFromString(String inputString) {
 
         if ((inputString == null) || inputString.isEmpty()) {

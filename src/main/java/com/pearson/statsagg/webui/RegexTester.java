@@ -5,7 +5,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
@@ -15,6 +14,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class RegexTester extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            String htmlBodyContents = buildRegexTesterHtml("");
+            String htmlBodyContents = buildRegexTesterHtml("", "");
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -113,7 +113,7 @@ public class RegexTester extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            String htmlBodyContents = buildRegexTesterHtml(regexMatchesHtml);
+            String htmlBodyContents = buildRegexTesterHtml(parameter, regexMatchesHtml);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -132,7 +132,7 @@ public class RegexTester extends HttpServlet {
         }
     }
     
-    private String buildRegexTesterHtml(String regexMatches) {
+    private String buildRegexTesterHtml(String regex, String regexMatches) {
 
         StringBuilder htmlBody = new StringBuilder("");
 
@@ -148,9 +148,14 @@ public class RegexTester extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Regex to test</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex that you want to test against (or more) recently seen metrics.\" name=\"Regex\" > " +
-            "</div>\n");
+            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex that you want to test against (or more) recently seen metrics.\" name=\"Regex\" ");
         
+        if ((regex != null) && (!regex.isEmpty())) {
+            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(regex)).append("\"");
+        }
+        
+        htmlBody.append(">\n</div>\n");
+       
         htmlBody.append(
             "  <button type=\"submit\" class=\"btn btn-default\">Submit</button>\n" +
             "</form>\n");
@@ -185,7 +190,7 @@ public class RegexTester extends HttpServlet {
 
         if (pattern != null) {
             int matchCounter = 0;
-            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
+            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
                 Matcher matcher = pattern.matcher(metricKey);
                 if (matcher.matches()) {
                     matchingMetricKeys.add(metricKey);

@@ -12,7 +12,6 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -182,6 +181,18 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
+            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("<del>");
+            
+            outputString.append("<b>Caution stop tracking after...</b> = ");
+            if (alert.getCautionStopTrackingAfter() != null) {
+                BigDecimal cautionStopTrackingAfterMs = new BigDecimal(alert.getCautionStopTrackingAfter());
+                BigDecimal cautionStopTrackingAfterSeconds = cautionStopTrackingAfterMs.divide(new BigDecimal(1000));
+                outputString.append(cautionStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+            }
+            else outputString.append("N/A <br>");
+            
+            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("</del>");
+            
             if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_THRESHOLD) && 
                     (alert.getCautionAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");
             
@@ -245,6 +256,18 @@ public class AlertDetails extends HttpServlet {
                 outputString.append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
             }
             else outputString.append("N/A <br>");
+            
+            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("<del>");
+            
+            outputString.append("<b>Danger stop tracking after...</b> = ");
+            if (alert.getDangerStopTrackingAfter() != null) {
+                BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
+                BigDecimal dangerStopTrackingAfterSeconds = dangerStopTrackingAfterMs.divide(new BigDecimal(1000));
+                outputString.append(dangerStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+            }
+            else outputString.append("N/A <br>");
+            
+            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("</del>");
             
             if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_THRESHOLD) 
                     && (alert.getDangerAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");

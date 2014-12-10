@@ -231,7 +231,7 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
         
     }
     
-    public List<String> getNotificationGroupNames(String prefixFilter, int resultSetLimit) {
+    public List<String> getNotificationGroupNames(String filter, int resultSetLimit) {
         
         try {
 
@@ -242,7 +242,7 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
             List<String> notificationGroupNames = new ArrayList<>();
             
             databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroup_Names_OrderByName, 1000);
-            databaseInterface_.addPreparedStatementParameters(prefixFilter + "%");
+            databaseInterface_.addPreparedStatementParameters("%" + filter + "%");
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {

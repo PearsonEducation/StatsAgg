@@ -53,25 +53,31 @@ public class Cleanup {
         long numberMillisecondsInOneDay = 86400000;
         long metricsRemoved = 0;
         
-        Set<String> metricKeysLastSeenTimestampKeys = GlobalVariables.metricKeysLastSeenTimestamp.keySet();
+        Set<String> metricKeysLastSeenTimestampKeys = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet();
 
         synchronized(GlobalVariables.metricGroupChanges) {
             for (String metricKey : metricKeysLastSeenTimestampKeys) {
                 boolean isImmeadiateCleanup = immediateCleanupMetricKeys_.contains(metricKey); // we should cleanup this metric regardless...
                 
                 try {
-                    Long timestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
-
                     if (isImmeadiateCleanup) {
                         removeMetricAssociations(metricKey);
                         metricsRemoved++;
+                        continue;
                     }
-                    if (timestamp != null) {
-                        long metricNotSeenTimeInMilliseconds = currentTimeInMilliseconds - timestamp;
+                    
+                    Long timestamp = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.get(metricKey);
 
-                        if (metricNotSeenTimeInMilliseconds > numberMillisecondsInOneDay) { // older than 24hrs
-                            removeMetricAssociations(metricKey);
-                            metricsRemoved++;
+                    if (timestamp != null) {
+                        boolean isMetricKeyTrackedByActiveAvailabilityAlert = isMetricKeyTrackedByActiveAvailabilityAlert(metricKey);
+                        
+                        if (!isMetricKeyTrackedByActiveAvailabilityAlert) { // only cleanup if not tracked by an availability alert
+                            long metricNotSeenTimeInMilliseconds = currentTimeInMilliseconds - timestamp;
+
+                            if (metricNotSeenTimeInMilliseconds > numberMillisecondsInOneDay) { // only cleanup if older than 24hrs
+                                removeMetricAssociations(metricKey);
+                                metricsRemoved++;
+                            }
                         }
                     }
                 }
@@ -111,9 +117,70 @@ public class Cleanup {
             GlobalVariables.metricGroupsAssociatedWithMetricKeys.remove(metricKey);
         }
         
-        GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
+        cleanupActiveAvailabilityAlerts(metricKey);
         
+        GlobalVariables.statsdGaugeCache.remove(metricKey);
+        GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
+        GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.remove(metricKey);
+    }
+    
+    private void cleanupActiveAvailabilityAlerts(String metricKey) {
+        
+        if (metricKey == null) {
+            return;
+        }
+        
+        // caution + danger
+        GlobalVariables.activeAvailabilityAlerts.remove(metricKey);
+        
+        
+        // caution
+        List<Integer> alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts = new ArrayList<>();
+        
+        for (Integer alertId : GlobalVariables.activeCautionAvailabilityAlerts.keySet()) {
+            Set<String> activeCautionAvailabilityMetricKeys = GlobalVariables.activeCautionAvailabilityAlerts.get(alertId);
+            
+            if (activeCautionAvailabilityMetricKeys != null) {
+                activeCautionAvailabilityMetricKeys.remove(metricKey);
+                if (activeCautionAvailabilityMetricKeys.isEmpty()) {
+                    alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts.add(alertId);
+                }
+            }
+        }
+        
+        for (Integer alertId : alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts) {
+            GlobalVariables.activeCautionAvailabilityAlerts.remove(alertId);
+        }
+        
+        
+        // danger
+        List<Integer> alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts = new ArrayList<>();
+        
+        for (Integer alertId : GlobalVariables.activeDangerAvailabilityAlerts.keySet()) {
+            Set<String> activeDangerAvailabilityMetricKeys = GlobalVariables.activeDangerAvailabilityAlerts.get(alertId);
+            
+            if (activeDangerAvailabilityMetricKeys != null) {
+                activeDangerAvailabilityMetricKeys.remove(metricKey);
+                if (activeDangerAvailabilityMetricKeys.isEmpty()) {
+                    alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts.add(alertId);
+                }
+            }
+        }
+        
+        for (Integer alertId : alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts) {
+            GlobalVariables.activeDangerAvailabilityAlerts.remove(alertId);
+        }
+        
+    }
+    
+    private boolean isMetricKeyTrackedByActiveAvailabilityAlert(String metricKey) {
+        
+        if (metricKey == null) {
+            return false;
+        }
+        
+        return (GlobalVariables.activeAvailabilityAlerts != null) && GlobalVariables.activeAvailabilityAlerts.containsKey(metricKey);
     }
     
     protected String cleanupRecentMetricTimestampsAndValues(List<Alert> alerts) {
@@ -121,7 +188,7 @@ public class Cleanup {
         long cleanupStartTime = System.currentTimeMillis();
         int numValuesRemoved = 0, numKeysRemoved = 0, numTrackedValuesRemoved = 0, numTrackedKeysRemoved = 0;
         
-        Map<String,Integer> longestWindowDurationsForMetricKeys = getLongestWindowDurationsForMetricKeys(alerts);
+        Map<String,Long> longestWindowDurationsForMetricKeys = getLongestWindowDurationsForMetricKeys(alerts);
         Set<String> metricKeys = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet();
         
         try {
@@ -130,7 +197,7 @@ public class Cleanup {
                 boolean isImmeadiateCleanup = immediateCleanupMetricKeys_.contains(metricKey); // we should cleanup this metric regardless...
                 
                 // lookup the longest window duration associated with this metric key...
-                Integer windowDuration = longestWindowDurationsForMetricKeys.get(metricKey);
+                Long windowDuration = longestWindowDurationsForMetricKeys.get(metricKey);
 
                 synchronized (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
                     Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
@@ -204,13 +271,13 @@ public class Cleanup {
     /* Checks the caution & danger durations of all specified alerts to get the longest window duration.
        The window durations of disabled alerts are not used. 
     */
-    private Map<String,Integer> getLongestWindowDurationsForMetricKeys(List<Alert> alerts) {
+    private Map<String,Long> getLongestWindowDurationsForMetricKeys(List<Alert> alerts) {
         
         if (alerts == null) {
             return new HashMap<>();
         }
         
-        Map<String,Integer> longestWindowDurationsForMetricKeys = new HashMap<>();
+        Map<String,Long> longestWindowDurationsForMetricKeys = new HashMap<>();
                 
         for (Alert alert : alerts) {
             if ((alert.isEnabled() != null) && alert.isEnabled()) {
@@ -227,19 +294,19 @@ public class Cleanup {
         return longestWindowDurationsForMetricKeys;
     }
 
-    private void updateLongestWindowDurationsForMetricKeys(Alert alert, String metricKey, Map<String,Integer> longestWindowDurationsForMetricKeys) {
+    private void updateLongestWindowDurationsForMetricKeys(Alert alert, String metricKey, Map<String,Long> longestWindowDurationsForMetricKeys) {
         
         if ((longestWindowDurationsForMetricKeys == null) || (alert == null) || (metricKey == null)) {
             return;
         }
         
-        Integer alertLongestWindowDuration = alert.getLongestWindowDuration();
+        Long alertLongestWindowDuration = alert.getLongestWindowDuration();
         
         if (!longestWindowDurationsForMetricKeys.containsKey(metricKey) && (alertLongestWindowDuration != null)) {
             longestWindowDurationsForMetricKeys.put(metricKey, alertLongestWindowDuration);
         }
         else {
-            Integer currentLongestWindowDurationForMetricKey = longestWindowDurationsForMetricKeys.get(metricKey);
+            Long currentLongestWindowDurationForMetricKey = longestWindowDurationsForMetricKeys.get(metricKey);
             
             if ((alertLongestWindowDuration != null) && (currentLongestWindowDurationForMetricKey != null) 
                     && (alertLongestWindowDuration > currentLongestWindowDurationForMetricKey)) {
@@ -286,7 +353,7 @@ public class Cleanup {
     
     private Set<String> forgetMetrics_IdentifyMetricKeysViaRegex(String regex) {
         
-        if ((regex == null) || regex.isEmpty() || (GlobalVariables.metricKeysLastSeenTimestamp == null)) {
+        if ((regex == null) || regex.isEmpty() || (GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend == null)) {
             return new HashSet<>();
         }
              
@@ -294,7 +361,7 @@ public class Cleanup {
         
         Pattern pattern = Pattern.compile(regex);
          
-        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
+        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
             Matcher matcher = pattern.matcher(metricKey);
             
             if (matcher.matches()) {

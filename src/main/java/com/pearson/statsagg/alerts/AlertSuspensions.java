@@ -4,6 +4,7 @@ import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database.general_purpose.GeneralPurposeDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
@@ -73,15 +74,23 @@ public class AlertSuspensions {
             return;
         }
         
+        GeneralPurposeDao generalPurposeDao = new GeneralPurposeDao();
+        Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert = generalPurposeDao.getMetricGroupTagsAssociatedWithAlerts();      
+        
+        for (int alertId : alertsByAlertId.keySet()) {
+            if ((metricGroupTagsAssociatedWithAlert != null) && !metricGroupTagsAssociatedWithAlert.containsKey(alertId)) {
+                metricGroupTagsAssociatedWithAlert.put(alertId, new HashSet<String>());
+            }
+        }
+        
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
         List<AlertSuspension> allAlertSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
-
         areAlertSuspensionsActive(allAlertSuspensions);
-                
+
         for (int alertId : alertsByAlertId.keySet()) {
             Alert alert = alertsByAlertId.get(alertId);
             
-            Set<Integer> alertSuspensionIdsAssociatedWithAnAlert = getAlertSuspensionIdsAssociatedWithAnAlert(alert, allAlertSuspensions);
+            Set<Integer> alertSuspensionIdsAssociatedWithAnAlert = getAlertSuspensionIdsAssociatedWithAnAlert(alert, allAlertSuspensions, metricGroupTagsAssociatedWithAlert);
             alertSuspensionIdAssociationsByAlertId_.put(alertId, alertSuspensionIdsAssociatedWithAnAlert);
 
             boolean isAlertCurrentlySuspended = isAnyAlertSuspensionCurrentlyActiveForAnAlert(allAlertSuspensions, alertSuspensionIdsAssociatedWithAnAlert, areAlertSuspensionsActive_);
@@ -143,15 +152,13 @@ public class AlertSuspensions {
         return alertSuspensionsDao.deleteExpired(new Timestamp(System.currentTimeMillis()));
     }
     
-    public static Set<Integer> getAlertSuspensionIdsAssociatedWithAnAlert(Alert alert, List<AlertSuspension> alertSuspensions) {
+    public static Set<Integer> getAlertSuspensionIdsAssociatedWithAnAlert(Alert alert, List<AlertSuspension> alertSuspensions, Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert) {
 
-        if ((alert == null) || (alert.getId() == null)) {
+        if ((alert == null) || (alert.getId() == null) || (metricGroupTagsAssociatedWithAlert == null)) {
             return new HashSet<>();
         }
 
         Set<Integer> alertSuspensionIdsAssociatedWithAnAlert = new HashSet<>();
-
-        Set<String> metricGroupTagsAssociatedWithAlert = null; 
         
         for (AlertSuspension alertSuspension : alertSuspensions) {
             boolean isSuspensionCriteriaMet = false;
@@ -160,12 +167,10 @@ public class AlertSuspensions {
                 isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByAlertName(alert, alertSuspension);
             }
             else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
-                if (metricGroupTagsAssociatedWithAlert == null) metricGroupTagsAssociatedWithAlert = getMetricGroupTagsAssociatedWithAlert(alert);
-                isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByMetricGroupTags(metricGroupTagsAssociatedWithAlert, alertSuspension);
+                isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByMetricGroupTags(metricGroupTagsAssociatedWithAlert.get(alert.getId()), alertSuspension);
             }
             else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
-                if (metricGroupTagsAssociatedWithAlert == null) metricGroupTagsAssociatedWithAlert = getMetricGroupTagsAssociatedWithAlert(alert);
-                isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByEverything(metricGroupTagsAssociatedWithAlert, alertSuspension);
+                isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByEverything(metricGroupTagsAssociatedWithAlert.get(alert.getId()), alertSuspension);
             }
             
             if (isSuspensionCriteriaMet) {

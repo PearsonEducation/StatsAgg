@@ -20,14 +20,19 @@ public class InternalStatsInvokerThread extends InvokerThread implements Runnabl
     @Override
     public void run() {
 
-        while (continueRunning_) {
-            threadExecutor_.execute(new InternalStatsThread());
+        synchronized (lockObject_) {
+            while (continueRunning_) {
+                threadExecutor_.execute(new InternalStatsThread());
 
-            Threads.sleepMilliseconds(15000);
+                try {
+                    lockObject_.wait(15000);
+                }
+                catch (Exception e) {}
+            }
         }
-                
+        
         while (!threadExecutor_.isTerminated()) {
-            Threads.sleepMilliseconds(500);
+            Threads.sleepMilliseconds(100);
         }
         
         isShutdown_ = true;

@@ -81,7 +81,8 @@ public class GraphitePassthroughThread implements Runnable {
   
             // updates the global list that tracks the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(graphiteMetricsRawMerged);
+            Common.updateMetricLastSeenTimestamps(prefixedGraphiteMetricsRaw);
+            Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsRawMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.

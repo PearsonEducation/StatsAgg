@@ -57,7 +57,20 @@ public class Common {
         }
         
     }
-
+    
+    public static void updateMetricLastSeenTimestamps_UpdateOnResend(List<? extends GenericMetricFormat> metrics) {
+        
+        if ((metrics == null) || metrics.isEmpty()) {
+            return;
+        }
+        
+        for (GenericMetricFormat metric : metrics) {
+            String metricKey = metric.getMetricKey();
+            GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.put(metricKey, metric.getMetricReceivedTimestampInMilliseconds());
+        }
+        
+    }
+    
     public static boolean updateAlertMetricRecentValues(List<? extends GenericMetricFormat> metrics) {
         
         if ((metrics == null) || metrics.isEmpty()) {

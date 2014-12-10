@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database.metric_group_tags;
 
+import com.pearson.statsagg.database.DatabaseInterface;
 import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -24,6 +25,10 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
             
     public MetricGroupTagsDao(boolean closeConnectionAfterOperation) {
         databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
+    }
+    
+    public MetricGroupTagsDao(DatabaseInterface databaseInterface) {
+        super(databaseInterface);
     }
     
     public boolean dropTable() {

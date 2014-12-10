@@ -15,19 +15,24 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database.metric_last_seen.MetricLastSeen;
+import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
 import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
+import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +53,8 @@ public class AlertThread implements Runnable {
     private static final AtomicLong alertRoutineExecutionCounter_ = new AtomicLong(0);
     private static final Map<Integer, Alert> pendingCautionAlertsByAlertId_ = new HashMap<>();
     private static final Map<Integer, Alert> pendingDangerAlertsByAlertId_ = new HashMap<>();
+    private static final Map<Integer,Map<String,String>> positiveAlertReasons_Caution_ByAlertId_ = new ConcurrentHashMap<>();
+    private static final Map<Integer,Map<String,String>> positiveAlertReasons_Danger_ByAlertId_ = new ConcurrentHashMap<>();
     
     protected final Long threadStartTimestampInMilliseconds_;
     protected final String threadId_;
@@ -60,6 +67,8 @@ public class AlertThread implements Runnable {
     private final Map<Integer, List<String>> activeDangerAlertMetricKeysByAlertId_ = new ConcurrentHashMap<>();
     private final Map<String, BigDecimal> activeCautionAlertMetricValues_ = new ConcurrentHashMap<>();
     private final Map<String, BigDecimal> activeDangerAlertMetricValues_ = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<String>> activeCautionAvailabilityAlerts_ = new ConcurrentHashMap<>();
+    private final Map<Integer, Set<String>> activeDangerAvailabilityAlerts_ = new ConcurrentHashMap<>();
     
     private final AtomicLong activeCautionAlertMetricKeysByAlertId_Counter_ = new AtomicLong(0);
     private final AtomicLong activeDangerAlertMetricKeysByAlertId_Counter_ = new AtomicLong(0);
@@ -153,6 +162,16 @@ public class AlertThread implements Runnable {
         // gets a list of enabled alerts. 
         enabledAlerts_.addAll(getEnabledAlerts(alerts));
         
+        // syncs the local 'active danger availability alerts' objects with the global objects
+        activeCautionAvailabilityAlerts_.putAll(GlobalVariables.activeCautionAvailabilityAlerts);
+        activeDangerAvailabilityAlerts_.putAll(GlobalVariables.activeDangerAvailabilityAlerts);
+        
+        // clears all data about 'availability alert statuses' if the alert is disabled
+        removeDisabledActiveAvailabilityAlerts(alerts);
+        
+        // removes all data about 'availability alert statuses' for alerts that were deleted
+        removeDeletedActiveAvailabilityAlerts();
+        
         // if this is the first time running the alert routine, get enabled alerts that think they're already 'active' & put them in the 'pending' Sets
         if (alertRoutineExecutionCounter_.get() == 0) {
             alertRecoveryRoutine_DeterminePendingAlerts(enabledAlerts_);
@@ -194,8 +213,55 @@ public class AlertThread implements Runnable {
         // increment the alert routine execution counter
         alertRoutineExecutionCounter_.incrementAndGet();
         
+        // updates the 'metric last seen' table in the database with the current set of values. this also removes values from the database that aren't needed any longer.
+        updateMetricLastSeen();
+        
         // updates all global variables related to the alert-routine
         updateAlertGlobalVariables();
+    }
+    
+    private void removeDisabledActiveAvailabilityAlerts(List<Alert> alerts) {
+        
+        if (alerts == null) {
+            return;
+        }
+        
+        for (Alert alert : alerts) {
+            if ((alert.isEnabled() != null) && !alert.isEnabled() && (alert.getId() != null)) {
+                if (activeCautionAvailabilityAlerts_ != null) activeCautionAvailabilityAlerts_.remove(alert.getId());
+                if (activeDangerAvailabilityAlerts_ != null) activeDangerAvailabilityAlerts_.remove(alert.getId());
+            }
+        }
+        
+    }
+    
+    private void removeDeletedActiveAvailabilityAlerts() {
+        
+        // caution
+        List<Integer> alertIdsToDelete_Caution = new ArrayList<>();
+        
+        for (Integer alertId : activeCautionAvailabilityAlerts_.keySet()) {
+            if (!alertsByAlertId_.containsKey(alertId)) {
+                alertIdsToDelete_Caution.add(alertId);
+            }
+        }
+        
+        for (Integer alertId : alertIdsToDelete_Caution) {
+            activeCautionAvailabilityAlerts_.remove(alertId);
+        }
+
+        // danger
+        List<Integer> alertIdsToDelete_Danger = new ArrayList<>();
+        
+        for (Integer alertId : activeDangerAvailabilityAlerts_.keySet()) {
+            if (!alertsByAlertId_.containsKey(alertId)) {
+                alertIdsToDelete_Danger.add(alertId);
+            }
+        }
+        
+        for (Integer alertId : alertIdsToDelete_Danger) {
+            activeDangerAvailabilityAlerts_.remove(alertId);
+        }
     }
     
     /*
@@ -206,6 +272,8 @@ public class AlertThread implements Runnable {
         alertRoutineExecutionCounter_.set(0);
         pendingCautionAlertsByAlertId_.clear();
         pendingDangerAlertsByAlertId_.clear();
+        positiveAlertReasons_Caution_ByAlertId_.clear();
+        positiveAlertReasons_Danger_ByAlertId_.clear();
     }
     
     /*
@@ -415,6 +483,47 @@ public class AlertThread implements Runnable {
             }
         }
 
+        synchronized(GlobalVariables.activeCautionAvailabilityAlerts) {
+            GlobalVariables.activeCautionAvailabilityAlerts.clear();
+            while (GlobalVariables.activeCautionAvailabilityAlerts.size() > 0) Threads.sleepMilliseconds(1);
+            GlobalVariables.activeCautionAvailabilityAlerts.putAll(activeCautionAvailabilityAlerts_);
+            while (GlobalVariables.activeCautionAvailabilityAlerts.size() != activeCautionAvailabilityAlerts_.size()) {
+                logger.warn("Message=\"activeCautionAvailabilityAlerts size mismatch\", Size=" + GlobalVariables.activeCautionAvailabilityAlerts.size() +
+                    ", Expected=" + activeCautionAvailabilityAlerts_.size());
+                Threads.sleepMilliseconds(10);
+            }
+        }
+            
+        synchronized(GlobalVariables.activeDangerAvailabilityAlerts) {
+            GlobalVariables.activeDangerAvailabilityAlerts.clear();
+            while (GlobalVariables.activeDangerAvailabilityAlerts.size() > 0) Threads.sleepMilliseconds(1);
+            GlobalVariables.activeDangerAvailabilityAlerts.putAll(activeDangerAvailabilityAlerts_);
+            while (GlobalVariables.activeDangerAvailabilityAlerts.size() != activeDangerAvailabilityAlerts_.size()) {
+                logger.warn("Message=\"activeDangerAvailabilityAlerts size mismatch\", Size=" + GlobalVariables.activeDangerAvailabilityAlerts.size() +
+                    ", Expected=" + activeDangerAvailabilityAlerts_.size());
+                Threads.sleepMilliseconds(10);
+            }
+        }
+        
+        synchronized(GlobalVariables.activeAvailabilityAlerts) {
+            GlobalVariables.activeAvailabilityAlerts.clear();
+            while (GlobalVariables.activeAvailabilityAlerts.size() > 0) Threads.sleepMilliseconds(1);
+            
+            for (Integer alertId : activeCautionAvailabilityAlerts_.keySet()) {
+                Set<String> activeCautionAvailabilityMetricKeys = activeCautionAvailabilityAlerts_.get(alertId);
+                if (activeCautionAvailabilityMetricKeys != null) {
+                    for (String metricKey : activeCautionAvailabilityMetricKeys) GlobalVariables.activeAvailabilityAlerts.put(metricKey, metricKey);
+                }
+            }
+            
+            for (Integer alertId : activeDangerAvailabilityAlerts_.keySet()) {
+                Set<String> activeDangerAvailabilityMetricKeys = activeDangerAvailabilityAlerts_.get(alertId);
+                if (activeDangerAvailabilityMetricKeys != null) {
+                    for (String metricKey : activeDangerAvailabilityMetricKeys) GlobalVariables.activeAvailabilityAlerts.put(metricKey, metricKey);
+                }
+            }
+        }
+   
         GlobalVariables.alertRountineLastExecutedTimestamp.set(System.currentTimeMillis());
     }
 
@@ -435,6 +544,91 @@ public class AlertThread implements Runnable {
         Threads.threadExecutorFixedPool(determineAlertStatusThreads, alertsByCpuCore.size(), threadTimeoutInMilliseconds, TimeUnit.MILLISECONDS);
 
         waitForConcurrentHashMapsToSettle();
+    }
+
+    public Set<String> getMetricKeysAssociatedWithActiveAvailabilityAlerts() {
+        
+        Set<String> metricKeys = new HashSet<>();
+        
+        if (activeCautionAvailabilityAlerts_ != null) {
+            for (Integer alertId : activeCautionAvailabilityAlerts_.keySet()) {
+                try {
+                    metricKeys.addAll(activeCautionAvailabilityAlerts_.get(alertId));
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        }
+        
+        if (activeDangerAvailabilityAlerts_ != null) {
+            for (Integer alertId : activeDangerAvailabilityAlerts_.keySet()) {
+                try {
+                    metricKeys.addAll(activeDangerAvailabilityAlerts_.get(alertId));
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        }
+
+        return metricKeys;
+    }
+    
+    private void updateMetricLastSeen() {
+        
+        MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao(false);
+        metricLastSeenDao.getDatabaseInterface().setIsManualTransactionControl(true);
+        metricLastSeenDao.getDatabaseInterface().beginTransaction();
+        List<MetricLastSeen> metricLastSeens = metricLastSeenDao.getAllDatabaseObjectsInTable();
+        
+        Map<String,MetricLastSeen> metricKeySha1sFromDb_ByMetricKey = new HashMap<>();
+
+        if (metricLastSeens != null) {
+            for (MetricLastSeen metricLastSeen : metricLastSeens) {
+                if ((metricLastSeen.getMetricKey() == null) || (metricLastSeen.getMetricKeySha1() == null)) continue;
+                metricKeySha1sFromDb_ByMetricKey.put(metricLastSeen.getMetricKey(), metricLastSeen);
+            }
+        }
+        
+        // gets the current set of metric-keys that we need to track & persist in the database
+        Set<String> metricKeysAssociatedWithActiveAvailabilityAlerts = getMetricKeysAssociatedWithActiveAvailabilityAlerts();
+        
+        if (metricKeysAssociatedWithActiveAvailabilityAlerts != null) {            
+            // removes metric-keys that don't need to be in the db any longer
+            for (String metricKey : metricKeySha1sFromDb_ByMetricKey.keySet()) {
+                if (!metricKeysAssociatedWithActiveAvailabilityAlerts.contains(metricKey)) { 
+                    metricLastSeenDao.delete(metricKeySha1sFromDb_ByMetricKey.get(metricKey).getMetricKeySha1());
+                }
+            }
+            
+            // updates the database with the current set of tracked 'metric last seen' values
+            List<MetricLastSeen> metricLastSeens_PutInDatabase = new ArrayList<>();
+            
+            for (String metricKey : metricKeysAssociatedWithActiveAvailabilityAlerts) {
+                String metricKeySha1;
+                MetricLastSeen metricLastSeenFromDb = metricKeySha1sFromDb_ByMetricKey.get(metricKey);
+                
+                if ((metricLastSeenFromDb != null) && (metricLastSeenFromDb.getMetricKeySha1() != null)) metricKeySha1 = metricLastSeenFromDb.getMetricKeySha1();
+                else metricKeySha1 = DigestUtils.sha1Hex(metricKey);
+
+                Long timestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+
+                if ((metricKeySha1 != null) && (timestamp != null)) {
+                    Timestamp lastSeenTimestamp = new Timestamp(timestamp);
+                    MetricLastSeen metricLastSeen = new MetricLastSeen(metricKeySha1, metricKey, lastSeenTimestamp);
+                    
+                    if ((metricLastSeenFromDb == null) || !metricLastSeenFromDb.isEqual(metricLastSeen)) {
+                        metricLastSeens_PutInDatabase.add(metricLastSeen);
+                    }
+                }
+            }
+            
+            metricLastSeenDao.batchUpsert(metricLastSeens_PutInDatabase);
+        }
+
+        metricLastSeenDao.getDatabaseInterface().endTransaction(true);
+        metricLastSeenDao.close();
     }
     
     private void waitForConcurrentHashMapsToSettle() {
@@ -487,25 +681,21 @@ public class AlertThread implements Runnable {
                 List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert);
                 
                 for (String metricKey : metricKeysAssociatedWithAlert) {
-                    if (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.containsKey(metricKey)) {
-                        Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
-                        List<MetricTimestampAndValue> recentMetricTimestampsAndValuesLocal = null;
+                    Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+                    List<MetricTimestampAndValue> recentMetricTimestampsAndValuesLocal = null;
 
-                        if (recentMetricTimestampsAndValues != null) {
-                            synchronized(recentMetricTimestampsAndValues) {
-                                recentMetricTimestampsAndValuesLocal = new ArrayList<>(recentMetricTimestampsAndValues);
-                            }
-
-                            if (!recentMetricTimestampsAndValuesLocal.isEmpty()) {
-                                if (isCautionAlertCriteriaValid) {
-                                    determineAlertStatus_Caution(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
-                                }
-
-                                if (isDangerAlertCriteriaValid) {
-                                    determineAlertStatus_Danger(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
-                                }
-                            }
+                    if (recentMetricTimestampsAndValues != null) {
+                        synchronized(recentMetricTimestampsAndValues) {
+                            recentMetricTimestampsAndValuesLocal = new ArrayList<>(recentMetricTimestampsAndValues);
                         }
+                    }
+
+                    if (isCautionAlertCriteriaValid) {
+                        determineAlertStatus_Caution(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
+                    }
+
+                    if (isDangerAlertCriteriaValid) {
+                        determineAlertStatus_Danger(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
                     }
                 }
             }
@@ -514,13 +704,48 @@ public class AlertThread implements Runnable {
 
     private static void determineAlertStatus_Caution(Alert alert, AlertThread alertThread, List<MetricTimestampAndValue> recentMetricTimestampsAndValues, String metricKey) {
         
-        if ((alert == null) || (recentMetricTimestampsAndValues == null) || (metricKey == null)) {
+        if ((alert == null) || (metricKey == null) || (alert.getId() == null)) {
             return;
         }
         
-        BigDecimal activeAlertValue = isAlertActive(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getCautionAlertType(),
-                alert.getCautionWindowDuration(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(), 
-                alert.getCautionThreshold(), alert.getCautionMinimumSampleCount());
+        BigDecimal activeAlertValue = null;
+        
+        if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY)) {
+            Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getCautionAlertType(), alert.getCautionWindowDuration());
+            Set<String> activeCautionAvailabilityMetricKeys = alertThread.activeCautionAvailabilityAlerts_.get(alert.getId());
+            
+            if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
+                if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
+                
+                positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
+                positiveAlertReasons.put(metricKey, "New data point(s) received");
+            }
+            else { // a recent metric value has not been detected -- so the availability alert is active
+                if ((alert.getCautionStopTrackingAfter() != null) && (alert.getCautionStopTrackingAfter() < activeAlertValue.longValue())) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
+                    if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
+                    activeAlertValue = null;
+                    
+                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
+                    positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
+                }
+                else if (activeCautionAvailabilityMetricKeys == null) { // the availability alert is active
+                    Set<String> activeCautionAvailabilityMetricKeys_New = Collections.synchronizedSet(new HashSet<String>());
+                    activeCautionAvailabilityMetricKeys_New.add(metricKey);
+                    alertThread.activeCautionAvailabilityAlerts_.put(alert.getId(), activeCautionAvailabilityMetricKeys_New);                    
+                }
+                else {
+                    activeCautionAvailabilityMetricKeys.add(metricKey);
+                } 
+            }
+        }
+        else if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) {
+            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getCautionAlertType(),
+                    alert.getCautionWindowDuration(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(), 
+                    alert.getCautionThreshold(), alert.getCautionMinimumSampleCount());
+        }
         
         if (activeAlertValue != null) {
             List<String> activeCautionAlertMetricKeys = alertThread.activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
@@ -543,14 +768,49 @@ public class AlertThread implements Runnable {
     
     private static void determineAlertStatus_Danger(Alert alert, AlertThread alertThread, List<MetricTimestampAndValue> recentMetricTimestampsAndValues, String metricKey) {
         
-        if ((alert == null) || (recentMetricTimestampsAndValues == null) || (metricKey == null)) {
+        if ((alert == null) || (metricKey == null) || (alert.getId() == null)) {
             return;
         }
         
-        BigDecimal activeAlertValue = isAlertActive(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getDangerAlertType(),
-                alert.getDangerWindowDuration(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(), 
-                alert.getDangerThreshold(), alert.getDangerMinimumSampleCount());
-
+        BigDecimal activeAlertValue = null;
+        
+        if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY)) {
+            Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getDangerAlertType(), alert.getDangerWindowDuration());
+            Set<String> activeDangerAvailabilityMetricKeys = alertThread.activeDangerAvailabilityAlerts_.get(alert.getId());
+            
+            if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
+                if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
+                
+                positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
+                positiveAlertReasons.put(metricKey, "New data point(s) received");
+            }
+            else { // a recent metric value has not been detected -- so the availability alert is active
+                if ((alert.getDangerStopTrackingAfter() != null) && (alert.getDangerStopTrackingAfter() < activeAlertValue.longValue())) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
+                    if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
+                    activeAlertValue = null;
+                    
+                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
+                    positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
+                }
+                else if (activeDangerAvailabilityMetricKeys == null) { // the availability alert is active
+                    Set<String> activeDangerAvailabilityMetricKeys_New = Collections.synchronizedSet(new HashSet<String>());
+                    activeDangerAvailabilityMetricKeys_New.add(metricKey);
+                    alertThread.activeDangerAvailabilityAlerts_.put(alert.getId(), activeDangerAvailabilityMetricKeys_New);                    
+                }
+                else {
+                    activeDangerAvailabilityMetricKeys.add(metricKey);
+                } 
+            }
+        }
+        else if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) {
+            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getDangerAlertType(),
+                    alert.getDangerWindowDuration(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(), 
+                    alert.getDangerThreshold(), alert.getDangerMinimumSampleCount());
+        }
+        
         if (activeAlertValue != null) {
             List<String> activeDangerAlertMetricKeys = alertThread.activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
 
@@ -597,6 +857,8 @@ public class AlertThread implements Runnable {
         String newCautionActiveAlertsSet = appendActiveAlertsToSet(metricKeys, alert.getCautionActiveAlertsSet(), maxMetricsInEmail + 1);
         alert.setCautionActiveAlertsSet(newCautionActiveAlertsSet);
         
+        Map<String,String> positiveAlertReasons_Caution = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
+        
         // the alert is suspended (the entire alert, not just notifications)
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
                 (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
@@ -612,7 +874,7 @@ public class AlertThread implements Runnable {
             
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, false, statsAggLocation_);
+                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, statsAggLocation_);
                 SendEmailThreadPoolManager.executeThread(emailThread);
             }
 
@@ -622,14 +884,15 @@ public class AlertThread implements Runnable {
         else if (alert.isCautionAlertActive() && !isCautionAlertActive) {
             alert.setIsCautionAlertActive(false);
             
-            if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive() && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) {
+            if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, true, statsAggLocation_);
+                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, statsAggLocation_);
                     SendEmailThreadPoolManager.executeThread(emailThread);
                 }
             }
             
+            positiveAlertReasons_Caution_ByAlertId_.remove(alert.getId());
             alert.setCautionActiveAlertsSet(null);
             alert.setCautionAlertLastSentTimestamp(null);
             doUpdateAlertInDb = true;
@@ -642,7 +905,7 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, false, statsAggLocation_);
+                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, statsAggLocation_);
                         SendEmailThreadPoolManager.executeThread(emailThread);
                     }
                     
@@ -692,6 +955,8 @@ public class AlertThread implements Runnable {
         String newDangerActiveAlertsSet = appendActiveAlertsToSet(metricKeys, alert.getDangerActiveAlertsSet(), maxMetricsInEmail + 1);
         alert.setDangerActiveAlertsSet(newDangerActiveAlertsSet);
         
+        Map<String,String> positiveAlertReasons_Danger = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
+        
         // the alert is suspended (the entire alert, not just notifications)
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
                 (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
@@ -707,7 +972,7 @@ public class AlertThread implements Runnable {
             
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, false, statsAggLocation_);
+                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, statsAggLocation_);
                 SendEmailThreadPoolManager.executeThread(emailThread);
             }
             
@@ -717,14 +982,15 @@ public class AlertThread implements Runnable {
         else if (alert.isDangerAlertActive() && !isDangerAlertActive) {
             alert.setIsDangerAlertActive(false);
             
-            if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive() && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) {
+            if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, true, statsAggLocation_);
+                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, statsAggLocation_);
                     SendEmailThreadPoolManager.executeThread(emailThread);
                 }
             }
             
+            positiveAlertReasons_Danger_ByAlertId_.remove(alert.getId());
             alert.setDangerActiveAlertsSet(null);
             alert.setDangerAlertLastSentTimestamp(null);
             doUpdateAlertInDb = true;
@@ -737,7 +1003,7 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, false, statsAggLocation_);
+                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, statsAggLocation_);
                         SendEmailThreadPoolManager.executeThread(emailThread);
                     }
                     
@@ -911,63 +1177,73 @@ public class AlertThread implements Runnable {
         
         return activeAlerts;
     }
+
+    /*
+    If the alert is not active, then this method returns null.
+    If the alert is active, then this method returns the time elapsed (in milliseconds) since the metric-key was last seen 
+    */
+    public static BigDecimal isAlertActive_Availability(long threadStartTimestampInMilliseconds, Long metricKeyLastSeenTimestamp, Integer alertType, Long windowDuration) {
         
+        if ((metricKeyLastSeenTimestamp == null) || (alertType == null) || (alertType != Alert.TYPE_AVAILABILITY) || (windowDuration == null)) {
+            return null;
+        }
+        
+        long oldestTimestampAllowed = threadStartTimestampInMilliseconds - windowDuration;
+
+        if (metricKeyLastSeenTimestamp < oldestTimestampAllowed) {
+            long timeElapsedSinceMetricKeyLastSeenTimestamp = threadStartTimestampInMilliseconds - metricKeyLastSeenTimestamp;
+            return new BigDecimal(timeElapsedSinceMetricKeyLastSeenTimestamp);
+        }
+        else {
+            return null;
+        }
+    }
+    
     /*
     If the alert is not active, then this method returns null.
     If the alert is active, then this method returns a value that fits the context of the alert critera.
     */
-    public static BigDecimal isAlertActive(long threadStartTimestampInMilliseconds, List<MetricTimestampAndValue> sortedRecentMetricTimestampsAndValues, 
-            Integer alertType, Integer windowDuration, Integer operator, Integer combination, Integer combinationCount, BigDecimal threshold, Integer minimumSampleCount) {
+    public static BigDecimal isAlertActive_Threshold(long threadStartTimestampInMilliseconds, List<MetricTimestampAndValue> sortedRecentMetricTimestampsAndValues, 
+            Integer alertType, Long windowDuration, Integer operator, Integer combination, Integer combinationCount, BigDecimal threshold, Integer minimumSampleCount) {
 
-        if ((sortedRecentMetricTimestampsAndValues == null) || sortedRecentMetricTimestampsAndValues.isEmpty()) {
+        if ((sortedRecentMetricTimestampsAndValues == null) || sortedRecentMetricTimestampsAndValues.isEmpty() || 
+                (alertType == null) || (alertType != Alert.TYPE_THRESHOLD) || (windowDuration == null)) {
             return null;
         }
 
         // get a list of timestamps that are within the alert window
         long startTimestamp = threadStartTimestampInMilliseconds - windowDuration;
         int[] timestampStartAndEndIndexes = getStartAndEndIndexesOfTimestamps(startTimestamp, threadStartTimestampInMilliseconds, sortedRecentMetricTimestampsAndValues);
-        if (timestampStartAndEndIndexes == null) return null;    
+        if (timestampStartAndEndIndexes == null) return null;
         List<MetricTimestampAndValue> sortedRecentMetricTimestampsAndValuesInWindow = new ArrayList<>(sortedRecentMetricTimestampsAndValues.subList(timestampStartAndEndIndexes[0], timestampStartAndEndIndexes[1]));
         sortedRecentMetricTimestampsAndValuesInWindow.add(sortedRecentMetricTimestampsAndValues.get(timestampStartAndEndIndexes[1])); // needed b/c subList excludes the ending index element
-        
-        if ((alertType != null) && (alertType == Alert.TYPE_AVAILABILITY)) {
-            if (sortedRecentMetricTimestampsAndValuesInWindow.isEmpty()) {
-                return new BigDecimal(1);
-            }
-            else {
-                return null;
-            }
-        }
-        else if ((alertType != null) && (alertType == Alert.TYPE_THRESHOLD)) {
-            // minimum sample count check
-            boolean doesMeetMinimumSampleCountCriteria = doesMeetMinimumSampleCountCriteria(sortedRecentMetricTimestampsAndValuesInWindow.size(), minimumSampleCount);
-            if (!doesMeetMinimumSampleCountCriteria) {
-                return null;
-            }
 
-            BigDecimal doesMeetThresholdCriteria = null;
-
-            // threshold check
-            if (Objects.equals(combination, Alert.COMBINATION_ALL)) {
-                doesMeetThresholdCriteria = doesMeetThresholdCriteria_All(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
-            }
-            else if (Objects.equals(combination, Alert.COMBINATION_ANY)) {
-                doesMeetThresholdCriteria = doesMeetThresholdCriteria_Any(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
-            }
-            else if (Objects.equals(combination, Alert.COMBINATION_AVERAGE)) {
-                doesMeetThresholdCriteria = doesMeetThresholdCriteria_Average(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
-            }
-            else if (Objects.equals(combination, Alert.COMBINATION_AT_LEAST_COUNT)) {
-                doesMeetThresholdCriteria = doesMeetThresholdCriteria_AtLeastCount(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator, combinationCount);
-            }
-            else if (Objects.equals(combination, Alert.COMBINATION_AT_MOST_COUNT)) {
-                doesMeetThresholdCriteria = doesMeetThresholdCriteria_AtMostCount(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator, combinationCount);
-            }
-            
-            return doesMeetThresholdCriteria;
+        // minimum sample count check
+        boolean doesMeetMinimumSampleCountCriteria = doesMeetMinimumSampleCountCriteria(sortedRecentMetricTimestampsAndValuesInWindow.size(), minimumSampleCount);
+        if (!doesMeetMinimumSampleCountCriteria) {
+            return null;
         }
-        
-        return null;
+
+        BigDecimal doesMeetThresholdCriteria = null;
+
+        // threshold check
+        if (Objects.equals(combination, Alert.COMBINATION_ALL)) {
+            doesMeetThresholdCriteria = doesMeetThresholdCriteria_All(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
+        }
+        else if (Objects.equals(combination, Alert.COMBINATION_ANY)) {
+            doesMeetThresholdCriteria = doesMeetThresholdCriteria_Any(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
+        }
+        else if (Objects.equals(combination, Alert.COMBINATION_AVERAGE)) {
+            doesMeetThresholdCriteria = doesMeetThresholdCriteria_Average(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator);
+        }
+        else if (Objects.equals(combination, Alert.COMBINATION_AT_LEAST_COUNT)) {
+            doesMeetThresholdCriteria = doesMeetThresholdCriteria_AtLeastCount(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator, combinationCount);
+        }
+        else if (Objects.equals(combination, Alert.COMBINATION_AT_MOST_COUNT)) {
+            doesMeetThresholdCriteria = doesMeetThresholdCriteria_AtMostCount(sortedRecentMetricTimestampsAndValuesInWindow, threshold, operator, combinationCount);
+        }
+
+        return doesMeetThresholdCriteria;
     }
 
     private static int[] getStartAndEndIndexesOfTimestamps(long startTimestamp, long endTimestamp, List<MetricTimestampAndValue> metricTimestampsAndValues) {
@@ -1038,11 +1314,7 @@ public class AlertThread implements Runnable {
             return false;
         }
         
-        if (sampleCount < allowedMinimumCount) {
-            return false;
-        }
-        
-        return true;
+        return (sampleCount >= allowedMinimumCount);
     }
     
     /*
@@ -1369,6 +1641,5 @@ public class AlertThread implements Runnable {
         
         return alertStatusGraphiteMetrics;
     }
-
     
 }

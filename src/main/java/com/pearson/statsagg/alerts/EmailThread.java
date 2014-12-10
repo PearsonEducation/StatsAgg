@@ -37,18 +37,21 @@ public class EmailThread implements Runnable  {
     private final Alert alert_;
     private final int warningLevel_;
     private final List<String> metricKeys_;
-    private final Map<String,BigDecimal> alertMetricValues_;  // k="{metricKey}-{alertId}"   example: "someMetric.example-55"
+    private final Map<String,BigDecimal> alertMetricValues_;  // k="{MetricKey}-{AlertId}"   example: "someMetric.example-55"
+    private final Map<String,String> positiveAlertReasons_; // k=MetricMey, v=a reason why the alert was positive (ex "new data point detected")
     private final boolean isPositiveAlert_;
     private final String statsAggLocation_;
     
     private String subject_ = "";
     private String body_ = "";
     
-    public EmailThread(Alert alert, int warningLevel, List<String> metricKeys, Map<String,BigDecimal> alertMetricValues, boolean isPositiveAlert, String statsAggLocation) {
+    public EmailThread(Alert alert, int warningLevel, List<String> metricKeys, Map<String,BigDecimal> alertMetricValues, 
+            Map<String,String> positiveAlertReasons, boolean isPositiveAlert, String statsAggLocation) {
         this.alert_ = alert;
         this.warningLevel_ = warningLevel;
         this.metricKeys_ = metricKeys;
         this.alertMetricValues_ = alertMetricValues;
+        this.positiveAlertReasons_ = positiveAlertReasons;
         this.isPositiveAlert_ = isPositiveAlert;
         this.statsAggLocation_ = statsAggLocation;
     }
@@ -141,13 +144,13 @@ public class EmailThread implements Runnable  {
             BigDecimal cautionWindowDurationSeconds = cautionWindowDurationMs.divide(new BigDecimal(1000));
             
             if (alert_.getCautionAlertType() == Alert.TYPE_AVAILABILITY) {
-                body.append("<ul><li>No new data points during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds.").append("</li></ul><br>");
+                body.append("<ul><li>No new data points were received during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
             else if (alert_.getCautionAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getCautionMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getCautionCombinationString(alert_)).append(" ").append(alert_.getCautionOperatorString(false, true))
                         .append(" ").append(alert_.getCautionThreshold().stripTrailingZeros().toPlainString())
-                        .append(" during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds.").append("</li></ul><br>");
+                        .append(" during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
         }
         else if (warningLevel_ == WARNING_LEVEL_DANGER) {
@@ -155,13 +158,13 @@ public class EmailThread implements Runnable  {
             BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
 
             if (alert_.getDangerAlertType() == Alert.TYPE_AVAILABILITY) {
-                body.append("<ul><li>No new data points during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds.").append("</li></ul><br>");
+                body.append("<ul><li>No new data points were received during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
             else if (alert_.getDangerAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getDangerMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getDangerCombinationString(alert_)).append(" ").append(alert_.getDangerOperatorString(false, true))
                         .append(" ").append(alert_.getDangerThreshold().stripTrailingZeros().toPlainString())
-                        .append(" during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds.").append("</li></ul><br>"); 
+                        .append(" during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>"); 
             }
         }
         
@@ -179,16 +182,12 @@ public class EmailThread implements Runnable  {
                 if (alertMetricValue != null) {
                     String metricValueString_WithLabel = null;
                     if (warningLevel_ == WARNING_LEVEL_CAUTION) {
-                        if (alert_.getCautionAlertType() == Alert.TYPE_THRESHOLD) {
                             body.append(" = ");
                             metricValueString_WithLabel = Alert.getCautionMetricValueString_WithLabel(alert_, alertMetricValue);
-                        }
                     }
                     else if (warningLevel_ == WARNING_LEVEL_DANGER) {
-                        if (alert_.getDangerAlertType() == Alert.TYPE_THRESHOLD) {
                             body.append(" = ");
                             metricValueString_WithLabel = Alert.getDangerMetricValueString_WithLabel(alert_, alertMetricValue);
-                        }
                     }
                         
                     if (metricValueString_WithLabel != null) {
@@ -228,6 +227,11 @@ public class EmailThread implements Runnable  {
             for (String metricKey : sortedMetricKeys) {
                 body.append("<li>");
                 body.append(StatsAggHtmlFramework.htmlEncode(metricKey));
+                
+                if ((positiveAlertReasons_ != null) && positiveAlertReasons_.containsKey(metricKey)) {
+                    body.append(" = ").append(StatsAggHtmlFramework.htmlEncode(positiveAlertReasons_.get(metricKey)));
+                }
+                
                 body.append("</li>");
                 
                 counter++;

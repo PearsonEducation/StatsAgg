@@ -6,6 +6,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import com.pearson.statsagg.database.alerts.Alert;
+import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
@@ -48,9 +49,9 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricAggregated> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
-
-    // k=MetricKey, v="SHA-1(MetricKey)"
-    public final static ConcurrentHashMap<String,String> statsdGaugeBucketDigests = new ConcurrentHashMap<>();
+    
+    // k=MetricKey, v=Gauge (kept in sync with the database)
+    public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>();
     
     // k=MetricKey, v=MetricKey (k=v. Both are a strings that specify the metric key of a metric to 'forget'.
     public final static ConcurrentHashMap<String,String> forgetMetrics = new ConcurrentHashMap<>();
@@ -73,6 +74,9 @@ public class GlobalVariables {
     // k=MetricKey, v="The most timestamp that this metric was received by this program"
     public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(); 
     
+    // k=MetricKey, v="The most timestamp that this metric was received by this program. Gets updated if the metric is configured to send 0 or previous value when no new metrics were received."
+    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp_UpdateOnResend = new ConcurrentHashMap<>(); 
+
     // k=MetricKey, v=[0] "list of metric groups ids with negative associations with the metric key", [1] "list of metric groups ids with positive associations with the metric key"
     public final static ConcurrentHashMap<String,ArrayList[]> metricGroupsAssociatedWithMetricKeys = new ConcurrentHashMap<>(); 
     
@@ -87,7 +91,7 @@ public class GlobalVariables {
     
     // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedSet(TreeSet<MetricTimestampAndValue>()))
     public final static ConcurrentHashMap<String,Set<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(); 
-    
+
     // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."
     public final static ConcurrentHashMap<String,Pattern> metricGroupRegexPatterns = new ConcurrentHashMap<>(); 
     
@@ -105,6 +109,15 @@ public class GlobalVariables {
     
     // k=AlertId, v=Alert
     public final static ConcurrentHashMap<Integer, Alert> pendingDangerAlertsByAlertId = new ConcurrentHashMap<>(); 
+
+    // k=MetricKey, v=MetricKey
+    public static final ConcurrentHashMap<String, String> activeAvailabilityAlerts = new ConcurrentHashMap<>();
+   
+    // k=AlertId, v=Set<MetricKey>
+    public static final ConcurrentHashMap<Integer, Set<String>> activeCautionAvailabilityAlerts = new ConcurrentHashMap<>();
+    
+    // k=AlertId, v=Set<MetricKey>
+    public static final ConcurrentHashMap<Integer, Set<String>> activeDangerAvailabilityAlerts = new ConcurrentHashMap<>();
     
     // k="{metricKey}-{alertId}", v='Alert routine calculated metric value'
     public final static ConcurrentHashMap<String,BigDecimal> activeCautionAlertMetricValues = new ConcurrentHashMap<>(); 

@@ -133,39 +133,41 @@ public class MetricGroups extends HttpServlet {
             List<MetricGroup> allMetricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
             metricGroupsDao.close();
 
-            Set<String> allMetricGroupNames = new HashSet<>();
-            for (MetricGroup currentMetricGroup : allMetricGroups) {
-                if (currentMetricGroup.getName() != null) {
-                    allMetricGroupNames.add(currentMetricGroup.getName());
+            if ((metricGroup != null) && (metricGroup.getId() != null) && (metricGroup.getName() != null)) {
+                Set<String> allMetricGroupNames = new HashSet<>();
+                for (MetricGroup currentMetricGroup : allMetricGroups) {
+                    if (currentMetricGroup.getName() != null) {
+                        allMetricGroupNames.add(currentMetricGroup.getName());
+                    }
                 }
-            }
 
-            MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-            List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
-            TreeSet<String> allMetricGroupRegexs = new TreeSet<>();
-            if (metricGroupRegexs != null) {
-                for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
-                    allMetricGroupRegexs.add(currentMetricGroupRegex.getPattern());
+                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
+                List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
+                TreeSet<String> allMetricGroupRegexs = new TreeSet<>();
+                if (metricGroupRegexs != null) {
+                    for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
+                        allMetricGroupRegexs.add(currentMetricGroupRegex.getPattern());
+                    }
                 }
-            }
 
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-            List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
-            TreeSet<String> allMetricGroupTags = new TreeSet<>();
-            if (metricGroupTags != null) {
-                for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
-                    allMetricGroupTags.add(currentMetricGroupTag.getTag());
+                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
+                List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                TreeSet<String> allMetricGroupTags = new TreeSet<>();
+                if (metricGroupTags != null) {
+                    for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
+                        allMetricGroupTags.add(currentMetricGroupTag.getTag());
+                    }
                 }
+
+                MetricGroup clonedMetricGroup = MetricGroup.copy(metricGroup);
+                clonedMetricGroup.setId(-1);
+                String clonedAlterName = StatsAggHtmlFramework.createCloneName(metricGroup.getName(), allMetricGroupNames);
+                clonedMetricGroup.setName(clonedAlterName);
+                clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
+
+                MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
+                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupRegexs, allMetricGroupTags);
             }
-
-            MetricGroup clonedMetricGroup = MetricGroup.copy(metricGroup);
-            clonedMetricGroup.setId(-1);
-            String clonedAlterName = StatsAggHtmlFramework.createCloneName(metricGroup.getName(), allMetricGroupNames);
-            clonedMetricGroup.setName(clonedAlterName);
-            clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
-
-            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupRegexs, allMetricGroupTags);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

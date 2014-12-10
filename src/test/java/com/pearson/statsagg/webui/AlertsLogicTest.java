@@ -108,8 +108,8 @@ public class AlertsLogicTest {
         
         // create & insert an Alert, insert it into the db, retrieve it from the db, & check for correctness of the retrieved records
         Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null,  
-            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null,  
+            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
         AlertsDao alertsDao = new AlertsDao();
@@ -173,8 +173,8 @@ public class AlertsLogicTest {
         assertTrue(result.contains("success") || result.contains("Alert not found"));
         
         Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
         AlertsDao alertsDao = new AlertsDao();

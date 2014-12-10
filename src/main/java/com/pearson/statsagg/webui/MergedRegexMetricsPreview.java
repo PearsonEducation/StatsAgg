@@ -5,7 +5,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupRegexsFromMetricGroupParameters;
 import static com.pearson.statsagg.webui.RegexTester.getRegexMatchesHtml;
 import com.pearson.statsagg.utilities.StackTrace;

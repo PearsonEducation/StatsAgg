@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.List;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,11 +105,11 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : alertNames) {
-            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
+            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
             if (i < alertNames.size()) json.append(",");
             i++;
         }
-        
+
         json.append("]");
     
         return json.toString();
@@ -129,7 +130,7 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : metricGroupsNames) {
-            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
+            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
             if (i < metricGroupsNames.size()) json.append(",");
             i++;
         }
@@ -154,7 +155,7 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : notificationGroupsNames) {
-            json.append("\"").append(StatsAggHtmlFramework.htmlEncode(name)).append("\"");
+            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
             if (i < notificationGroupsNames.size()) json.append(",");
             i++;
         }

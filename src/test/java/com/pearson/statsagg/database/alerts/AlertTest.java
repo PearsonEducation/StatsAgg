@@ -43,8 +43,8 @@ public class AlertTest {
         long currentTimeInMs = System.currentTimeMillis();
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, null, null, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(currentTimeInMs), null);
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, null, null, 
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(currentTimeInMs), null);
         
         Alert alert2 = Alert.copy(alert1);
         assertTrue(alert1.isEqual(alert2));
@@ -96,8 +96,8 @@ public class AlertTest {
     public void testIsValid_CautionOperation() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null);
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null);
         
         assertTrue(alert1.isValid_CautionOperation());
         
@@ -133,8 +133,8 @@ public class AlertTest {
     public void testIsValid_DangerOperation() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null,
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null,
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null);
         
         assertTrue(alert1.isValid_DangerOperation());
         
@@ -170,8 +170,8 @@ public class AlertTest {
     public void testIsValid_CautionCombination() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null);
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null);
         
         assertTrue(alert1.isValid_CautionCombination());
         
@@ -223,8 +223,8 @@ public class AlertTest {
     public void testIsValid_DangerCombination() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null,   
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null,  
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null);
         
         assertTrue(alert1.isValid_DangerCombination());
         
@@ -276,18 +276,18 @@ public class AlertTest {
     public void testIsValid_CautionWindowDuration() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null);
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null);
         
         assertTrue(alert1.isValid_CautionWindowDuration());
         
-        alert1.setCautionWindowDuration(0);
+        alert1.setCautionWindowDuration(0L);
         assertFalse(alert1.isValid_CautionWindowDuration());
         
-        alert1.setCautionWindowDuration(-1);
+        alert1.setCautionWindowDuration(-1L);
         assertFalse(alert1.isValid_CautionWindowDuration());
         
-        alert1.setCautionWindowDuration(100);
+        alert1.setCautionWindowDuration(100L);
         assertTrue(alert1.isValid_CautionWindowDuration());
         
         alert1.setCautionWindowDuration(null);
@@ -301,18 +301,18 @@ public class AlertTest {
     public void testIsValid_DangerWindowDuration() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null,   
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null,  
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null);
         
         assertTrue(alert1.isValid_DangerWindowDuration());
         
-        alert1.setDangerWindowDuration(0);
+        alert1.setDangerWindowDuration(0L);
         assertFalse(alert1.isValid_DangerWindowDuration());
         
-        alert1.setDangerWindowDuration(-1);
+        alert1.setDangerWindowDuration(-1L);
         assertFalse(alert1.isValid_DangerWindowDuration());
         
-        alert1.setDangerWindowDuration(100);
+        alert1.setDangerWindowDuration(100L);
         assertTrue(alert1.isValid_DangerWindowDuration());
         
         alert1.setDangerWindowDuration(null);
@@ -326,8 +326,8 @@ public class AlertTest {
     public void testIsValid_CautionMinimumSampleCount() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null,  
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null);
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null,  
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null);
         
         assertTrue(alert1.isValid_CautionMinimumSampleCount());
         
@@ -351,8 +351,8 @@ public class AlertTest {
     public void testIsValid_DangerMinimumSampleCount() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null,   
-            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 666, null, null, null, null, null, null, null, null, null, null,   
+            Alert.TYPE_THRESHOLD, 666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null);
         
         assertTrue(alert1.isValid_DangerMinimumSampleCount());
         

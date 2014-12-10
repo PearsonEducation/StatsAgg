@@ -1,35 +1,31 @@
 Short term
- * availability alert (test)
  * Add healthcheck servlet
  * unit tests for set & timer
- * new option -- limit metric # in webui (and in underlying code)
- * make program more db-avail failure proof
-   * Alert suspensions -- reduce # of small queries
-   * Metric groups -- create in one transaction
- * sql update -- change name of notification group PK to match NG convention
- * bug -- single bad regex ruins the party for all regexs
- * bug -- special characters ruin json lookup
-
+ * unit tests for availability alert
+ * move alert-type into options/general
+ * json when typing '  '
+ 
 Before open source release 
  * documentation/help page (wip)
-   * document war deployment
-   * document basic security in tomcat
- 
- 
+   * forget metrics
+   * what happens on restart?
+   * gauge metrics persisted in memory
+   
+
 Medium term
  * Migrate to HikariCP
+ * new option -- limit metric # in webui (and in underlying code)
  * tweak webui "alert details" output (two columns)
  * tweak webui "details" to have links to other "details" pages
  * debug mode for "details" pages
  * stop resending metric after X time of no updates
  * option to skip persisting gauges in the db
  * alert by individual metric
+ * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * make alert suspension datetime bars be full width of column
  * Statsd upper nth %
- * when altering alerts & stuff is in an alerted status, don't null the alert status if the alert status is the same
- * if database doesn't work, display message on homepage
- * webui - alter metric groups in a single db transaction
  * Statsd histograms
+ * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
  
  
 Long term

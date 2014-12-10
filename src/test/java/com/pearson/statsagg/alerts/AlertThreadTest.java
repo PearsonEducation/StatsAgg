@@ -52,20 +52,20 @@ public class AlertThreadTest {
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 1200, new BigDecimal("80.1"), hashKeyGen_.incrementAndGet()));     
         
         alert1_ = new Alert(1, "alert1", "alert1_description" , 11, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
         
         alert2_ = new Alert(2, "alert2", "alert2_description" , 11, true, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, true, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, false, new Timestamp(System.currentTimeMillis()), null);
         
         alert3_ = new Alert(3, "alert3", "alert3_description" , 11, false, true, true, 300000, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, true, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, true, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
   
         alert4_ = new Alert(4, "alert4", "alert4_description" , 11, true, false, true, 300000, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null, 
-            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, false, new Timestamp(System.currentTimeMillis()), null); 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null, 
+            Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, false, new Timestamp(System.currentTimeMillis()), null); 
     }
     
     @AfterClass
@@ -89,8 +89,8 @@ public class AlertThreadTest {
         
         for (int i = 1; i <= 7877; i++) {
             Alert alert = new Alert(i, "alert-" + i, "alert-" + i , 11, false, true, true, 300000, 
-                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900, 1, false, new Timestamp(System.currentTimeMillis()), null,  
-                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, null, 1, false, new Timestamp(System.currentTimeMillis()), null,  
+                Alert.TYPE_THRESHOLD, 1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
             
             alerts.add(alert);
         }
@@ -228,82 +228,105 @@ public class AlertThreadTest {
     }
     
     /**
-     * Test of isAlertActive method, of class AlertThread.
+     * Test of isAlertActive_Availability method, of class AlertThread.
      */
     @Test
-    public void testIsAlertActive() {
+    public void testIsAlertActive_Availability() {
+        
+        AlertThread alertThread = new AlertThread(Long.valueOf(950));
+        BigDecimal result;
+        
+        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(800), Alert.TYPE_AVAILABILITY, 100L);
+        assertEquals(new BigDecimal("150"), result);
+        
+        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(850), Alert.TYPE_AVAILABILITY, 100L);
+        assertEquals(null, result);
+        
+        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(950), Alert.TYPE_AVAILABILITY, 100L);
+        assertEquals(null, result);
+        
+        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(1000), Alert.TYPE_AVAILABILITY, 100L);
+        assertEquals(null, result);
+    }
+    
+    
+    /**
+     * Test of isAlertActive_Threshold method, of class AlertThread.
+     */
+    @Test
+    public void testIsAlertActive_Threshold() {
 
         AlertThread alertThread = new AlertThread(Long.valueOf(950));
         BigDecimal result;
         
         // test operators
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_LESS_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_EQUALS, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(null, result);
         
         // test combinations
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 1);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER,  Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER,  Alert.COMBINATION_AVERAGE, null, new BigDecimal(76), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(76.1), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER,  Alert.COMBINATION_ALL, null, new BigDecimal(74), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER,  Alert.COMBINATION_ALL, null, new BigDecimal(74), 1);
         assertEquals(new BigDecimal("77"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal(75), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal(75), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal(76), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_ANY, null, new BigDecimal(76), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_ANY, null, new BigDecimal(76), 1);
         assertEquals(new BigDecimal("77"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_ANY, null, new BigDecimal(77), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_ANY, null, new BigDecimal(77), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(72), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(72), 1);
         assertEquals(new BigDecimal("5"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(73), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(73), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(74), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_LEAST_COUNT, 5, new BigDecimal(74), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(72), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(72), 1);
         assertEquals(null, result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(73), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(73), 1);
         assertEquals(new BigDecimal("4"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(74), 1);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 1500L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AT_MOST_COUNT, 4, new BigDecimal(74), 1);
         assertEquals(new BigDecimal("3"), result);
         
         // test min sample count
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 2);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 2);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 3);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 3);
         assertEquals(new BigDecimal("76"), result);
-        result = AlertThread.isAlertActive(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 4);
+        result = AlertThread.isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, metricTimestampsAndValues_, Alert.TYPE_THRESHOLD, 300L, Alert.OPERATOR_GREATER, Alert.COMBINATION_AVERAGE, null, new BigDecimal(75.9), 4);
         assertEquals(null, result);
     }
     

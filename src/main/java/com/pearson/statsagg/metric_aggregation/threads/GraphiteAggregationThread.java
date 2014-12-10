@@ -81,7 +81,8 @@ public class GraphiteAggregationThread implements Runnable {
             
             // updates the global list that tracks the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(graphiteMetricsAggregatedMerged);
+            Common.updateMetricLastSeenTimestamps(graphiteMetricsAggregated);
+            Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();

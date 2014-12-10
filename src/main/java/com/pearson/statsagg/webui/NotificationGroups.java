@@ -22,6 +22,7 @@ import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -138,19 +139,21 @@ public class NotificationGroups extends HttpServlet {
             List<NotificationGroup> allNotificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
             notificationGroupsDao.close();
 
-            Set<String> allNotificationGroupNames = new HashSet<>();
-            for (NotificationGroup currentNotificationGroup : allNotificationGroups) {
-                allNotificationGroupNames.add(currentNotificationGroup.getName());
-            }
+            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                Set<String> allNotificationGroupNames = new HashSet<>();
+                for (NotificationGroup currentNotificationGroup : allNotificationGroups) {
+                    if (currentNotificationGroup.getName() != null) allNotificationGroupNames.add(currentNotificationGroup.getName());
+                }
 
-            NotificationGroup clonedNotificationGroup = NotificationGroup.copy(notificationGroup);
-            clonedNotificationGroup.setId(-1);
-            String clonedAlterName = StatsAggHtmlFramework.createCloneName(notificationGroup.getName(), allNotificationGroupNames);
-            clonedNotificationGroup.setName(clonedAlterName);
-            clonedNotificationGroup.setUppercaseName(clonedAlterName.toUpperCase());
-            
-            NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-            notificationGroupsLogic.alterRecordInDatabase(clonedNotificationGroup);
+                NotificationGroup clonedNotificationGroup = NotificationGroup.copy(notificationGroup);
+                clonedNotificationGroup.setId(-1);
+                String clonedAlterName = StatsAggHtmlFramework.createCloneName(notificationGroup.getName(), allNotificationGroupNames);
+                clonedNotificationGroup.setName(clonedAlterName);
+                clonedNotificationGroup.setUppercaseName(clonedAlterName.toUpperCase());
+
+                NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
+                notificationGroupsLogic.alterRecordInDatabase(clonedNotificationGroup);
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -268,7 +271,7 @@ public class NotificationGroups extends HttpServlet {
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
         
-        if (notificationGroup == null) {
+        if ((notificationGroup == null) || (notificationGroup.getName() == null) || (notificationGroup.getId() == null)) {
             String cleanNotificationGroupName = StatsAggHtmlFramework.removeNewlinesFromString(notificationGroupName, ' ');
             logger.warn("Failed to send email alert to notification group '" + cleanNotificationGroupName + "'. Notification group does not exist." );
             return;
@@ -278,8 +281,8 @@ public class NotificationGroups extends HttpServlet {
         Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(),
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
                 88888, true, false, false, 300000, 
-                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900, 1, true, new Timestamp(System.currentTimeMillis()), null,
-                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000, 2, true, new Timestamp(System.currentTimeMillis()), null);
+                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, null, 1, true, new Timestamp(System.currentTimeMillis()), null,
+                Alert.TYPE_THRESHOLD, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000L, null, 2, true, new Timestamp(System.currentTimeMillis()), null);
         
         String testMetricGroupName = "Notification test - metric group";
         MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),
@@ -298,7 +301,7 @@ public class NotificationGroups extends HttpServlet {
         alertMetricValues.put("emailtest.metric3-99999", new BigDecimal(103));
         alertMetricValues.put("emailtest.metric4-99999", new BigDecimal(104));
         
-        EmailThread emailThread = new EmailThread(testAlert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, 
+        EmailThread emailThread = new EmailThread(testAlert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
                 false, ApplicationConfiguration.getAlertStatsAggLocation());
         emailThread.buildAlertEmail(3, metricGroup);
         

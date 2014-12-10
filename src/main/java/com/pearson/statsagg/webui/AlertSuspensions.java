@@ -13,7 +13,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -131,13 +130,16 @@ public class AlertSuspensions extends HttpServlet {
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
         AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
-        alertSuspension.setIsEnabled(isEnabled);
         
-        AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-        alertSuspensionsLogic.alterRecordInDatabase(alertSuspension, alertSuspensionName);
-        
-        com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-        alertSuspensions.runAlertSuspensionRoutine();
+        if (alertSuspension != null) {
+            alertSuspension.setIsEnabled(isEnabled);
+
+            AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
+            alertSuspensionsLogic.alterRecordInDatabase(alertSuspension, alertSuspensionName);
+
+            com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
+            alertSuspensions.runAlertSuspensionRoutine();
+        }
     }
 
     private void cloneAlertSuspension(String alertSuspensionName) {
@@ -152,22 +154,26 @@ public class AlertSuspensions extends HttpServlet {
             List<AlertSuspension> allAlertSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
             alertSuspensionsDao.close();
 
-            Set<String> allAlertSuspensionsNames = new HashSet<>();
-            for (AlertSuspension currentAlertSuspension : allAlertSuspensions) {
-                allAlertSuspensionsNames.add(currentAlertSuspension.getName());
+            if ((alertSuspension != null) && (alertSuspension.getName() != null)) {
+                Set<String> allAlertSuspensionsNames = new HashSet<>();
+                for (AlertSuspension currentAlertSuspension : allAlertSuspensions) {
+                    if (currentAlertSuspension.getName() != null) {
+                        allAlertSuspensionsNames.add(currentAlertSuspension.getName());
+                    }
+                }
+                
+                AlertSuspension clonedAlertSuspension = AlertSuspension.copy(alertSuspension);
+                clonedAlertSuspension.setId(-1);
+                String clonedAlertSuspensionName = StatsAggHtmlFramework.createCloneName(alertSuspension.getName(), allAlertSuspensionsNames);
+                clonedAlertSuspension.setName(clonedAlertSuspensionName);
+                clonedAlertSuspension.setUppercaseName(clonedAlertSuspensionName.toUpperCase());
+
+                AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
+                alertSuspensionsLogic.alterRecordInDatabase(clonedAlertSuspension);
+
+                com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
+                alertSuspensions.runAlertSuspensionRoutine();
             }
-
-            AlertSuspension clonedAlertSuspension = AlertSuspension.copy(alertSuspension);
-            clonedAlertSuspension.setId(-1);
-            String clonedAlertSuspensionName = StatsAggHtmlFramework.createCloneName(alertSuspension.getName(), allAlertSuspensionsNames);
-            clonedAlertSuspension.setName(clonedAlertSuspensionName);
-            clonedAlertSuspension.setUppercaseName(clonedAlertSuspensionName.toUpperCase());
-
-            AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-            alertSuspensionsLogic.alterRecordInDatabase(clonedAlertSuspension);
-
-            com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-            alertSuspensions.runAlertSuspensionRoutine();
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

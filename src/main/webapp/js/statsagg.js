@@ -23,6 +23,7 @@ function generateAlertPreviewLink(warningLevel) {
     else cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("undefined");
     
     var cautionWindowDurationParameter = "CautionWindowDuration=" + encodeURIComponent(document.getElementById("CautionWindowDuration").value);
+    var cautionStopTrackingAfterParameter = "CautionStopTrackingAfter=" + encodeURIComponent(document.getElementById("CautionStopTrackingAfter").value);
     var cautionMinimumSampleCountParameter = "CautionMinimumSampleCount=" + encodeURIComponent(document.getElementById("CautionMinimumSampleCount").value);
     var cautionOperatorParameter = "CautionOperator=" + encodeURIComponent(document.getElementById("CautionOperator").value);
     var cautionCombinationParameter = "CautionCombination=" + encodeURIComponent(document.getElementById("CautionCombination").value);
@@ -36,6 +37,7 @@ function generateAlertPreviewLink(warningLevel) {
     else dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("undefined");
 
     var dangerWindowDurationParameter = "DangerWindowDuration=" + encodeURIComponent(document.getElementById("DangerWindowDuration").value);
+    var dangerStopTrackingAfterParameter = "DangerStopTrackingAfter=" + encodeURIComponent(document.getElementById("DangerStopTrackingAfter").value);
     var dangerMinimumSampleCountParameter = "DangerMinimumSampleCount=" + encodeURIComponent(document.getElementById("DangerMinimumSampleCount").value);
     var dangerOperatorParameter = "DangerOperator=" + encodeURIComponent(document.getElementById("DangerOperator").value);
     var dangerCombinationParameter = "DangerCombination=" + encodeURIComponent(document.getElementById("DangerCombination").value);
@@ -44,10 +46,10 @@ function generateAlertPreviewLink(warningLevel) {
 
     var uriEncodedLink = "AlertPreview?" + warningLevelParameter + "&" +
             nameParameter + "&" + descriptionParameter + "&" + metricGroupNameParameter + "&" +
-            cautionAlertTypeParameter + "&" + cautionWindowDurationParameter + "&" + cautionMinimumSampleCountParameter + "&" + cautionOperatorParameter + "&" +
-            cautionCombinationParameter + "&" + cautionCombinationCountParameter + "&" + cautionThresholdParameter + "&" +
-            dangerAlertTypeParameter + "&" + dangerWindowDurationParameter + "&" + dangerMinimumSampleCountParameter + "&" + dangerOperatorParameter + "&" +
-            dangerCombinationParameter + "&" + dangerCombinationCountParameter + "&" + dangerThresholdParameter;
+            cautionAlertTypeParameter + "&" + cautionWindowDurationParameter + "&" +  cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" + 
+            cautionOperatorParameter + "&" + cautionCombinationParameter + "&" + cautionCombinationCountParameter + "&" + cautionThresholdParameter + "&" +
+            dangerAlertTypeParameter + "&" + dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" + 
+            dangerOperatorParameter + "&" + dangerCombinationParameter + "&" + dangerCombinationCountParameter + "&" + dangerThresholdParameter;
 
     if (warningLevel === "Caution") {
         document.getElementById("CautionPreview").setAttribute("href", uriEncodedLink);
@@ -132,6 +134,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
+        $("#CautionStopTrackingAfter_Label").show();
+        $("#CautionStopTrackingAfter").show();
         $("#CautionMinimumSampleCount_Label").hide();
         $("#CautionMinimumSampleCount").hide();
         $("#CautionOperator_Label").hide();
@@ -148,6 +152,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
+        $("#CautionStopTrackingAfter_Label").hide();
+        $("#CautionStopTrackingAfter").hide();
         $("#CautionMinimumSampleCount_Label").show();
         $("#CautionMinimumSampleCount").show();
         $("#CautionOperator_Label").show();
@@ -173,6 +179,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").hide();
         $("#CautionWindowDuration_Label").hide();
         $("#CautionWindowDuration").hide();
+        $("#CautionStopTrackingAfter_Label").hide();
+        $("#CautionStopTrackingAfter").hide();
         $("#CautionMinimumSampleCount_Label").hide();
         $("#CautionMinimumSampleCount").hide();
         $("#CautionOperator_Label").hide();
@@ -191,6 +199,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
+        $("#DangerStopTrackingAfter_Label").show();
+        $("#DangerStopTrackingAfter").show();
         $("#DangerMinimumSampleCount_Label").hide();
         $("#DangerMinimumSampleCount").hide();
         $("#DangerOperator_Label").hide();
@@ -207,6 +217,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
+        $("#DangerStopTrackingAfter_Label").hide();
+        $("#DangerStopTrackingAfter").hide();
         $("#DangerMinimumSampleCount_Label").show();
         $("#DangerMinimumSampleCount").show();
         $("#DangerOperator_Label").show();
@@ -232,6 +244,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").hide();
         $("#DangerWindowDuration_Label").hide();
         $("#DangerWindowDuration").hide();
+        $("#DangerStopTrackingAfter_Label").hide();
+        $("#DangerStopTrackingAfter").hide();
         $("#DangerMinimumSampleCount_Label").hide();
         $("#DangerMinimumSampleCount").hide();
         $("#DangerOperator_Label").hide();
@@ -553,7 +567,7 @@ $(document).ready(function() {
         $('#AlertNameLookup .typeahead').typeahead({
             source: AlertNameLookup_Bloodhound.ttAdapter(),
             updater: function (item) {
-                return $('<div/>').html(item).text();
+                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
             }
         });
     }
@@ -574,7 +588,7 @@ $(document).ready(function() {
         $('#MetricGroupNameLookup .typeahead').typeahead({
             source: MetricGroupNameLookup_Bloodhound.ttAdapter(),
             updater: function (item) {
-                return $('<div/>').html(item).text();
+                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
             }
         });
     }
@@ -595,7 +609,7 @@ $(document).ready(function() {
         $('#CautionNotificationGroupNameLookup .typeahead').typeahead({
             source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
             updater: function (item) {
-                return $('<div/>').html(item).text();
+                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
             }
         });
     }
@@ -616,7 +630,7 @@ $(document).ready(function() {
         $('#DangerNotificationGroupNameLookup .typeahead').typeahead({
             source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
             updater: function (item) {
-                return $('<div/>').html(item).text();
+                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
             }
         });
     }

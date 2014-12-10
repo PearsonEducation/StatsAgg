@@ -330,6 +330,21 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(">\n</div>\n");
         
         
+        // caution stop tracking after
+        htmlBody.append(   
+            "<div class=\"form-group\"> \n" +
+            "  <label id=\"CautionStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after... (in seconds)</label>\n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X seconds, stop alerting on it.\" name=\"CautionStopTrackingAfter\" id=\"CautionStopTrackingAfter\"");
+
+        if ((alert != null) && (alert.getCautionStopTrackingAfter() != null)) {
+            BigDecimal cautionStopTrackingAfterMs = new BigDecimal(alert.getCautionStopTrackingAfter());
+            BigDecimal cautionStopTrackingAfterSeconds = cautionStopTrackingAfterMs.divide(new BigDecimal(1000));
+            htmlBody.append(" value=\"").append(cautionStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append("\"");
+        }
+
+        htmlBody.append(">\n</div>\n");
+        
+        
         // caution minimum sample count
         htmlBody.append(
             "<div class=\"form-group\">\n" +
@@ -497,6 +512,21 @@ public class CreateAlert extends HttpServlet {
             BigDecimal dangerWindowDurationMs = new BigDecimal(alert.getDangerWindowDuration());
             BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
             htmlBody.append(" value=\"").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append("\"");
+        }
+
+        htmlBody.append(">\n</div>\n");
+        
+        
+        // danger stop tracking after
+        htmlBody.append(   
+            "<div class=\"form-group\"> \n" +
+            "  <label id=\"DangerStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after... (in seconds)</label>\n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X seconds, stop alerting on it.\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
+
+        if ((alert != null) && (alert.getDangerStopTrackingAfter() != null)) {
+            BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
+            BigDecimal dangerStopTrackingAfterSeconds = dangerStopTrackingAfterMs.divide(new BigDecimal(1000));
+            htmlBody.append(" value=\"").append(dangerStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append("\"");
         }
 
         htmlBody.append(">\n</div>\n");
@@ -710,15 +740,24 @@ public class CreateAlert extends HttpServlet {
             else if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
             
             parameter = request.getParameter("CautionNotificationGroupName");
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
-            if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionNotificationGroupId(notificationGroup.getId());
+            if ((parameter != null) && !parameter.isEmpty()) {
+                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
+                if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionNotificationGroupId(notificationGroup.getId());
+            }
             
             parameter = request.getParameter("CautionWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
                 BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setCautionWindowDuration(bigDecimalValueInSeconds.intValue());
+                alert.setCautionWindowDuration(bigDecimalValueInSeconds.longValue());
+            }
+            
+            parameter = request.getParameter("CautionStopTrackingAfter");
+            if ((parameter != null) && !parameter.isEmpty()) {
+                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
+                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                alert.setCautionStopTrackingAfter(bigDecimalValueInSeconds.longValue());
             }
 
             parameter = request.getParameter("CautionMinimumSampleCount");
@@ -757,15 +796,24 @@ public class CreateAlert extends HttpServlet {
             else if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
 
             parameter = request.getParameter("DangerNotificationGroupName");
-            notificationGroupsDao = new NotificationGroupsDao();
-            notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
-            if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
+            if ((parameter != null) && !parameter.isEmpty()) {
+                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameter.trim());
+                if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
+            }
             
             parameter = request.getParameter("DangerWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
                 BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setDangerWindowDuration(bigDecimalValueInSeconds.intValue());
+                alert.setDangerWindowDuration(bigDecimalValueInSeconds.longValue());
+            }
+
+            parameter = request.getParameter("DangerStopTrackingAfter");
+            if ((parameter != null) && !parameter.isEmpty()) {
+                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
+                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                alert.setDangerStopTrackingAfter(bigDecimalValueInSeconds.longValue());
             }
 
             parameter = request.getParameter("DangerMinimumSampleCount");

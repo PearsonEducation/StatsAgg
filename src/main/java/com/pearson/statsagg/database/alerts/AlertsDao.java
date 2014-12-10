@@ -69,10 +69,10 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.isEnabled(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
                 alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
-                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionMinimumSampleCount(), 
+                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
                 alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
-                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerMinimumSampleCount(), 
+                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet()
         );
     }
@@ -86,11 +86,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.isEnabled(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
                 alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
-                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionMinimumSampleCount(), 
+                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
                 alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
-                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerMinimumSampleCount(), 
-                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet(),
+                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
+                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet(), 
                 alert.getId());
     }
 
@@ -155,8 +155,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             BigDecimal cautionThreshold = resultSet.getBigDecimal("CAUTION_THRESHOLD");
             if (resultSet.wasNull()) cautionThreshold = null;
 
-            Integer cautionWindowDuration = resultSet.getInt("CAUTION_WINDOW_DURATION");
+            Long cautionWindowDuration = resultSet.getLong("CAUTION_WINDOW_DURATION");
             if (resultSet.wasNull()) cautionWindowDuration = null;
+            
+            Long cautionStopTrackingAfter = resultSet.getLong("CAUTION_STOP_TRACKING_AFTER");
+            if (resultSet.wasNull()) cautionStopTrackingAfter = null;
             
             Integer cautionMinimumSampleCount = resultSet.getInt("CAUTION_MINIMUM_SAMPLE_COUNT");
             if (resultSet.wasNull()) cautionMinimumSampleCount = null;
@@ -188,8 +191,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             BigDecimal dangerThreshold = resultSet.getBigDecimal("DANGER_THRESHOLD");
             if (resultSet.wasNull()) dangerThreshold = null;
 
-            Integer dangerWindowDuration = resultSet.getInt("DANGER_WINDOW_DURATION");
+            Long dangerWindowDuration = resultSet.getLong("DANGER_WINDOW_DURATION");
             if (resultSet.wasNull()) dangerWindowDuration = null;
+
+            Long dangerStopTrackingAfter = resultSet.getLong("DANGER_STOP_TRACKING_AFTER");
+            if (resultSet.wasNull()) dangerStopTrackingAfter = null;
             
             Integer dangerMinimumSampleCount = resultSet.getInt("DANGER_MINIMUM_SAMPLE_COUNT");
             if (resultSet.wasNull()) dangerMinimumSampleCount = null;
@@ -206,9 +212,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, alertOnPositive, 
                     allowResendAlert, sendAlertEveryNumMilliseconds, 
                     cautionAlertType, cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
-                    cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet,
+                    cautionStopTrackingAfter, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet,
                     dangerAlertType, dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
-                    dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet);
+                    dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet);
             
             return alert;
         }
@@ -228,7 +234,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 id); 
     }  
     
-    public List<String> getAlertNames(String prefixFilter, int resultSetLimit) {
+    public List<String> getAlertNames(String filter, int resultSetLimit) {
         
         try {
 
@@ -239,7 +245,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             List<String> alertNames = new ArrayList<>();
             
             databaseInterface_.createPreparedStatement(AlertsSql.Select_Alert_Names_OrderByName, 1000);
-            databaseInterface_.addPreparedStatementParameters(prefixFilter + "%");
+            databaseInterface_.addPreparedStatementParameters("%" + filter + "%");
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {
@@ -275,6 +281,10 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
         try {
 
+            if (name == null) {
+                return null;
+            }
+            
             if (!isConnectionValid()) {
                 return null;
             }
@@ -423,7 +433,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         } 
         
     }
-    
+
     public static Set<Integer> getDistinctNotificationGroupIds() {
         
         Set distinctNotificationGroupIds = new HashSet<>();
@@ -438,5 +448,5 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
         return distinctNotificationGroupIds;
     }
-
+    
 }

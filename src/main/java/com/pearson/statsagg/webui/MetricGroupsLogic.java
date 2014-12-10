@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database.DatabaseInterface;
 import java.util.TreeSet;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
@@ -38,6 +39,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         synchronized (GlobalVariables.metricGroupChanges) {
             boolean isNewMetricGroup = true, isOverwriteExistingAttempt = false;
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
+            metricGroupsDao.getDatabaseInterface().setIsManualTransactionControl(true);
+            metricGroupsDao.getDatabaseInterface().beginTransaction();
             MetricGroup metricGroupFromDb;
 
             if ((oldName != null) && !oldName.isEmpty()) {
@@ -62,10 +65,10 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 metricGroupUpsertSuccess = metricGroupsDao.upsert(metricGroup);
                 newMetricGroupFromDb = metricGroupsDao.getMetricGroupByName(metricGroup.getName());
             }
-            
-            metricGroupsDao.close();
-                        
+ 
             if (isOverwriteExistingAttempt) {
+                metricGroupsDao.getDatabaseInterface().endTransaction(false);
+                metricGroupsDao.close();
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to create metric group. A metric group with same name already exists. MetricGroupName=\"" + metricGroup.getName() + "\"";
                 String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
@@ -73,22 +76,37 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 return returnString;
             }
             else if (metricGroupUpsertSuccess && (newMetricGroupFromDb != null)) {
-                boolean isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(regexs, newMetricGroupFromDb);
-                boolean isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(tags, newMetricGroupFromDb);
+                boolean isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), regexs, newMetricGroupFromDb);
+                boolean isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
 
                 if (isAllMetricGroupRegexsUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
-                    if (newMetricGroupFromDb.getId() != null) {
-                        GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), "Alter");
+                    boolean didCommitSucceed = metricGroupsDao.getDatabaseInterface().endTransaction(true);
+                    metricGroupsDao.close();
+
+                    if (didCommitSucceed) {
+                        if (newMetricGroupFromDb.getId() != null) {
+                            GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), "Alter");
+                        }
+
+                        lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
+
+                        if (isNewMetricGroup) returnString = "Successful metric group creation. MetricGroupName=\"" + metricGroup.getName() + "\"";
+                        else returnString = "Successful metric group alteration. MetricGroupName=\"" + metricGroup.getName() + "\"";
+                        String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                        logger.info(cleanReturnString);
                     }
-
-                    lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
-
-                    if (isNewMetricGroup) returnString = "Successful metric group creation. MetricGroupName=\"" + metricGroup.getName() + "\"";
-                    else returnString = "Successful metric group alteration. MetricGroupName=\"" + metricGroup.getName() + "\"";
-                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
-                    logger.info(cleanReturnString);
+                    else {
+                        lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
+                        
+                        returnString = "Failed to create metric group. " + "MetricGroupName=\"" + metricGroup.getName() + "\"" + ", CommitSuccess=" + didCommitSucceed;
+                        String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                        logger.warn(cleanReturnString);
+                    }
                 }
                 else { 
+                    metricGroupsDao.getDatabaseInterface().endTransaction(false);
+                    metricGroupsDao.close();
+                
                     lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
 
                     if (isNewMetricGroup) {
@@ -107,10 +125,13 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                     logger.warn(cleanReturnString);
                 }
-
+                
                 return returnString;
             }
             else {
+                metricGroupsDao.getDatabaseInterface().endTransaction(false);
+                metricGroupsDao.close();
+                
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
 
                 if (isNewMetricGroup) returnString = "Failed to create MetricGroup. " + "MetricGroupName=\"" + metricGroup.getName() + "\"";
@@ -123,11 +144,11 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         
     }
     
-    private static boolean alterRecordInDatabase_UpsertRegex(TreeSet<String> regexs, MetricGroup newMetricGroupFromDb) {
+    private static boolean alterRecordInDatabase_UpsertRegex(DatabaseInterface databaseInterface, TreeSet<String> regexs, MetricGroup newMetricGroupFromDb) {
         
         boolean isAllMetricGroupRegexsUpsertSuccess = true;
                 
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(false);
+        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(databaseInterface);
         metricGroupRegexsDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
 
         for (String regex : regexs) {
@@ -140,17 +161,15 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 isAllMetricGroupRegexsUpsertSuccess = false;
             }
         }
-
-        metricGroupRegexsDao.close();
         
         return isAllMetricGroupRegexsUpsertSuccess;
     }
     
-    private static boolean alterRecordInDatabase_UpsertTag(TreeSet<String> tags, MetricGroup newMetricGroupFromDb) {
+    private static boolean alterRecordInDatabase_UpsertTag(DatabaseInterface databaseInterface, TreeSet<String> tags, MetricGroup newMetricGroupFromDb) {
         
         boolean isAllMetricGroupTagsUpsertSuccess = true;
                 
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(false);
+        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(databaseInterface);
         metricGroupTagsDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
 
         for (String tag : tags) {
@@ -163,8 +182,6 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 isAllMetricGroupTagsUpsertSuccess = false;
             }
         }
-
-        metricGroupTagsDao.close();
         
         return isAllMetricGroupTagsUpsertSuccess;
     }
@@ -214,7 +231,6 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                     logger.info(cleanReturnString);
                 }
-
                 else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                     returnString = "Failed to delete metric group regexs and/or tags. MetricGroupName=\"" + metricGroupName + "\".";

@@ -95,12 +95,12 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, GenericMetr
     
     @Override
     public Long getMetricTimestampInMilliseconds() {
-        return Long.valueOf(getTimestampInMilliseconds());
+        return getTimestampInMilliseconds();
     }
     
     @Override
     public Long getMetricReceivedTimestampInMilliseconds() {
-        return Long.valueOf(getTimestampInMilliseconds());
+        return getTimestampInMilliseconds();
     }
     
     public byte getMetricTypeKey() {

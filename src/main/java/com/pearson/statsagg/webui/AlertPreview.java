@@ -17,6 +17,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -132,20 +133,23 @@ public class AlertPreview extends HttpServlet {
 
             parameter = request.getParameter("CreateAlertCaution_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setCautionAlertType(Alert.TYPE_AVAILABILITY);
-
-            parameter = request.getParameter("CreateAlertCaution_Type");
-            if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
-            
-            parameter = request.getParameter("CreateAlertCaution_Type");
-            if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
+            else if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
+            else if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
             
             parameter = request.getParameter("CautionWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
                 BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setCautionWindowDuration(bigDecimalValueInSeconds.intValue());
+                alert.setCautionWindowDuration(bigDecimalValueInSeconds.longValue());
             }
 
+            parameter = request.getParameter("CautionStopTrackingAfter");
+            if ((parameter != null) && !parameter.isEmpty()) {
+                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
+                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                alert.setCautionStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+            }
+            
             parameter = request.getParameter("CautionMinimumSampleCount");
             if ((parameter != null) && !parameter.isEmpty()) {
                 Integer intValue = Integer.parseInt(parameter.trim());
@@ -178,20 +182,23 @@ public class AlertPreview extends HttpServlet {
             
             parameter = request.getParameter("CreateAlertDanger_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setDangerAlertType(Alert.TYPE_AVAILABILITY);
-
-            parameter = request.getParameter("CreateAlertDanger_Type");
-            if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
-
-            parameter = request.getParameter("CreateAlertDanger_Type");
-            if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
+            else if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
+            else if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
             
             parameter = request.getParameter("DangerWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
                 BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setDangerWindowDuration(bigDecimalValueInSeconds.intValue());
+                alert.setDangerWindowDuration(bigDecimalValueInSeconds.longValue());
             }
 
+            parameter = request.getParameter("DangerStopTrackingAfter");
+            if ((parameter != null) && !parameter.isEmpty()) {
+                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
+                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                alert.setDangerStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+            }
+            
             parameter = request.getParameter("DangerMinimumSampleCount");
             if ((parameter != null) && !parameter.isEmpty()) {
                 Integer intValue = Integer.parseInt(parameter.trim());
@@ -262,7 +269,8 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValid = alert.isCautionAlertCriteriaValid();
             
             if (isAlertValid) {
-                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, false, ApplicationConfiguration.getAlertStatsAggLocation());
+                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
+                        false, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();
             }
@@ -275,7 +283,8 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValid = alert.isDangerAlertCriteriaValid();
             
             if (isAlertValid) {
-                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_DANGER, metricKeys, alertMetricValues, false, ApplicationConfiguration.getAlertStatsAggLocation());
+                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
+                        false, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();
             }
@@ -295,7 +304,8 @@ public class AlertPreview extends HttpServlet {
         
         Map<String,BigDecimal> alertMetricValues = new HashMap<>();
         
-        if (warningLevel.equalsIgnoreCase("caution") && (alert.getCautionOperator() != null) && (alert.getCautionThreshold() != null)) {
+        if (warningLevel.equalsIgnoreCase("caution") && (alert.getCautionOperator() != null) && (alert.getCautionThreshold() != null) &&
+                 (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) {
             if ((Objects.equals(alert.getCautionOperator(), Alert.OPERATOR_GREATER_EQUALS)) || (Objects.equals(alert.getCautionOperator(), Alert.OPERATOR_GREATER))) {
                 alertMetricValues.put("preview.metric1" + "-" + alert.getId(), alert.getCautionThreshold().add(BigDecimal.ONE));
                 alertMetricValues.put("preview.metric2" + "-" + alert.getId(), alert.getCautionThreshold().add(BigDecimal.TEN));
@@ -312,7 +322,8 @@ public class AlertPreview extends HttpServlet {
             }
         } 
             
-        if (warningLevel.equalsIgnoreCase("danger") && (alert.getDangerOperator() != null) && (alert.getDangerThreshold() != null)) {
+        if (warningLevel.equalsIgnoreCase("danger") && (alert.getDangerOperator() != null) && (alert.getDangerThreshold() != null) && 
+                (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) {
             if ((Objects.equals(alert.getDangerOperator(), Alert.OPERATOR_GREATER_EQUALS)) || (Objects.equals(alert.getDangerOperator(), Alert.OPERATOR_GREATER))) {
                 alertMetricValues.put("preview.metric1" + "-" + alert.getId(), alert.getDangerThreshold().add(BigDecimal.ONE));
                 alertMetricValues.put("preview.metric2" + "-" + alert.getId(), alert.getDangerThreshold().add(BigDecimal.TEN));

@@ -61,6 +61,15 @@ public class Gauge extends DatabaseObject<Gauge> {
                 .isEquals();
     }
     
+    public boolean isValid() {
+        if (bucketSha1_ == null) return false;
+        if (bucket_ == null) return false;
+        if (metricValue_ == null) return false;
+        if (lastModified_ == null) return false;
+
+        return true;
+    }
+
     public String getBucketSha1() {
         return bucketSha1_;
     }

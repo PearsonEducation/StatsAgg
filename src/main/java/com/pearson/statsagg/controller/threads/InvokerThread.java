@@ -18,6 +18,8 @@ public abstract class InvokerThread implements Runnable {
     protected boolean isShutdown_ = false;
     protected ExecutorService threadExecutor_ = Executors.newCachedThreadPool();
 
+    protected final Object lockObject_ = new Object();
+    
     @Override
     public void run() {}
 
@@ -30,6 +32,10 @@ public abstract class InvokerThread implements Runnable {
         }
 
         try {
+            synchronized (lockObject_) {
+                lockObject_.notifyAll();
+            }
+            
             threadExecutor_.shutdown();
             threadExecutor_.awaitTermination(getThreadExecutorShutdownWaitTime(), TimeUnit.MILLISECONDS);
         }

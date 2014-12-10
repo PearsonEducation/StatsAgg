@@ -132,7 +132,7 @@
     </servlet-mapping>
     
     <!-- Uncomment the below blocks of xml (security-constraint & login-config) to enable basic authentication in StatsAgg -->
-    <!--
+    <!--    
     <security-constraint>
         <web-resource-collection>
             <web-resource-name>*</web-resource-name>
@@ -141,7 +141,7 @@
             <http-method>POST</http-method>
         </web-resource-collection>
         <auth-constraint>
-            <role-name>statsagg</role-name>
+            <role-name>statsagg-admin</role-name>
         </auth-constraint>
 
         <user-data-constraint>
@@ -149,6 +149,21 @@
         </user-data-constraint>
     </security-constraint>
 
+    <security-constraint>
+        <web-resource-collection>
+            <web-resource-name>*</web-resource-name>
+            <url-pattern>/*</url-pattern>
+            <http-method>GET</http-method>
+        </web-resource-collection>
+        <auth-constraint>
+            <role-name>statsagg-read-only</role-name>
+        </auth-constraint>
+
+        <user-data-constraint>
+            <transport-guarantee>NONE</transport-guarantee>
+        </user-data-constraint>
+    </security-constraint>
+	
     <login-config>
         <auth-method>BASIC</auth-method>
     </login-config>
