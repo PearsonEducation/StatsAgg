@@ -143,10 +143,10 @@ public class EmailThread implements Runnable  {
             BigDecimal cautionWindowDurationMs = new BigDecimal(alert_.getCautionWindowDuration());
             BigDecimal cautionWindowDurationSeconds = cautionWindowDurationMs.divide(new BigDecimal(1000));
             
-            if (alert_.getCautionAlertType() == Alert.TYPE_AVAILABILITY) {
+            if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 body.append("<ul><li>No new data points were received during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
-            else if (alert_.getCautionAlertType() == Alert.TYPE_THRESHOLD) {
+            else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getCautionMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getCautionCombinationString(alert_)).append(" ").append(alert_.getCautionOperatorString(false, true))
                         .append(" ").append(alert_.getCautionThreshold().stripTrailingZeros().toPlainString())
@@ -157,10 +157,10 @@ public class EmailThread implements Runnable  {
             BigDecimal dangerWindowDurationMs = new BigDecimal(alert_.getDangerWindowDuration());
             BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
 
-            if (alert_.getDangerAlertType() == Alert.TYPE_AVAILABILITY) {
+            if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 body.append("<ul><li>No new data points were received during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
-            else if (alert_.getDangerAlertType() == Alert.TYPE_THRESHOLD) {
+            else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getDangerMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getDangerCombinationString(alert_)).append(" ").append(alert_.getDangerOperatorString(false, true))
                         .append(" ").append(alert_.getDangerThreshold().stripTrailingZeros().toPlainString())

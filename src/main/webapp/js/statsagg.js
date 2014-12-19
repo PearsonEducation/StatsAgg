@@ -14,13 +14,16 @@ function generateAlertPreviewLink(warningLevel) {
 
     var nameParameter = "Name=" + encodeURIComponent(document.getElementById("Name").value.substring(0, 500));
     var descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("Description").value.substring(0, 500));
+    
+    var cautionEnabledParameter = "CautionEnabled=" + encodeURIComponent(document.getElementById("CautionEnabled").value);
+    var dangerEnabledParameter = "DangerEnabled=" + encodeURIComponent(document.getElementById("DangerEnabled").value);
+    
+    var alertTypeParameter;
+    if (document.getElementById("CreateAlert_Type_Availability").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Availability");
+    else if (document.getElementById("CreateAlert_Type_Threshold").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Threshold");
+    else alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("undefined");
+    
     var metricGroupNameParameter = "MetricGroupName=" + encodeURIComponent(document.getElementById("MetricGroupName").value.substring(0, 500));
-
-    var cautionAlertTypeParameter;
-    if (document.getElementById("CreateAlertCaution_Type_Availability").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Availability");
-    else if (document.getElementById("CreateAlertCaution_Type_Threshold").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Threshold");
-    else if (document.getElementById("CreateAlertCaution_Type_Disabled").checked === true) cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("Disabled");
-    else cautionAlertTypeParameter = "CreateAlertCaution_Type=" + encodeURIComponent("undefined");
     
     var cautionWindowDurationParameter = "CautionWindowDuration=" + encodeURIComponent(document.getElementById("CautionWindowDuration").value);
     var cautionStopTrackingAfterParameter = "CautionStopTrackingAfter=" + encodeURIComponent(document.getElementById("CautionStopTrackingAfter").value);
@@ -29,12 +32,6 @@ function generateAlertPreviewLink(warningLevel) {
     var cautionCombinationParameter = "CautionCombination=" + encodeURIComponent(document.getElementById("CautionCombination").value);
     var cautionCombinationCountParameter = "CautionCombinationCount=" + encodeURIComponent(document.getElementById("CautionCombinationCount").value);
     var cautionThresholdParameter = "CautionThreshold=" + encodeURIComponent(document.getElementById("CautionThreshold").value);
-
-    var dangerAlertTypeParameter;
-    if (document.getElementById("CreateAlertDanger_Type_Availability").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Availability");
-    else if (document.getElementById("CreateAlertDanger_Type_Threshold").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Threshold");
-    else if (document.getElementById("CreateAlertDanger_Type_Disabled").checked === true) dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("Disabled");
-    else dangerAlertTypeParameter = "CreateAlertDanger_Type=" + encodeURIComponent("undefined");
 
     var dangerWindowDurationParameter = "DangerWindowDuration=" + encodeURIComponent(document.getElementById("DangerWindowDuration").value);
     var dangerStopTrackingAfterParameter = "DangerStopTrackingAfter=" + encodeURIComponent(document.getElementById("DangerStopTrackingAfter").value);
@@ -45,10 +42,10 @@ function generateAlertPreviewLink(warningLevel) {
     var dangerThresholdParameter = "DangerThreshold=" + encodeURIComponent(document.getElementById("DangerThreshold").value);
 
     var uriEncodedLink = "AlertPreview?" + warningLevelParameter + "&" +
-            nameParameter + "&" + descriptionParameter + "&" + metricGroupNameParameter + "&" +
-            cautionAlertTypeParameter + "&" + cautionWindowDurationParameter + "&" +  cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" + 
+            nameParameter + "&" + descriptionParameter + "&" + cautionEnabledParameter + "&" + dangerEnabledParameter + "&" + alertTypeParameter + "&" + metricGroupNameParameter + "&" +
+            cautionWindowDurationParameter + "&" +  cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" + 
             cautionOperatorParameter + "&" + cautionCombinationParameter + "&" + cautionCombinationCountParameter + "&" + cautionThresholdParameter + "&" +
-            dangerAlertTypeParameter + "&" + dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" + 
+            dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" + 
             dangerOperatorParameter + "&" + dangerCombinationParameter + "&" + dangerCombinationCountParameter + "&" + dangerThresholdParameter;
 
     if (warningLevel === "Caution") {
@@ -97,25 +94,43 @@ $(document).ready(function() {
 // On page load for 'CreateAlert', show and hide certain UI elements for 'type'
 $(document).ready(function() {
     CreateAlert_Type_ShowAndHide();
+    CreateAlert_CautionCriteria_ShowAndHide();
+    CreateAlert_DangerCriteria_ShowAndHide();
 });
 
+// On changing the 'caution alerting enabled' checkbox, show or hide the 'caution criteria' panel
+$('#CautionEnabled').change(function () {
+    CreateAlert_CautionCriteria_ShowAndHide();
+});
+
+function CreateAlert_CautionCriteria_ShowAndHide() {
+    if ($("#CautionEnabled").prop('checked') === true) {
+        $("#CautionCriteria").show();
+    }
+    else {
+        $("#CautionCriteria").hide();
+    }
+}
+
+// On changing the 'danger alerting enabled' checkbox, show or hide the 'danger criteria' panel
+$('#DangerEnabled').change(function () {
+    CreateAlert_DangerCriteria_ShowAndHide();
+});
+
+function CreateAlert_DangerCriteria_ShowAndHide() {
+    if ($("#DangerEnabled").prop('checked') === true) {
+        $("#DangerCriteria").show();
+    }
+    else {
+        $("#DangerCriteria").hide();
+    }
+}
+
 // On changing the alert-type radio buttons on the 'Create Alert' page, show and hide certain UI elements
-$('#CreateAlertCaution_Type_Availability').change(function() {
+$('#CreateAlert_Type_Availability').change(function() {
     CreateAlert_Type_ShowAndHide();
 });
-$('#CreateAlertCaution_Type_Threshold').change(function() {
-    CreateAlert_Type_ShowAndHide();
-});
-$('#CreateAlertCaution_Type_Disabled').change(function() {
-    CreateAlert_Type_ShowAndHide();
-});
-$('#CreateAlertDanger_Type_Availability').change(function() {
-    CreateAlert_Type_ShowAndHide();
-});
-$('#CreateAlertDanger_Type_Threshold').change(function() {
-    CreateAlert_Type_ShowAndHide();
-});
-$('#CreateAlertDanger_Type_Disabled').change(function() {
+$('#CreateAlert_Type_Threshold').change(function() {
     CreateAlert_Type_ShowAndHide();
 });
 
@@ -129,7 +144,8 @@ $('#DangerCombination').change(function() {
 
 function CreateAlert_Type_ShowAndHide() {
     // Caution
-    if ($("#CreateAlertCaution_Type_Availability").prop('checked') === true) { 
+    if ($("#CreateAlert_Type_Availability").prop('checked') === true) { 
+        $("#CautionNoAlertTypeSelected_Label").hide();
         $("#CautionNotificationGroupName_Label").show();
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
@@ -147,7 +163,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionThreshold_Label").hide();
         $("#CautionThreshold").hide();
     }
-    else if ($("#CreateAlertCaution_Type_Threshold").prop('checked') === true) {
+    else if ($("#CreateAlert_Type_Threshold").prop('checked') === true) {
+        $("#CautionNoAlertTypeSelected_Label").hide();
         $("#CautionNotificationGroupName_Label").show();
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
@@ -175,6 +192,7 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionThreshold").show();
     }
     else {
+        $("#CautionNoAlertTypeSelected_Label").show();
         $("#CautionNotificationGroupName_Label").hide();
         $("#CautionNotificationGroupName").hide();
         $("#CautionWindowDuration_Label").hide();
@@ -194,7 +212,8 @@ function CreateAlert_Type_ShowAndHide() {
     }
 
     //Danger
-    if ($("#CreateAlertDanger_Type_Availability").prop('checked') === true) {
+    if ($("#CreateAlert_Type_Availability").prop('checked') === true) {
+        $("#DangerNoAlertTypeSelected_Label").hide();
         $("#DangerNotificationGroupName_Label").show();
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
@@ -212,7 +231,8 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerThreshold_Label").hide();
         $("#DangerThreshold").hide();
     }
-    else if ($("#CreateAlertDanger_Type_Threshold").prop('checked') === true) {
+    else if ($("#CreateAlert_Type_Threshold").prop('checked') === true) {
+        $("#DangerNoAlertTypeSelected_Label").hide();
         $("#DangerNotificationGroupName_Label").show();
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
@@ -240,6 +260,7 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerThreshold").show();
     }
     else {
+        $("#DangerNoAlertTypeSelected_Label").show();
         $("#DangerNotificationGroupName_Label").hide();
         $("#DangerNotificationGroupName").hide();
         $("#DangerWindowDuration_Label").hide();

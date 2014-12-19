@@ -690,11 +690,11 @@ public class AlertThread implements Runnable {
                         }
                     }
 
-                    if (isCautionAlertCriteriaValid) {
+                    if (isCautionAlertCriteriaValid && (alert.isCautionEnabled() != null) && alert.isCautionEnabled()) {
                         determineAlertStatus_Caution(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
                     }
 
-                    if (isDangerAlertCriteriaValid) {
+                    if (isDangerAlertCriteriaValid && (alert.isDangerEnabled() != null) && alert.isDangerEnabled()) {
                         determineAlertStatus_Danger(alert, alertThread__, recentMetricTimestampsAndValuesLocal, metricKey);
                     }
                 }
@@ -710,9 +710,9 @@ public class AlertThread implements Runnable {
         
         BigDecimal activeAlertValue = null;
         
-        if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY)) {
+        if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
             Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
-            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getCautionAlertType(), alert.getCautionWindowDuration());
+            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionWindowDuration());
             Set<String> activeCautionAvailabilityMetricKeys = alertThread.activeCautionAvailabilityAlerts_.get(alert.getId());
             
             if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
@@ -741,8 +741,8 @@ public class AlertThread implements Runnable {
                 } 
             }
         }
-        else if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) {
-            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getCautionAlertType(),
+        else if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
+            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
                     alert.getCautionWindowDuration(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(), 
                     alert.getCautionThreshold(), alert.getCautionMinimumSampleCount());
         }
@@ -774,9 +774,9 @@ public class AlertThread implements Runnable {
         
         BigDecimal activeAlertValue = null;
         
-        if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY)) {
+        if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
             Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
-            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getDangerAlertType(), alert.getDangerWindowDuration());
+            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerWindowDuration());
             Set<String> activeDangerAvailabilityMetricKeys = alertThread.activeDangerAvailabilityAlerts_.get(alert.getId());
             
             if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
@@ -805,8 +805,8 @@ public class AlertThread implements Runnable {
                 } 
             }
         }
-        else if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) {
-            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getDangerAlertType(),
+        else if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
+            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
                     alert.getDangerWindowDuration(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(), 
                     alert.getDangerThreshold(), alert.getDangerMinimumSampleCount());
         }

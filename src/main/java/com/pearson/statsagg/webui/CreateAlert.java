@@ -12,7 +12,6 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -210,11 +209,27 @@ public class CreateAlert extends HttpServlet {
 
         htmlBody.append(">\n</div>\n");
 
+
+        // alert type
+        htmlBody.append("<div class=\"form-group\">\n");
+                
+        htmlBody.append("<label class=\"label_small_margin\">Alert type:&nbsp;&nbsp;</label>\n");
+        
+        htmlBody.append("<input type=\"radio\" id=\"CreateAlert_Type_Availability\" name=\"CreateAlert_Type\" value=\"Availability\" ");
+        if ((alert != null) && (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("> Availability &nbsp;&nbsp;&nbsp;\n");
+        
+        htmlBody.append("<input type=\"radio\" id=\"CreateAlert_Type_Threshold\" name=\"CreateAlert_Type\" value=\"Threshold\" ");
+        if ((alert != null) && (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("> Threshold\n");
+
+        htmlBody.append("</div>");
+        
         
         // is enabled?
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Is enabled?&nbsp;&nbsp;</label>\n" +
+            "  <label class=\"label_small_margin\">Is alert enabled?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"Enabled\" id=\"Enabled\" type=\"checkbox\" ");
 
         if (((alert != null) && (alert.isEnabled() != null) && alert.isEnabled()) || 
@@ -224,6 +239,34 @@ public class CreateAlert extends HttpServlet {
 
         htmlBody.append(">\n</div>\n");
 
+        
+        // is caution alerting enabled?
+        htmlBody.append(
+            "<div class=\"form-group\">\n" +
+            "  <label class=\"label_small_margin\">Is caution alerting enabled?&nbsp;&nbsp;</label>\n" +
+            "  <input name=\"CautionEnabled\" id=\"CautionEnabled\" type=\"checkbox\" ");
+
+        if (((alert != null) && (alert.isCautionEnabled() != null) && alert.isCautionEnabled()) || 
+                (alert == null) || (alert.isCautionEnabled() == null)) {
+            htmlBody.append(" checked=\"checked\"");
+        }
+
+        htmlBody.append(">\n</div>\n");
+        
+        
+        // is danger alerting enabled?
+        htmlBody.append(
+            "<div class=\"form-group\">\n" +
+            "  <label class=\"label_small_margin\">Is danger alerting enabled?&nbsp;&nbsp;</label>\n" +
+            "  <input name=\"DangerEnabled\" id=\"DangerEnabled\" type=\"checkbox\" ");
+
+        if (((alert != null) && (alert.isDangerEnabled() != null) && alert.isDangerEnabled()) || 
+                (alert == null) || (alert.isDangerEnabled() == null)) {
+            htmlBody.append(" checked=\"checked\"");
+        }
+
+        htmlBody.append(">\n</div>\n");
+        
         
         // alert on positive?
         htmlBody.append(
@@ -275,27 +318,17 @@ public class CreateAlert extends HttpServlet {
         
         // start column 2
         htmlBody.append(
-            "<div class=\"col-md-4\">\n" +
+            "<div class=\"col-md-4\" id=\"CautionCriteria\" >\n" +
             "  <div class=\"panel panel-warning\">\n" +
             "    <div class=\"panel-heading\"><b>Caution Criteria</b> " +
             "    <a id=\"CautionPreview\" name=\"CautionPreview\" class=\"iframe cboxElement statsagg_caution_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Caution');\">Preview</a>" + 
             "    </div>" +
             "    <div class=\"panel-body\">");
+        
+        
+        // warning for when no alert-type is selected
+        htmlBody.append("<label id=\"CautionNoAlertTypeSelected_Label\" class=\"label_small_margin\">Please select an alert type</label>\n");
 
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertCaution_Type_Availability\" name=\"CreateAlertCaution_Type\" value=\"Availability\" ");
-        if ((alert != null) && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Availability &nbsp;&nbsp;&nbsp;\n");
-        
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertCaution_Type_Threshold\" name=\"CreateAlertCaution_Type\" value=\"Threshold\" ");
-        if ((alert != null) && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Threshold &nbsp;&nbsp;&nbsp;\n");
-        
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertCaution_Type_Disabled\" name=\"CreateAlertCaution_Type\" value=\"Disabled\" ");
-        if ((alert != null) && (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_DISABLED)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Disabled\n");
-        
-        htmlBody.append("<br><br>");
-        
         
         // caution notification group name
         htmlBody.append(
@@ -462,26 +495,16 @@ public class CreateAlert extends HttpServlet {
                
         // start column 3
         htmlBody.append(     
-            "<div class=\"col-md-4\">\n" +
+            "<div class=\"col-md-4\" id=\"DangerCriteria\" >\n" +
             "  <div class=\"panel panel-danger\">\n" +
             "    <div class=\"panel-heading\"><b>Danger Criteria</b>" +
             "      <a id=\"DangerPreview\" name=\"DangerPreview\" class=\"iframe cboxElement statsagg_danger_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Danger');\">Preview</a>" + 
             "    </div>" +
             "    <div class=\"panel-body\">");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertDanger_Type_Availability\" name=\"CreateAlertDanger_Type\" value=\"Availability\" ");
-        if ((alert != null) && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Availability &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertDanger_Type_Threshold\" name=\"CreateAlertDanger_Type\" value=\"Threshold\" ");
-        if ((alert != null) && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Threshold &nbsp;&nbsp;&nbsp;\n");
-        
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertDanger_Type_Disabled\" name=\"CreateAlertDanger_Type\" value=\"Disabled\" ");
-        if ((alert != null) && (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_DISABLED)) htmlBody.append(" checked=\"checked\"");
-        htmlBody.append("> Disabled\n");
-        
-        htmlBody.append("<br><br>");
+        // warning for when no alert-type is selected
+        htmlBody.append("<label id=\"DangerNoAlertTypeSelected_Label\" class=\"label_small_margin\">Please select an alert type</label>\n");
         
         
         // danger notification group name
@@ -719,6 +742,18 @@ public class CreateAlert extends HttpServlet {
             if ((parameter != null) && parameter.contains("on")) alert.setIsEnabled(true);
             else alert.setIsEnabled(false);
 
+            parameter = request.getParameter("CautionEnabled");
+            if ((parameter != null) && parameter.contains("on")) alert.setIsCautionEnabled(true);
+            else alert.setIsCautionEnabled(false);
+            
+            parameter = request.getParameter("DangerEnabled");
+            if ((parameter != null) && parameter.contains("on")) alert.setIsDangerEnabled(true);
+            else alert.setIsDangerEnabled(false);
+            
+            parameter = request.getParameter("CreateAlert_Type");
+            if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
+            else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
+            
             parameter = request.getParameter("AlertOnPositive");
             if ((parameter != null) && parameter.contains("on")) alert.setAlertOnPositive(true);
             else alert.setAlertOnPositive(false);
@@ -733,11 +768,6 @@ public class CreateAlert extends HttpServlet {
                 BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
                 alert.setSendAlertEveryNumMilliseconds(bigDecimalValueInSeconds.intValue());
             }
-            
-            parameter = request.getParameter("CreateAlertCaution_Type");
-            if ((parameter != null) && parameter.contains("Availability")) alert.setCautionAlertType(Alert.TYPE_AVAILABILITY);
-            else if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
-            else if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
             
             parameter = request.getParameter("CautionNotificationGroupName");
             if ((parameter != null) && !parameter.isEmpty()) {
@@ -789,11 +819,6 @@ public class CreateAlert extends HttpServlet {
                 BigDecimal bigDecimalValue = new BigDecimal(parameter.trim());
                 alert.setCautionThreshold(bigDecimalValue);
             }
-
-            parameter = request.getParameter("CreateAlertDanger_Type");
-            if ((parameter != null) && parameter.contains("Availability")) alert.setDangerAlertType(Alert.TYPE_AVAILABILITY);
-            else if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
-            else if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
 
             parameter = request.getParameter("DangerNotificationGroupName");
             if ((parameter != null) && !parameter.isEmpty()) {

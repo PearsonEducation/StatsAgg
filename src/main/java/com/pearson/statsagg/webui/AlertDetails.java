@@ -144,7 +144,20 @@ public class AlertDetails extends HttpServlet {
             if (metricGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
             else outputString.append("<br>");
                     
-            outputString.append("<b>Is Enabled?</b> = ").append(alert.isEnabled()).append("<br>");
+            outputString.append("<b>Is alert enabled?</b> = ").append(alert.isEnabled()).append("<br>");
+            
+            outputString.append("<b>Is caution alerting enabled?</b> = ").append(alert.isCautionEnabled()).append("<br>");
+            
+            outputString.append("<b>Is danger alerting enabled?</b> = ").append(alert.isDangerEnabled()).append("<br>");
+            
+            outputString.append("<b>Alert type</b> = ");
+            if (alert.getAlertType() != null) {
+                if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) outputString.append("Availability").append("<br>");
+                else if (alert.getAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
+                else outputString.append("N/A").append("<br>");
+            }
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Alert on positive?</b> = ").append(alert.isAlertOnPositive()).append("<br>");
             outputString.append("<b>Resend Alert?</b> = ").append(alert.isAllowResendAlert()).append("<br>");
             
@@ -158,16 +171,7 @@ public class AlertDetails extends HttpServlet {
 
             outputString.append("<br>");
             
-            outputString.append("<b>Caution alert type</b> = ");
-            if (alert.getCautionAlertType() != null) {
-                if (alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY) outputString.append("Availability").append("<br>");
-                else if (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
-                else if (alert.getCautionAlertType() == Alert.TYPE_DISABLED) outputString.append("Disabled").append("<br>");
-                else outputString.append("N/A").append("<br>");
-            }
-            else outputString.append("N/A <br>");
-            
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_DISABLED)) outputString.append("<del>");
+            if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("<del>");
             
             outputString.append("<b>Caution notification group name</b> = ");
             if (cautionNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName())).append("<br>");
@@ -181,7 +185,7 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("<del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()))) outputString.append("<del>");
             
             outputString.append("<b>Caution stop tracking after...</b> = ");
             if (alert.getCautionStopTrackingAfter() != null) {
@@ -191,10 +195,9 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("</del>");
-            
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_THRESHOLD) && 
-                    (alert.getCautionAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled())) outputString.append("</del>");
+          
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled())) outputString.append("<del>");
             
             outputString.append("<b>Caution minimum sample count</b> = ");
             if (alert.getCautionMinimumSampleCount() != null) outputString.append(alert.getCautionMinimumSampleCount()).append("<br>");
@@ -216,7 +219,7 @@ public class AlertDetails extends HttpServlet {
             if (alert.getCautionThreshold() != null) outputString.append(alert.getCautionThreshold().stripTrailingZeros().toPlainString()).append("<br>");
             else outputString.append("N/A <br>");
             
-            if ((alert.getCautionAlertType() != null) && (alert.getCautionAlertType() != Alert.TYPE_THRESHOLD)) outputString.append("</del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()))) outputString.append("</del>");
             
             outputString.append("<b>Are caution configuration settings valid?</b> = ").append(alert.isCautionAlertCriteriaValid()).append("<br>");
             
@@ -232,18 +235,11 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("no <br>");  
             
+            if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("</del>");
+
             outputString.append("<br>");
             
-            outputString.append("<b>Danger alert type</b> = ");
-            if (alert.getDangerAlertType() != null) {
-                if (alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY) outputString.append("Availability").append("<br>");
-                else if (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD) outputString.append("Threshold").append("<br>");
-                else if (alert.getDangerAlertType() == Alert.TYPE_DISABLED) outputString.append("Disabled").append("<br>");
-                else outputString.append("N/A").append("<br>");
-            }
-            else outputString.append("N/A <br>");
-            
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_DISABLED)) outputString.append("<del>");
+            if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("<del>");
             
             outputString.append("<b>Danger notification group name</b> = ");
             if (dangerNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName())).append("<br>");
@@ -257,7 +253,7 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("<del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("<del>");
             
             outputString.append("<b>Danger stop tracking after...</b> = ");
             if (alert.getDangerStopTrackingAfter() != null) {
@@ -267,10 +263,9 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_AVAILABILITY)) outputString.append("</del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("</del>");
             
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_THRESHOLD) 
-                    && (alert.getDangerAlertType() != Alert.TYPE_DISABLED)) outputString.append("<del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("<del>");
             
             outputString.append("<b>Danger minimum sample count</b> = ");
             if (alert.getDangerMinimumSampleCount() != null) outputString.append(alert.getDangerMinimumSampleCount()).append("<br>");
@@ -292,7 +287,7 @@ public class AlertDetails extends HttpServlet {
             if (alert.getDangerThreshold() != null) outputString.append(alert.getDangerThreshold().stripTrailingZeros().toPlainString()).append("<br>");
             else outputString.append("N/A <br>");
             
-            if ((alert.getDangerAlertType() != null) && (alert.getDangerAlertType() != Alert.TYPE_THRESHOLD)) outputString.append("</del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("</del>");
             
             outputString.append("<b>Are danger configuration settings valid?</b> = ").append(alert.isDangerAlertCriteriaValid()).append("<br>");
             
@@ -307,6 +302,8 @@ public class AlertDetails extends HttpServlet {
                 outputString.append("yes <br>");  
             }
             else outputString.append("no <br>");  
+            
+            if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("</del>");
             
             outputString.append("<br>");
             
@@ -328,6 +325,7 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
         }
+        
         
         return outputString.toString();
     }

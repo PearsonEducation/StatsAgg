@@ -131,10 +131,17 @@ public class AlertPreview extends HttpServlet {
             if (parameter != null) alert.setDescription(parameter.trim());
             else alert.setDescription("");
 
-            parameter = request.getParameter("CreateAlertCaution_Type");
-            if ((parameter != null) && parameter.contains("Availability")) alert.setCautionAlertType(Alert.TYPE_AVAILABILITY);
-            else if ((parameter != null) && parameter.contains("Threshold")) alert.setCautionAlertType(Alert.TYPE_THRESHOLD);
-            else if ((parameter != null) && parameter.contains("Disabled")) alert.setCautionAlertType(Alert.TYPE_DISABLED);
+            parameter = request.getParameter("CautionEnabled");
+            if ((parameter != null) && parameter.contains("on")) alert.setIsCautionEnabled(true);
+            else alert.setIsCautionEnabled(false);
+            
+            parameter = request.getParameter("DangerEnabled");
+            if ((parameter != null) && parameter.contains("on")) alert.setIsDangerEnabled(true);
+            else alert.setIsDangerEnabled(false);
+            
+            parameter = request.getParameter("CreateAlert_Type");
+            if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
+            else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             
             parameter = request.getParameter("CautionWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
@@ -179,12 +186,7 @@ public class AlertPreview extends HttpServlet {
                 BigDecimal bigDecimalValue = new BigDecimal(parameter.trim());
                 alert.setCautionThreshold(bigDecimalValue);
             }
-            
-            parameter = request.getParameter("CreateAlertDanger_Type");
-            if ((parameter != null) && parameter.contains("Availability")) alert.setDangerAlertType(Alert.TYPE_AVAILABILITY);
-            else if ((parameter != null) && parameter.contains("Threshold")) alert.setDangerAlertType(Alert.TYPE_THRESHOLD);
-            else if ((parameter != null) && parameter.contains("Disabled")) alert.setDangerAlertType(Alert.TYPE_DISABLED);
-            
+
             parameter = request.getParameter("DangerWindowDuration");
             if ((parameter != null) && !parameter.isEmpty()) {
                 BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
@@ -266,9 +268,9 @@ public class AlertPreview extends HttpServlet {
         Map<String,BigDecimal> alertMetricValues = generateFakeMetricValues(warningLevel, alert);
         
         if (warningLevel.equalsIgnoreCase("caution")) {
-            boolean isAlertValid = alert.isCautionAlertCriteriaValid();
+            boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
             
-            if (isAlertValid) {
+            if (isAlertValidAndEnabled) {
                 EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
                         false, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
@@ -280,9 +282,9 @@ public class AlertPreview extends HttpServlet {
         }
         
         if (warningLevel.equalsIgnoreCase("danger")) {
-            boolean isAlertValid = alert.isDangerAlertCriteriaValid();
+            boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
             
-            if (isAlertValid) {
+            if (isAlertValidAndEnabled) {
                 EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
                         false, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
@@ -305,7 +307,7 @@ public class AlertPreview extends HttpServlet {
         Map<String,BigDecimal> alertMetricValues = new HashMap<>();
         
         if (warningLevel.equalsIgnoreCase("caution") && (alert.getCautionOperator() != null) && (alert.getCautionThreshold() != null) &&
-                 (alert.getCautionAlertType() != null) && (alert.getCautionAlertType() == Alert.TYPE_THRESHOLD)) {
+                 (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
             if ((Objects.equals(alert.getCautionOperator(), Alert.OPERATOR_GREATER_EQUALS)) || (Objects.equals(alert.getCautionOperator(), Alert.OPERATOR_GREATER))) {
                 alertMetricValues.put("preview.metric1" + "-" + alert.getId(), alert.getCautionThreshold().add(BigDecimal.ONE));
                 alertMetricValues.put("preview.metric2" + "-" + alert.getId(), alert.getCautionThreshold().add(BigDecimal.TEN));
@@ -323,7 +325,7 @@ public class AlertPreview extends HttpServlet {
         } 
             
         if (warningLevel.equalsIgnoreCase("danger") && (alert.getDangerOperator() != null) && (alert.getDangerThreshold() != null) && 
-                (alert.getDangerAlertType() != null) && (alert.getDangerAlertType() == Alert.TYPE_THRESHOLD)) {
+                (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
             if ((Objects.equals(alert.getDangerOperator(), Alert.OPERATOR_GREATER_EQUALS)) || (Objects.equals(alert.getDangerOperator(), Alert.OPERATOR_GREATER))) {
                 alertMetricValues.put("preview.metric1" + "-" + alert.getId(), alert.getDangerThreshold().add(BigDecimal.ONE));
                 alertMetricValues.put("preview.metric2" + "-" + alert.getId(), alert.getDangerThreshold().add(BigDecimal.TEN));

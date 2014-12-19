@@ -66,12 +66,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
         return insert(AlertsSql.Insert_Alert, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
-                alert.isEnabled(), alert.isAlertOnPositive(),
+                alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
-                alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
+                alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
-                alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
+                alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet()
         );
@@ -83,12 +83,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
         return update(AlertsSql.Update_Alert_ByPrimaryKey, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
-                alert.isEnabled(), alert.isAlertOnPositive(),
+                alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
-                alert.getCautionAlertType(), alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
+                alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.getCautionActiveAlertsSet(),
-                alert.getDangerAlertType(), alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
+                alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.getDangerActiveAlertsSet(), 
                 alert.getId());
@@ -127,6 +127,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
             Boolean isEnabled = resultSet.getBoolean("IS_ENABLED");
             if (resultSet.wasNull()) isEnabled = null;
+
+            Boolean isCautionEnabled = resultSet.getBoolean("IS_CAUTION_ENABLED");
+            if (resultSet.wasNull()) isCautionEnabled = null;
+            
+            Boolean isDangerEnabled = resultSet.getBoolean("IS_DANGER_ENABLED");
+            if (resultSet.wasNull()) isDangerEnabled = null;
+            
+            Integer alertType = resultSet.getInt("ALERT_TYPE");
+            if (resultSet.wasNull()) alertType = null;
             
             Boolean alertOnPositive = resultSet.getBoolean("ALERT_ON_POSITIIVE");
             if (resultSet.wasNull()) alertOnPositive = null;
@@ -136,10 +145,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
             Integer sendAlertEveryNumMilliseconds = resultSet.getInt("SEND_ALERT_EVERY_NUM_MILLISECONDS");
             if (resultSet.wasNull()) sendAlertEveryNumMilliseconds = null;
-            
-            Integer cautionAlertType = resultSet.getInt("CAUTION_ALERT_TYPE");
-            if (resultSet.wasNull()) cautionAlertType = null;
-            
+
             Integer cautionNotificationGroupId = resultSet.getInt("CAUTION_NOTIFICATION_GROUP_ID");
             if (resultSet.wasNull()) cautionNotificationGroupId = null;
             
@@ -173,9 +179,6 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             String cautionActiveAlertsSet = resultSet.getString("CAUTION_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) cautionActiveAlertsSet = null;
 
-            Integer dangerAlertType = resultSet.getInt("DANGER_ALERT_TYPE");
-            if (resultSet.wasNull()) dangerAlertType = null;
-            
             Integer dangerNotificationGroupId = resultSet.getInt("DANGER_NOTIFICATION_GROUP_ID");
             if (resultSet.wasNull()) dangerNotificationGroupId = null;
             
@@ -209,11 +212,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             String dangerActiveAlertsSet = resultSet.getString("DANGER_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) dangerActiveAlertsSet = null;
 
-            Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, alertOnPositive, 
-                    allowResendAlert, sendAlertEveryNumMilliseconds, 
-                    cautionAlertType, cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
+            Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled,
+                    alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
+                    cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
                     cautionStopTrackingAfter, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, cautionActiveAlertsSet,
-                    dangerAlertType, dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
+                    dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
                     dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, dangerActiveAlertsSet);
             
             return alert;
