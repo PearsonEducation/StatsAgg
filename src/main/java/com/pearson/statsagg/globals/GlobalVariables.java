@@ -21,6 +21,9 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class GlobalVariables {
 
+    // A flag indicating whether statsagg has finished going through its initialization routine. This will only be true if it has gone through the initialization routine successfully.
+    public static AtomicBoolean isApplicationInitializeSuccess = new AtomicBoolean(false);
+    
     // A flag that indicates whether the StatsAgg is using an in-memory database or not
     public static AtomicBoolean isStatsaggUsingInMemoryDatabase = new AtomicBoolean(false);
     

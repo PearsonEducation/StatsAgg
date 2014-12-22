@@ -105,11 +105,17 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : alertNames) {
-            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
             if (i < alertNames.size()) json.append(",");
             i++;
         }
-
+        
         json.append("]");
     
         return json.toString();
@@ -130,7 +136,13 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : metricGroupsNames) {
-            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
             if (i < metricGroupsNames.size()) json.append(",");
             i++;
         }
@@ -155,7 +167,13 @@ public class Lookup extends HttpServlet {
         
         int i = 1;
         for (String name : notificationGroupsNames) {
-            json.append("\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\"");
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
             if (i < notificationGroupsNames.size()) json.append(",");
             i++;
         }

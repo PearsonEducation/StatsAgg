@@ -249,3 +249,7 @@ input[type="search"] {
     margin-left: 5px !important;
     margin-right: 15px !important;
 }
+
+.tt-dropdown-menu {
+    border: 1px solid rgba(255, 0, 0, 0.44) !important;
+}

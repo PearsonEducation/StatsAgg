@@ -2,12 +2,9 @@ Short term
  * Add healthcheck servlet
  * unit tests for set & timer
  * unit tests for availability alert
- * move alert-type into options/general
- * json when typing '  '
  
 Before open source release 
  * documentation/help page (wip)
-   * forget metrics
    * what happens on restart?
    * gauge metrics persisted in memory
    

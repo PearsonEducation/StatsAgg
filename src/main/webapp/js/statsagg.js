@@ -14,17 +14,20 @@ function generateAlertPreviewLink(warningLevel) {
 
     var nameParameter = "Name=" + encodeURIComponent(document.getElementById("Name").value.substring(0, 500));
     var descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("Description").value.substring(0, 500));
-    
+
     var cautionEnabledParameter = "CautionEnabled=" + encodeURIComponent(document.getElementById("CautionEnabled").value);
     var dangerEnabledParameter = "DangerEnabled=" + encodeURIComponent(document.getElementById("DangerEnabled").value);
-    
+
     var alertTypeParameter;
-    if (document.getElementById("CreateAlert_Type_Availability").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Availability");
-    else if (document.getElementById("CreateAlert_Type_Threshold").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Threshold");
-    else alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("undefined");
-    
+    if (document.getElementById("CreateAlert_Type_Availability").checked === true)
+        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Availability");
+    else if (document.getElementById("CreateAlert_Type_Threshold").checked === true)
+        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Threshold");
+    else
+        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("undefined");
+
     var metricGroupNameParameter = "MetricGroupName=" + encodeURIComponent(document.getElementById("MetricGroupName").value.substring(0, 500));
-    
+
     var cautionWindowDurationParameter = "CautionWindowDuration=" + encodeURIComponent(document.getElementById("CautionWindowDuration").value);
     var cautionStopTrackingAfterParameter = "CautionStopTrackingAfter=" + encodeURIComponent(document.getElementById("CautionStopTrackingAfter").value);
     var cautionMinimumSampleCountParameter = "CautionMinimumSampleCount=" + encodeURIComponent(document.getElementById("CautionMinimumSampleCount").value);
@@ -43,9 +46,9 @@ function generateAlertPreviewLink(warningLevel) {
 
     var uriEncodedLink = "AlertPreview?" + warningLevelParameter + "&" +
             nameParameter + "&" + descriptionParameter + "&" + cautionEnabledParameter + "&" + dangerEnabledParameter + "&" + alertTypeParameter + "&" + metricGroupNameParameter + "&" +
-            cautionWindowDurationParameter + "&" +  cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" + 
+            cautionWindowDurationParameter + "&" + cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" +
             cautionOperatorParameter + "&" + cautionCombinationParameter + "&" + cautionCombinationCountParameter + "&" + cautionThresholdParameter + "&" +
-            dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" + 
+            dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" +
             dangerOperatorParameter + "&" + dangerCombinationParameter + "&" + dangerCombinationCountParameter + "&" + dangerThresholdParameter;
 
     if (warningLevel === "Caution") {
@@ -60,10 +63,14 @@ function generateAlertPreviewLink(warningLevel) {
 function generateAlertSuspensionAssociationsPreviewLink() {
 
     var SuspendByParameter;
-    if (document.getElementById("CreateAlertSuspension_SuspendBy_AlertName_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("AlertName");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Tags_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Tags");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Everything_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Everything");
-    else SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("undefined");
+    if (document.getElementById("CreateAlertSuspension_SuspendBy_AlertName_Radio").checked === true)
+        SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("AlertName");
+    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Tags_Radio").checked === true)
+        SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Tags");
+    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Everything_Radio").checked === true)
+        SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Everything");
+    else
+        SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("undefined");
 
     var AlertNameParameter = "AlertName=" + encodeURIComponent(document.getElementById("AlertName").value);
     var MetricGroupTagsInclusiveParameter = "MetricGroupTagsInclusive=" + encodeURIComponent(document.getElementById("MetricGroupTagsInclusive").value);
@@ -78,21 +85,21 @@ function generateAlertSuspensionAssociationsPreviewLink() {
 function generateForgetMetricsPreviewLink() {
     var ForgetMetricRegexParameter = "Regex=" + encodeURIComponent(document.getElementById("ForgetMetricRegex").value);
     var uriEncodedLink = "ForgetMetricsPreview?" + ForgetMetricRegexParameter;
-    document.getElementById("ForgetMetricsPreview").setAttribute("href", uriEncodedLink);    
+    document.getElementById("ForgetMetricsPreview").setAttribute("href", uriEncodedLink);
 }
 
 function generateMergedRegexMetricsPreview() {
     var RegexParameter = "Regexs=" + encodeURIComponent(document.getElementById("Regexs").value);
     var uriEncodedLink = "MergedRegexMetricsPreview?" + RegexParameter;
-    document.getElementById("MergedRegexMetricsPreview").setAttribute("href", uriEncodedLink);    
+    document.getElementById("MergedRegexMetricsPreview").setAttribute("href", uriEncodedLink);
 }
 
-$(document).ready(function() {
+$(document).ready(function () {
     $(".iframe").colorbox({iframe: true, width: "80%", height: "80%"});
 });
 
 // On page load for 'CreateAlert', show and hide certain UI elements for 'type'
-$(document).ready(function() {
+$(document).ready(function () {
     CreateAlert_Type_ShowAndHide();
     CreateAlert_CautionCriteria_ShowAndHide();
     CreateAlert_DangerCriteria_ShowAndHide();
@@ -127,24 +134,24 @@ function CreateAlert_DangerCriteria_ShowAndHide() {
 }
 
 // On changing the alert-type radio buttons on the 'Create Alert' page, show and hide certain UI elements
-$('#CreateAlert_Type_Availability').change(function() {
+$('#CreateAlert_Type_Availability').change(function () {
     CreateAlert_Type_ShowAndHide();
 });
-$('#CreateAlert_Type_Threshold').change(function() {
+$('#CreateAlert_Type_Threshold').change(function () {
     CreateAlert_Type_ShowAndHide();
 });
 
 // On changing the value of the 'Combination' dropdown options on the 'Create Alert' page, show and hide certain UI elements
-$('#CautionCombination').change(function() {
+$('#CautionCombination').change(function () {
     CreateAlert_Type_ShowAndHide();
 });
-$('#DangerCombination').change(function() {
+$('#DangerCombination').change(function () {
     CreateAlert_Type_ShowAndHide();
 });
 
 function CreateAlert_Type_ShowAndHide() {
     // Caution
-    if ($("#CreateAlert_Type_Availability").prop('checked') === true) { 
+    if ($("#CreateAlert_Type_Availability").prop('checked') === true) {
         $("#CautionNoAlertTypeSelected_Label").hide();
         $("#CautionNotificationGroupName_Label").show();
         $("#CautionNotificationGroupName").show();
@@ -280,14 +287,14 @@ function CreateAlert_Type_ShowAndHide() {
     }
 }
 
-$(function() {
+$(function () {
     $('#CreateAlertSuspension_DateTimePicker_StartDate_Div').datetimepicker({
         pickDate: true,
         pickTime: false
     });
 });
 
-$(function() {
+$(function () {
     $('#CreateAlertSuspension_DateTimePicker_StartTime_Div').datetimepicker({
         pickDate: false,
         pickTime: true
@@ -328,12 +335,12 @@ function CreateAlertSuspension_Type_ShowAndHide() {
 }
 
 // On page load for 'CreateAlertSuspension', show and hide certain UI elements for 'type'
-$(document).ready(function() {
+$(document).ready(function () {
     CreateAlertSuspension_Type_ShowAndHide();
 });
 
 // On changing the 'type' radio buttons 'CreateAlertSuspension', show and hide certain UI elements
-$("input[type=radio]").change(function() {
+$("input[type=radio]").change(function () {
     CreateAlertSuspension_Type_ShowAndHide();
 });
 
@@ -362,23 +369,23 @@ function CreateAlertSuspension_SuspendBy_ShowAndHide() {
 }
 
 // On page load for 'CreateAlertSuspension', show and hide certain UI elements for 'suspend by'
-$(document).ready(function() {
+$(document).ready(function () {
     CreateAlertSuspension_SuspendBy_ShowAndHide();
 });
 
 // On changing the 'suspend by' radio buttons 'CreateAlertSuspension', show and hide certain UI elements
-$("input[type=radio]").change(function() {
+$("input[type=radio]").change(function () {
     CreateAlertSuspension_SuspendBy_ShowAndHide();
 });
 
 // Setup for the table found on the 'Alerts' page
-$(document).ready(function() {
+$(document).ready(function () {
     var doesTableExist = document.getElementById('AlertsTable');
 
     if (doesTableExist !== null) {
         $('#AlertsTable').dataTable({
             "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200}, 
+            "colVis": {"align": "right", "iOverlayFade": 200},
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -441,18 +448,18 @@ $(document).ready(function() {
             ]
         });
 
-        $( colvis.button() ).prependTo('#AlertsTable_filter');
+        $(colvis.button()).prependTo('#AlertsTable_filter');
     }
 });
 
 // Setup for the table found on the 'Alerts' page
-$(document).ready(function() {
+$(document).ready(function () {
     var doesTableExist = document.getElementById('AlertSuspensionsTable');
-    
+
     if (doesTableExist !== null) {
         $('#AlertSuspensionsTable').dataTable({
             "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200}, 
+            "colVis": {"align": "right", "iOverlayFade": 200},
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -485,18 +492,18 @@ $(document).ready(function() {
             ]
         });
 
-        $( colvis.button() ).prependTo('#AlertSuspensionsTable_filter');
+        $(colvis.button()).prependTo('#AlertSuspensionsTable_filter');
     }
 });
 
 // Setup for the table found on the 'MetricGroups' page
-$(document).ready(function() {
+$(document).ready(function () {
     var doesTableExist = document.getElementById('MetricGroupsTable');
-    
+
     if (doesTableExist !== null) {
         $('#MetricGroupsTable').dataTable({
             "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200}, 
+            "colVis": {"align": "right", "iOverlayFade": 200},
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -532,18 +539,18 @@ $(document).ready(function() {
             ]
         });
 
-        $( colvis.button() ).prependTo('#MetricGroupsTable_filter');
+        $(colvis.button()).prependTo('#MetricGroupsTable_filter');
     }
 });
 
 // Setup for the table found on the 'NotificationGroups' page
-$(document).ready(function() {
+$(document).ready(function () {
     var doesTableExist = document.getElementById('NotificationGroupsTable');
-    
+
     if (doesTableExist !== null) {
         $('#NotificationGroupsTable').dataTable({
             "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200}, 
+            "colVis": {"align": "right", "iOverlayFade": 200},
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -569,7 +576,7 @@ $(document).ready(function() {
             ]
         });
 
-        $( colvis.button() ).prependTo('#NotificationGroupsTable_filter');
+        $(colvis.button()).prependTo('#NotificationGroupsTable_filter');
     }
 });
 
@@ -585,12 +592,22 @@ $(document).ready(function() {
 
         AlertNameLookup_Bloodhound.initialize();
 
-        $('#AlertNameLookup .typeahead').typeahead({
-            source: AlertNameLookup_Bloodhound.ttAdapter(),
-            updater: function (item) {
-                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
+       $('#AlertNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'AlertNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: AlertNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
             }
-        });
+        );
     }
 });
 
@@ -606,18 +623,28 @@ $(document).ready(function() {
 
         MetricGroupNameLookup_Bloodhound.initialize();
 
-        $('#MetricGroupNameLookup .typeahead').typeahead({
-            source: MetricGroupNameLookup_Bloodhound.ttAdapter(),
-            updater: function (item) {
-                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
+       $('#MetricGroupNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'MetricGroupNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: MetricGroupNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
             }
-        });
+        );
     }
 });
 
-$(document).ready(function() {
+$(document).ready(function () {
     var doesCautionNotificationGroupNameLookupExist = document.getElementById('CautionNotificationGroupNameLookup');
-    
+
     if (doesCautionNotificationGroupNameLookupExist !== null) {
         var NotificationGroupNameLookup_Bloodhound = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -627,18 +654,28 @@ $(document).ready(function() {
 
         NotificationGroupNameLookup_Bloodhound.initialize();
 
-        $('#CautionNotificationGroupNameLookup .typeahead').typeahead({
-            source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
-            updater: function (item) {
-                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
+        $('#CautionNotificationGroupNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'NotificationGroupNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
             }
-        });
+        );
     }
 });
 
-$(document).ready(function() {
+$(document).ready(function () {
     var doesDangerNotificationGroupNameLookupExist = document.getElementById('DangerNotificationGroupNameLookup');
-    
+
     if (doesDangerNotificationGroupNameLookupExist !== null) {
         var NotificationGroupNameLookup_Bloodhound = new Bloodhound({
             datumTokenizer: Bloodhound.tokenizers.whitespace,
@@ -648,11 +685,21 @@ $(document).ready(function() {
 
         NotificationGroupNameLookup_Bloodhound.initialize();
 
-        $('#DangerNotificationGroupNameLookup .typeahead').typeahead({
-            source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
-            updater: function (item) {
-                return $('<div/>').html(item).text().replace(/\u00a0/g, " ");
+        $('#DangerNotificationGroupNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'NotificationGroupNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
             }
-        });
+        );
     }
 });

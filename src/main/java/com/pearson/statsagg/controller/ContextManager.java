@@ -80,6 +80,10 @@ public class ContextManager implements ServletContextListener {
         boolean isApplicationInitializeSuccess = initializeApplication();
         if (!isApplicationInitializeSuccess) {
             logger.error("An error while initializing the application configuration.");
+            GlobalVariables.isApplicationInitializeSuccess.set(false);
+        }
+        else {
+            GlobalVariables.isApplicationInitializeSuccess.set(true);
         }
         
         logger.info("Finish - Startup configuration");
@@ -93,6 +97,8 @@ public class ContextManager implements ServletContextListener {
         
         Threads.sleepSeconds(1);
         
+        GlobalVariables.isApplicationInitializeSuccess.set(false);
+                
         shutdownServerListeners();
         
         shutdownInvokerThreads();

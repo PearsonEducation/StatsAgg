@@ -47,6 +47,7 @@ public class StatsAggHtmlFramework {
                     "<link href=\"css/dataTables.colVis.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/colorbox.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"font-awesome/css/font-awesome.min.css\" rel=\"stylesheet\">" +
+                    "<link href=\"css/typeahead.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/statsagg.css\" rel=\"stylesheet\">\n");
         
         if (additionalHtmlToInjectIntoHeader != null) {
@@ -126,8 +127,7 @@ public class StatsAggHtmlFramework {
                 + "<script type=\"text/javascript\" src=\"js/jquery.dataTables.columnFilter.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/dataTables.colVis.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/bootstrap-datetimepicker.js\"></script>\n"
-                + "<script type=\"text/javascript\" src=\"js/bloodhound.js\"></script>\n"
-                + "<script type=\"text/javascript\" src=\"js/bootstrap3-typeahead.min.js\"></script>\n"
+                + "<script type=\"text/javascript\" src=\"js/typeahead.bundle.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/statsagg.js\"></script>\n"
         );
         
