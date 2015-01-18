@@ -1,6 +1,7 @@
 package com.pearson.statsagg.globals;
 
 import au.com.bytecode.opencsv.CSVReader;
+import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
 import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
@@ -70,7 +71,8 @@ public class ApplicationConfiguration {
     private static boolean graphiteAggregatorSendPreviousValue_ = false;
     private static boolean graphitePassthroughSendPreviousValue_ = false;      
     
-    private static int statsdNthPercentileThreshold_ = VALUE_NOT_SET_CODE;
+    private static StatsdNthPercentiles statsdNthPercentiles_ = null;
+    private static boolean statsdUseLegacyNameSpacing_ = false;
     
     private static boolean alertRoutineEnabled_ = false;
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
@@ -141,15 +143,15 @@ public class ApplicationConfiguration {
             globalMetricNamePrefixValue_ = applicationConfiguration_.getString("global_metric_name_prefix_value", "statsagg");
             globalAggregatedMetricsSeparatorString_= applicationConfiguration_.getString("global_aggregated_metrics_separator_string", "."); 
             statsdMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_metric_name_prefix_enabled", false);
-            statsdMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_metric_name_prefix_value", "statsd");
+            statsdMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_metric_name_prefix_value", "stats");
             statsdCounterMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_counter_metric_name_prefix_enabled", false);
-            statsdCounterMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_counter_metric_name_prefix_value", "counter");
+            statsdCounterMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_counter_metric_name_prefix_value", "counters");
             statsdGaugeMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_gauge_metric_name_prefix_enabled", false);
-            statsdGaugeMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_gauge_metric_name_prefix_value", "gauge");
+            statsdGaugeMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_gauge_metric_name_prefix_value", "gauges");
             statsdTimerMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_timer_metric_name_prefix_enabled", false);
-            statsdTimerMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_timer_metric_name_prefix_value", "timer");
+            statsdTimerMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_timer_metric_name_prefix_value", "timers");
             statsdSetMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_set_metric_name_prefix_enabled", false);
-            statsdSetMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_set_metric_name_prefix_value", "set");
+            statsdSetMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_set_metric_name_prefix_value", "sets");
             graphiteAggregatorMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_metric_name_prefix_enabled", false);
             graphiteAggregatorMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_aggregator_metric_name_prefix_value", "graphite-agg");
             graphitePassthroughMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_metric_name_prefix_enabled", false);
@@ -164,7 +166,8 @@ public class ApplicationConfiguration {
             graphitePassthroughSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_passthrough_send_previous_value", false);
 
             // statsd specific variables
-            statsdNthPercentileThreshold_ = applicationConfiguration_.getInteger("statsd_nth_percentile_threshold", 90);
+            statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.getString("statsd_nth_percentiles", "90"));
+            statsdUseLegacyNameSpacing_ = applicationConfiguration_.getBoolean("statsd_use_legacy_name_spacing", false);
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.getBoolean("alert_routine_enabled", true);
@@ -234,7 +237,7 @@ public class ApplicationConfiguration {
         
         return graphiteOutputModules;
     }
-    
+
     private static List<HttpLink> readCustomActionUrls() {
         
         List<HttpLink> customActionUrls = new ArrayList<>();
@@ -435,8 +438,12 @@ public class ApplicationConfiguration {
         return graphitePassthroughSendPreviousValue_;
     }
 
-    public static int getStatsdNthPercentileThreshold() {
-        return statsdNthPercentileThreshold_;
+    public static StatsdNthPercentiles getStatsdNthPercentiles() {
+        return statsdNthPercentiles_;
+    }
+
+    public static boolean isStatsdUseLegacyNameSpacing() {
+        return statsdUseLegacyNameSpacing_;
     }
 
     public static boolean isAlertRoutineEnabled() {

@@ -306,13 +306,8 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFor
         
         StringBuilder prefix = new StringBuilder("");
         
-        if (useGlobalPrefix) {
-            prefix.append(globalPrefixValue).append(".");
-        }
-        
-        if (useGraphitePrefix) {
-            prefix.append(graphitePrefixValue).append(".");
-        }
+        if (useGlobalPrefix) prefix.append(globalPrefixValue).append(".");
+        if (useGraphitePrefix) prefix.append(graphitePrefixValue).append(".");
         
         prefix.append(graphiteMetricRaw.getMetricPath());
         

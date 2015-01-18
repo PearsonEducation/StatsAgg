@@ -1,7 +1,9 @@
 Short term
  * Add healthcheck servlet
- * unit tests for set & timer
+ * unit tests for set
  * unit tests for availability alert
+ * global suffix
+ * fix aggregatedMetricsSeparator for graphite
  
 Before open source release 
  * documentation/help page (wip)
@@ -20,7 +22,6 @@ Medium term
  * alert by individual metric
  * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * make alert suspension datetime bars be full width of column
- * Statsd upper nth %
  * Statsd histograms
  * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
  

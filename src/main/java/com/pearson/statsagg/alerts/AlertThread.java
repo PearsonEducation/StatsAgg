@@ -53,8 +53,8 @@ public class AlertThread implements Runnable {
     private static final AtomicLong alertRoutineExecutionCounter_ = new AtomicLong(0);
     private static final Map<Integer, Alert> pendingCautionAlertsByAlertId_ = new HashMap<>();
     private static final Map<Integer, Alert> pendingDangerAlertsByAlertId_ = new HashMap<>();
-    private static final Map<Integer,Map<String,String>> positiveAlertReasons_Caution_ByAlertId_ = new ConcurrentHashMap<>();
-    private static final Map<Integer,Map<String,String>> positiveAlertReasons_Danger_ByAlertId_ = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer,Map<String,String>> positiveAlertReasons_Caution_ByAlertId_ = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Integer,Map<String,String>> positiveAlertReasons_Danger_ByAlertId_ = new ConcurrentHashMap<>();
     
     protected final Long threadStartTimestampInMilliseconds_;
     protected final String threadId_;
@@ -339,15 +339,17 @@ public class AlertThread implements Runnable {
             
             for (Integer alertId : pendingCautionAlertIdsLocal) {
                 boolean hasAlertReachedPreviousState = false;
+                Alert alert = pendingCautionAlertsByAlertId_.get(alertId);
                 
-                if ((activeCautionAlertMetricKeysByAlertId_.containsKey(alertId)) && 
+                if ((alert.getAlertType() != null) && 
+                        (alert.getAlertType() == Alert.TYPE_THRESHOLD) && 
+                        activeCautionAlertMetricKeysByAlertId_.containsKey(alertId) && 
                         (activeCautionAlertMetricKeysByAlertId_.get(alertId) != null) && 
-                        (!activeCautionAlertMetricKeysByAlertId_.get(alertId).isEmpty())) {
+                        !activeCautionAlertMetricKeysByAlertId_.get(alertId).isEmpty()) {
                     hasAlertReachedPreviousState = true;
                 }
 
                 if (hasAlertReachedPreviousState) {
-                    Alert alert = pendingCautionAlertsByAlertId_.get(alertId);
                     pendingCautionAlertsByAlertId_.remove(alertId);
                     String cleanAlertName = StatsAggHtmlFramework.removeNewlinesFromString(alert.getName(), ' ');
                     logger.info("Routine=AlertRecovery, AlertName=\"" + cleanAlertName + "\", Message=\"Caution alerting enabled after reaching previous window state\"");

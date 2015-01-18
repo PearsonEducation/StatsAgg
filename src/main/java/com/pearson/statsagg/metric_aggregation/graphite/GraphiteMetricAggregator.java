@@ -183,6 +183,7 @@ public class GraphiteMetricAggregator {
     
     private static String generatePrefix() {
         StringBuilder prefix = new StringBuilder("");
+        
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) {
             prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
         }

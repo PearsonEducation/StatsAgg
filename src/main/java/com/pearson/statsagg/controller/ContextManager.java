@@ -287,18 +287,28 @@ public class ContextManager implements ServletContextListener {
         if (isConfigFileMissing) {
             logger.warn("Failed to load database.properties. Using an ephemeral (in-memory) database...");
 
-            StringBuilder defaultDatabase = new StringBuilder("");
-            defaultDatabase.append("db_type = derby_embedded\n");
-            defaultDatabase.append("db_custom_jdbc = jdbc:derby:memory:statsagg_mem_db;create=true\n");
-            defaultDatabase.append("derby.storage.pageCacheSize = 15000\n");
-
-            databaseConfigurationInputStream = new ByteArrayInputStream(defaultDatabase.toString().getBytes());
+            databaseConfigurationInputStream = getEphemeralDatabaseConfiguration();
             GlobalVariables.isStatsaggUsingInMemoryDatabase.set(true);
         }
         
         isDatabaseGetConfigSuccess = readAndSetDatabaseConfiguration(databaseConfigurationInputStream);
         isDatabaseInitializeSuccess = connectToDatabase();
      
+        if (!isDatabaseGetConfigSuccess || !isDatabaseInitializeSuccess) {
+            logger.warn("Failed to connect to database. Using an ephemeral (in-memory) database...");
+
+            if (databaseConfigurationInputStream != null) {
+                try {databaseConfigurationInputStream.close();}
+                catch (Exception e) {}
+            }
+            
+            databaseConfigurationInputStream = getEphemeralDatabaseConfiguration();
+            GlobalVariables.isStatsaggUsingInMemoryDatabase.set(true);
+            
+            isDatabaseGetConfigSuccess = readAndSetDatabaseConfiguration(databaseConfigurationInputStream);
+            isDatabaseInitializeSuccess = connectToDatabase();
+        }
+        
         if (databaseConfigurationInputStream != null) {
             try {
                 databaseConfigurationInputStream.close();
@@ -309,6 +319,16 @@ public class ContextManager implements ServletContextListener {
         }
         
         return isDatabaseGetConfigSuccess && isDatabaseInitializeSuccess;
+    }
+    
+    private InputStream getEphemeralDatabaseConfiguration() {
+        StringBuilder defaultDatabase = new StringBuilder("");
+        defaultDatabase.append("db_type = derby_embedded\n");
+        defaultDatabase.append("db_custom_jdbc = jdbc:derby:memory:statsagg_mem_db;create=true\n");
+        defaultDatabase.append("derby.storage.pageCacheSize = 15000\n");
+
+        InputStream databaseConfigurationInputStream = new ByteArrayInputStream(defaultDatabase.toString().getBytes());
+        return databaseConfigurationInputStream;
     }
     
     public boolean initializeDatabaseFromFile(String filePath, String fileName) {
@@ -528,7 +548,7 @@ public class ContextManager implements ServletContextListener {
         }
         catch (Exception e) {
             logger.error(e.toString() + File.separator + StackTrace.getStringFromStackTrace(e));
-            logger.error("Failed to connect to database");
+            logger.error("Failed to start a netty server");
             
             isStartupSuccess = false;
         }

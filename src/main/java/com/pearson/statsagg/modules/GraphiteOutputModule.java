@@ -96,6 +96,22 @@ public class GraphiteOutputModule {
         return false;
     }
 
+    public static List<GraphiteOutputModule> getEnabledGraphiteOutputModules() {
+        
+        List<GraphiteOutputModule> graphiteOutuputModules = ApplicationConfiguration.getGraphiteOutputModules();
+        if (graphiteOutuputModules == null) return new ArrayList<>();
+        
+        List<GraphiteOutputModule> enabledGraphiteOutputModules = new ArrayList<>();
+        
+        for (GraphiteOutputModule graphiteOutputModule : graphiteOutuputModules) {
+            if (graphiteOutputModule.isOutputEnabled()) {
+                enabledGraphiteOutputModules.add(graphiteOutputModule);
+            }
+        }
+        
+        return enabledGraphiteOutputModules;
+    }
+    
     public boolean isOutputEnabled() {
         return isOutputEnabled_;
     }

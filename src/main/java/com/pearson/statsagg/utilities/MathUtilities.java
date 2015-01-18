@@ -1,6 +1,8 @@
 package com.pearson.statsagg.utilities;
 
+import static com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator.STATSD_MATH_CONTEXT;
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -75,7 +77,7 @@ public class MathUtilities {
         return median;
     }
     
-    public static BigDecimal computeMedianOfBigDecimals(List<BigDecimal> numbers, MathContext mathContext) {
+    public static BigDecimal computeMedianOfBigDecimals(List<BigDecimal> numbers, MathContext mathContext, boolean areNumbersAlreadySorted) {
         
         if ((numbers == null) || (numbers.isEmpty())) {
             return null;
@@ -87,17 +89,23 @@ public class MathUtilities {
         
         BigDecimal median;
         
-        List<BigDecimal> localNumbers = new ArrayList(numbers);
-        Collections.sort(localNumbers);
-        
-        boolean isOddSized = (localNumbers.size() % 2) == 1;
-        int medianIndex = localNumbers.size() / 2;
-
-        if (isOddSized) {
-            median = localNumbers.get(medianIndex);
+        List<BigDecimal> sortedNumbers;
+        if (!areNumbersAlreadySorted) {
+            sortedNumbers = new ArrayList(numbers);
+            Collections.sort(sortedNumbers);
         }
         else {
-            median = localNumbers.get(medianIndex - 1).add(localNumbers.get(medianIndex));
+            sortedNumbers = numbers;
+        }
+        
+        boolean isOddSized = (sortedNumbers.size() % 2) == 1;
+        int medianIndex = sortedNumbers.size() / 2;
+
+        if (isOddSized) {
+            median = sortedNumbers.get(medianIndex);
+        }
+        else {
+            median = sortedNumbers.get(medianIndex - 1).add(sortedNumbers.get(medianIndex));
             median = median.divide(new BigDecimal(2), mathContext);
         }        
     
@@ -106,7 +114,7 @@ public class MathUtilities {
 
     public static BigDecimal smartBigDecimalScaleChange(BigDecimal number, int scale, RoundingMode roundingMode) {
         
-        if (number == null) {
+        if ((number == null) || (roundingMode == null)) {
             return null;
         }
         
@@ -125,7 +133,7 @@ public class MathUtilities {
     
     public static BigDecimal computePopulationStandardDeviationOfBigDecimals(List<BigDecimal> numbers) {
         
-        if ((numbers == null) || (numbers.isEmpty())) {
+        if ((numbers == null) || numbers.isEmpty()) {
             return null;
         }
         
@@ -147,32 +155,6 @@ public class MathUtilities {
             return null;
         }
     }
-    
-//    public static BigDecimal computeNthPercentileOfBigDecimals(List<BigDecimal> numbers, BigDecimal nthPercentileThreshold) {
-//        
-//        if ((numbers == null) || (numbers.isEmpty())) {
-//            return null;
-//        }
-//        
-//        try {
-//            List<BigDecimal> localNumbers = new ArrayList(numbers);
-//            Collections.sort(localNumbers);
-//        
-//            BigDecimal maximumValue = localNumbers.get(localNumbers.size() - 1);
-//            BigDecimal valueThreshold = 
-//
-//            int numAbo
-//            for (int i = (localNumbers.size() - 1); i < 0; i--) {
-//                
-//            }
-//            
-//            return standardDeviationResult;
-//        }
-//        catch (Exception e) {
-//            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-//            return null;
-//        }
-//    }
     
     public static Long getSmallestValue(List<Long> values) {
         

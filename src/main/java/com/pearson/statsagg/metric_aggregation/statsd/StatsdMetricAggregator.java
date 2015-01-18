@@ -29,6 +29,13 @@ public class StatsdMetricAggregator {
     public static final int STATSD_PRECISION = 31;
     public static final RoundingMode STATSD_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext STATSD_MATH_CONTEXT = new MathContext(STATSD_PRECISION, STATSD_ROUNDING_MODE);
+    private static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
+
+    private static String counterMetricPrefix_ = null;
+    private static String counterMetricLegacyPrefix_ = null;
+    private static String timerMetricPrefix_ = null;
+    private static String gaugeMetricPrefix_ = null;
+    private static String setMetricPrefix_ = null;
     
     public static List<StatsdMetricAggregated> aggregateStatsdMetrics(List<StatsdMetricRaw> statsdMetricsRaw) {
         
@@ -193,6 +200,8 @@ public class StatsdMetricAggregator {
         List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
         Byte metricTypeKey = null;     
         
+        BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
+        
         for (String bucket : statsdMetricRawByBucketAndMetricType.keySet()) {
             List<StatsdMetricRaw> statsdMetricsByBucket = statsdMetricRawByBucketAndMetricType.get(bucket);
             
@@ -207,23 +216,26 @@ public class StatsdMetricAggregator {
                 
                 if (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) {
                     multipleStatsdMetricsAggregated = aggregateCounter(statsdMetricsByBucket, 
-                            ApplicationConfiguration.getFlushTimeAgg(), 
-                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
+                            aggregationWindowLengthInMs, 
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
+                            ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
                 else if (metricTypeKey == StatsdMetricRaw.TIMER_TYPE) {
                     multipleStatsdMetricsAggregated = aggregateTimer(statsdMetricsByBucket, 
-                            ApplicationConfiguration.getFlushTimeAgg(), 
-                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
+                            aggregationWindowLengthInMs, 
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
+                            ApplicationConfiguration.getStatsdNthPercentiles());
                 }
                 else if (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) {
                     String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + bucket;
                     Map<String,Gauge> statsdGaugeCache = GlobalVariables.statsdGaugeCache;
                     Gauge gaugeFromCache = statsdGaugeCache.get(prefixedBucketName);
 
-                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gaugeFromCache);
+                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gaugeFromCache, ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
                 }
                 else if (metricTypeKey == StatsdMetricRaw.SET_TYPE) {
-                    singleStatsdMetricAggregated = aggregateSet(statsdMetricsByBucket);
+                    singleStatsdMetricAggregated = aggregateSet(statsdMetricsByBucket, 
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
                 }
             }
             
@@ -242,14 +254,16 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static List<StatsdMetricAggregated> aggregateCounter(List<StatsdMetricRaw> statsdMetricsRaw, long flushIntervalInMilliseconds, String aggregatedMetricsSeparator) {
+    public static List<StatsdMetricAggregated> aggregateCounter(List<StatsdMetricRaw> statsdMetricsRaw, BigDecimal aggregationWindowLengthInMs, 
+            String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
-           return null; 
+           return new ArrayList<>();
         }
+        
         if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
 
-        BigDecimal aggregatedMetricValue = BigDecimal.ZERO;
+        BigDecimal count = BigDecimal.ZERO;
         long sumTimestamp = 0;
         int metricCounter = 0;
         
@@ -265,20 +279,20 @@ public class StatsdMetricAggregator {
                     BigDecimal sampleRateMultiplier;
                     
                     if (sampleRate.compareTo(BigDecimal.ZERO) == 1) {
-                        sampleRateMultiplier = new BigDecimal(1).divide(sampleRate, MathContext.DECIMAL64);
+                        sampleRateMultiplier = BigDecimal.ONE.divide(sampleRate, MathContext.DECIMAL64);
                     }
                     else {
-                        sampleRateMultiplier = new BigDecimal(1);
+                        sampleRateMultiplier = BigDecimal.ONE;
                         
                         logger.warn("Invalid sample rate for counter=\"" + statsdMetricsRaw.get(0).getBucket() 
                                 + "\". Value=\"" + statsdMetricRaw.getSampleRate() 
                                 + "\". Defaulting to sample-rate of 1.0");
                     }
                     
-                    aggregatedMetricValue = aggregatedMetricValue.add(metricValue.multiply(sampleRateMultiplier));
+                    count = count.add(metricValue.multiply(sampleRateMultiplier));
                 }
                 else {
-                    aggregatedMetricValue = aggregatedMetricValue.add(metricValue);
+                    count = count.add(metricValue);
                 }
 
                 metricCounter++;
@@ -293,35 +307,44 @@ public class StatsdMetricAggregator {
         if (metricCounter > 0) {
             List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
             
-            String bucketName = generatePrefix(StatsdMetricRaw.COUNTER_TYPE) + statsdMetricsRaw.get(0).getBucket();
-            aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
-            BigDecimal perSecondRate = MathUtilities.smartBigDecimalScaleChange(
-                    aggregatedMetricValue.multiply(new BigDecimal((int) 1000))
-                    .divide(new BigDecimal(flushIntervalInMilliseconds), STATSD_MATH_CONTEXT), 
+            count = MathUtilities.smartBigDecimalScaleChange(count, STATSD_SCALE, STATSD_ROUNDING_MODE);
+            BigDecimal ratePs = MathUtilities.smartBigDecimalScaleChange(
+                    count.multiply(ONE_THOUSAND)
+                    .divide(aggregationWindowLengthInMs, STATSD_MATH_CONTEXT), 
                     STATSD_SCALE, STATSD_ROUNDING_MODE);
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+                        
+            String bucket_Count;
+            if (useLegacyNameSpacing) {
+                String prefix = "";
+                if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix = ApplicationConfiguration.getGlobalMetricNamePrefixValue() + aggregatedMetricsSeparator;
+                bucket_Count = prefix + "stats_counts" + aggregatedMetricsSeparator + statsdMetricsRaw.get(0).getBucket();
+            }
+            else bucket_Count = generatePrefix(StatsdMetricRaw.COUNTER_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count";
 
-            String metricLabel = "Count";
-            StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
+            StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucket_Count, count, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
             
-            metricLabel = "PerSecondRate";
-            statsdMetricAggregated = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + metricLabel, perSecondRate, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
+            String bucket_Rate = useLegacyNameSpacing ? 
+                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, true) + statsdMetricsRaw.get(0).getBucket() : 
+                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "rate";
+            statsdMetricAggregated = new StatsdMetricAggregated(bucket_Rate, ratePs, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
 
             return statsdMetricsAggregated;
         }
         else {
-            return null;
+            return new ArrayList<>();
         }
     }
     
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, long aggregationWindowLengthInMs, String aggregatedMetricsSeparator) {
+    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, BigDecimal aggregationWindowLengthInMs, 
+            String aggregatedMetricsSeparator, StatsdNthPercentiles statsdNthPercentiles) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
            return new ArrayList<>(); 
@@ -329,42 +352,25 @@ public class StatsdMetricAggregator {
         
         if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
         
-        List<BigDecimal> metricValues = new ArrayList<>();
-        BigDecimal sum = BigDecimal.ZERO;
-        BigDecimal sumOfSquares = BigDecimal.ZERO;
-        BigDecimal minimumMetricValue = null;
-        BigDecimal maximumMetricValue = null;
+        List<String> nthPercentageFractional_StatsdFormattedStrings = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted();
+        List<BigDecimal> nthPercentageFractionals = statsdNthPercentiles.getNthPercentiles_Fractional();
         
-        long sumTimestamp = 0;
+        List<BigDecimal> metricValues = new ArrayList<>();
+        List<BigDecimal> rollingSum = new ArrayList<>();
+        List<BigDecimal> rollingSumOfSquares = new ArrayList<>();
+
+        BigDecimal lower = null, upper = null, sum = BigDecimal.ZERO, sumOfSquares = BigDecimal.ZERO;
+        List<BigDecimal> countNthPercentiles = null, meanNthPercentiles = null, lowerNthPercentiles = null, sumNthPercentiles = null, sumOfSquaresNthPercentiles = null, upperNthPercentiles = null;
+        List<String> outputPercentageStringsNthPercentiles = null;
+        
         int metricCounter = 0;
+        long sumTimestamp = 0;
 
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-
             try {
                 BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
-
                 metricValues.add(metricValue);
-                sum = sum.add(metricValue);
-                
-                BigDecimal metricValueSquared = metricValue.multiply(metricValue);
-                sumOfSquares = sumOfSquares.add(metricValueSquared);
-                
                 sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-                
-                if (metricCounter == 0) {
-                    maximumMetricValue = metricValue;
-                    minimumMetricValue = metricValue;
-                }
-                else {
-                    if ((maximumMetricValue != null) && maximumMetricValue.compareTo(metricValue) == -1) {
-                        maximumMetricValue = metricValue;
-                    }
-                    if ((minimumMetricValue != null) && minimumMetricValue.compareTo(metricValue) == 1) {
-                        minimumMetricValue = metricValue;
-                    }
-                }
-                
-                metricCounter++;
             }
             catch (Exception e) {
                 logger.error("Invalid data for timer=\"" + statsdMetricRaw.getBucket()
@@ -373,70 +379,249 @@ public class StatsdMetricAggregator {
             }  
         }
         
+        Collections.sort(metricValues);
+        
+        for (BigDecimal metricValue : metricValues) {            
+            sum = sum.add(metricValue);
+            rollingSum.add(sum);
+            
+            BigDecimal metricValueSquared = metricValue.multiply(metricValue);
+            sumOfSquares = sumOfSquares.add(metricValueSquared);
+            rollingSumOfSquares.add(sumOfSquares);
+
+            if (metricCounter == 0) {
+                upper = metricValue;
+                lower = metricValue;
+            }
+            else {
+                if ((upper != null) && upper.compareTo(metricValue) == -1) upper = metricValue;
+                if ((lower != null) && lower.compareTo(metricValue) == 1) lower = metricValue;
+            }
+
+            metricCounter++;
+        }
+        
+        BigDecimal metricCounter_BigDecimal = new BigDecimal(metricCounter);
+        int metricCounterMinusOne = metricCounter - 1;
+        
+        // calculate nth pct values
+        if ((metricCounter > 0) && (nthPercentageFractionals != null) && !nthPercentageFractionals.isEmpty()) {
+            countNthPercentiles = new ArrayList<>();
+            lowerNthPercentiles = new ArrayList<>();
+            meanNthPercentiles = new ArrayList<>();
+            sumNthPercentiles = new ArrayList<>();
+            sumOfSquaresNthPercentiles = new ArrayList<>();
+            outputPercentageStringsNthPercentiles = new ArrayList<>();
+            upperNthPercentiles = new ArrayList<>();
+            
+            for (int i = 0; i < nthPercentageFractionals.size(); i++) {
+                BigDecimal nthPercentageFractional = nthPercentageFractionals.get(i);
+                int indexOfNthPercentile;
+                boolean isNthPercentageNegative = false;
+                int nthPercentageFractionalComparedToZero = nthPercentageFractional.compareTo(BigDecimal.ZERO);
+                
+                if (nthPercentageFractionalComparedToZero < 0) {
+                    nthPercentageFractional = nthPercentageFractional.abs();
+                    isNthPercentageNegative = true;
+                }
+                    
+                if ((nthPercentageFractionalComparedToZero > 0) || (nthPercentageFractionalComparedToZero < 0)) { // positive or negative nth percentile
+                    BigDecimal nthPercentileOfMetricValues = nthPercentageFractional.multiply(metricCounter_BigDecimal, STATSD_MATH_CONTEXT);
+                    indexOfNthPercentile = nthPercentileOfMetricValues.setScale(0, RoundingMode.HALF_UP).intValue() - 1;
+                    if (indexOfNthPercentile > metricCounterMinusOne) indexOfNthPercentile = metricCounterMinusOne;      
+                }
+                else indexOfNthPercentile = -1;   // nth percentile = 0 (invalid)
+                
+                if (indexOfNthPercentile > -1) {
+                    BigDecimal countNthPercentile, lowerNthPercentile = null, meanNthPercentile = null, sumNthPercentile = null, sumOfSquaresNthPercentile = null, upperNthPercentile = null;
+                    
+                    if (!isNthPercentageNegative) {
+                        countNthPercentile = new BigDecimal(indexOfNthPercentile + 1);
+                        sumNthPercentile = MathUtilities.smartBigDecimalScaleChange(rollingSum.get(indexOfNthPercentile), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        meanNthPercentile = MathUtilities.smartBigDecimalScaleChange(sumNthPercentile.divide(countNthPercentile, STATSD_MATH_CONTEXT), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        sumOfSquaresNthPercentile = MathUtilities.smartBigDecimalScaleChange(rollingSumOfSquares.get(indexOfNthPercentile), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        upperNthPercentile = MathUtilities.smartBigDecimalScaleChange(metricValues.get(indexOfNthPercentile), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                    }
+                    else {
+                        int indexForSumSubtractor = metricCounter - indexOfNthPercentile - 2;
+                        countNthPercentile = new BigDecimal(indexOfNthPercentile + 1);
+                        lowerNthPercentile = MathUtilities.smartBigDecimalScaleChange(metricValues.get(metricCounter - indexOfNthPercentile - 1), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        if (indexForSumSubtractor >= 0) sumNthPercentile = MathUtilities.smartBigDecimalScaleChange(rollingSum.get(metricCounterMinusOne).subtract(rollingSum.get(indexForSumSubtractor)), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        if (sumNthPercentile != null) meanNthPercentile = MathUtilities.smartBigDecimalScaleChange(sumNthPercentile.divide(countNthPercentile, STATSD_MATH_CONTEXT), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                        if (sumNthPercentile != null) sumOfSquaresNthPercentile = MathUtilities.smartBigDecimalScaleChange(rollingSumOfSquares.get(metricCounterMinusOne).subtract(rollingSumOfSquares.get(indexForSumSubtractor)), STATSD_SCALE, STATSD_ROUNDING_MODE);
+                    }
+                    
+                    countNthPercentiles.add(countNthPercentile);
+                    lowerNthPercentiles.add(lowerNthPercentile);
+                    meanNthPercentiles.add(meanNthPercentile);
+                    sumNthPercentiles.add(sumNthPercentile);
+                    sumOfSquaresNthPercentiles.add(sumOfSquaresNthPercentile);
+                    upperNthPercentiles.add(upperNthPercentile);
+                    outputPercentageStringsNthPercentiles.add(nthPercentageFractional_StatsdFormattedStrings.get(i));
+                }
+            }
+        }
+        
+        // create metrics for output
         if (metricCounter > 0) {
             List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
             
             String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE) + statsdMetricsRaw.get(0).getBucket();
-
-            sum = MathUtilities.smartBigDecimalScaleChange(sum, STATSD_SCALE, STATSD_ROUNDING_MODE);
-            sumOfSquares = MathUtilities.smartBigDecimalScaleChange(sumOfSquares, STATSD_SCALE, STATSD_ROUNDING_MODE);
-            BigDecimal responsesPerInterval = new BigDecimal(metricCounter);
-            BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sum.divide(responsesPerInterval, STATSD_MATH_CONTEXT), STATSD_SCALE, STATSD_ROUNDING_MODE);
-            BigDecimal medianMetricValue = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, STATSD_MATH_CONTEXT), STATSD_SCALE, STATSD_ROUNDING_MODE);
-            minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE) : null;
-            maximumMetricValue = (maximumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(maximumMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE) : null;
-            BigDecimal responsesPerSecond = MathUtilities.smartBigDecimalScaleChange(
-                    responsesPerInterval.multiply(new BigDecimal((int) 1000))
-                    .divide(new BigDecimal(aggregationWindowLengthInMs), STATSD_MATH_CONTEXT), 
-                    STATSD_SCALE, STATSD_ROUNDING_MODE);
-            BigDecimal standardDeviationResult = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computePopulationStandardDeviationOfBigDecimals(metricValues), STATSD_SCALE, STATSD_ROUNDING_MODE);
-                    
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
 
-            StatsdMetricAggregated statsdTimerAverageResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean",  
-                    averageMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerAverageResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerAverageResponseTime);
-
-            StatsdMetricAggregated statsdTimerMedianResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median",  
-                    medianMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerMedianResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerMedianResponseTime);
+            BigDecimal count = metricCounter_BigDecimal;
+            BigDecimal countPs = MathUtilities.smartBigDecimalScaleChange(
+                    count.multiply(ONE_THOUSAND)
+                    .divide(aggregationWindowLengthInMs, STATSD_MATH_CONTEXT), 
+                    STATSD_SCALE, STATSD_ROUNDING_MODE);
+            sum = MathUtilities.smartBigDecimalScaleChange(sum, STATSD_SCALE, STATSD_ROUNDING_MODE);
+            BigDecimal mean = MathUtilities.smartBigDecimalScaleChange(sum.divide(count, STATSD_MATH_CONTEXT), STATSD_SCALE, STATSD_ROUNDING_MODE);
+            BigDecimal median = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, STATSD_MATH_CONTEXT, true), STATSD_SCALE, STATSD_ROUNDING_MODE);
+            lower = (lower != null) ? MathUtilities.smartBigDecimalScaleChange(lower, STATSD_SCALE, STATSD_ROUNDING_MODE) : null;
+            BigDecimal standardDeviation = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computePopulationStandardDeviationOfBigDecimals(metricValues), STATSD_SCALE, STATSD_ROUNDING_MODE);
+            sumOfSquares = MathUtilities.smartBigDecimalScaleChange(sumOfSquares, STATSD_SCALE, STATSD_ROUNDING_MODE);
+            upper = (upper != null) ? MathUtilities.smartBigDecimalScaleChange(upper, STATSD_SCALE, STATSD_ROUNDING_MODE) : null;
             
-            StatsdMetricAggregated statsdTimerMaximumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper",  
-                    maximumMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerMaximumResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerMaximumResponseTime);
-            
-            StatsdMetricAggregated statsdTimerMinimumResponseTime = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower",  
-                    minimumMetricValue, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerMinimumResponseTime.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerMinimumResponseTime);
-            
-            StatsdMetricAggregated statsdTimerResponsesPerInterval = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count", 
-                    responsesPerInterval, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerResponsesPerInterval.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerResponsesPerInterval);
-            
-            StatsdMetricAggregated statsdTimerResponsesPerSecond = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps", 
-                    responsesPerSecond, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdTimerResponsesPerSecond.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdTimerResponsesPerSecond);
+            if (count != null) {
+                StatsdMetricAggregated statsdCount = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count", 
+                        count, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdCount.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdCount);
+            }
     
-            StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum",  
-                    sum, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdSum.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdSum);
+            if ((countNthPercentiles != null) && !countNthPercentiles.isEmpty()) {
+                for (int i = 0; i < countNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal countNthPercentile = countNthPercentiles.get(i);
+                    if (countNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdCountNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
+                            "count_" + outputPercentageStringsNthPercentiles.get(i), 
+                            countNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdCountNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdCountNthPercentile);
+                }
+            }
             
-            StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares",  
-                    sumOfSquares, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdSumOfSquares.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdSumOfSquares);
+            if (countPs != null) {
+                StatsdMetricAggregated statsdCountPs = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps", 
+                        countPs, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdCountPs.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdCountPs);
+            }
             
-            StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std",  
-                    standardDeviationResult, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-            statsdStandardDeviation.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
-            statsdMetricsAggregated.add(statsdStandardDeviation);
+            if (lower != null) {
+                StatsdMetricAggregated statsdLower = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower",  
+                        lower, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdLower.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdLower);
+            }
+            
+            if ((lowerNthPercentiles != null) && !lowerNthPercentiles.isEmpty()) {
+                for (int i = 0; i < lowerNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal lowerNthPercentile = lowerNthPercentiles.get(i);
+                    if (lowerNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdLowerNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
+                            + "lower_" + outputPercentageStringsNthPercentiles.get(i),  
+                            lowerNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdLowerNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdLowerNthPercentile);
+                }
+            }
+            
+            if (mean != null) {
+                StatsdMetricAggregated statsdMean = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean",  
+                        mean, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdMean.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdMean);
+            }
+            
+            if ((meanNthPercentiles != null) && !meanNthPercentiles.isEmpty()) {
+                for (int i = 0; i < meanNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal meanNthPercentile = meanNthPercentiles.get(i);
+                    if (meanNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdMeanNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
+                            "mean_" + outputPercentageStringsNthPercentiles.get(i),  
+                            meanNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdMeanNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdMeanNthPercentile);
+                }
+            }
+            
+            if (median != null) {
+                StatsdMetricAggregated statsdMedian = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median",  
+                        median, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdMedian.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdMedian);
+            }
+
+            if (sum != null) {
+                StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum",  
+                        sum, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdSum.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdSum);
+            }
+            
+            if ((sumNthPercentiles != null) && !sumNthPercentiles.isEmpty()) {
+                for (int i = 0; i < sumNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal sumNthPercentile = sumNthPercentiles.get(i);
+                    if (sumNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdSumNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
+                            "sum_" + outputPercentageStringsNthPercentiles.get(i), 
+                            sumNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdSumNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdSumNthPercentile);
+                }
+            }
+            
+            if (sumOfSquares != null) {
+                StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares",  
+                        sumOfSquares, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdSumOfSquares.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdSumOfSquares);
+            }
+            
+            if ((sumOfSquaresNthPercentiles != null) && !sumOfSquaresNthPercentiles.isEmpty()) {
+                for (int i = 0; i < sumOfSquaresNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal sumOfSquaresNthPercentile = sumOfSquaresNthPercentiles.get(i);
+                    if (sumOfSquaresNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdSumOfSquares_NthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
+                            "sum_squares_" + outputPercentageStringsNthPercentiles.get(i),  
+                            sumOfSquaresNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdSumOfSquares_NthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdSumOfSquares_NthPercentile);
+                }
+            }
+            
+            if (standardDeviation != null) {
+                StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std",  
+                        standardDeviation, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdStandardDeviation.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdStandardDeviation);
+            }
+            
+            if (upper != null) {
+                StatsdMetricAggregated statsdUpper = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper",  
+                        upper, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                statsdUpper.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricsAggregated.add(statsdUpper);
+            }
+            
+            if ((upperNthPercentiles != null) && !upperNthPercentiles.isEmpty()) {
+                for (int i = 0; i < upperNthPercentiles.size(); i++) {
+                    if ((outputPercentageStringsNthPercentiles == null) || (outputPercentageStringsNthPercentiles.get(i) == null)) continue;
+                    BigDecimal upperNthPercentile = upperNthPercentiles.get(i);
+                    if (upperNthPercentile == null) continue;
+                    StatsdMetricAggregated statsdUpperNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
+                            + "upper_" + outputPercentageStringsNthPercentiles.get(i),  
+                            upperNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
+                    statsdUpperNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMetricsAggregated.add(statsdUpperNthPercentile);
+                }
+            }
             
             return statsdMetricsAggregated;
         }
@@ -448,23 +633,21 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetricRaw> statsdMetricsRaw, Gauge gaugeInitial) {
+    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetricRaw> statsdMetricsRaw, Gauge gaugeInitial, String aggregatedMetricsSeparator) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
            return null; 
         }
+        
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
 
-        BigDecimal aggregatedMetricValue;
         long sumTimestamp = 0;
         int metricCounter = 0;
-        
-        if (gaugeInitial == null) {
-            aggregatedMetricValue = BigDecimal.ZERO;
-        }
-        else {
-            aggregatedMetricValue = gaugeInitial.getMetricValue();
-        }
-  
+        BigDecimal aggregatedMetricValue;
+
+        if (gaugeInitial == null) aggregatedMetricValue = BigDecimal.ZERO;
+        else aggregatedMetricValue = gaugeInitial.getMetricValue();
+
         List<StatsdMetricRaw> statsdMetricsRawLocal = new ArrayList<>(statsdMetricsRaw);
         Collections.sort(statsdMetricsRawLocal, StatsdMetricRaw.COMPARE_BY_HASH_KEY);
 
@@ -493,8 +676,8 @@ public class StatsdMetricAggregator {
         
         if (metricCounter > 0) {
             String bucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + statsdMetricsRawLocal.get(0).getBucket();
-            aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.GAUGE_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             return statsdMetricAggregated;
@@ -507,11 +690,13 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateSet(List<StatsdMetricRaw> statsdMetricsRaw) {
+    public static StatsdMetricAggregated aggregateSet(List<StatsdMetricRaw> statsdMetricsRaw, String aggregatedMetricsSeparator) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
-           return null; 
+            return null; 
         }
+        
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
         
         Set<String> metricSet = new HashSet<>();
         long sumTimestamp = 0;
@@ -521,7 +706,7 @@ public class StatsdMetricAggregator {
 
             try {
                 BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
-                String metricValueNormalized = metricValue.toPlainString();
+                String metricValueNormalized = metricValue.stripTrailingZeros().toPlainString();
                 metricSet.add(metricValueNormalized);
                 sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
                 metricCounter++;
@@ -534,9 +719,9 @@ public class StatsdMetricAggregator {
         }
         
         if (metricCounter > 0) {
-            String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE) + statsdMetricsRaw.get(0).getBucket();
-            BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
+            String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count";
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, uniqueMetricValueCount, averagedTimestamp, StatsdMetricAggregated.SET_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             return statsdMetricAggregated;
@@ -547,32 +732,45 @@ public class StatsdMetricAggregator {
     }
     
     private static String generatePrefix(Byte metricTypeKey) {
-        
-        StringBuilder prefix = new StringBuilder("");
-        
-        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) {
-            prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
-        }
-        
-        if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) {
-            prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
-        }
-        
+        return generatePrefix(metricTypeKey, false);
+    }
+    
+    private static String generatePrefix(Byte metricTypeKey, boolean useLegacyNameSpacing) {
+                
         if (metricTypeKey == null) {
-            return prefix.toString();
+            StringBuilder prefix = new StringBuilder("");
+            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
+            if (metricTypeKey == null) return prefix.toString();
         }
+        else if ((metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && useLegacyNameSpacing && (counterMetricLegacyPrefix_ != null)) return counterMetricLegacyPrefix_;
+        else if ((metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && !useLegacyNameSpacing && (counterMetricPrefix_ != null)) return counterMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetricRaw.TIMER_TYPE) && (timerMetricPrefix_ != null)) return timerMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugeMetricPrefix_ != null)) return gaugeMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetricRaw.SET_TYPE) && (setMetricPrefix_ != null)) return setMetricPrefix_;
 
-        if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE)) {
+        StringBuilder prefix = new StringBuilder("");
+        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+        if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
+        
+        if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && useLegacyNameSpacing) {
+            counterMetricLegacyPrefix_ = prefix.toString();
+        }
+        else if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && !useLegacyNameSpacing) {
             prefix.append(ApplicationConfiguration.getStatsdCounterMetricNamePrefixValue()).append(".");
+            counterMetricPrefix_ = prefix.toString();
         }
         else if (ApplicationConfiguration.isStatsdTimerMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.TIMER_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdTimerMetricNamePrefixValue()).append(".");
+            timerMetricPrefix_ = prefix.toString();
         }
         else if (ApplicationConfiguration.isStatsdGaugeMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdGaugeMetricNamePrefixValue()).append(".");
+            gaugeMetricPrefix_ = prefix.toString();
         }
         else if (ApplicationConfiguration.isStatsdSetMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.SET_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdSetMetricNamePrefixValue()).append(".");
+            setMetricPrefix_ = prefix.toString();
         }
         
         return prefix.toString();
