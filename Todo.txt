@@ -1,35 +1,29 @@
 Short term
- * Add healthcheck servlet
- * unit tests for set
- * unit tests for availability alert
- * global suffix
- * fix aggregatedMetricsSeparator for graphite
+ * legacy namespacing kills statsd prefix
+   * documentation
+ * document statsd config file for comparison
  
 Before open source release 
- * documentation/help page (wip)
-   * what happens on restart?
-   * gauge metrics persisted in memory
+
    
 
 Medium term
- * Migrate to HikariCP
- * new option -- limit metric # in webui (and in underlying code)
+ * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
+ * Statsd histograms
+ * new option -- limit metric results # in webui (and in underlying code)
+ * debug mode for "details" pages
  * tweak webui "alert details" output (two columns)
  * tweak webui "details" to have links to other "details" pages
- * debug mode for "details" pages
+ * manual injection of metrics via a new servlet
  * stop resending metric after X time of no updates
- * option to skip persisting gauges in the db
- * alert by individual metric
- * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * make alert suspension datetime bars be full width of column
- * Statsd histograms
  * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
  
  
 Long term
+ * migrate to HikariCP
  * calculator/aggregator
  * events log w/ UI component
  * server-side webui tables
  * postgres support for StatsAgg admin database
- * Statsd repeater functionality
- 
+ * alert by individual metric

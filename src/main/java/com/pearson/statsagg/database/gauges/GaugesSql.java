@@ -13,6 +13,9 @@ public class GaugesSql {
     protected final static String DropTable_Gauges = 
                     "DROP TABLE GAUGES";
     
+    protected final static String TruncateTable_Gauges = 
+                    "TRUNCATE TABLE GAUGES";
+    
     protected final static String CreateTable_Gauges_Derby =  
                     "CREATE TABLE GAUGES (" + 
                     "BUCKET_SHA1 VARCHAR(50) NOT NULL, " + 

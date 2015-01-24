@@ -36,6 +36,7 @@ public class DatabaseConfiguration {
     private static int connectionValidityCheckTimeout_ = VALUE_NOT_SET_CODE;
     
     private static int type_ = VALUE_NOT_SET_CODE;
+    private static String typeString_ = null;
     private static String hostname_ = null;
     private static String port_ = null;
     private static String databaseLocalPath_ = null;
@@ -93,19 +94,13 @@ public class DatabaseConfiguration {
         
         try {
             // determine database type
-            String type = databaseConfiguration_.getString("db_type", "");
+            typeString_ = databaseConfiguration_.getString("db_type", "");
             
-            if (type.equalsIgnoreCase("derby_network")) {
-                type_ = DERBY_NETWORK;
-            }
-            else if (type.equalsIgnoreCase("derby_embedded")) {
-                type_ = DERBY_EMBEDDED;
-            }
-            else if (type.equalsIgnoreCase("mysql")) {
-                type_ = MYSQL;
-            }
-            else if (type.equalsIgnoreCase("postgres")) {
-                type_ = POSTGRES;
+            if (typeString_ != null) {
+                if (typeString_.equalsIgnoreCase("derby_network")) type_ = DERBY_NETWORK;
+                else if (typeString_.equalsIgnoreCase("derby_embedded")) type_ = DERBY_EMBEDDED;
+                else if (typeString_.equalsIgnoreCase("mysql")) type_ = MYSQL;
+                else if (typeString_.equalsIgnoreCase("postgres")) type_ = POSTGRES;
             }
             
             // load db_localpath first so it can be used by other variables
@@ -195,7 +190,7 @@ public class DatabaseConfiguration {
         
         return jdbc;
     }
-    
+
     public static int getCpMaxConnections() {
         return cpMaxConnections_;
     }
@@ -227,7 +222,11 @@ public class DatabaseConfiguration {
     public static int getType() {
         return type_;
     }
-    
+
+    public static String getTypeString() {
+        return typeString_;
+    }
+
     public static boolean isInitializeSuccess() {
         return isInitializeSuccess_;
     }

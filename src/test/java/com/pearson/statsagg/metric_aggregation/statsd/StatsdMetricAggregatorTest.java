@@ -219,19 +219,19 @@ public class StatsdMetricAggregatorTest {
         statsdMetricsRaw.add(statsdMetricRaw1); statsdMetricsRaw.add(statsdMetricRaw2); statsdMetricsRaw.add(statsdMetricRaw3); statsdMetricsRaw.add(statsdMetricRaw4);
         
         statsdMetricRaw1.setHashKey(new Long(1)); statsdMetricRaw2.setHashKey(new Long(2)); statsdMetricRaw3.setHashKey(new Long(3)); statsdMetricRaw4.setHashKey(new Long(4)); 
-        StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".");
+        StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".", false);
         assertEquals(new BigDecimal("237.5"), statsdMetricAggregated.getMetricValue());
         
         statsdMetricRaw1.setHashKey(new Long(2)); statsdMetricRaw2.setHashKey(new Long(1)); statsdMetricRaw3.setHashKey(new Long(4)); statsdMetricRaw4.setHashKey(new Long(3)); 
-        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".");
+        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".", false);
         assertEquals(new BigDecimal("22.4"), statsdMetricAggregated.getMetricValue());
         
         statsdMetricRaw1.setHashKey(new Long(4)); statsdMetricRaw2.setHashKey(new Long(1)); statsdMetricRaw3.setHashKey(new Long(2)); statsdMetricRaw4.setHashKey(new Long(3)); 
-        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".");
+        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".", false);
         assertEquals(new BigDecimal("100"), statsdMetricAggregated.getMetricValue());
         
         statsdMetricRaw1.setHashKey(new Long(2)); statsdMetricRaw2.setHashKey(new Long(3)); statsdMetricRaw3.setHashKey(new Long(4)); statsdMetricRaw4.setHashKey(new Long(1)); 
-        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".");
+        statsdMetricAggregated = StatsdMetricAggregator.aggregateGauge(statsdMetricsRaw, null, ".", false);
         assertEquals(new BigDecimal("685.2"), statsdMetricAggregated.getMetricValue());
         
         long timestampAverage = 0;
@@ -259,23 +259,27 @@ public class StatsdMetricAggregatorTest {
         StatsdMetricRaw statsdMetricRaw3 = StatsdMetricRaw.parseStatsdMetricRaw("setMetric:-215.1|s");
         StatsdMetricRaw statsdMetricRaw4 = StatsdMetricRaw.parseStatsdMetricRaw("setMetric:-215.1|s");
         StatsdMetricRaw statsdMetricRaw5 = StatsdMetricRaw.parseStatsdMetricRaw("setMetric:-215|s");
+        StatsdMetricRaw statsdMetricRaw6 = StatsdMetricRaw.parseStatsdMetricRaw("setMetric:-215.100|s");
 
         statsdMetricsRaw.add(statsdMetricRaw1); statsdMetricsRaw.add(statsdMetricRaw2); 
         statsdMetricsRaw.add(statsdMetricRaw3); statsdMetricsRaw.add(statsdMetricRaw4);
-        statsdMetricsRaw.add(statsdMetricRaw5);
+        statsdMetricsRaw.add(statsdMetricRaw5); statsdMetricsRaw.add(statsdMetricRaw6);
         
         statsdMetricRaw1.setHashKey(new Long(1)); statsdMetricRaw2.setHashKey(new Long(2)); 
         statsdMetricRaw3.setHashKey(new Long(3)); statsdMetricRaw4.setHashKey(new Long(4)); 
-        statsdMetricRaw5.setHashKey(new Long(5)); 
+        statsdMetricRaw5.setHashKey(new Long(5)); statsdMetricRaw5.setHashKey(new Long(6)); 
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
         timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
         
-        StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateSet(statsdMetricsRaw, ".");    
+        StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateSet(statsdMetricsRaw, ".", false);    
         assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
         assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
         assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
+        assertEquals(StatsdMetricAggregated.SET_TYPE, statsdMetricAggregated.getMetricTypeKey());
+        
+        assertEquals(new BigDecimal("4"), statsdMetricAggregated.getMetricValue());
     }
 
     @Test
@@ -294,7 +298,7 @@ public class StatsdMetricAggregatorTest {
         timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
         
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("70.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -306,6 +310,7 @@ public class StatsdMetricAggregatorTest {
             if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "6"); matchCount++;}
             if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "20"); matchCount++;}
             if (statsdMetricAggregated.getGraphiteFormatString().contains(".upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4"); matchCount++;}
+            assertEquals(StatsdMetricAggregated.TIMER_TYPE, statsdMetricAggregated.getMetricTypeKey());
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -360,7 +365,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_NoNth(List<StatsdMetricRaw> statsdMetricsRaw, long timestampAverage) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles(null);
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         
         int matchCount = 0;
 
@@ -387,7 +392,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_Negative100thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("-100.000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -408,7 +413,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_Negative35thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("-35.000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -429,7 +434,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_Negative3rdPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("-3.000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -450,7 +455,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_0thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("0.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0); 
         
         int matchCount = 0;
@@ -471,7 +476,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_5thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("5.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -492,7 +497,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_12_5thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("12.50000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
                 
         int matchCount = 0;
@@ -513,7 +518,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_35thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("35.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -534,7 +539,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_40thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("40.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -555,7 +560,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_50thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("50.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -576,7 +581,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_90thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("90.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -597,7 +602,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_100thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("100.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -618,7 +623,7 @@ public class StatsdMetricAggregatorTest {
     
     public void testAggregateTimer_150thPct(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("150.00000000");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
         String nthPctShort = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted().get(0);
         
         int matchCount = 0;
@@ -639,7 +644,7 @@ public class StatsdMetricAggregatorTest {
 
     public void testAggregateTimer_Multi(List<StatsdMetricRaw> statsdMetricsRaw) {
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("12.5,5,40");
-        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles);  
+        List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
                 
         int matchCount = 0;
         

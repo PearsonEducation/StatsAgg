@@ -212,7 +212,7 @@ public class StatsdAggregationThread implements Runnable {
     
     private void updateStatsdGaugesInDatabaseAndCache(List<StatsdMetricAggregated> statsdMetricsAggregatedGauges) {
         
-        if ((statsdMetricsAggregatedGauges) == null || statsdMetricsAggregatedGauges.isEmpty()) {
+        if ((statsdMetricsAggregatedGauges == null) || statsdMetricsAggregatedGauges.isEmpty() || !ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
             return;
         }
         

@@ -32,7 +32,8 @@ public class TcpServer implements Runnable, NettyServer {
     private final String serverType_;
     private EventLoopGroup bossGroup_ = null;
     private EventLoopGroup workerGroup_ = null;
-
+    private boolean initializeSuccess = true;
+    
     public TcpServer(int port, String serverType) {
         this.port_ = port;
         this.serverType_ = serverType;
@@ -43,6 +44,7 @@ public class TcpServer implements Runnable, NettyServer {
 
         if ((port_ < 0) || (port_ > 65535)) {
             logger.error("Error running " + serverType_.toLowerCase() + " TCP server. Bad input arguments.");
+            initializeSuccess = false;
             return;
         }
 
@@ -92,6 +94,7 @@ public class TcpServer implements Runnable, NettyServer {
             b.bind(port_).sync().channel().closeFuture().sync();
         }
         catch (Exception e) {
+            initializeSuccess = false;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
@@ -173,6 +176,10 @@ public class TcpServer implements Runnable, NettyServer {
         finally {
             workerGroup_ = null;
         }
+    }
+
+    public boolean isInitializeSuccess() {
+        return initializeSuccess;
     }
     
 }

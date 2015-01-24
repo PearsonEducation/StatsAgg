@@ -7,7 +7,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.apache.commons.lang.StringUtils;

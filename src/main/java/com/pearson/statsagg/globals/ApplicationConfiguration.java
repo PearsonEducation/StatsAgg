@@ -51,6 +51,8 @@ public class ApplicationConfiguration {
     private static String globalAggregatedMetricsSeparatorString_ = null;
     private static boolean statsdMetricNamePrefixEnabled_ = false;
     private static String statsdMetricNamePrefixValue_ = null;
+    private static boolean statsdMetricNameSuffixEnabled_ = false;
+    private static String statsdMetricNameSuffixValue_ = null;
     private static boolean statsdCounterMetricNamePrefixEnabled_ = false;
     private static String statsdCounterMetricNamePrefixValue_ = null;
     private static boolean statsdGaugeMetricNamePrefixEnabled_ = false;
@@ -113,7 +115,7 @@ public class ApplicationConfiguration {
         isInitializeSuccess_ = setApplicationConfigurationValues();
         return isInitializeSuccess_;
     }
-
+    
     private static boolean setApplicationConfigurationValues() {
         
         try {
@@ -144,6 +146,8 @@ public class ApplicationConfiguration {
             globalAggregatedMetricsSeparatorString_= applicationConfiguration_.getString("global_aggregated_metrics_separator_string", "."); 
             statsdMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_metric_name_prefix_enabled", false);
             statsdMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_metric_name_prefix_value", "stats");
+            statsdMetricNameSuffixEnabled_ = applicationConfiguration_.getBoolean("statsd_metric_name_suffix_enabled", false);
+            statsdMetricNameSuffixValue_ = applicationConfiguration_.getString("statsd_metric_name_suffix_value", "");
             statsdCounterMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_counter_metric_name_prefix_enabled", false);
             statsdCounterMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_counter_metric_name_prefix_value", "counters");
             statsdGaugeMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_gauge_metric_name_prefix_enabled", false);
@@ -364,6 +368,14 @@ public class ApplicationConfiguration {
 
     public static String getStatsdMetricNamePrefixValue() {
         return statsdMetricNamePrefixValue_;
+    }
+
+    public static boolean isStatsdMetricNameSuffixEnabled() {
+        return statsdMetricNameSuffixEnabled_;
+    }
+
+    public static String getStatsdMetricNameSuffixValue() {
+        return statsdMetricNameSuffixValue_;
     }
 
     public static boolean isStatsdCounterMetricNamePrefixEnabled() {

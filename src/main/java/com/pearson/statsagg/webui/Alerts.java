@@ -19,7 +19,6 @@ import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;

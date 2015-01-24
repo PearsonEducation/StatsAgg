@@ -46,6 +46,7 @@ import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
 import com.pearson.statsagg.utilities.Threads;
 import java.io.ByteArrayInputStream;
+import java.io.FileInputStream;
 import java.util.Collections;
 import java.util.Set;
 import java.util.TreeSet;
@@ -118,8 +119,7 @@ public class ContextManager implements ServletContextListener {
     private boolean initializeApplication() {
         
         // load the logger configuration file & initialize it
-        InputStream logbackConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "logback_config.xml");
-        boolean isLogbackSuccess = readAndSetLogbackConfiguration(logbackConfigurationInputStream);
+        boolean isLogbackSuccess = readAndSetLogbackConfiguration();
 
         // read & set the application configuration
         boolean isApplicationConfigurationSuccess = readAndSetApplicationConfiguration();
@@ -140,7 +140,7 @@ public class ContextManager implements ServletContextListener {
         }        
         
         // read the gauges from the database & add to the recent metric history global variables
-        if (initializeDatabaseSuccess && ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
+        if (initializeDatabaseSuccess) {
             long numGaugesFromDatabase = readGaugesFromDatabaseAndAddToGlobalVariables();
             logger.info("Finished adding gauges from database to recent metric global history. NumGaugesFromDbAddedToGlobal=" + numGaugesFromDatabase);
         }
@@ -191,18 +191,24 @@ public class ContextManager implements ServletContextListener {
         }
     }
     
-    private boolean readAndSetLogbackConfiguration(InputStream inputStream) {
-
-        if (inputStream == null) {
-            return false;
-        }
+    private boolean readAndSetLogbackConfiguration() {
 
         String logbackXmlConfigString = null;
         InputStream inputStreamString = null;
         
         try {
+            InputStream logbackConfigurationInputStream;
+            String customLogbackConfLocation = System.getProperty("saLogbackConfLocation");
+
+            if ((customLogbackConfLocation == null) || customLogbackConfLocation.isEmpty()) {
+                logbackConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "logback_config.xml");
+            }
+            else {
+                logbackConfigurationInputStream = new FileInputStream(new File(customLogbackConfLocation));
+            }
+            
             StringWriter stringWriter = new StringWriter();
-            IOUtils.copy(inputStream, stringWriter, "UTF-8");
+            IOUtils.copy(logbackConfigurationInputStream, stringWriter, "UTF-8");
             logbackXmlConfigString = stringWriter.toString();
         }
         catch (Exception e) {
@@ -240,7 +246,15 @@ public class ContextManager implements ServletContextListener {
         boolean isUsingDefaultSettings = false, isConfigFileMissing = false;
         
         try {
-            applicationConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "application.properties"); 
+            String customAppConfLocation = System.getProperty("saAppConfLocation");
+        
+            if ((customAppConfLocation == null) || customAppConfLocation.isEmpty()) {
+                applicationConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "application.properties"); 
+            }
+            else {
+                applicationConfigurationInputStream = new FileInputStream(new File(customAppConfLocation));
+            }
+            
             if (applicationConfigurationInputStream.available() <= 0) isConfigFileMissing = true;
         }
         catch (Exception e) {
@@ -276,7 +290,15 @@ public class ContextManager implements ServletContextListener {
         boolean isDatabaseInitializeSuccess = false, isDatabaseGetConfigSuccess = false, isConfigFileMissing = false;
 
         try {
-            databaseConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "database.properties");
+            String customDbConfLocation = System.getProperty("saDbConfLocation");
+        
+            if ((customDbConfLocation == null) || customDbConfLocation.isEmpty()) {
+                databaseConfigurationInputStream = initializerContext_.getResourceAsStream(File.separator + "WEB-INF" + File.separator + "config" + File.separator + "database.properties");
+            }
+            else {
+                databaseConfigurationInputStream = new FileInputStream(new File(customDbConfLocation));
+            }
+            
             if (databaseConfigurationInputStream.available() <= 0) isConfigFileMissing = true;
             else GlobalVariables.isStatsaggUsingInMemoryDatabase.set(false);
         }
@@ -477,8 +499,16 @@ public class ContextManager implements ServletContextListener {
     }
     
     private static long readGaugesFromDatabaseAndAddToGlobalVariables() {
-        GaugesDao gaugeDao = new GaugesDao();
+        GaugesDao gaugeDao = new GaugesDao(false);
+        
+        if (!ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
+            gaugeDao.truncateTable();
+            gaugeDao.close();
+            return 0;
+        }
+        
         List<Gauge> gauges = gaugeDao.getAllDatabaseObjectsInTable();
+        gaugeDao.close();
         
         for (Gauge gauge : gauges) {
             try {
@@ -499,7 +529,7 @@ public class ContextManager implements ServletContextListener {
 
     private boolean startServerListeners() {
         
-        boolean isStartupSuccess = false;
+        boolean isStartupSuccess = true;
         
         try {
             // start the netty statsd tcp server
@@ -507,6 +537,7 @@ public class ContextManager implements ServletContextListener {
                 statsdTcpServer_ = new TcpServer(ApplicationConfiguration.getStatsdTcpListenerPort(), TcpServer.SERVER_TYPE_STATSD);
                 Thread statsdTcpServerThread = new Thread(statsdTcpServer_);
                 statsdTcpServerThread.start();
+                if (!statsdTcpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
             
             // start the netty statsd udp server
@@ -514,6 +545,7 @@ public class ContextManager implements ServletContextListener {
                 statsdUdpServer_ = new UdpServer(ApplicationConfiguration.getStatsdUdpListenerPort(), UdpServer.SERVER_TYPE_STATSD);
                 Thread statsdUdpServerThread = new Thread(statsdUdpServer_);
                 statsdUdpServerThread.start();
+                if (!statsdUdpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
           
             // start the netty graphite aggregator tcp server
@@ -521,6 +553,7 @@ public class ContextManager implements ServletContextListener {
                 graphiteAggregatorTcpServer_ = new TcpServer(ApplicationConfiguration.getGraphiteAggregatorTcpListenerPort(), TcpServer.SERVER_TYPE_GRAPHITE_AGGREGATOR);
                 Thread graphiteAggregatorTcpServerThread = new Thread(graphiteAggregatorTcpServer_);
                 graphiteAggregatorTcpServerThread.start();
+                if (!graphiteAggregatorTcpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
             
             // start the netty graphite aggregator udp server
@@ -528,6 +561,7 @@ public class ContextManager implements ServletContextListener {
                 graphiteAggregatorUdpServer_ = new UdpServer(ApplicationConfiguration.getGraphiteAggregatorUdpListenerPort(), UdpServer.SERVER_TYPE_GRAPHITE_AGGREGATOR);
                 Thread graphiteAggregatorUdpServerThread = new Thread(graphiteAggregatorUdpServer_);
                 graphiteAggregatorUdpServerThread.start();
+                if (!graphiteAggregatorUdpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
             
             // start the netty graphite passthrough tcp server
@@ -535,6 +569,7 @@ public class ContextManager implements ServletContextListener {
                 graphitePassthroughTcpServer_ = new TcpServer(ApplicationConfiguration.getGraphitePassthroughTcpListenerPort(), TcpServer.SERVER_TYPE_GRAPHITE_PASSTHROUGH);
                 Thread graphitePassthroughTcpServerThread = new Thread(graphitePassthroughTcpServer_);
                 graphitePassthroughTcpServerThread.start();
+                if (!graphitePassthroughTcpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
             
             // start the netty graphite passthrough udp server
@@ -542,13 +577,12 @@ public class ContextManager implements ServletContextListener {
                 graphitePassthroughUdpServer_ = new UdpServer(ApplicationConfiguration.getGraphitePassthroughUdpListenerPort(), UdpServer.SERVER_TYPE_GRAPHITE_PASSTHROUGH);
                 Thread graphitePassthroughUdpServerThread = new Thread(graphitePassthroughUdpServer_);
                 graphitePassthroughUdpServerThread.start();
+                if (!graphitePassthroughUdpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
-            
-            isStartupSuccess = true;
         }
         catch (Exception e) {
             logger.error(e.toString() + File.separator + StackTrace.getStringFromStackTrace(e));
-            logger.error("Failed to start a netty server");
+            logger.error("Failed to start a netty server. Please view the log files for more details.");
             
             isStartupSuccess = false;
         }

@@ -56,6 +56,30 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
         return isTransactionSuccess;
     }
     
+    public boolean truncateTable(String sql) {
+
+        boolean isTransactionSuccess = true;
+        
+        try {
+            
+            if (!isConnectionValid() || (isConnectionReadOnly() == null) || isConnectionReadOnly()) {
+                return false;
+            }
+             
+            databaseInterface_.createStatement().execute(sql);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            isTransactionSuccess = false;
+        }
+        finally {
+            isTransactionSuccess = databaseInterface_.endTransactionConditional(isTransactionSuccess) && isTransactionSuccess;
+            databaseInterface_.cleanupAutomatic();
+        }
+
+        return isTransactionSuccess;
+    }
+    
     public boolean createTable(String... parameters) {
         List<String> parametersList = new ArrayList<>(Arrays.asList(parameters));
         return createTable(parametersList);

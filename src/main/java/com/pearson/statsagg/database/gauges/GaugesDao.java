@@ -31,6 +31,10 @@ public class GaugesDao extends DatabaseObjectDao<Gauge> {
         return dropTable(GaugesSql.DropTable_Gauges);
     }
     
+    public boolean truncateTable() {
+        return truncateTable(GaugesSql.TruncateTable_Gauges);
+    }
+    
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
         

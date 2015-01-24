@@ -26,6 +26,7 @@ public class UdpServer implements Runnable, NettyServer {
     private final int port_;
     private final String serverType_;
     private EventLoopGroup group_ = null;
+    private boolean initializeSuccess = true;
 
     public UdpServer(int port, String serverType) {
         this.port_ = port;
@@ -37,6 +38,7 @@ public class UdpServer implements Runnable, NettyServer {
 
         if ((port_ < 0) || (port_ > 65535)) {
             logger.error("Error running " + serverType_.toLowerCase() + " UDP server. Bad input arguments.");
+            initializeSuccess = false;
             return;
         }
 
@@ -58,6 +60,7 @@ public class UdpServer implements Runnable, NettyServer {
             b.bind(port_).sync().channel().closeFuture().await();
         }
         catch (Exception e) {
+            initializeSuccess = false;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
@@ -100,6 +103,10 @@ public class UdpServer implements Runnable, NettyServer {
         finally {
             group_ = null;
         }
+    }
+    
+    public boolean isInitializeSuccess() {
+        return initializeSuccess;
     }
     
 }

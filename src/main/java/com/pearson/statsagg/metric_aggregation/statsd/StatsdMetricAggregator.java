@@ -31,6 +31,7 @@ public class StatsdMetricAggregator {
     public static final MathContext STATSD_MATH_CONTEXT = new MathContext(STATSD_PRECISION, STATSD_ROUNDING_MODE);
     private static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
 
+    private static String statsdSuffix_ = null;
     private static String counterMetricPrefix_ = null;
     private static String counterMetricLegacyPrefix_ = null;
     private static String timerMetricPrefix_ = null;
@@ -224,18 +225,23 @@ public class StatsdMetricAggregator {
                     multipleStatsdMetricsAggregated = aggregateTimer(statsdMetricsByBucket, 
                             aggregationWindowLengthInMs, 
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
-                            ApplicationConfiguration.getStatsdNthPercentiles());
+                            ApplicationConfiguration.getStatsdNthPercentiles(),
+                            ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
                 else if (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) {
-                    String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + bucket;
+                    String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE, ApplicationConfiguration.isStatsdUseLegacyNameSpacing()) + bucket + generateSeparatorAndSuffix();
                     Map<String,Gauge> statsdGaugeCache = GlobalVariables.statsdGaugeCache;
                     Gauge gaugeFromCache = statsdGaugeCache.get(prefixedBucketName);
 
-                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, gaugeFromCache, ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
+                    singleStatsdMetricAggregated = aggregateGauge(statsdMetricsByBucket, 
+                            gaugeFromCache, 
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
+                            ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
                 else if (metricTypeKey == StatsdMetricRaw.SET_TYPE) {
                     singleStatsdMetricAggregated = aggregateSet(statsdMetricsByBucket, 
-                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString());
+                            ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
+                            ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
             }
             
@@ -318,17 +324,20 @@ public class StatsdMetricAggregator {
             if (useLegacyNameSpacing) {
                 String prefix = "";
                 if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix = ApplicationConfiguration.getGlobalMetricNamePrefixValue() + aggregatedMetricsSeparator;
-                bucket_Count = prefix + "stats_counts" + aggregatedMetricsSeparator + statsdMetricsRaw.get(0).getBucket();
+                bucket_Count = prefix + "stats_counts" + aggregatedMetricsSeparator + statsdMetricsRaw.get(0).getBucket() + generateSeparatorAndSuffix();
             }
-            else bucket_Count = generatePrefix(StatsdMetricRaw.COUNTER_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count";
+            else {
+                bucket_Count = generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + 
+                        statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
+            }
 
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucket_Count, count, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
             
             String bucket_Rate = useLegacyNameSpacing ? 
-                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, true) + statsdMetricsRaw.get(0).getBucket() : 
-                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "rate";
+                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + generateSeparatorAndSuffix() : 
+                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "rate" + generateSeparatorAndSuffix();
             statsdMetricAggregated = new StatsdMetricAggregated(bucket_Rate, ratePs, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
@@ -344,7 +353,7 @@ public class StatsdMetricAggregator {
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
     public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, BigDecimal aggregationWindowLengthInMs, 
-            String aggregatedMetricsSeparator, StatsdNthPercentiles statsdNthPercentiles) {
+            String aggregatedMetricsSeparator, StatsdNthPercentiles statsdNthPercentiles, boolean useLegacyNameSpacing) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
            return new ArrayList<>(); 
@@ -466,7 +475,7 @@ public class StatsdMetricAggregator {
         if (metricCounter > 0) {
             List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
             
-            String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE) + statsdMetricsRaw.get(0).getBucket();
+            String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket();
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
 
             BigDecimal count = metricCounter_BigDecimal;
@@ -483,7 +492,7 @@ public class StatsdMetricAggregator {
             upper = (upper != null) ? MathUtilities.smartBigDecimalScaleChange(upper, STATSD_SCALE, STATSD_ROUNDING_MODE) : null;
             
             if (count != null) {
-                StatsdMetricAggregated statsdCount = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count", 
+                StatsdMetricAggregated statsdCount = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix(),  
                         count, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdCount.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdCount);
@@ -495,7 +504,7 @@ public class StatsdMetricAggregator {
                     BigDecimal countNthPercentile = countNthPercentiles.get(i);
                     if (countNthPercentile == null) continue;
                     StatsdMetricAggregated statsdCountNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
-                            "count_" + outputPercentageStringsNthPercentiles.get(i), 
+                            "count_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             countNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdCountNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdCountNthPercentile);
@@ -503,14 +512,14 @@ public class StatsdMetricAggregator {
             }
             
             if (countPs != null) {
-                StatsdMetricAggregated statsdCountPs = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps", 
+                StatsdMetricAggregated statsdCountPs = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps" + generateSeparatorAndSuffix(), 
                         countPs, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdCountPs.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdCountPs);
             }
             
             if (lower != null) {
-                StatsdMetricAggregated statsdLower = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower",  
+                StatsdMetricAggregated statsdLower = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower" + generateSeparatorAndSuffix(),  
                         lower, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdLower.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdLower);
@@ -522,7 +531,7 @@ public class StatsdMetricAggregator {
                     BigDecimal lowerNthPercentile = lowerNthPercentiles.get(i);
                     if (lowerNthPercentile == null) continue;
                     StatsdMetricAggregated statsdLowerNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
-                            + "lower_" + outputPercentageStringsNthPercentiles.get(i),  
+                            + "lower_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             lowerNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdLowerNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdLowerNthPercentile);
@@ -530,7 +539,7 @@ public class StatsdMetricAggregator {
             }
             
             if (mean != null) {
-                StatsdMetricAggregated statsdMean = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean",  
+                StatsdMetricAggregated statsdMean = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean" + generateSeparatorAndSuffix(), 
                         mean, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdMean.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdMean);
@@ -542,7 +551,7 @@ public class StatsdMetricAggregator {
                     BigDecimal meanNthPercentile = meanNthPercentiles.get(i);
                     if (meanNthPercentile == null) continue;
                     StatsdMetricAggregated statsdMeanNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
-                            "mean_" + outputPercentageStringsNthPercentiles.get(i),  
+                            "mean_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             meanNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdMeanNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdMeanNthPercentile);
@@ -550,14 +559,14 @@ public class StatsdMetricAggregator {
             }
             
             if (median != null) {
-                StatsdMetricAggregated statsdMedian = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median",  
+                StatsdMetricAggregated statsdMedian = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median" + generateSeparatorAndSuffix(),   
                         median, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdMedian.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdMedian);
             }
 
             if (sum != null) {
-                StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum",  
+                StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum" + generateSeparatorAndSuffix(),   
                         sum, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdSum.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdSum);
@@ -569,7 +578,7 @@ public class StatsdMetricAggregator {
                     BigDecimal sumNthPercentile = sumNthPercentiles.get(i);
                     if (sumNthPercentile == null) continue;
                     StatsdMetricAggregated statsdSumNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
-                            "sum_" + outputPercentageStringsNthPercentiles.get(i), 
+                            "sum_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             sumNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdSumNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdSumNthPercentile);
@@ -577,7 +586,7 @@ public class StatsdMetricAggregator {
             }
             
             if (sumOfSquares != null) {
-                StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares",  
+                StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares" + generateSeparatorAndSuffix(),  
                         sumOfSquares, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdSumOfSquares.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdSumOfSquares);
@@ -589,7 +598,7 @@ public class StatsdMetricAggregator {
                     BigDecimal sumOfSquaresNthPercentile = sumOfSquaresNthPercentiles.get(i);
                     if (sumOfSquaresNthPercentile == null) continue;
                     StatsdMetricAggregated statsdSumOfSquares_NthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
-                            "sum_squares_" + outputPercentageStringsNthPercentiles.get(i),  
+                            "sum_squares_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             sumOfSquaresNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdSumOfSquares_NthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdSumOfSquares_NthPercentile);
@@ -597,14 +606,14 @@ public class StatsdMetricAggregator {
             }
             
             if (standardDeviation != null) {
-                StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std",  
+                StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std" + generateSeparatorAndSuffix(),  
                         standardDeviation, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdStandardDeviation.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdStandardDeviation);
             }
             
             if (upper != null) {
-                StatsdMetricAggregated statsdUpper = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper",  
+                StatsdMetricAggregated statsdUpper = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper" + generateSeparatorAndSuffix(),  
                         upper, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                 statsdUpper.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdUpper);
@@ -616,7 +625,7 @@ public class StatsdMetricAggregator {
                     BigDecimal upperNthPercentile = upperNthPercentiles.get(i);
                     if (upperNthPercentile == null) continue;
                     StatsdMetricAggregated statsdUpperNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
-                            + "upper_" + outputPercentageStringsNthPercentiles.get(i),  
+                            + "upper_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             upperNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
                     statsdUpperNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdUpperNthPercentile);
@@ -633,7 +642,8 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetricRaw> statsdMetricsRaw, Gauge gaugeInitial, String aggregatedMetricsSeparator) {
+    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetricRaw> statsdMetricsRaw, Gauge gaugeInitial, 
+            String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
            return null; 
@@ -675,7 +685,7 @@ public class StatsdMetricAggregator {
         }
         
         if (metricCounter > 0) {
-            String bucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE) + statsdMetricsRawLocal.get(0).getBucket();
+            String bucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE, useLegacyNameSpacing) + statsdMetricsRawLocal.get(0).getBucket() + generateSeparatorAndSuffix();
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
             aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.GAUGE_TYPE);
@@ -690,7 +700,7 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateSet(List<StatsdMetricRaw> statsdMetricsRaw, String aggregatedMetricsSeparator) {
+    public static StatsdMetricAggregated aggregateSet(List<StatsdMetricRaw> statsdMetricsRaw, String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
             return null; 
@@ -719,7 +729,7 @@ public class StatsdMetricAggregator {
         }
         
         if (metricCounter > 0) {
-            String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count";
+            String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
             long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
             BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, uniqueMetricValueCount, averagedTimestamp, StatsdMetricAggregated.SET_TYPE);
@@ -729,10 +739,6 @@ public class StatsdMetricAggregator {
         else {
             return null;
         }
-    }
-    
-    private static String generatePrefix(Byte metricTypeKey) {
-        return generatePrefix(metricTypeKey, false);
     }
     
     private static String generatePrefix(Byte metricTypeKey, boolean useLegacyNameSpacing) {
@@ -751,7 +757,8 @@ public class StatsdMetricAggregator {
 
         StringBuilder prefix = new StringBuilder("");
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
-        if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
+        if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled() && !useLegacyNameSpacing) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
+        if (useLegacyNameSpacing) prefix.append("stats").append(".");
         
         if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && useLegacyNameSpacing) {
             counterMetricLegacyPrefix_ = prefix.toString();
@@ -763,7 +770,7 @@ public class StatsdMetricAggregator {
         else if (ApplicationConfiguration.isStatsdTimerMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.TIMER_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdTimerMetricNamePrefixValue()).append(".");
             timerMetricPrefix_ = prefix.toString();
-        }
+        } 
         else if (ApplicationConfiguration.isStatsdGaugeMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdGaugeMetricNamePrefixValue()).append(".");
             gaugeMetricPrefix_ = prefix.toString();
@@ -774,6 +781,22 @@ public class StatsdMetricAggregator {
         }
         
         return prefix.toString();
+    }
+    
+    private static String generateSeparatorAndSuffix() {
+        
+        if (statsdSuffix_ != null) {
+            return statsdSuffix_;
+        }
+        
+        if (ApplicationConfiguration.isStatsdMetricNameSuffixEnabled()) {
+            statsdSuffix_ = "." + ApplicationConfiguration.getStatsdMetricNameSuffixValue();
+        }
+        else {
+            statsdSuffix_ = "";
+        }
+        
+        return statsdSuffix_;
     }
 
 }
