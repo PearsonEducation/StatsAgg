@@ -111,6 +111,8 @@ public class ContextManager implements ServletContextListener {
         DatabaseConnections.disconnectAndShutdown();
         DatabaseConnections.deregisterJdbcDriver();
         
+        Threads.sleepSeconds(1);
+        
         shutdownLogger();
         
         logger.info("Initializer - Context Destroyed");

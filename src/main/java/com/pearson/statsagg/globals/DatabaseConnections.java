@@ -129,6 +129,7 @@ public class DatabaseConnections {
         try {
             if (connectionPool_ != null) {
                 connectionPool_.shutdown();
+                logger.info("Total leased connections, post-shutdown: " +connectionPool_.getTotalLeased());
                 connectionPool_ = null;
             }
         }
