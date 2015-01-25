@@ -1,12 +1,3 @@
-Short term
- * legacy namespacing kills statsd prefix
-   * documentation
- * document statsd config file for comparison
- 
-Before open source release 
-
-   
-
 Medium term
  * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * Statsd histograms
