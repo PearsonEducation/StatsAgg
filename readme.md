@@ -5,7 +5,7 @@ StatsAgg is a metric aggregation and alerting platform. It currently accepts Gra
 
 StatsAgg works by receiving Graphite & StatsD metrics, aggregating them, alerting on them, and outputting the aggregated metrics to a Graphite-compatible metric storage platform. The diagram (below) shows a typical deployment & use-case pattern for StatsAgg.
 
-[StatsAgg component diagram](/docs/component-diagram.png)
+[StatsAgg component diagram](./docs/component-diagram.png)
 
 ## What are the core features of StatsAgg?
 * A complete re-implementation of StatsD. 
