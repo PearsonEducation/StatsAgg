@@ -24,7 +24,7 @@ StatsAgg works by receiving Graphite & StatsD metrics, aggregating them, alertin
     * Alerts notifications can be sent via email, or viewed in the StatsAgg website.
 * A web-based UI for managing alerts & metrics
 
-A more detailed discussion of StatsAgg's features can be found in the [StatsAgg user manual](./docs/Manual.pdf)
+A more detailed discussion of StatsAgg's features can be found in the [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
 ## Why should I use StatsAgg?
@@ -59,7 +59,7 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
 
 <br>
 ## Installation
-Detailed installation instructions can be found in the [StatsAgg user manual](./docs/Manual.pdf)
+Detailed installation instructions can be found in the [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
 ## Example programs/frameworks/etc that are compatible with StatsAgg
@@ -70,7 +70,7 @@ Detailed installation instructions can be found in the [StatsAgg user manual](./
 
 <br>
 ## Accepted input formats
-Detailed information about StatsAgg's metric format support, including examples, can be found in the  [StatsAgg user manual](./docs/Manual.pdf)
+Detailed information about StatsAgg's metric format support, including examples, can be found in the  [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
 ## Technology
@@ -96,7 +96,3 @@ Detailed information about StatsAgg's metric format support, including examples,
 * StatsD : etsy @ https://github.com/etsy/statsd/
 * Graphite : Orbitz @ http://graphite.wikidot.com/
 * Pearson Assessments, a division of Pearson Education: http://www.pearsonassessments.com/
-
-<br>
-## Contact us...
-* jeffrey.schmidt@pearson.com
