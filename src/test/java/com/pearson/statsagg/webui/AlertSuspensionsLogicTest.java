@@ -7,6 +7,7 @@ import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.DateAndTime;
 import java.io.File;
+import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import org.junit.After;
@@ -29,9 +30,10 @@ public class AlertSuspensionsLogicTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager ContextManager = new ContextManager();
-        ContextManager.initializeDatabaseFromFile(System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator +
-                "webapp" + File.separator + "WEB-INF" + File.separator + "config", "database.properties");
+        ContextManager contextManager = new ContextManager();
+        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
+        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
+        contextManager.createDatabaseSchemas();
     }
     
     @AfterClass

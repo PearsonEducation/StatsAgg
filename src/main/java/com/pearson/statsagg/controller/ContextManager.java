@@ -345,7 +345,7 @@ public class ContextManager implements ServletContextListener {
         return isDatabaseGetConfigSuccess && isDatabaseInitializeSuccess;
     }
     
-    private InputStream getEphemeralDatabaseConfiguration() {
+    public InputStream getEphemeralDatabaseConfiguration() {
         StringBuilder defaultDatabase = new StringBuilder("");
         defaultDatabase.append("db_type = derby_embedded\n");
         defaultDatabase.append("db_custom_jdbc = jdbc:derby:memory:statsagg_mem_db;create=true\n");
@@ -361,6 +361,20 @@ public class ContextManager implements ServletContextListener {
         boolean isDatabaseInitializeSuccess = false;
 
         isDatabaseGetConfigSuccess = readAndSetDatabaseConfiguration(filePath, fileName);
+
+        if (isDatabaseGetConfigSuccess) {
+            isDatabaseInitializeSuccess = connectToDatabase();
+        }
+        
+        return isDatabaseGetConfigSuccess && isDatabaseInitializeSuccess;
+    }
+    
+    public boolean initializeDatabaseFromInputStream(InputStream configurationInputStream) {
+       
+        boolean isDatabaseGetConfigSuccess = false;
+        boolean isDatabaseInitializeSuccess = false;
+
+        isDatabaseGetConfigSuccess = readAndSetDatabaseConfiguration(configurationInputStream);
 
         if (isDatabaseGetConfigSuccess) {
             isDatabaseInitializeSuccess = connectToDatabase();
@@ -434,7 +448,7 @@ public class ContextManager implements ServletContextListener {
         return isSuccessfulConnection;
     }
     
-    private static boolean createDatabaseSchemas() {
+    public boolean createDatabaseSchemas() {
         MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao();
         boolean isMetricLastSeenDaoCreateSuccess = metricLastSeenDao.createTable();
         

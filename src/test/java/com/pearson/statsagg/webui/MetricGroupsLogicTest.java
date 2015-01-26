@@ -12,6 +12,7 @@ import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.File;
+import java.io.InputStream;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
@@ -34,9 +35,10 @@ public class MetricGroupsLogicTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager ContextManager = new ContextManager();
-        ContextManager.initializeDatabaseFromFile(System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator +
-                "webapp" + File.separator + "WEB-INF" + File.separator + "config", "database.properties");
+        ContextManager contextManager = new ContextManager();
+        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
+        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
+        contextManager.createDatabaseSchemas();
     }
     
     @AfterClass

@@ -184,8 +184,8 @@ public class StatsdMetricAggregatorTest {
                 assertEquals(StatsdMetricAggregated.COUNTER_TYPE, statsdMetricAggregated.getMetricTypeKey());
                 matchCount++;
             }
-            else if (statsdMetricAggregated.getBucket().equals("counterMetric")) {
-                assertEquals("counterMetric", statsdMetricAggregated.getBucket());
+            else if (statsdMetricAggregated.getBucket().equals("stats.counterMetric")) {
+                assertEquals("stats.counterMetric", statsdMetricAggregated.getBucket());
                 assertEquals(new BigDecimal("312.638"), statsdMetricAggregated.getMetricValue());
                 assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
                 assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());

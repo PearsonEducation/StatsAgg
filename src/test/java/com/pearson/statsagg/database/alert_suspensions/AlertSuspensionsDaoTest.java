@@ -6,6 +6,7 @@ import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.DateAndTime;
 import java.io.File;
+import java.io.InputStream;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -26,9 +27,10 @@ public class AlertSuspensionsDaoTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager ContextManager = new ContextManager();
-        ContextManager.initializeDatabaseFromFile(System.getProperty("user.dir") + File.separator + "src" + File.separator + "main" + File.separator +
-                "webapp" + File.separator + "WEB-INF" + File.separator + "config", "database.properties");
+        ContextManager contextManager = new ContextManager();
+        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
+        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
+        contextManager.createDatabaseSchemas();
         
         setUpClass_AlertSuspensions();
         deleteDataFromPreviousTest();
