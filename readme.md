@@ -39,7 +39,7 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
     * Tools like Nagios, Zabbix, etc aren't built around having fine datapoint granularity (more frequent than once per minute). StatsAgg was written to be able to receive, aggregate, alert on, and output metrics that are sent at any interval.
 * StatsD limitations
     * StatsD doesn't allow the TCP server & the UDP server to be active at the same time. StatsAgg does.
-    * StatsD doesn’t persist Gauge metrics, so a restart will result of StatsD ‘forgetting’ what the previous Gauge metric values were. StatsAgg can persists Gauge values, so a restart won't result in Gauges resetting themselves.
+    * StatsD doesn't persist Gauge metrics, so a restart will result of StatsD 'forgetting' what the previous Gauge metric values were. StatsAgg can persists Gauge values, so a restart won't result in Gauges resetting themselves.
 * StatsAgg provides a web-based UI for managing alerts & metrics.
 * Performance
     * StatsAgg is Java-based, and has been thoroughly tuned for performance.
@@ -84,8 +84,8 @@ Detailed information about StatsAgg's metric format support, including examples,
     * While this is a limitation, a lot of time/energy was put into tuning StatsAgg's performance. For *most* implementations, a single StatsAgg server should be adequate. 
 * A few StatsD features that are in the main StatsD program are missing in StatsAgg. Missing features include...
     * histograms on timers (will be included in a future build).
-    * configuring StatsAgg to be a ‘repeater’ (you can use the official StatsD program to do this, and forward to StatsAgg).
-    * configuring StatsAgg to be in a ‘proxy cluster’ configuration (you can use the official StatsD program to do this, and forward to StatsAgg). 
+    * configuring StatsAgg to be a 'repeater' (you can use the official StatsD program to do this, and forward to StatsAgg).
+    * configuring StatsAgg to be in a 'proxy cluster' configuration (you can use the official StatsD program to do this, and forward to StatsAgg). 
     * outputting frequently sent metric-keys to log files.
 * StatsAgg is not (currently) meant for use as an incident management tool. It doesn't support alert history, alert acknowledgement, etc. 
 * StatsAgg is not a metric visualization tool. However, StatsAgg works well when paired with Graphite/Grafana for visualization.
