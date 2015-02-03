@@ -644,7 +644,7 @@ public class ContextManager implements ServletContextListener {
         Thread threadShutdownGraphitePassthroughUdpServer_ = new Thread(shutdownGraphitePassthroughUdpServer);
         shutdownServerThreads.add(threadShutdownGraphitePassthroughUdpServer_);
         
-        Threads.threadExecutorCachedPool(shutdownServerThreads, 5, TimeUnit.MINUTES);
+        Threads.threadExecutorCachedPool(shutdownServerThreads, 2, TimeUnit.MINUTES);
 
         logger.info("Finish - shutting down server listeners");
     }
@@ -685,7 +685,7 @@ public class ContextManager implements ServletContextListener {
         Thread shutdownInternalStatsInvokerThread_Thread = new Thread(shutdownInternalStatsInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownInternalStatsInvokerThread_Thread);
         
-        Threads.threadExecutorCachedPool(shutdownThreadInvokerThreads, 5, TimeUnit.MINUTES);
+        Threads.threadExecutorCachedPool(shutdownThreadInvokerThreads, 2, TimeUnit.MINUTES);
 
         logger.info("Finish - shutting down invoker threads");
     }

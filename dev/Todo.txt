@@ -1,4 +1,8 @@
+Short term
+ * Tweak netty shutdown under load
+
 Medium term
+ * Graphite Pickle format
  * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * Statsd histograms
  * new option -- limit metric results # in webui (and in underlying code)

@@ -717,7 +717,14 @@ public class AlertThread implements Runnable {
             activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionWindowDuration());
             Set<String> activeCautionAvailabilityMetricKeys = alertThread.activeCautionAvailabilityAlerts_.get(alert.getId());
             
-            if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
+            if ((metricKeyLastSeenTimestamp == null) && (activeAlertValue == null)) {
+                if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
+                
+                positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
+                positiveAlertReasons.put(metricKey, "Inconclusive");
+            }
+            else if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
                 if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
                 
                 positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
@@ -781,7 +788,14 @@ public class AlertThread implements Runnable {
             activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerWindowDuration());
             Set<String> activeDangerAvailabilityMetricKeys = alertThread.activeDangerAvailabilityAlerts_.get(alert.getId());
             
-            if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
+            if ((metricKeyLastSeenTimestamp == null) && (activeAlertValue == null)) {
+                if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
+                
+                positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
+                positiveAlertReasons.put(metricKey, "Inconclusive");
+            }
+            else if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
                 if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
                 
                 positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
