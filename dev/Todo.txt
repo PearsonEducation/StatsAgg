@@ -1,8 +1,10 @@
 Short term
- * Tweak netty shutdown under load
+ * Test netty shutdown under load
 
 Medium term
- * Graphite Pickle format
+ * Support OpenTSDB input formats 
+ * Support Graphite Pickle format
+ * 'Acknowledge' alerts (particularly useful on availability alerts)
  * control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * Statsd histograms
  * new option -- limit metric results # in webui (and in underlying code)
@@ -13,12 +15,10 @@ Medium term
  * stop resending metric after X time of no updates
  * make alert suspension datetime bars be full width of column
  * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
- 
- 
+
 Long term
  * migrate to HikariCP
  * calculator/aggregator
  * events log w/ UI component
  * server-side webui tables
- * postgres support for StatsAgg admin database
  * alert by individual metric?
