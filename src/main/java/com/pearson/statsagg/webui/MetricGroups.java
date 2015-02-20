@@ -18,7 +18,6 @@ import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -288,12 +287,12 @@ public class MetricGroups extends HttpServlet {
         htmlBodyStringBuilder.append(""
                 + "</tbody>\n"
                 + "<tfoot> \n"
-                + "  <tr class=\"statsagg_table_footer\" >\n" 
-                + "    <th>Filter</th>\n"
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
+                + "  <tr>\n" 
+                + "    <th></th>\n"
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
                 + "  </tr>\n" 
                 + "</tfoot>" 
                 + "</table>\n"

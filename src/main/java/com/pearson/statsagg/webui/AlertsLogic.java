@@ -134,4 +134,70 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         return returnString;
     }
     
+    protected static String changeAlertCautionAcknowledge(String alertName, Boolean isCautionAcknowledged) {
+        
+        if ((alertName == null) || (isCautionAcknowledged == null)) {
+            return null;
+        }
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(alertName);
+        
+        if ((alert != null) && (alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
+            alert.setIsCautionAcknowledged(isCautionAcknowledged);
+            AlertsLogic alertsLogic = new AlertsLogic();
+            return alertsLogic.alterRecordInDatabase(alert, alertName);
+        }
+        
+        return null;
+    }
+    
+    protected static String changeAlertDangerAcknowledge(String alertName, Boolean isDangerAcknowledged) {
+        
+        if (alertName == null) {
+            return null;
+        }
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(alertName);
+        
+        if ((alert != null) && (alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
+            alert.setIsDangerAcknowledged(isDangerAcknowledged);
+            AlertsLogic alertsLogic = new AlertsLogic();
+            return alertsLogic.alterRecordInDatabase(alert, alertName);
+        }
+        
+        return null;
+    }
+    
+    protected static String changeAlertAcknowledge(String alertName, Boolean isAcknowledged) {
+        
+        if (alertName == null) {
+            return null;
+        }
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(alertName);
+        
+        if (alert != null) {
+            boolean doAlertAlert = false;
+            
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
+                alert.setIsCautionAcknowledged(isAcknowledged);
+                doAlertAlert = true;
+            }
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
+                alert.setIsDangerAcknowledged(isAcknowledged);
+                doAlertAlert = true;
+            }
+            
+            if (doAlertAlert) {
+                AlertsLogic alertsLogic = new AlertsLogic();
+                return alertsLogic.alterRecordInDatabase(alert, alertName);
+            }
+        }
+        
+        return null;
+    }
+    
 }

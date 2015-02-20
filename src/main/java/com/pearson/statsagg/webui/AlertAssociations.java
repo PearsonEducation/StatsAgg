@@ -14,6 +14,9 @@ import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -72,6 +75,28 @@ public class AlertAssociations extends HttpServlet {
     
         String name = request.getParameter("Name");
         String level = request.getParameter("Level");
+        String acknowledgeLevel = request.getParameter("AcknowledgeLevel");
+        String acknowledgeChange = request.getParameter("AcknowledgeChange");
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(name);  
+        
+        Boolean acknowledgeChange_Boolean = null;
+        try {acknowledgeChange_Boolean = Boolean.parseBoolean(acknowledgeChange);}
+        catch (Exception e){}
+        
+        if ((acknowledgeLevel != null) && (alert != null)) {            
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Caution") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
+                AlertsLogic.changeAlertCautionAcknowledge(name, acknowledgeChange_Boolean);
+            }     
+
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Danger") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
+                AlertsLogic.changeAlertDangerAcknowledge(name, acknowledgeChange_Boolean);
+            }    
+            
+            alertsDao = new AlertsDao();
+            alert = alertsDao.getAlertByName(name);  
+        }
         
         String alertAssociations = "";
         
@@ -86,24 +111,77 @@ public class AlertAssociations extends HttpServlet {
                 alertAssociations = getDangerAlertAssociations(name);
             }
         }
-
+        
         try {  
             StringBuilder htmlBuilder = new StringBuilder("");
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(
-            "<div id=\"page-content-wrapper\">\n" +
-            "<!-- Keep all page content within the page-content inset div! -->\n" +
-            "  <div class=\"page-content inset\">\n" +
-            "    <div class=\"content-header\"> \n" +
-            "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
-            "    </div>\n " +
-            alertAssociations +
-            "  </div>\n" +
-            "</div>\n");
+            StringBuilder htmlBodyBuilder = new StringBuilder();
+            htmlBodyBuilder.append(
+                "<div id=\"page-content-wrapper\">\n" +
+                "<!-- Keep all page content within the page-content inset div! -->\n" +
+                "  <div class=\"page-content inset\">\n" +
+                "    <div class=\"content-header\"> \n" +
+                "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
+                "      <div class=\"pull-right \">\n");
             
+            if ((level != null) && (name != null) && (alert != null)) {
+                if (level.equalsIgnoreCase("Triggered")) {
+                    if (                // caution & danger both acknowledged
+                        ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
+                        (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) 
+                        ||              // danger acknowledged, caution not active (therefore not acknowledged)
+                        (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged()))
+                        ||              // caution acknowledged, danger not active (therefore not acknowledged)
+                        (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()))
+                       )              
+                    {
+                        htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=False&amp;Level=Triggered&amp;Name=").
+                                append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Unacknowledge Triggered Alert</a>\n");
+                    }
+                    else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
+                            (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
+                        htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=True&amp;Level=Triggered&amp;Name=").
+                                append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Acknowledge Triggered Alert</a>\n");
+                    }
+                }
+                else if (level.equalsIgnoreCase("Caution")) {
+                    if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
+                        if ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
+                            htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=True&amp;Level=Caution&amp;Name=").
+                                    append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Acknowledge Caution Alert</a>\n");
+                        }
+                        else if (((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
+                            htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=False&amp;Level=Caution&amp;Name=").
+                                    append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Unacknowledge Caution Alert</a>\n");
+                        }
+                    }
+                }
+                else if (level.equalsIgnoreCase("Danger")) {
+                    if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
+                        if ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+                            htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=True&amp;Level=Danger&amp;Name=").
+                                    append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Acknowledge Danger Alert</a>\n");
+                        }
+                        else if (((alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+                            htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=False&amp;Level=Danger&amp;Name=").
+                                    append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary\">Unacknowledge Danger Alert</a>\n");
+                        }
+                    }
+                }
+            }
+            
+            htmlBodyBuilder.append(
+                "      </div>\n" + 
+                "    </div>\n " +
+                alertAssociations +
+                "  </div>\n" +
+                "</div>\n");
+            
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyBuilder.toString());
+ 
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
@@ -134,7 +212,22 @@ public class AlertAssociations extends HttpServlet {
         Alert alert = altersDao.getAlertByName(alertName);
         
         if (alert != null) {
-            outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br><hr>");
+            outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
+            
+            outputString.append("<b>Caution Acknowledged</b> = ");
+            if (alert.isCautionAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isCautionAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isCautionAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
+            outputString.append("<b>Danger Acknowledged</b> = ");
+            if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
+            outputString.append("<hr>");
+
             String cautionBody = getCautionAlertAssociations_Body(alert);
             outputString.append(cautionBody);
             
@@ -160,6 +253,13 @@ public class AlertAssociations extends HttpServlet {
         
         if (alert != null) {
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
+            
+            outputString.append("<b>Caution Acknowledged</b> = ");
+            if (alert.isCautionAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isCautionAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isCautionAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
             String body = getCautionAlertAssociations_Body(alert);
             outputString.append(body);
         }
@@ -206,15 +306,11 @@ public class AlertAssociations extends HttpServlet {
 
                     if (associationOutputCounter < 1000)  {
                         String metricValueString = null;
-//                        if ((alert.getCautionAlertType() != null) && alert.getCautionAlertType() == Alert.TYPE_AVAILABILITY) {
-//                            metricValueString = "No recent metrics";
-//                        }
-//                        else {
-                            BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
-                            if (alertMetricValue != null) {
-                                metricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
-                            }
-//                        }
+                        
+                        BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
+                        if (alertMetricValue != null) {
+                            metricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
+                        }
 
                         outputString.append("<li>");
                         outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
@@ -254,6 +350,13 @@ public class AlertAssociations extends HttpServlet {
         
         if (alert != null) {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
+            
+            outputString.append("<b>Danger Acknowledged</b> = ");
+            if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
             String body = getDangerAlertAssociations_Body(alert);
             outputString.append(body);
         }
@@ -300,15 +403,11 @@ public class AlertAssociations extends HttpServlet {
 
                     if (associationOutputCounter < 1000)  {
                         String metricValueString = null;
-//                        if (alert.getDangerAlertType() != null && alert.getDangerAlertType() == Alert.TYPE_AVAILABILITY) {
-//                            metricValueString = "No recent metrics";
-//                        }
-//                        else {
-                            BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
-                            if (alertMetricValue != null) {
-                                metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
-                            }
-//                        }
+                        
+                        BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
+                        if (alertMetricValue != null) {
+                            metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
+                        }
 
                         outputString.append("<li>");
                         outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");

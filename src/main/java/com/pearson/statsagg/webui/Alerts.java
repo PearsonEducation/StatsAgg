@@ -124,6 +124,19 @@ public class Alerts extends HttpServlet {
             removeAlert(name);
         }
         
+        if ((operation != null) && operation.equals("Acknowledge")) {
+            String isAcknowledged_String = request.getParameter("IsAcknowledged");
+            String name = request.getParameter("Name");
+            
+            try {
+                Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);
+                AlertsLogic.changeAlertAcknowledge(name, isAcknowledged_Boolean);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
         processGetRequest(request, response);
     }
         
@@ -141,9 +154,11 @@ public class Alerts extends HttpServlet {
 
             if (!isEnabled) {
                 alert.setIsCautionAlertActive(false);
+                alert.setIsCautionAcknowledged(null);
                 alert.setCautionAlertLastSentTimestamp(null);
                 alert.setCautionActiveAlertsSet(null);
                 alert.setIsDangerAlertActive(false);
+                alert.setIsDangerAcknowledged(null);
                 alert.setDangerAlertLastSentTimestamp(null);
                 alert.setDangerActiveAlertsSet(null);
             }
@@ -152,7 +167,7 @@ public class Alerts extends HttpServlet {
             alertsLogic.alterRecordInDatabase(alert, alertName);
         }
     }
-
+    
     private void cloneAlert(String alertName) {
         
         if (alertName == null) {
@@ -180,9 +195,11 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setName(clonedAlertName);
                 clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
                 clonedAlert.setIsCautionAlertActive(false);
+                clonedAlert.setIsCautionAcknowledged(null);
                 clonedAlert.setCautionAlertLastSentTimestamp(null);
                 clonedAlert.setCautionActiveAlertsSet(null);
                 clonedAlert.setIsDangerAlertActive(false);
+                clonedAlert.setIsDangerAcknowledged(null);
                 clonedAlert.setDangerAlertLastSentTimestamp(null);
                 clonedAlert.setDangerActiveAlertsSet(null);
 
@@ -236,6 +253,7 @@ public class Alerts extends HttpServlet {
             "         <th>Triggered?</th>\n" +
             "         <th>Caution Triggered?</th>\n" +
             "         <th>Danger Triggered?</th>\n" +
+            "         <th>Acknowledged?</th>\n" +      
             "         <th>Operations</th>\n" +
             "       </tr>\n" +
             "     </thead>\n" +
@@ -303,25 +321,19 @@ public class Alerts extends HttpServlet {
                     StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "</a>";
             }
             
-            Boolean isSuspended = GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId());
-            if (isSuspended == null) isSuspended = false;
+            String isAlertEnabled = "No";
+            if ((alert.isEnabled() != null) && alert.isEnabled()) isAlertEnabled = "Yes";
+    
+            String isSuspended = "No";
+            if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) {
+                if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+            }
             String isSuspendedLink = "<a href=\"AlertAlertSuspensionAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
             
-            String triggeredLink = "false";
-            String cautionLink = Boolean.toString(alert.isCautionAlertActive());
-            String dangerLink = Boolean.toString(alert.isDangerAlertActive());
-            
-            if (cautionLink.equalsIgnoreCase("true") || dangerLink.equalsIgnoreCase("true")) {
-                triggeredLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">true</a>";
-            }
-            
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
-                cautionLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">true</a>";
-            }
-            
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
-                dangerLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">true</a>";
-            }
+            String triggeredLink = "No", cautionLink = "No", dangerLink = "No";
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) cautionLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) dangerLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
+            if (cautionLink.endsWith("Yes</a>") || dangerLink.endsWith("Yes</a>")) triggeredLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">Yes</a>";
             
             String enable; 
             if (alert.isEnabled()) {
@@ -338,6 +350,34 @@ public class Alerts extends HttpServlet {
                 keysAndValues.add(new KeyValue("Enabled", "true"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
             }
+
+            // decide whether the 'acknoledge' and/or 'unacknoledge' operations are presented 
+            String acknowledge = "";
+            if (                // caution & danger both acknowledged
+                ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) 
+                ||              // danger acknowledged, caution not active (therefore not acknowledged)
+                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged()))
+                ||              // caution acknowledged, danger not active (therefore not acknowledged)
+                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()))
+               )              
+            {
+                List<KeyValue> keysAndValues = new ArrayList<>();
+                keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
+                acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "unacknowledge", keysAndValues);
+            }
+            else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
+                    (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
+                List<KeyValue> keysAndValues = new ArrayList<>();
+                keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("IsAcknowledged", "true"));
+                acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "acknowledge", keysAndValues);
+            }
+            
+            String isAcknowledged = getIsAcknoledgedTableValue(alert);
             
             String alter = "<a href=\"CreateAlert?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">alter</a>";
             
@@ -359,16 +399,19 @@ public class Alerts extends HttpServlet {
                     .append("<td>").append(tagsCsv.toString()).append("</td>\n")
                     .append("<td>").append(cautionNotificationGroupNameAndLink).append("</td>\n")
                     .append("<td>").append(dangerNotificationGroupNameAndLink).append("</td>\n")
-                    .append("<td>").append(alert.isEnabled()).append("</td>\n")
+                    .append("<td>").append(isAlertEnabled).append("</td>\n")
                     .append("<td>").append(isSuspendedLink).append("</td>\n")
                     .append("<td>").append(triggeredLink).append("</td>\n")
                     .append("<td>").append(cautionLink).append("</td>\n")
                     .append("<td>").append(dangerLink).append("</td>\n")
+                    .append("<td>").append(isAcknowledged).append("</td>\n")
                     .append("<td>").append(enable).append(", ").append(alter).append(", ").append(clone);
             
             if ((alertSuspensions_SuspendByAlertId_ByAlertId == null) || !alertSuspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) { 
                 htmlBodyStringBuilder.append(", ").append(remove);
             }
+            
+            if (!acknowledge.isEmpty()) htmlBodyStringBuilder.append(", ").append(acknowledge);
                     
             htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
         }
@@ -376,18 +419,19 @@ public class Alerts extends HttpServlet {
         htmlBodyStringBuilder.append(""
                 + "</tbody>\n"
                 + "<tfoot> \n"
-                + "  <tr class=\"statsagg_table_footer\" >\n" 
-                + "    <th>Filter</th>\n"
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
+                + "  <tr>\n" 
+                + "    <th></th>\n"
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
                 + "  </tr>\n" 
                 + "</tfoot>" 
                 + "</table>\n"
@@ -406,4 +450,61 @@ public class Alerts extends HttpServlet {
         return html.toString();
     }
 
+    // Gets value for Alerts 'Acknowledged?' column 
+    private String getIsAcknoledgedTableValue(Alert alert) {
+        
+        if (alert == null) {
+            return "N/A";
+        }
+        
+        String isAcknowledged = "N/A";
+        
+        try {
+            if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+                // caution & danger both acknowledged
+                isAcknowledged = "Yes";
+            }
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+                // caution acknowledged, danger not acknowledged
+                isAcknowledged = "Caution Only";
+            }
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+                // caution & danger both acknowledged
+                isAcknowledged = "Danger Only";
+            }
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+                // caution & danger both active & unacknowledged
+                isAcknowledged = "No";
+            }
+            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+                // danger acknowledged, caution not active (therefore not acknowledged)
+                isAcknowledged = "Yes";
+            }
+            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
+                // caution acknowledged, danger not active (therefore not acknowledged)
+                isAcknowledged = "Yes";
+            }
+            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
+                // caution not acknowledged, danger not active (therefore not acknowledged)
+                isAcknowledged = "No";
+            }
+            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+                // danger not acknowledged, caution not active (therefore not acknowledged)
+                isAcknowledged = "No";
+            }
+            else {
+                isAcknowledged = "N/A";
+            }
+        }
+        catch (Exception e) {
+            logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return isAcknowledged;
+    }
+    
 }

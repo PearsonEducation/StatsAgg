@@ -878,9 +878,11 @@ public class CreateAlert extends HttpServlet {
             
         if (!didEncounterError) {
             alert.setIsCautionAlertActive(false);
+            alert.setIsCautionAcknowledged(null);
             alert.setCautionAlertLastSentTimestamp(null);
             alert.setCautionActiveAlertsSet(null);
             alert.setIsDangerAlertActive(false);
+            alert.setIsDangerAcknowledged(null);
             alert.setDangerAlertLastSentTimestamp(null);
             alert.setDangerActiveAlertsSet(null);
         }

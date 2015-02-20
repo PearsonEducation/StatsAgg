@@ -383,9 +383,7 @@ $(document).ready(function () {
     var doesTableExist = document.getElementById('AlertsTable');
 
     if (doesTableExist !== null) {
-        $('#AlertsTable').dataTable({
-            "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200},
+        var alertsTable = $('#AlertsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -407,178 +405,161 @@ $(document).ready(function () {
                 {
                     "targets": [9],
                     "visible": false
+                },
+                {
+                    "targets": [10],
+                    "visible": false
                 }
-            ]}).columnFilter({
-            aoColumns: [
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {type: "select", values: ['true', 'false']},
-                {type: "select", values: ['true', 'false']},
-                {type: "select", values: ['true', 'false']},
-                {type: "select", values: ['true', 'false']},
-                {type: "select", values: ['true', 'false']},
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                }
-            ]
-        });
+            ]});
 
+        yadcf_init_AlertsTable(alertsTable);
+
+        var colvis = new $.fn.dataTable.ColVis(alertsTable, {"align": "right", "iOverlayFade": 200});
         $(colvis.button()).prependTo('#AlertsTable_filter');
+        
+        // re-initialize yadcf when a column is unhidden
+        alertsTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_AlertsTable(alertsTable);
+            }
+        });
     }
 });
 
+function yadcf_init_AlertsTable(alertsTable) {
+    yadcf.init(alertsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 6, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 7, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 8, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 9, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 10, filter_reset_button_text: false, filter_type: "select", data: ['Yes', 'No', 'Caution Only', 'Danger Only', 'N/A'], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 11, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
+        
 // Setup for the table found on the 'Alerts' page
 $(document).ready(function () {
     var doesTableExist = document.getElementById('AlertSuspensionsTable');
 
     if (doesTableExist !== null) {
-        $('#AlertSuspensionsTable').dataTable({
-            "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200},
+        var alertSuspensionsTable = $('#AlertSuspensionsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
             "stateSave": true,
             "iCookieDuration": 2592000 // 30 days
-        }).columnFilter({
-            aoColumns: [
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {type: "select", values: ['Alert Name', 'Metric Group Tags', 'Everything']},
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {type: "select", values: ['true', 'false']},
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                }
-            ]
         });
+        
+        yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
 
+        var colvis = new $.fn.dataTable.ColVis(alertSuspensionsTable, {"align": "right", "iOverlayFade": 200});
         $(colvis.button()).prependTo('#AlertSuspensionsTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        alertSuspensionsTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
+            }
+        });
     }
 });
+
+function yadcf_init_AlertSuspensionsTable(alertSuspensionsTable) {
+    yadcf.init(alertSuspensionsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "select", data: ['Alert Name', 'Metric Group Tags', 'Everything'], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 4, filter_reset_button_text: false, filter_type: "select", data: ['Yes', 'No'], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
 
 // Setup for the table found on the 'MetricGroups' page
 $(document).ready(function () {
     var doesTableExist = document.getElementById('MetricGroupsTable');
 
     if (doesTableExist !== null) {
-        $('#MetricGroupsTable').dataTable({
-            "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200},
+        var metricGroupsTable = $('#MetricGroupsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
             "stateSave": true,
             "iCookieDuration": 2592000 // 30 days
-        }).columnFilter({
-            aoColumns: [
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                }
-            ]
         });
+        
+        yadcf_init_MetricGroupsTable(metricGroupsTable);
 
+        var colvis = new $.fn.dataTable.ColVis(metricGroupsTable, {"align": "right", "iOverlayFade": 200});
         $(colvis.button()).prependTo('#MetricGroupsTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        metricGroupsTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_MetricGroupsTable(metricGroupsTable);
+            }
+        });
     }
 });
+
+function yadcf_init_MetricGroupsTable(metricGroupsTable) {
+    yadcf.init(metricGroupsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
 
 // Setup for the table found on the 'NotificationGroups' page
 $(document).ready(function () {
     var doesTableExist = document.getElementById('NotificationGroupsTable');
 
     if (doesTableExist !== null) {
-        $('#NotificationGroupsTable').dataTable({
-            "dom": 'C<"clear">lfrtip',
-            "colVis": {"align": "right", "iOverlayFade": 200},
+        var notificationGroupsTable = $('#NotificationGroupsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
             "stateSave": true,
             "iCookieDuration": 2592000 // 30 days
-        }).columnFilter({
-            aoColumns: [
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                },
-                {
-                    type: "text",
-                    bRegex: true,
-                    bSmart: true
-                }
-            ]
         });
+        
+        yadcf_init_NotificationGroupsTable(notificationGroupsTable);
 
+        var colvis = new $.fn.dataTable.ColVis(notificationGroupsTable, {"align": "right", "iOverlayFade": 200});
         $(colvis.button()).prependTo('#NotificationGroupsTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        notificationGroupsTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_NotificationGroupsTable(notificationGroupsTable);
+            }
+        });
     }
 });
+
+function yadcf_init_NotificationGroupsTable(notificationGroupsTable) {
+    yadcf.init(notificationGroupsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
 
 $(document).ready(function() {
     var doesAlertNameLookupExist = document.getElementById('AlertNameLookup');

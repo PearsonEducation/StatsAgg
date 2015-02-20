@@ -1,0 +1,9 @@
+StatsAgg 1.1
+ * Reduced Netty shutdown time to 30sec
+ * Swapped out WebUI table column-filtering library -- the previous one had some form of incompatibility with the column visibility plugin
+   * Now using yadcf - https://github.com/vedmack/yadcf
+ * Added alert acknowledgements
+   * Acknowledge alerts in the WebUI. Shows someone 'acknowledged' it, and prevents additional alert notification (unless unacknowledged)
+ * 3 column 'alert details' page -- more readable
+ * 'Details' pages now link to other 'details' pages
+ * Changed some boolean values in the tables to 'Yes' / 'No' (more professional looking)

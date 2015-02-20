@@ -324,14 +324,14 @@ public class CreateAlertSuspension extends HttpServlet {
         
         htmlBody.append("" +
             "<br><br>\n" +
-            "<table style=\"border-spacing:0px 2px;\">\n" +
+            "<table style=\"border-spacing:0px 2px; width:100%;\">\n" +
             "<tbody>\n");
         
         
         // start date
         htmlBody.append(        
             "<tr>\n" +
-            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
+            "  <th style=\"width:1%;\"><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
             "  <td>\n" +
             "    <div class=\"input-group\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
             "      <input class=\"form-control-datetime\" name=\"StartDate\" id=\"StartDate\" style=\"width:100%;\" type=\"text\" ");

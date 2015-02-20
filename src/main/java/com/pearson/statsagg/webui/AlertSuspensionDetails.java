@@ -142,7 +142,10 @@ public class AlertSuspensionDetails extends HttpServlet {
                 AlertsDao alertsDao = new AlertsDao();
                 Alert alert = alertsDao.getAlert(alertSuspension.getAlertId());
                
-                if ((alert != null) && (alert.getName() != null)) outputString.append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
+                if ((alert != null) && (alert.getName() != null)) {
+                    String alertDetails = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
+                    outputString.append(alertDetails).append("<br>");
+                }
                 else outputString.append("N/A <br>");
             }
             else outputString.append("N/A <br>");

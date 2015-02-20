@@ -284,6 +284,9 @@ public class AlertSuspensions extends HttpServlet {
             else alertSuspensionAssociationCount = alertIdAssociations.size(); 
             String associatedAlertsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + alertSuspensionAssociationCount + "</a>";
             
+            String isAlertEnabled = "No";
+            if ((alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) isAlertEnabled = "Yes";
+            
             String enable; 
             if (alertSuspension.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
@@ -319,7 +322,7 @@ public class AlertSuspensions extends HttpServlet {
                     .append("<td>").append(suspendBy).append("</td>\n")
                     .append("<td>").append(suspendByDetails).append("</td>\n")
                     .append("<td>").append(associatedAlertsLink).append("</td>\n")
-                    .append("<td>").append(alertSuspension.isEnabled()).append("</td>\n")
+                    .append("<td>").append(isAlertEnabled).append("</td>\n")
                     .append("<td>").append(enable).append(", ").append(alter).append(", ").append(clone).append(", ").append(remove).append("</td>\n")
                     .append("</tr>\n");
         }
@@ -327,13 +330,13 @@ public class AlertSuspensions extends HttpServlet {
         htmlBodyStringBuilder.append(""
                 + "</tbody>\n"
                 + "<tfoot> \n"
-                + "  <tr class=\"statsagg_table_footer\" >\n" 
-                + "    <th>Filter</th>\n"
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
-                + "    <th>Filter</th>\n" 
+                + "  <tr>\n" 
+                + "    <th></th>\n"
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
+                + "    <th></th>\n" 
                 + "  </tr>\n" 
                 + "</tfoot>" 
                 + "</table>\n"

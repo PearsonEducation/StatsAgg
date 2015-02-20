@@ -154,6 +154,11 @@ public class MetricGroupDetails extends HttpServlet {
                     i++;
                 }
             }
+            
+            outputString.append("<br>");
+            outputString.append("<b>Metric Group Associations</b> = ");            
+            String metricAssociationsLink = "<a href=\"MetricGroupAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            outputString.append(metricAssociationsLink);  
         }
         
         return outputString.toString();

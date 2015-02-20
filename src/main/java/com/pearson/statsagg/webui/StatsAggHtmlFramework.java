@@ -45,6 +45,7 @@ public class StatsAggHtmlFramework {
                     "<link href=\"css/datepicker.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/dataTables.bootstrap.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/dataTables.colVis.css\" rel=\"stylesheet\">\n" +
+                    "<link href=\"css/jquery.dataTables.yadcf.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/colorbox.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"font-awesome/css/font-awesome.min.css\" rel=\"stylesheet\">" +
                     "<link href=\"css/typeahead.css\" rel=\"stylesheet\">\n" +
@@ -124,8 +125,8 @@ public class StatsAggHtmlFramework {
                 + "<script type=\"text/javascript\" src=\"js/jquery.colorbox-min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/jquery.dataTables.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/dataTables.bootstrap.js\"></script>\n"
-                + "<script type=\"text/javascript\" src=\"js/jquery.dataTables.columnFilter.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/dataTables.colVis.min.js\"></script>\n"
+                + "<script type=\"text/javascript\" src=\"js/jquery.dataTables.yadcf.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/bootstrap-datetimepicker.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/typeahead.bundle.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/statsagg.js\"></script>\n"

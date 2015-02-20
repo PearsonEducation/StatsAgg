@@ -83,12 +83,13 @@ public class AlertDetails extends HttpServlet {
             String htmlBody = statsAggHtmlFramework.createHtmlBody(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
-            "  <div class=\"page-content inset\">\n" +
+            "  <div class=\"page-content inset\" style=\"font-size:12px;\">\n" +
             "    <div class=\"content-header\"> \n" +
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div>\n " +
+            "    <div class=\"row create-alert-form-row\">\n" +
             alertDetails +
-            "  </div>\n" +
+            "  </div></div>\n" +
             "</div>\n");
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
@@ -131,6 +132,9 @@ public class AlertDetails extends HttpServlet {
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
             if (alert.getMetricGroupId() != null) metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
             
+            outputString.append("<div class=\"col-md-4\">\n");
+            outputString.append("<div class=\"panel panel-default\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body\">");
+            
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Description</b> = ");
@@ -141,7 +145,11 @@ public class AlertDetails extends HttpServlet {
             else outputString.append("<br><br>");
             
             outputString.append("<b>Metric group name</b> = ");
-            if (metricGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
+            if (metricGroup != null) {
+                String metricGroupDetails = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+                outputString.append(metricGroupDetails).append("<br>");
+            }
             else outputString.append("<br>");
                     
             outputString.append("<b>Is alert enabled?</b> = ").append(alert.isEnabled()).append("<br>");
@@ -168,13 +176,38 @@ public class AlertDetails extends HttpServlet {
                 outputString.append(resendAlertSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
             }
             else outputString.append("N/A <br>");
-
+            
             outputString.append("<br>");
             
+            boolean isAlertSuspended = false;
+            outputString.append("<b>Is alert suspended?</b> = ");
+            if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
+                    GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
+                outputString.append("yes <br>");
+                isAlertSuspended = true;
+            }
+            else outputString.append("no <br>");
+            
+            outputString.append("<b>Is alert suspended, notification only?</b> = ");
+            if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
+                Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
+                
+                if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("yes <br>");
+                else outputString.append("no <br>");
+            }
+            else outputString.append("N/A <br>");
+            
+            outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
+            outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body\">");
+                        
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("<del>");
             
             outputString.append("<b>Caution notification group name</b> = ");
-            if (cautionNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName())).append("<br>");
+            if (cautionNotificationGroup != null) {
+                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(cautionNotificationGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetails).append("<br>");
+            }
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution window duration</b> = ");
@@ -225,6 +258,10 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Caution alert active?</b> = ").append(alert.isCautionAlertActive()).append("<br>");
             
+            outputString.append("<b>Caution acknowledged?</b> = ");
+            if (alert.isCautionAcknowledged() != null) outputString.append(alert.isCautionAcknowledged()).append("<br>");
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Caution alert last notification timestamp</b> = ");
             if (alert.getCautionAlertLastSentTimestamp() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionAlertLastSentTimestamp(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
             else outputString.append("N/A <br>");
@@ -237,12 +274,17 @@ public class AlertDetails extends HttpServlet {
             
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("</del>");
 
-            outputString.append("<br>");
-            
+            outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
+            outputString.append("<div class=\"panel panel-danger\"> <div class=\"panel-heading\"><b>Danger Details</b></div> <div class=\"panel-body\">");
+
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("<del>");
             
             outputString.append("<b>Danger notification group name</b> = ");
-            if (dangerNotificationGroup != null) outputString.append(StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName())).append("<br>");
+            if (dangerNotificationGroup != null) {
+                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(dangerNotificationGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetails).append("<br>");
+            }
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger window duration</b> = ");
@@ -293,6 +335,10 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Danger alert active?</b> = ").append(alert.isDangerAlertActive()).append("<br>");
             
+            outputString.append("<b>Danger acknowledged?</b> = ");
+            if (alert.isDangerAcknowledged() != null) outputString.append(alert.isDangerAcknowledged()).append("<br>");
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Danger alert last notification timestamp</b> = ");
             if (alert.getDangerAlertLastSentTimestamp() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerAlertLastSentTimestamp(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
             else outputString.append("N/A <br>");
@@ -305,27 +351,8 @@ public class AlertDetails extends HttpServlet {
             
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("</del>");
             
-            outputString.append("<br>");
-            
-            boolean isAlertSuspended = false;
-            outputString.append("<b>Is alert suspended?</b> = ");
-            if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
-                    GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
-                outputString.append("yes <br>");
-                isAlertSuspended = true;
-            }
-            else outputString.append("no <br>");
-            
-            outputString.append("<b>Is alert suspended, notification only?</b> = ");
-            if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
-                Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
-                
-                if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("yes <br>");
-                else outputString.append("no <br>");
-            }
-            else outputString.append("N/A <br>");
+            outputString.append("</div></div></div>");
         }
-        
         
         return outputString.toString();
     }

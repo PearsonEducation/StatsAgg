@@ -195,22 +195,24 @@ table.dataTable thead > tr > th {
     background-color: transparent;
 }
 
-.statsagg_table_footer th span input{
-    color: rgba(0, 0, 0, 0.42);
+.yadcf-filter {
+    color: rgba(0, 0, 0, 0.42) !important;
     width: 100% !important;
-    height: 30px;
-    padding-left: 5px;
-    font-size: 12px;
+    height: 30px !important;
+    padding-left: 3px !important;
+    font-size: 12px !important;
     font-weight: normal !important;
+    background-color: #FFF !important;
+    background-image: none !important;
+    border: 1px solid #CCC !important;
+    border-radius: 4px !important;
+    box-shadow: 0px 1px 1px rgba(0, 0, 0, 0.075) inset !important;
+    transition: border-color 0.15s ease-in-out 0s, box-shadow 0.15s ease-in-out 0s !important;
 }
 
-.statsagg_table_footer th span select{
-    color: rgba(0, 0, 0, 0.42);
+.yadcf-filter-wrapper {
+    margin-left: 0px !important;
     width: 100% !important;
-    height: 30px;
-    padding-left: 3px;
-    font-size: 12px;
-    font-weight: normal !important;
 }
 
 ul.nav li.dropdown:hover ul.dropdown-menu{
