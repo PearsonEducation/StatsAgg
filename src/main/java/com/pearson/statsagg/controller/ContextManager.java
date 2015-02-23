@@ -66,6 +66,7 @@ public class ContextManager implements ServletContextListener {
     private UdpServer graphiteAggregatorUdpServer_ = null;
     private TcpServer graphitePassthroughTcpServer_ = null;
     private UdpServer graphitePassthroughUdpServer_ = null;
+    private TcpServer openTsdbTcpServer_ = null;
     private StatsdAggregationInvokerThread statsdAggregationInvokerThread_ = null;
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
@@ -595,6 +596,14 @@ public class ContextManager implements ServletContextListener {
                 graphitePassthroughUdpServerThread.start();
                 if (!graphitePassthroughUdpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
+            
+            // start the netty opentsdb tcp server
+            if (ApplicationConfiguration.isOpenTsdbTcpListenerEnabled()) {
+                openTsdbTcpServer_ = new TcpServer(ApplicationConfiguration.getOpenTsdbTcpListenerPort(), TcpServer.SERVER_TYPE_OPENTSDB);
+                Thread openTsdbTcpServerThread = new Thread(openTsdbTcpServer_);
+                openTsdbTcpServerThread.start();
+                if (!openTsdbTcpServer_.isInitializeSuccess()) isStartupSuccess = false;
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + File.separator + StackTrace.getStringFromStackTrace(e));
@@ -643,6 +652,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownNettyServer shutdownGraphitePassthroughUdpServer = new ShutdownNettyServer(graphitePassthroughUdpServer_);
         Thread threadShutdownGraphitePassthroughUdpServer_ = new Thread(shutdownGraphitePassthroughUdpServer);
         shutdownServerThreads.add(threadShutdownGraphitePassthroughUdpServer_);
+        
+        ShutdownNettyServer shutdownOpenTsdbTcpServer = new ShutdownNettyServer(openTsdbTcpServer_);
+        Thread threadShutdownOpenTsdbTcpServer_ = new Thread(shutdownOpenTsdbTcpServer);
+        shutdownServerThreads.add(threadShutdownOpenTsdbTcpServer_);
         
         Threads.threadExecutorCachedPool(shutdownServerThreads, 30, TimeUnit.SECONDS);
 

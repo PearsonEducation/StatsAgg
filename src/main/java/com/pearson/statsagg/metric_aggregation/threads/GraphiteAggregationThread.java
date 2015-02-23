@@ -3,12 +3,8 @@ package com.pearson.statsagg.metric_aggregation.threads;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
@@ -91,7 +87,7 @@ public class GraphiteAggregationThread implements Runnable {
             
             // 'forget' metrics
             long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
-            forgetGraphiteAggregatedMetrics();
+            Common.forgetGenericMetrics(GlobalVariables.forgetGraphiteAggregatedMetrics, GlobalVariables.forgetGraphiteAggregatedMetricsRegexs, GlobalVariables.graphiteAggregatedMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
             long generateGraphiteStringsTimeElasped = 0;
@@ -223,76 +219,6 @@ public class GraphiteAggregationThread implements Runnable {
         graphiteMetricsAggregatedMerged.addAll(graphiteMetricsAggregatedOldLocal.values());
         
         return graphiteMetricsAggregatedMerged;
-    }
-    
-    private void forgetGraphiteAggregatedMetrics() {
-
-        HashSet<String> metricPathsToForget = new HashSet<>();
-        
-        // gets a list of complete metric paths to forget
-        if (GlobalVariables.forgetGraphiteAggregatedMetrics != null) {  
-            Set<String> forgetGraphiteAggregatedMetrics = new HashSet<>(GlobalVariables.forgetGraphiteAggregatedMetrics.keySet());
-            
-            for (String metricPath : forgetGraphiteAggregatedMetrics) {
-                metricPathsToForget.add(metricPath);
-                GlobalVariables.forgetGraphiteAggregatedMetrics.remove(metricPath);
-            }
-        }
-        
-        // gets a list of metric paths to forget by matching against regexs
-        if (GlobalVariables.forgetGraphiteAggregatedMetricsRegexs != null) {     
-            Set<String> forgetGraphiteAggregatedMetricsRegexs = new HashSet<>(GlobalVariables.forgetGraphiteAggregatedMetricsRegexs.keySet());
-            
-            for (String metricPathRegex : forgetGraphiteAggregatedMetricsRegexs) {
-                Set<String> regexMetricPathsToForget = forgetGraphiteAggregatedMetrics_IdentifyMetricPathsViaRegex(metricPathRegex);
-                
-                if (regexMetricPathsToForget != null) {
-                    metricPathsToForget.addAll(regexMetricPathsToForget);
-                }
-                
-                GlobalVariables.forgetGraphiteAggregatedMetricsRegexs.remove(metricPathRegex);
-            }
-        }
-   
-        // 'forgets' the graphite aggregated metrics
-        if (!metricPathsToForget.isEmpty()) {
-            forgetGraphiteAggregatedMetrics_Forget(metricPathsToForget);
-        }
-        
-    }
-    
-    private Set<String> forgetGraphiteAggregatedMetrics_IdentifyMetricPathsViaRegex(String regex) {
-        
-        if ((regex == null) || regex.isEmpty() || (GlobalVariables.graphiteAggregatedMetricsMostRecentValue == null)) {
-            return new HashSet<>();
-        }
-        
-        Set<String> metricPathsToForget = new HashSet<>();
-        
-        Pattern pattern = Pattern.compile(regex);
-         
-        for (GraphiteMetricAggregated graphiteMetricAggregated : GlobalVariables.graphiteAggregatedMetricsMostRecentValue.values()) {
-            Matcher matcher = pattern.matcher(graphiteMetricAggregated.getMetricPath());
-            
-            if (matcher.matches()) {
-                metricPathsToForget.add(graphiteMetricAggregated.getMetricPath());
-            }
-        }
-         
-        return metricPathsToForget;
-    }
-
-    private void forgetGraphiteAggregatedMetrics_Forget(Set<String> metricPathsToForget) {
-        
-        if ((metricPathsToForget == null) || metricPathsToForget.isEmpty() || (GlobalVariables.graphiteAggregatedMetricsMostRecentValue == null)) {
-            return;
-        }
-            
-        for (String metricPathToForget : metricPathsToForget) {
-            GlobalVariables.immediateCleanupMetrics.put(metricPathToForget, metricPathToForget);
-            GlobalVariables.graphiteAggregatedMetricsMostRecentValue.remove(metricPathToForget);
-        }
-
     }
 
 }

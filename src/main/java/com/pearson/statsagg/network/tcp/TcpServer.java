@@ -27,6 +27,7 @@ public class TcpServer implements Runnable, NettyServer {
     public static final String SERVER_TYPE_STATSD = "STATSD";
     public static final String SERVER_TYPE_GRAPHITE_AGGREGATOR = "GRAPHITE_AGGREGATOR";
     public static final String SERVER_TYPE_GRAPHITE_PASSTHROUGH = "GRAPHITE_PASSTHROUGH";
+    public static final String SERVER_TYPE_OPENTSDB = "OPENTSDB";
     
     private final int port_;
     private final String serverType_;
@@ -87,6 +88,18 @@ public class TcpServer implements Runnable, NettyServer {
                                 new LineBasedFrameDecoder(32767),
                                 new StringDecoder(CharsetUtil.UTF_8), 
                                 new TcpServerHandler_GraphitePassthrough());
+                    }
+                });
+            }
+            else if (serverType_.equals(SERVER_TYPE_OPENTSDB)) {
+                b.group(bossGroup_, workerGroup_).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    public void initChannel(SocketChannel socketChannel) throws Exception {
+                        socketChannel.pipeline().addLast(
+                                new StringEncoder(CharsetUtil.UTF_8),
+                                new LineBasedFrameDecoder(32767),
+                                new StringDecoder(CharsetUtil.UTF_8), 
+                                new TcpServerHandler_OpenTsdb());
                     }
                 });
             }

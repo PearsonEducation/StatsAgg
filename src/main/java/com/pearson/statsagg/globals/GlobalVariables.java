@@ -10,6 +10,7 @@ import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
+import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import java.util.ArrayList;
@@ -47,12 +48,14 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Long,StatsdMetricRaw> statsdMetricsRaw = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphiteAggregatorMetricsRaw = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphitePassthroughMetricsRaw = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,OpenTsdbMetricRaw> openTsdbMetricsRaw = new ConcurrentHashMap<>();
     
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricAggregated> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
-    
+    public final static ConcurrentHashMap<String,OpenTsdbMetricRaw> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>();
+
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>();
     
@@ -61,13 +64,15 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,String> forgetStatsdMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,String> forgetGraphiteAggregatedMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,String> forgetGraphitePassthroughMetrics = new ConcurrentHashMap<>();
-    
+    public final static ConcurrentHashMap<String,String> forgetOpenTsdbMetrics = new ConcurrentHashMap<>();
+
     // k=MetricKeyRegex, v=MetricKeyRegex (k=v. Both are a regexs that specify a pattern that should be matched against known metrics (for 'forgetting').
     public final static ConcurrentHashMap<String,String> forgetMetricsRegexs = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,String> forgetStatsdMetricsRegexs = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,String> forgetGraphiteAggregatedMetricsRegexs = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,String> forgetGraphitePassthroughMetricsRegexs = new ConcurrentHashMap<>();
-    
+    public final static ConcurrentHashMap<String,String> forgetOpenTsdbMetricsRegexs = new ConcurrentHashMap<>();
+
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
     

@@ -195,7 +195,8 @@ public class ForgetMetrics extends HttpServlet {
                 GlobalVariables.forgetStatsdMetrics.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphiteAggregatedMetrics.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphitePassthroughMetrics.put(trimmedParameter, trimmedParameter);
-                
+                GlobalVariables.forgetOpenTsdbMetrics.put(trimmedParameter, trimmedParameter);
+
                 String cleanMetric = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetric + "\"");
             }
@@ -207,7 +208,8 @@ public class ForgetMetrics extends HttpServlet {
                 GlobalVariables.forgetStatsdMetricsRegexs.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphiteAggregatedMetricsRegexs.put(trimmedParameter, trimmedParameter);
                 GlobalVariables.forgetGraphitePassthroughMetricsRegexs.put(trimmedParameter, trimmedParameter);
-                
+                GlobalVariables.forgetOpenTsdbMetricsRegexs.put(trimmedParameter, trimmedParameter);
+
                 String cleanRegex = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "Rexex=\"" + cleanRegex + "\"");
             }

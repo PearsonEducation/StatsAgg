@@ -45,6 +45,8 @@ public class ApplicationConfiguration {
     private static int graphitePassthroughTcpListenerPort_ = VALUE_NOT_SET_CODE;
     private static boolean graphitePassthroughUdpListenerEnabled_ = false;
     private static int graphitePassthroughUdpListenerPort_ = VALUE_NOT_SET_CODE;
+    private static boolean openTsdbTcpListenerEnabled_ = false;
+    private static int openTsdbTcpListenerPort_ = VALUE_NOT_SET_CODE;
     
     private static boolean globalMetricNamePrefixEnabled_ = false;
     private static String globalMetricNamePrefixValue_ = null;
@@ -65,6 +67,8 @@ public class ApplicationConfiguration {
     private static String graphiteAggregatorMetricNamePrefixValue_ = null;
     private static boolean graphitePassthroughMetricNamePrefixEnabled_ = false;
     private static String graphitePassthroughMetricNamePrefixValue_ = null;
+    private static boolean openTsdbMetricNamePrefixEnabled_ = false;
+    private static String openTsdbMetricNamePrefixValue_ = null;
     
     private static boolean statsdCounterSendZeroOnInactive_ = false;
     private static boolean statsdTimerSendZeroOnInactive_ = false;
@@ -72,6 +76,7 @@ public class ApplicationConfiguration {
     private static boolean statsdSetSendZeroOnInactive_ = false;
     private static boolean graphiteAggregatorSendPreviousValue_ = false;
     private static boolean graphitePassthroughSendPreviousValue_ = false;      
+    private static boolean openTsdbSendPreviousValue_ = false;  
     
     private static StatsdNthPercentiles statsdNthPercentiles_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
@@ -139,6 +144,8 @@ public class ApplicationConfiguration {
             graphitePassthroughTcpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_tcp_listener_port", 2003);
             graphitePassthroughUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_udp_listener_enabled", true);
             graphitePassthroughUdpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_udp_listener_port", 2003);
+            openTsdbTcpListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_tcp_listener_enabled", true);
+            openTsdbTcpListenerPort_ = applicationConfiguration_.getInt("opentsdb_tcp_listener_port", 4242);
             
             // metric naming config
             globalMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("global_metric_name_prefix_enabled", false);
@@ -160,6 +167,8 @@ public class ApplicationConfiguration {
             graphiteAggregatorMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_aggregator_metric_name_prefix_value", "graphite-agg");
             graphitePassthroughMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_metric_name_prefix_enabled", false);
             graphitePassthroughMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_passthrough_metric_name_prefix_value", "graphite");
+            openTsdbMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("opentsdb_metric_name_prefix_enabled", false);
+            openTsdbMetricNamePrefixValue_ = applicationConfiguration_.getString("opentsdb_metric_name_prefix_value", "graphite");
             
             // send previous data config
             statsdCounterSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_counter_send_0_on_inactive", true);
@@ -168,7 +177,8 @@ public class ApplicationConfiguration {
             statsdSetSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_set_send_0_on_inactive", true);
             graphiteAggregatorSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_aggregator_send_previous_value", false);
             graphitePassthroughSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_passthrough_send_previous_value", false);
-
+            openTsdbSendPreviousValue_ = applicationConfiguration_.getBoolean("opentsdb_send_previous_value", false);
+            
             // statsd specific variables
             statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.getString("statsd_nth_percentiles", "90"));
             statsdUseLegacyNameSpacing_ = applicationConfiguration_.getBoolean("statsd_use_legacy_name_spacing", false);
@@ -349,7 +359,15 @@ public class ApplicationConfiguration {
     public static int getGraphitePassthroughUdpListenerPort() {
         return graphitePassthroughUdpListenerPort_;
     }
-    
+
+    public static boolean isOpenTsdbTcpListenerEnabled() {
+        return openTsdbTcpListenerEnabled_;
+    }
+
+    public static int getOpenTsdbTcpListenerPort() {
+        return openTsdbTcpListenerPort_;
+    }
+
     public static boolean isGlobalMetricNamePrefixEnabled() {
         return globalMetricNamePrefixEnabled_;
     }
@@ -426,6 +444,14 @@ public class ApplicationConfiguration {
         return graphitePassthroughMetricNamePrefixValue_;
     }
     
+    public static boolean isOpenTsdbMetricNamePrefixEnabled() {
+        return openTsdbMetricNamePrefixEnabled_;
+    }
+
+    public static String getOpenTsdbMetricNamePrefixValue() {
+        return openTsdbMetricNamePrefixValue_;
+    }
+    
     public static boolean isStatsdCounterSendZeroOnInactive() {
         return statsdCounterSendZeroOnInactive_;
     }
@@ -448,6 +474,10 @@ public class ApplicationConfiguration {
     
     public static boolean isGraphitePassthroughSendPreviousValue() {
         return graphitePassthroughSendPreviousValue_;
+    }
+
+    public static boolean isOpenTsdbSendPreviousValue() {
+        return openTsdbSendPreviousValue_;
     }
 
     public static StatsdNthPercentiles getStatsdNthPercentiles() {

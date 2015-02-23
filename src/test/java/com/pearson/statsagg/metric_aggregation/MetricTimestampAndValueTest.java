@@ -15,7 +15,6 @@ import org.junit.BeforeClass;
 import org.junit.Test;
 
 /**
- *
  * @author Jeffrey Schmidt
  */
 public class MetricTimestampAndValueTest {

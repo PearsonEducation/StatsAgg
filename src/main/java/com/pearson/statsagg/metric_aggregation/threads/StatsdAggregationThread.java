@@ -8,8 +8,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.database.gauges.GaugesDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
@@ -349,7 +347,7 @@ public class StatsdAggregationThread implements Runnable {
             Set<String> forgetStatsdMetricsRegexs = new HashSet<>(GlobalVariables.forgetStatsdMetricsRegexs.keySet());
             
             for (String bucketRegex : forgetStatsdMetricsRegexs) {
-                Set<String> regexBucketsToForget = forgetStatsdMetrics_IdentifyBucketsViaRegex(bucketRegex);
+                Set<String> regexBucketsToForget = Common.forgetGenericMetrics_IdentifyMetricPathsViaRegex(bucketRegex, GlobalVariables.statsdMetricsAggregatedMostRecentValue);
                 
                 if (regexBucketsToForget != null) {
                     bucketsToForget.addAll(regexBucketsToForget);
@@ -366,27 +364,6 @@ public class StatsdAggregationThread implements Runnable {
             gaugesDao.close();
         }
         
-    }
-    
-    private Set<String> forgetStatsdMetrics_IdentifyBucketsViaRegex(String regex) {
-        
-        if ((regex == null) || regex.isEmpty() || (GlobalVariables.statsdMetricsAggregatedMostRecentValue == null)) {
-            return new HashSet<>();
-        }
-        
-        Set<String> bucketsToForget = new HashSet<>();
-        
-        Pattern pattern = Pattern.compile(regex);
-         
-        for (StatsdMetricAggregated statsdMetricAggregated : GlobalVariables.statsdMetricsAggregatedMostRecentValue.values()) {
-            Matcher matcher = pattern.matcher(statsdMetricAggregated.getBucket());
-            
-            if (matcher.matches()) {
-                bucketsToForget.add(statsdMetricAggregated.getBucket());
-            }
-        }
-         
-        return bucketsToForget;
     }
 
     private void forgetStatsdMetrics_Forget(Set<String> bucketsToForget, GaugesDao gaugesDao) {

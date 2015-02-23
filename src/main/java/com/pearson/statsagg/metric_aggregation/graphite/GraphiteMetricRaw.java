@@ -239,8 +239,8 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFor
         
         Map<String,GraphiteMetricRaw> mostRecentGraphiteMetricsByMetricPath = new HashMap<>();
         
-        try {
-            for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+            try {
                 boolean doesAlreadyContainMetricPath = mostRecentGraphiteMetricsByMetricPath.containsKey(graphiteMetricRaw.getMetricPath());
 
                 if (doesAlreadyContainMetricPath) {
@@ -259,11 +259,11 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFor
                     mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                 }
             }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
+
         return mostRecentGraphiteMetricsByMetricPath;
     }
     

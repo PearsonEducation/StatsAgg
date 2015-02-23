@@ -56,7 +56,7 @@ public class GraphitePassthroughThread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeGraphitePassthroughThreadStartGetMetricsTimestamps);
             activeGraphitePassthroughThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
             
-            // get metrics for sending to graphite
+            // get metrics for aggregation
             long createMetricsTimeStart = System.currentTimeMillis();
             List<GraphiteMetricRaw> graphiteMetricsRaw = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
@@ -92,7 +92,7 @@ public class GraphitePassthroughThread implements Runnable {
 
             // 'forget' metrics
             long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
-            forgetGraphitePassthroughMetrics();
+            Common.forgetGenericMetrics(GlobalVariables.forgetGraphitePassthroughMetrics, GlobalVariables.forgetGraphitePassthroughMetricsRegexs, GlobalVariables.graphitePassthroughMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
             long generateGraphiteStringsTimeElasped = 0;
@@ -228,76 +228,6 @@ public class GraphitePassthroughThread implements Runnable {
         graphiteMetricsRawMerged.addAll(graphiteMetricsRawOldLocal.values());
         
         return graphiteMetricsRawMerged;
-    }
-
-    private void forgetGraphitePassthroughMetrics() {
-
-        HashSet<String> metricPathsToForget = new HashSet<>();
-        
-        // gets a list of complete metric paths to forget
-        if (GlobalVariables.forgetGraphitePassthroughMetrics != null) {         
-            Set<String> forgetGraphitePassthroughMetrics = new HashSet<>(GlobalVariables.forgetGraphitePassthroughMetrics.keySet());
-            
-            for (String metricPath : forgetGraphitePassthroughMetrics) {
-                metricPathsToForget.add(metricPath);
-                GlobalVariables.forgetGraphitePassthroughMetrics.remove(metricPath);
-            }
-        }
-        
-        // gets a list of metric paths to forget by matching against regexs
-        if (GlobalVariables.forgetGraphitePassthroughMetricsRegexs != null) {      
-            Set<String> forgetGraphitePassthroughMetricsRegexs = new HashSet<>(GlobalVariables.forgetGraphitePassthroughMetricsRegexs.keySet());
-            
-            for (String metricPathRegex : forgetGraphitePassthroughMetricsRegexs) {
-                Set<String> regexMetricPathsToForget = forgetGraphitePassthroughMetrics_IdentifyMetricPathsViaRegex(metricPathRegex);
-                
-                if (regexMetricPathsToForget != null) {
-                    metricPathsToForget.addAll(regexMetricPathsToForget);
-                }
-                
-                GlobalVariables.forgetGraphitePassthroughMetricsRegexs.remove(metricPathRegex);
-            }
-        }
-        
-        // 'forgets' the graphite passthrough metrics
-        if (!metricPathsToForget.isEmpty()) {
-            forgetGraphitePassthroughMetrics_Forget(metricPathsToForget);
-        }
-        
-    }
-    
-    private Set<String> forgetGraphitePassthroughMetrics_IdentifyMetricPathsViaRegex(String regex) {
-        
-        if ((regex == null) || regex.isEmpty() || (GlobalVariables.graphitePassthroughMetricsMostRecentValue == null)) {
-            return new HashSet<>();
-        }
-        
-        Set<String> metricPathsToForget = new HashSet<>();
-        
-        Pattern pattern = Pattern.compile(regex);
-         
-        for (GraphiteMetricRaw graphiteMetricRaw : GlobalVariables.graphitePassthroughMetricsMostRecentValue.values()) {
-            Matcher matcher = pattern.matcher(graphiteMetricRaw.getMetricPath());
-            
-            if (matcher.matches()) {
-                metricPathsToForget.add(graphiteMetricRaw.getMetricPath());
-            }
-        }
-         
-        return metricPathsToForget;
-    }
-
-    private void forgetGraphitePassthroughMetrics_Forget(Set<String> metricPathsToForget) {
-        
-        if ((metricPathsToForget == null) || metricPathsToForget.isEmpty() || (GlobalVariables.graphitePassthroughMetricsMostRecentValue == null)) {
-            return;
-        }
-            
-        for (String metricPathToForget : metricPathsToForget) {
-            GlobalVariables.immediateCleanupMetrics.put(metricPathToForget, metricPathToForget);
-            GlobalVariables.graphitePassthroughMetricsMostRecentValue.remove(metricPathToForget);
-        }
-
     }
 
 }
