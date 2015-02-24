@@ -81,17 +81,26 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, GenericMetricFor
     }
     
     @Override
-    public String getGraphiteFormatString() {
+    public String toString() {
         StringBuilder stringBuilder = new StringBuilder("");
         
-        stringBuilder.append(metricKey_).append(metricTimestamp_).append(" ").append(metricValue_).append(" ");
+        stringBuilder.append(metricKey_).append(" ").append(metricTimestamp_).append(" ").append(metricValue_).append(" ");
 
         if (tags_ != null) {
             for (int i = 0; i < tags_.size(); i++) {
                 stringBuilder.append(tags_.get(i).getUnparsedTag());
-                if ((i + 1) == tags_.size()) stringBuilder.append(" ");
+                if ((i + 1) != tags_.size()) stringBuilder.append(" ");
             }
         }
+        
+        return stringBuilder.toString();
+    }
+
+    @Override
+    public String getGraphiteFormatString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        
+        stringBuilder.append(metricKey_).append(" ").append(metricValue_).append(" ").append(metricTimestamp_);
         
         return stringBuilder.toString();
     }
