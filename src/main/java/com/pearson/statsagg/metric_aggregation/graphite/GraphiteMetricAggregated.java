@@ -3,13 +3,14 @@ package com.pearson.statsagg.metric_aggregation.graphite;
 import java.math.BigDecimal;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
+import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class GraphiteMetricAggregated implements GraphiteMetricFormat, GenericMetricFormat {
+public class GraphiteMetricAggregated implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
     private static final Logger logger = LoggerFactory.getLogger(GraphiteMetricAggregated.class.getName());
     
@@ -49,6 +50,15 @@ public class GraphiteMetricAggregated implements GraphiteMetricFormat, GenericMe
         stringBuilder.append(metricPath_)
                 .append(" ").append(metricValue_)
                 .append(" ").append(metricTimestampInSeconds_);
+
+        return stringBuilder.toString();
+    }
+    
+    @Override
+    public String getOpenTsdbFormatString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        
+        stringBuilder.append(metricPath_).append(" ").append(metricTimestampInSeconds_).append(" ").append(metricValue_).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }

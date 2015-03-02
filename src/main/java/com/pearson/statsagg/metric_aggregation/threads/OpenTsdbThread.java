@@ -9,6 +9,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -101,6 +102,14 @@ public class OpenTsdbThread implements Runnable {
                 GraphiteOutputModule.sendMetricsToGraphiteEndpoints(openTsdbOutputMessagesForGraphite, threadId_);
             }
             
+            if (OpenTsdbOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
+                // generate messages for OpenTsdb
+                List<String> openTsdbOutputMessagesForOpenTsdb = OpenTsdbOutputModule.buildOpenTsdbMessages(openTsdbMetricsRawMerged);
+            
+                // send to OpenTsdb
+                OpenTsdbOutputModule.sendMetricsToOpenTsdbEndpoints(openTsdbOutputMessagesForOpenTsdb, threadId_);
+            }
+            
             // total time for this thread took to get & send the graphite metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
@@ -173,8 +182,9 @@ public class OpenTsdbThread implements Runnable {
             String timestampInSecondsString = Integer.toString(timestampInSeconds);
                                 
             for (OpenTsdbMetricRaw openTsdbMetricRaw : GlobalVariables.openTsdbMetricsMostRecentValue.values()) {
-                OpenTsdbMetricRaw updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetricKey(), 
-                        timestampInSecondsString, openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), timestampInMilliseconds, timestampInMilliseconds);
+                OpenTsdbMetricRaw updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetric(), 
+                        timestampInSecondsString, openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), 
+                        openTsdbMetricRaw.getSortedUnparsedTags(), timestampInMilliseconds, timestampInMilliseconds);
                 updatedOpenTsdbMetricRaw.setHashKey(openTsdbMetricRaw.getHashKey());
                 
                 GlobalVariables.openTsdbMetricsMostRecentValue.put(updatedOpenTsdbMetricRaw.getMetricKey(), updatedOpenTsdbMetricRaw);

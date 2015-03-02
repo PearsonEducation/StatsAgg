@@ -48,8 +48,7 @@ public class OpenTsdbTag {
         
         return openTsdbTags;
     }
-            
-            
+    
     public String getKey() {
         return key_;
     }

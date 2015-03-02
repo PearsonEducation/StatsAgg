@@ -3,16 +3,13 @@ package com.pearson.statsagg.metric_aggregation.threads;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -104,6 +101,14 @@ public class GraphitePassthroughThread implements Runnable {
             
                 // send to graphite
                 GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteOutputMessagesForGraphite, threadId_);
+            }
+            
+            if (OpenTsdbOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
+                // generate messages for OpenTsdb
+                List<String> openTsdbOutputMessagesForOpenTsdb = OpenTsdbOutputModule.buildOpenTsdbMessages(graphiteMetricsRawMerged);
+            
+                // send to OpenTsdb
+                OpenTsdbOutputModule.sendMetricsToOpenTsdbEndpoints(openTsdbOutputMessagesForOpenTsdb, threadId_);
             }
             
             // total time for this thread took to get & send the graphite metrics

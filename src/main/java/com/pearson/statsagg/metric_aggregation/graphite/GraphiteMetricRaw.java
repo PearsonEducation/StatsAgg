@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
+import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
@@ -16,7 +17,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFormat {
+public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
     private static final Logger logger = LoggerFactory.getLogger(GraphiteMetricRaw.class.getName());
     
@@ -139,6 +140,15 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, GenericMetricFor
         StringBuilder stringBuilder = new StringBuilder("");
         
         stringBuilder.append(metricPath_).append(" ").append(metricValue_).append(" ").append(metricTimestamp_);
+
+        return stringBuilder.toString();
+    }
+    
+    @Override
+    public String getOpenTsdbFormatString() {
+        StringBuilder stringBuilder = new StringBuilder("");
+        
+        stringBuilder.append(metricPath_).append(" ").append(metricTimestamp_).append(" ").append(metricValue_).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }

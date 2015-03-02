@@ -39,19 +39,20 @@ public class OpenTsdbRawTest {
      */
     @Test
     public void testParseOpenTsdbRaw() {
-        String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag1=meow tag2=mix";
+        String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
         
         OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, 1366998400999L);
         parsedMetric.createAndGetMetricTimestamp();
         parsedMetric.createAndGetMetricValueBigDecimal();
         
-        assertTrue(parsedMetric.getMetricKey().equals("tcollector.reader.lines_collected"));
+        assertTrue(parsedMetric.getMetric().equals("tcollector.reader.lines_collected"));
         assertTrue(parsedMetric.getMetricValue().equals("1203.3"));
         assertEquals(parsedMetric.getMetricValueBigDecimal().compareTo(new BigDecimal("1203.3")), 0);
         assertTrue(parsedMetric.getMetricTimestamp().equals("1424566500"));
+        assertTrue(parsedMetric.getMetricKey().equals("tcollector.reader.lines_collected : tag1=meow tag2=mix"));
         assertTrue(parsedMetric.getMetricTimestampInMilliseconds().equals(1424566500000L));
         assertEquals(parsedMetric.getGraphiteFormatString(), "tcollector.reader.lines_collected 1203.3 1424566500");
-        assertEquals(parsedMetric.toString(), "tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix");
+        assertEquals(parsedMetric.toString(), "tcollector.reader.lines_collected 1424566500 1203.3 tag2=mix tag1=meow");
 
         assertEquals(parsedMetric.getTags().size(), 2);
         
@@ -88,8 +89,8 @@ public class OpenTsdbRawTest {
         
         List<OpenTsdbMetricRaw> prefixedOpenTsdbMetricsRaw = OpenTsdbMetricRaw.createPrefixedOpenTsdbMetricsRaw(openTsdbMetricsRaw, true, "myGlobalPrefix", true, "myOpenTsdbPrefix");
         assertEquals(prefixedOpenTsdbMetricsRaw.size(), 1);
-
-        assertTrue(prefixedOpenTsdbMetricsRaw.get(0).getMetricKey().equals("myGlobalPrefix.myOpenTsdbPrefix.tcollector.reader.lines_collected"));
+        
+        assertTrue(prefixedOpenTsdbMetricsRaw.get(0).getMetric().equals("myGlobalPrefix.myOpenTsdbPrefix.tcollector.reader.lines_collected"));
     }
       
 }

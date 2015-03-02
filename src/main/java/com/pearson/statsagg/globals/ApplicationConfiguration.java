@@ -3,6 +3,7 @@ package com.pearson.statsagg.globals;
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbOutputModule;
 import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import java.io.InputStream;
@@ -32,6 +33,7 @@ public class ApplicationConfiguration {
     
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
     private static int graphiteMaxBatchSize_ = VALUE_NOT_SET_CODE;     
+    private static final List<OpenTsdbOutputModule> openTsdbOutputModules_ = new ArrayList<>();
 
     private static boolean statsdTcpListenerEnabled_ = false;
     private static int statsdTcpListenerPort_ = VALUE_NOT_SET_CODE;
@@ -310,6 +312,10 @@ public class ApplicationConfiguration {
 
     public static int getGraphiteMaxBatchSize() {
         return graphiteMaxBatchSize_;
+    }
+    
+    public static List<OpenTsdbOutputModule> getOpenTsdbOutputModules() {
+        return openTsdbOutputModules_;
     }
 
     public static boolean isStatsdTcpListenerEnabled() {
