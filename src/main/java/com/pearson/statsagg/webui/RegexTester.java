@@ -192,7 +192,7 @@ public class RegexTester extends HttpServlet {
             int matchCounter = 0;
             for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
                 Matcher matcher = pattern.matcher(metricKey);
-                if (matcher.matches()) {
+                if (matcher.find()) {
                     matchingMetricKeys.add(metricKey);
                     matchCounter++;
                 }

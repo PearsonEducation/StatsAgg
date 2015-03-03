@@ -143,6 +143,48 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return toString();
     }
     
+    public static String getOpenTsdbJson(List<OpenTsdbMetricRaw> openTsdbMetricRaws) {
+        
+        if (openTsdbMetricRaws == null) return null;
+
+        StringBuilder openTsdbJson = new StringBuilder("");
+        
+        openTsdbJson.append("[");
+        
+        for (int i = 0; i < openTsdbMetricRaws.size(); i++) {
+            OpenTsdbMetricRaw openTsdbMetricRaw = openTsdbMetricRaws.get(i);
+            
+            if ((openTsdbMetricRaw.getMetric() == null) || openTsdbMetricRaw.getMetric().isEmpty()) continue;
+            if ((openTsdbMetricRaw.getMetricTimestamp() == null) || openTsdbMetricRaw.getMetricTimestamp().isEmpty()) continue;
+            if ((openTsdbMetricRaw.getMetricValue() == null) || openTsdbMetricRaw.getMetricValue().isEmpty()) continue; 
+            if ((openTsdbMetricRaw.getTags() == null) || openTsdbMetricRaw.getTags().isEmpty()) continue;
+
+            openTsdbJson.append("{");
+            
+            openTsdbJson.append("\"metric\":\"").append(openTsdbMetricRaw.getMetric()).append("\",");
+            openTsdbJson.append("\"timestamp\":").append(openTsdbMetricRaw.getMetricTimestamp()).append(",");
+            openTsdbJson.append("\"value\":").append(openTsdbMetricRaw.getMetricTimestamp()).append(",");
+            
+            openTsdbJson.append("\"tags\":{");
+            
+            for (int j = 0; j < openTsdbMetricRaw.getTags().size(); j++) {
+                OpenTsdbTag tag = openTsdbMetricRaw.getTags().get(j);
+                openTsdbJson.append("\"").append(tag.getKey()).append("\":\"").append(tag.getValue()).append("\"");
+                if ((j + 1) != openTsdbMetricRaw.getTags().size()) openTsdbJson.append(",");
+            }
+
+            openTsdbJson.append("}");
+            
+            openTsdbJson.append("}");
+            
+            if ((i + 1) != openTsdbMetricRaws.size()) openTsdbJson.append(",");
+        }
+        
+        openTsdbJson.append("]");
+        
+        return openTsdbJson.toString();
+    }
+    
     public static OpenTsdbMetricRaw parseOpenTsdbMetricRaw(String unparsedMetric, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {

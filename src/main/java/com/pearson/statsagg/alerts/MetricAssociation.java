@@ -152,7 +152,7 @@ public class MetricAssociation {
                     
                     if (pattern != null) {
                         Matcher matcher = pattern.matcher(metricKey);
-                        boolean isMetricKeyAssociatedWithMetricGroup = matcher.matches();
+                        boolean isMetricKeyAssociatedWithMetricGroup = matcher.find();
 
                         if (isMetricKeyAssociatedWithMetricGroup) {
                             positiveMatchList.add(metricGroupId);

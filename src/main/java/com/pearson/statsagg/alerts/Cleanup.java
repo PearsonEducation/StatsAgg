@@ -364,7 +364,7 @@ public class Cleanup {
         for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
             Matcher matcher = pattern.matcher(metricKey);
             
-            if (matcher.matches()) {
+            if (matcher.find()) {
                 metricKeysToForget.add(metricKey);
             }
         }

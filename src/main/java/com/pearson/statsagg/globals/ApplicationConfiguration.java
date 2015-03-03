@@ -3,7 +3,8 @@ package com.pearson.statsagg.globals;
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
-import com.pearson.statsagg.modules.OpenTsdbOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbHttpOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import java.io.InputStream;
@@ -33,7 +34,8 @@ public class ApplicationConfiguration {
     
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
     private static int graphiteMaxBatchSize_ = VALUE_NOT_SET_CODE;     
-    private static final List<OpenTsdbOutputModule> openTsdbOutputModules_ = new ArrayList<>();
+    private static final List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules_ = new ArrayList<>();
+    private static final List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules_ = new ArrayList<>();
 
     private static boolean statsdTcpListenerEnabled_ = false;
     private static int statsdTcpListenerPort_ = VALUE_NOT_SET_CODE;
@@ -133,6 +135,9 @@ public class ApplicationConfiguration {
             graphiteOutputModules_.addAll(readGraphiteOutputModules());
             graphiteMaxBatchSize_ = applicationConfiguration_.getInt("graphite_max_batch_size", 100);
 
+            // opentsdb configuration
+            openTsdbTelnetOutputModules_.addAll(readOpenTsdbTelnetOutputModules());
+            
             // listener config
             statsdTcpListenerEnabled_ = applicationConfiguration_.getBoolean("statsd_tcp_listener_enabled", true);
             statsdTcpListenerPort_ = applicationConfiguration_.getInt("statsd_tcp_listener_port", 8125);
@@ -254,6 +259,44 @@ public class ApplicationConfiguration {
         return graphiteOutputModules;
     }
 
+    private static List<OpenTsdbTelnetOutputModule> readOpenTsdbTelnetOutputModules() {
+        
+        List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = new ArrayList<>();
+        
+        for (int i = 0; i < 1000; i++) {
+            String openTsdbTelnetOutputModuleKey = "opentsdb_telnet_output_module_" + (i + 1);
+            String openTsdbTelnetOutputModuleValue = applicationConfiguration_.getString(openTsdbTelnetOutputModuleKey, null);
+            
+            if (openTsdbTelnetOutputModuleValue == null) continue;
+            
+            try {
+                CSVReader reader = new CSVReader(new StringReader(openTsdbTelnetOutputModuleValue));
+                List<String[]> csvValuesArray = reader.readAll();
+
+                if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
+                    String[] csvValues = csvValuesArray.get(0);
+
+                    if (csvValues.length == 4) {                                
+                        boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
+                        String host = csvValues[1];
+                        int port = Integer.valueOf(csvValues[2]);
+                        int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
+                        
+                        OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule = new OpenTsdbTelnetOutputModule(isOutputEnabled, host, port, numSendRetryAttempts);
+                        openTsdbTelnetOutputModules.add(openTsdbTelnetOutputModule);
+                    }
+
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+        }
+        
+        return openTsdbTelnetOutputModules;
+    }
+    
     private static List<HttpLink> readCustomActionUrls() {
         
         List<HttpLink> customActionUrls = new ArrayList<>();
@@ -307,17 +350,24 @@ public class ApplicationConfiguration {
     }
 
     public static List<GraphiteOutputModule> getGraphiteOutputModules() {
-        return graphiteOutputModules_;
+        if (graphiteOutputModules_ == null) return null;
+        else return new ArrayList<>(graphiteOutputModules_);
     }
 
     public static int getGraphiteMaxBatchSize() {
         return graphiteMaxBatchSize_;
     }
     
-    public static List<OpenTsdbOutputModule> getOpenTsdbOutputModules() {
-        return openTsdbOutputModules_;
+    public static List<OpenTsdbTelnetOutputModule> getOpenTsdbTelnetOutputModules() {
+        if (openTsdbTelnetOutputModules_ == null) return null;
+        else return new ArrayList<>(openTsdbTelnetOutputModules_);
     }
 
+    public static List<OpenTsdbHttpOutputModule> getOpenTsdbHttpOutputModules() {
+        if (openTsdbHttpOutputModules_ == null) return null;
+        else return new ArrayList<>(openTsdbHttpOutputModules_);
+    }
+    
     public static boolean isStatsdTcpListenerEnabled() {
         return statsdTcpListenerEnabled_;
     }

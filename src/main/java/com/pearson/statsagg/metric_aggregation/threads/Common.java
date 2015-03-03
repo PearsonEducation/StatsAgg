@@ -171,7 +171,7 @@ public class Common {
             for (GenericMetricFormat genericMetric : metricsMostRecentValue.values()) {
                 Matcher matcher = pattern.matcher(genericMetric.getMetricKey());
 
-                if (matcher.matches()) {
+                if (matcher.find()) {
                     metricKeysToForget.add(genericMetric.getMetricKey());
                 }
             }

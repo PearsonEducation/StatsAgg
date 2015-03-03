@@ -13,16 +13,16 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class OpenTsdbOutputModule {
+public class OpenTsdbTelnetOutputModule {
     
-    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbOutputModule.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbTelnetOutputModule.class.getName());
     
     private final boolean isOutputEnabled_;
     private final String host_;
     private final int port_;
     private final int numSendRetryAttempts_;
     
-    public OpenTsdbOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts) {
+    public OpenTsdbTelnetOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.host_ = host;
         this.port_ = port;
@@ -49,10 +49,10 @@ public class OpenTsdbOutputModule {
         
         try {
             
-            List<OpenTsdbOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbOutputModules();
+            List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
             if (openTsdbOutuputModules == null) return;
                     
-            for (OpenTsdbOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+            for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
                 if (!openTsdbOutputModule.isOutputEnabled()) continue;
                 
                 SendMetricsToOpenTsdbThread sendMetricsToOpenTsdbThread = new SendMetricsToOpenTsdbThread(outputMessagesForOpenTsdb, openTsdbOutputModule.getHost(), 
@@ -69,10 +69,10 @@ public class OpenTsdbOutputModule {
     
     public static boolean isAnyOpenTsdbOutputModuleEnabled() {
         
-        List<OpenTsdbOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbOutputModules();
+        List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
         if (openTsdbOutuputModules == null) return false;
         
-        for (OpenTsdbOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+        for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
             if (openTsdbOutputModule.isOutputEnabled()) {
                 return true;
             }
@@ -81,14 +81,14 @@ public class OpenTsdbOutputModule {
         return false;
     }
 
-    public static List<OpenTsdbOutputModule> getEnabledOpenTsdbOutputModules() {
+    public static List<OpenTsdbTelnetOutputModule> getEnabledOpenTsdbOutputModules() {
         
-        List<OpenTsdbOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbOutputModules();
+        List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
         if (openTsdbOutuputModules == null) return new ArrayList<>();
         
-        List<OpenTsdbOutputModule> enabledOpenTsdbOutputModules = new ArrayList<>();
+        List<OpenTsdbTelnetOutputModule> enabledOpenTsdbOutputModules = new ArrayList<>();
         
-        for (OpenTsdbOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+        for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
             if (openTsdbOutputModule.isOutputEnabled()) {
                 enabledOpenTsdbOutputModules.add(openTsdbOutputModule);
             }

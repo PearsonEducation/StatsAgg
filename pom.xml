@@ -256,6 +256,12 @@
             <version>2.3</version>
         </dependency>
         
+        <dependency>
+            <groupId>io.fastjson</groupId>
+            <artifactId>boon</artifactId>
+            <version>0.31</version>
+        </dependency>
+
     </dependencies>
 
 </project>

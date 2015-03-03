@@ -74,8 +74,6 @@ public class OpenTsdbRawTest {
         assertEquals(tagCount, 2);
     }
 
-    
-    
     /**
      * Test of createPrefixedOpenTsdbMetricsRaw method, of class OpenTsdbMetricRaw.
      */
@@ -93,4 +91,24 @@ public class OpenTsdbRawTest {
         assertTrue(prefixedOpenTsdbMetricsRaw.get(0).getMetric().equals("myGlobalPrefix.myOpenTsdbPrefix.tcollector.reader.lines_collected"));
     }
       
+    /**
+     * Test of getOpenTsdbJson method, of class OpenTsdbMetricRaw.
+     */
+    @Test
+    public void testGetOpenTsdbJson() {
+        
+        String unparsedMetric1 = "tcollector1.reader.lines_collected2 1424566501 1203.1  tag2=mix  tag1=meow";
+        String unparsedMetric2 = "tcollector2.reader.lines_collected2 1424566502 1203.2  tag3=maow tag4=mox";
+        
+        OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, 1366998400991L);
+        OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, 1366998400992L);
+
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList<>();
+        openTsdbMetricsRaw.add(parsedMetric1);
+        openTsdbMetricsRaw.add(parsedMetric2);
+        
+        String json = OpenTsdbMetricRaw.getOpenTsdbJson(openTsdbMetricsRaw);
+        assertEquals(json, "[{\"metric\":\"tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1424566501,\"tags\":{\"tag2\":\"mix\",\"tag1\":\"meow\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502,\"value\":1424566502,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]");
+    }
+
 }
