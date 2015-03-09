@@ -296,7 +296,7 @@ public class Alerts extends HttpServlet {
                     for (int i = 0; i < metricGroupTags.size(); i++) {
                         MetricGroupTag metricGroupTag = metricGroupTags.get(i);
                         tagsCsv = tagsCsv.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTag.getTag())).append("</u>");
-                        if ((i + 1) < metricGroupTags.size()) tagsCsv.append("&nbsp;&nbsp;");
+                        if ((i + 1) < metricGroupTags.size()) tagsCsv.append(" &nbsp;");
                     }
                 }
             }

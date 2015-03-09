@@ -133,7 +133,7 @@ public class AlertDetails extends HttpServlet {
             if (alert.getMetricGroupId() != null) metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
             
             outputString.append("<div class=\"col-md-4\">\n");
-            outputString.append("<div class=\"panel panel-default\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body\">");
+            outputString.append("<div class=\"panel panel-default\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
@@ -198,7 +198,7 @@ public class AlertDetails extends HttpServlet {
             else outputString.append("N/A <br>");
             
             outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
-            outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body\">");
+            outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
                         
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("<del>");
             
@@ -275,7 +275,7 @@ public class AlertDetails extends HttpServlet {
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("</del>");
 
             outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
-            outputString.append("<div class=\"panel panel-danger\"> <div class=\"panel-heading\"><b>Danger Details</b></div> <div class=\"panel-body\">");
+            outputString.append("<div class=\"panel panel-danger\"> <div class=\"panel-heading\"><b>Danger Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
 
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("<del>");
             

@@ -166,13 +166,22 @@ public class Common {
         Set<String> metricKeysToForget = new HashSet<>();
         
         try {
-            Pattern pattern = Pattern.compile(regex);
+            Pattern pattern = null;
 
-            for (GenericMetricFormat genericMetric : metricsMostRecentValue.values()) {
-                Matcher matcher = pattern.matcher(genericMetric.getMetricKey());
+            try {
+                pattern = Pattern.compile(regex);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        
+            if (pattern != null) {
+                for (GenericMetricFormat genericMetric : metricsMostRecentValue.values()) {
+                    Matcher matcher = pattern.matcher(genericMetric.getMetricKey());
 
-                if (matcher.find()) {
-                    metricKeysToForget.add(genericMetric.getMetricKey());
+                    if (matcher.find()) {
+                        metricKeysToForget.add(genericMetric.getMetricKey());
+                    }
                 }
             }
         }

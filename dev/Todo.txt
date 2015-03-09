@@ -3,8 +3,6 @@ Short/Medium term
  * Documentation on how StatsAgg is not a metric storage engine, and how long metrics live in memory
    * Should go in overview
  * Support OpenTSDB input formats 
-   * Regexs on tags
-   * Document. 32k limit on metrics
    * Test agg routine
    * Unit tests
    * Add options to config files

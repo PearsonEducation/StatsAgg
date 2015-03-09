@@ -10,6 +10,9 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.boon.Boon;
+import org.boon.core.value.LazyValueMap;
+import org.boon.core.value.ValueList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -237,6 +240,68 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
+    }
+    
+    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricReceivedTimestampInMilliseconds) {
+
+        if ((inputJson == null) || inputJson.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        ValueList parsedJsonObject = null;
+        
+        try {
+            parsedJsonObject = (ValueList) Boon.fromJson(inputJson);
+        }
+        catch (Exception e) {
+            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+            
+        if (parsedJsonObject == null) return new ArrayList<>();
+            
+        StringBuilder openTsdbMetricsString = new StringBuilder("");
+                
+        for (Object openTsdbMetricJsonObject : parsedJsonObject) {
+            try {
+                LazyValueMap openTsdbMetric = (LazyValueMap) openTsdbMetricJsonObject;
+                
+                String metric = (String) openTsdbMetric.get("metric");
+                
+                Object timestampObject = openTsdbMetric.get("timestamp");
+                String timestampString = null;
+                if (timestampObject instanceof Integer) timestampString = Integer.toString((Integer) timestampObject);
+                else if (timestampObject instanceof Long) timestampString = Long.toString((Long) timestampObject);
+                else if (timestampObject instanceof Double) timestampString = Double.toString((Double) timestampObject);
+                else if (timestampObject instanceof Float) timestampString = Float.toString((Float) timestampObject);
+                else if (timestampObject instanceof String) timestampString = (String) timestampObject;
+                
+                Object valueObject = openTsdbMetric.get("value");
+                String valueString = null;
+                if (valueObject instanceof Double) valueString = Double.toString((Double) valueObject);
+                else if (valueObject instanceof Integer) valueString = Integer.toString((Integer) valueObject);
+                else if (valueObject instanceof Long) valueString = Long.toString((Long) valueObject);
+                else if (valueObject instanceof Float) valueString = Float.toString((Float) valueObject);
+                else if (valueObject instanceof String) valueString = (String) valueObject;
+                
+                LazyValueMap tagsObject = (LazyValueMap) openTsdbMetric.get("tags");
+                StringBuilder tagsString = new StringBuilder("");
+                int tagCounter = 0;
+                for (String tagKey : tagsObject.keySet()) {
+                    tagsString.append(tagKey).append("=").append(tagsObject.get(tagKey));
+                    if ((tagCounter + 1) < tagsObject.size()) tagsString.append(" ");
+                }
+                
+                String openTsdbMetricString = metric + " " + timestampString + " " + valueString + " " + tagsString.toString() + "\n";
+                openTsdbMetricsString.append(openTsdbMetricString);
+            }
+            catch (Exception e) {
+                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(openTsdbMetricsString.toString(), metricReceivedTimestampInMilliseconds);
+        
+        return openTsdbMetricsRaw;
     }
     
     public static List<OpenTsdbMetricRaw> parseOpenTsdbMetricsRaw(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {

@@ -145,6 +145,11 @@ table.dataTable thead > tr > th {
     text-shadow: none !important;
 }
 
+.statsagg_force_word_wrap {
+    word-wrap: break-word; 
+    overflow-wrap: break-word;
+}
+
 .statsagg_danger_preview {
     color: #A94442 !important;
 }

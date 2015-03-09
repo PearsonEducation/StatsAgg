@@ -4,7 +4,7 @@
 * Yet Another DataTables Column Filter - (yadcf)
 * 
 * File:        jquery.dataTables.yadcf.js
-* Version:     0.8.7.beta.18
+* Version:     0.8.7
 *  
 * Author:      Daniel Reznick
 * Info:        https://github.com/vedmack/yadcf

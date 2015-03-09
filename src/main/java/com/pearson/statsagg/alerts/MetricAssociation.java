@@ -14,6 +14,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import com.pearson.statsagg.utilities.Threads;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -205,8 +206,15 @@ public class MetricAssociation {
         MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
         List<String> regexs = metricGroupRegexsDao.getPatterns(metricGroupId);
         
+        List<String> optimizedRegexs = new ArrayList<>();
+        for (String regex : regexs) {
+            String optimizedRegex = StringUtils.removeEnd(regex, ".*");
+            optimizedRegex = StringUtils.removeStart(optimizedRegex, ".*");
+            optimizedRegexs.add(optimizedRegex);
+        }
+        
         if (regexs != null) {
-            String mergedRegex = StringUtilities.createMergedRegex(regexs);
+            String mergedRegex = StringUtilities.createMergedRegex(optimizedRegexs);
             return mergedRegex;
         }
         else {

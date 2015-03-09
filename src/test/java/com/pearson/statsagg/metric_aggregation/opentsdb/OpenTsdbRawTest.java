@@ -111,4 +111,55 @@ public class OpenTsdbRawTest {
         assertEquals(json, "[{\"metric\":\"tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1424566501,\"tags\":{\"tag2\":\"mix\",\"tag1\":\"meow\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502,\"value\":1424566502,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]");
     }
 
+    /**
+     * Test of parseOpenTsdbJson method, of class OpenTsdbMetricRaw.
+     */
+    @Test
+    public void testParseOpenTsdbJson() {
+        
+        String inputJson = "[\n"
+                + "    {\n"
+                + "        \"metric\": \"sys.cpu.nice1\",\n"
+                + "        \"timestamp\": 1346846400123,\n"
+                + "        \"value\": 11.4,\n"
+                + "        \"tags\": {\n"
+                + "           \"host\": \"web01\",\n"
+                + "           \"dc\": \"lga\"\n"
+                + "        }\n"
+                + "    },\n"
+                + "    {\n"
+                + "        \"metric\": \"sys.cpu.nice2\",\n"
+                + "        \"timestamp\": 1346846400,\n"
+                + "        \"value\": 9,\n"
+                + "        \"tags\": {\n"
+                + "           \"host\": \"web02\",\n"
+                + "           \"dc\": \"lga\"\n"
+                + "        }\n"
+                + "    }\n"
+                + "]";
+        
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, System.currentTimeMillis());
+        
+        assertEquals(openTsdbMetricsRaw.size(), 2);
+        
+        int matchCount = 0;
+        for (OpenTsdbMetricRaw openTsdbMetricRaw: openTsdbMetricsRaw) {
+            if (openTsdbMetricRaw.getMetric().equals("sys.cpu.nice1")) {
+                assertTrue(openTsdbMetricRaw.getMetricValue().equals("11.4"));
+                assertTrue(openTsdbMetricRaw.getMetricTimestamp().equals("1346846400123"));
+                assertTrue(openTsdbMetricRaw.getMetricKey().equals("sys.cpu.nice1 : dc=lga host=web01"));
+                matchCount++;
+            }
+            
+            if (openTsdbMetricRaw.getMetric().equals("sys.cpu.nice2")) {
+                assertTrue(openTsdbMetricRaw.getMetricValue().equals("9"));
+                assertTrue(openTsdbMetricRaw.getMetricTimestamp().equals("1346846400"));
+                assertTrue(openTsdbMetricRaw.getMetricKey().equals("sys.cpu.nice2 : dc=lga host=web02"));
+                matchCount++;
+            }
+        }
+        
+        assertEquals(openTsdbMetricsRaw.size(), matchCount);
+    }
+    
 }

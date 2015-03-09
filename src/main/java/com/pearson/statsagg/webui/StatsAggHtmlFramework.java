@@ -248,8 +248,19 @@ public class StatsAggHtmlFramework {
         }
         
         String htmlEscapedString = StringEscapeUtils.escapeHtml(unencodedString);
-        htmlEscapedString = StringUtils.replace(htmlEscapedString, " ", "&nbsp;");
-        return htmlEscapedString;
+        
+        StringBuilder htmlEscapedString_StringBuilder = new StringBuilder("");
+        
+        for (int i = 0; i < htmlEscapedString.length(); i++) {
+            if ((i > 0) && (htmlEscapedString.charAt(i - 1) == ' ') && (htmlEscapedString.charAt(i) == ' ')) {
+                htmlEscapedString_StringBuilder.append("&nbsp;");
+            }
+            else {
+                htmlEscapedString_StringBuilder.append(htmlEscapedString.charAt(i));
+            }
+        }
+        
+        return htmlEscapedString_StringBuilder.toString();
     }
     
     public static String removeNewlinesFromString(String inputString) {

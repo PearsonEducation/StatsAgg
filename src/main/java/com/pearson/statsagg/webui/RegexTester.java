@@ -180,7 +180,7 @@ public class RegexTester extends HttpServlet {
         Pattern pattern = null;
         
         try {
-            pattern = Pattern.compile(regex);
+            pattern = Pattern.compile(".*" + regex + ".*");
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -190,8 +190,10 @@ public class RegexTester extends HttpServlet {
 
         if (pattern != null) {
             int matchCounter = 0;
+            
             for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
                 Matcher matcher = pattern.matcher(metricKey);
+                
                 if (matcher.find()) {
                     matchingMetricKeys.add(metricKey);
                     matchCounter++;

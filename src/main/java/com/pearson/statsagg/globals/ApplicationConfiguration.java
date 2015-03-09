@@ -144,9 +144,9 @@ public class ApplicationConfiguration {
             statsdUdpListenerEnabled_ = applicationConfiguration_.getBoolean("statsd_udp_listener_enabled", true);
             statsdUdpListenerPort_ = applicationConfiguration_.getInt("statsd_udp_listener_port", 8125);
             graphiteAggregatorTcpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_tcp_listener_enabled", true);
-            graphiteAggregatorTcpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_tcp_listener_port", 2004);
+            graphiteAggregatorTcpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_tcp_listener_port", 22003);
             graphiteAggregatorUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_udp_listener_enabled", true);
-            graphiteAggregatorUdpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_udp_listener_port", 2004);
+            graphiteAggregatorUdpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_udp_listener_port", 22003);
             graphitePassthroughTcpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_tcp_listener_enabled", true);
             graphitePassthroughTcpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_tcp_listener_port", 2003);
             graphitePassthroughUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_udp_listener_enabled", true);
@@ -175,7 +175,7 @@ public class ApplicationConfiguration {
             graphitePassthroughMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_metric_name_prefix_enabled", false);
             graphitePassthroughMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_passthrough_metric_name_prefix_value", "graphite");
             openTsdbMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("opentsdb_metric_name_prefix_enabled", false);
-            openTsdbMetricNamePrefixValue_ = applicationConfiguration_.getString("opentsdb_metric_name_prefix_value", "graphite");
+            openTsdbMetricNamePrefixValue_ = applicationConfiguration_.getString("opentsdb_metric_name_prefix_value", "opentsdb");
             
             // send previous data config
             statsdCounterSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_counter_send_0_on_inactive", true);

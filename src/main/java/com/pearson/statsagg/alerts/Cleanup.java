@@ -359,13 +359,22 @@ public class Cleanup {
              
         Set<String> metricKeysToForget = new HashSet<>();
         
-        Pattern pattern = Pattern.compile(regex);
-         
-        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
-            Matcher matcher = pattern.matcher(metricKey);
-            
-            if (matcher.find()) {
-                metricKeysToForget.add(metricKey);
+        Pattern pattern = null;
+
+        try {
+            pattern = Pattern.compile(regex);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+       
+        if (pattern != null) {
+            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
+                Matcher matcher = pattern.matcher(metricKey);
+
+                if (matcher.find()) {
+                    metricKeysToForget.add(metricKey);
+                }
             }
         }
          
