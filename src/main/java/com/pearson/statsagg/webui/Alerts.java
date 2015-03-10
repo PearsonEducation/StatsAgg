@@ -394,11 +394,11 @@ public class Alerts extends HttpServlet {
 
             htmlBodyStringBuilder
                     .append("<tr ").append(rowAlertStatusContext).append(">\n")
-                    .append("<td>").append(alertDetails).append("</td>\n")
-                    .append("<td>").append(metricGroupNameAndLink).append("</td>\n")
-                    .append("<td>").append(tagsCsv.toString()).append("</td>\n")
-                    .append("<td>").append(cautionNotificationGroupNameAndLink).append("</td>\n")
-                    .append("<td>").append(dangerNotificationGroupNameAndLink).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(alertDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupNameAndLink).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(tagsCsv.toString()).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(cautionNotificationGroupNameAndLink).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(dangerNotificationGroupNameAndLink).append("</td>\n")
                     .append("<td>").append(isAlertEnabled).append("</td>\n")
                     .append("<td>").append(isSuspendedLink).append("</td>\n")
                     .append("<td>").append(triggeredLink).append("</td>\n")

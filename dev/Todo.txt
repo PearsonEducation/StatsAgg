@@ -5,7 +5,6 @@ Short/Medium term
  * Support OpenTSDB input formats 
    * Test agg routine
    * Unit tests
-   * Add options to config files
  * Flot graphs on 'Recent Metric Values' page
  * Control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
  * Statsd histograms

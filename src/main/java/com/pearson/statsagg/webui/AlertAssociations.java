@@ -173,7 +173,9 @@ public class AlertAssociations extends HttpServlet {
             htmlBodyBuilder.append(
                 "      </div>\n" + 
                 "    </div>\n " +
+                "    <div class=\"statsagg_force_word_wrap\">" +
                 alertAssociations +
+                "    </div>\n" +
                 "  </div>\n" +
                 "</div>\n");
             

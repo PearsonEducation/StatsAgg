@@ -89,7 +89,9 @@ public class AlertPreview extends HttpServlet {
             "  <div id=\"page-content-wrapper\">\n" +
             "    <!-- Keep all page content within the page-content inset div! -->\n" +
             "    <div class=\"page-content inset\">\n" +
-                 alertBody +
+            "      <div class=\"statsagg_force_word_wrap\">" +
+            alertBody +
+            "      </div>\n" +
             "    </div>\n" +
             "  </div>\n" +
             "</body>";

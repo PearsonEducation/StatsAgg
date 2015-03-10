@@ -164,7 +164,9 @@ public class RegexTester extends HttpServlet {
             htmlBody.append("<br><hr><br>");
         }
         
+        htmlBody.append("<div class=\"statsagg_force_word_wrap\">");
         htmlBody.append(regexMatches);
+        htmlBody.append("</div>");
         
         htmlBody.append("</div>\n" + "</div>\n");
             

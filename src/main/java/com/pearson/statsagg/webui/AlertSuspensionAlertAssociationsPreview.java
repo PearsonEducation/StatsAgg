@@ -83,7 +83,9 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             "  <div id=\"page-content-wrapper\">\n" +
             "    <!-- Keep all page content within the page-content inset div! -->\n" +
             "    <div class=\"page-content inset\">\n" +
-                 alertAssociationsBody +
+            "      <div class=\"statsagg_force_word_wrap\">" +
+            alertAssociationsBody +
+            "      </div>\n" +
             "    </div>\n" +
             "  </div>\n" +
             "</body>";

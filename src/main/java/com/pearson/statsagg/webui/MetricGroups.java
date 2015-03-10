@@ -272,9 +272,9 @@ public class MetricGroups extends HttpServlet {
             
             htmlBodyStringBuilder
                 .append("<tr>\n")
-                .append("<td>").append(metricGroupDetails).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(metricGroupDetails).append("</td>\n")
                 .append("<td>").append(regexCount).append("</td>\n")
-                .append("<td>").append(tagsCsv.toString()).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(tagsCsv.toString()).append("</td>\n")
                 .append("<td>").append(metricAssociationsLink).append("</td>\n")    
                 .append("<td>").append(alter).append(", ").append(clone);
             

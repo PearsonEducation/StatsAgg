@@ -226,8 +226,8 @@ public class NotificationGroups extends HttpServlet {
                     removeKeysAndValues, true, "Are you sure you want to remove this notification group?");       
             
             htmlBodyStringBuilder.append("<tr>\n")
-                .append("<td>").append(notificationGroupDetails).append("</td>\n")
-                .append("<td>").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses())).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupDetails).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses())).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
             
             if (notificationGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);

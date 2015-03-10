@@ -89,7 +89,9 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
             "    <div class=\"content-header\"> \n" +
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div> " +
+            "    <div class=\"statsagg_force_word_wrap\">" +
             alertSuspensionAlertAssociations +
+            "    </div>\n" +
             "  </div>\n" +
             "</div>\n");
             

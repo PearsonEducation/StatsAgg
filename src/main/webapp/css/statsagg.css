@@ -150,6 +150,10 @@ table.dataTable thead > tr > th {
     overflow-wrap: break-word;
 }
 
+.statsagg_force_word_break {
+    word-break: break-all;
+}
+
 .statsagg_danger_preview {
     color: #A94442 !important;
 }

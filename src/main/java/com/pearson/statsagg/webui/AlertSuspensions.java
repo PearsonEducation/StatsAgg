@@ -318,9 +318,9 @@ public class AlertSuspensions extends HttpServlet {
 
             htmlBodyStringBuilder
                     .append("<tr ").append(rowAlertStatusContext).append(">\n")
-                    .append("<td>").append(alertSuspensionDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(alertSuspensionDetails).append("</td>\n")
                     .append("<td>").append(suspendBy).append("</td>\n")
-                    .append("<td>").append(suspendByDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(suspendByDetails).append("</td>\n")
                     .append("<td>").append(associatedAlertsLink).append("</td>\n")
                     .append("<td>").append(isAlertEnabled).append("</td>\n")
                     .append("<td>").append(enable).append(", ").append(alter).append(", ").append(clone).append(", ").append(remove).append("</td>\n")
