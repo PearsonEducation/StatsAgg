@@ -11,6 +11,7 @@ import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,15 +91,14 @@ public class GraphiteAggregationThread implements Runnable {
             Common.forgetGenericMetrics(GlobalVariables.forgetGraphiteAggregatedMetrics, GlobalVariables.forgetGraphiteAggregatedMetricsRegexs, GlobalVariables.graphiteAggregatedMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
-            long generateGraphiteStringsTimeElasped = 0;
+            // send to graphite
             if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                // generate messages for graphite
-                long generateGraphiteStringsTimeStart = System.currentTimeMillis();
-                List<String> graphiteOutputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(graphiteMetricsAggregatedMerged, ApplicationConfiguration.getGraphiteMaxBatchSize());
-                generateGraphiteStringsTimeElasped = System.currentTimeMillis() - generateGraphiteStringsTimeStart; 
+                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+            }
             
-                // send to graphite
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteOutputMessagesForGraphite, threadId_);
+            // send to opentsdb
+            if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
+                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(graphiteMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the graphite metrics
@@ -120,8 +120,7 @@ public class GraphiteAggregationThread implements Runnable {
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped
                     + ", AggNewAndOldMetricCount=" + graphiteMetricsAggregatedMerged.size()
-                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped
-                    + ", GenGraphiteStringsTime=" + generateGraphiteStringsTimeElasped;
+                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped;
             
             if (graphiteMetricsAggregatedMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);

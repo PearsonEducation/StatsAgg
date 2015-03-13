@@ -6,10 +6,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.pearson.statsagg.database.alerts.Alert;
+import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashSet;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
@@ -18,44 +20,73 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Cleanup {
+public class CleanupThread implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(Cleanup.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CleanupThread.class.getName());
     
-    private final String threadId_;
+    public static final AtomicBoolean isThreadCurrentlyRunning = new AtomicBoolean(false);
+
+    protected final Long threadStartTimestampInMilliseconds_;
+    protected final String threadId_;
+
     private final Set<String> immediateCleanupMetricKeys_;
     
-    public Cleanup(String threadId) {
-        this.threadId_ = threadId;
+    public CleanupThread(Long threadStartTimestampInMilliseconds) {
+        this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
+        this.threadId_ = "C-" + threadStartTimestampInMilliseconds_.toString();
         
         forgetMetrics_PutMetricKeysInSetOfMetricsToForget();
                 
         immediateCleanupMetricKeys_ = new HashSet<>(GlobalVariables.immediateCleanupMetrics.keySet());
     }
     
-    public void runCleanupRoutine(List<Alert> alerts) {
-        String cleanupOutputMessage = cleanupMetricsNotRecentlySeen();
-        logger.info(cleanupOutputMessage);
+    @Override
+    public void run() {
         
-        cleanupOutputMessage = cleanupRecentMetricTimestampsAndValues(alerts);
-        logger.info(cleanupOutputMessage);
-
-        for (String metricKey : immediateCleanupMetricKeys_) {
-            GlobalVariables.immediateCleanupMetrics.remove(metricKey);
+        // stops multiple alert threads from running simultaneously 
+        if (!isThreadCurrentlyRunning.compareAndSet(false, true)) {
+            logger.warn("ThreadId=" + threadId_ + ", Routine=Cleanup, Message=\"Only 1 cleanup thread can run at a time\"");
+            return;
         }
-    }
-    
-    protected String cleanupMetricsNotRecentlySeen() {
         
-        long cleanupStartTime = System.currentTimeMillis();
-        
-        long currentTimeInMilliseconds = System.currentTimeMillis();
-        long numberMillisecondsInOneDay = 86400000;
-        long metricsRemoved = 0;
-        
-        Set<String> metricKeysLastSeenTimestampKeys = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet();
+        // prevents cleanup from running at the same time as the alert routine
+        synchronized (GlobalVariables.alertRoutineLock) {
+            String cleanupOutputMessage = "ThreadId=" + threadId_;
 
+            // always remove metric data points 
+            AlertsDao alertsDao = new AlertsDao();
+            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+            List<Alert> enabledAlerts = AlertThread.getEnabledAlerts(alerts);
+            String cleanupRecentMetricTimestampsAndValuesOutput = cleanupRecentMetricTimestampsAndValues(enabledAlerts);
+            cleanupOutputMessage = cleanupOutputMessage + ", " + cleanupRecentMetricTimestampsAndValuesOutput;
+
+            // don't cleanup metric keys when the metric association routine is running
+            if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get()) {
+                String cleanupMetricsNotRecentlySeenOutput = cleanupMetricsNotRecentlySeen();
+                cleanupOutputMessage = cleanupOutputMessage + ", " + cleanupMetricsNotRecentlySeenOutput;
+                
+                for (String metricKey : immediateCleanupMetricKeys_) {
+                    GlobalVariables.immediateCleanupMetrics.remove(metricKey);
+                }
+            }
+            
+            logger.info(cleanupOutputMessage);
+        }
+        
+        isThreadCurrentlyRunning.set(false);
+    }
+
+    private String cleanupMetricsNotRecentlySeen() {
+        
         synchronized(GlobalVariables.metricGroupChanges) {
+            long cleanupStartTime = System.currentTimeMillis();
+
+            long currentTimeInMilliseconds = System.currentTimeMillis();
+            long numberMillisecondsInOneDay = 86400000;
+            long metricsRemoved = 0;
+
+            Set<String> metricKeysLastSeenTimestampKeys = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet();
+
             for (String metricKey : metricKeysLastSeenTimestampKeys) {
                 boolean isImmeadiateCleanup = immediateCleanupMetricKeys_.contains(metricKey); // we should cleanup this metric regardless...
                 
@@ -85,27 +116,27 @@ public class Cleanup {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
+            
+            long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
+
+            String outputMessage = "CleanupNotRecentlySeenTime=" + cleanupTimeElasped + ", MetricsRemoved=" + metricsRemoved;
+            return outputMessage;
         }
-        
-        long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
-        
-        String outputMessage = "ThreadId=" + threadId_
-                + ", Routine=CleanupMetricsNotRecentlySeen"
-                + ", CleanupTime=" + cleanupTimeElasped
-                + ", MetricsRemoved=" + metricsRemoved;
-        
-        return outputMessage;
     }
     
-    protected void removeMetricAssociations(String metricKey) {
+    private void removeMetricAssociations(String metricKey) {
         
         if (metricKey == null) {
             return;
         }
+        
+        synchronized(GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup) {
+            Set<Integer> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet();
 
-        for (Integer metricGroupId : GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet()) {
-            Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-            matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
+            for (Integer metricGroupId : matchingMetricKeysAssociatedWithMetricGroup) {
+                Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+                matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
+            }
         }
         
         List[] associationLists = GlobalVariables.metricGroupsAssociatedWithMetricKeys.get(metricKey);
@@ -183,7 +214,7 @@ public class Cleanup {
         return (GlobalVariables.activeAvailabilityAlerts != null) && GlobalVariables.activeAvailabilityAlerts.containsKey(metricKey);
     }
     
-    protected String cleanupRecentMetricTimestampsAndValues(List<Alert> alerts) {
+    private String cleanupRecentMetricTimestampsAndValues(List<Alert> alerts) {
 
         long cleanupStartTime = System.currentTimeMillis();
         int numValuesRemoved = 0, numKeysRemoved = 0, numTrackedValuesRemoved = 0, numTrackedKeysRemoved = 0;
@@ -218,22 +249,23 @@ public class Cleanup {
                                     break;
                                 }
                             }
-                        }
 
-                        for (MetricTimestampAndValue metricTimestampAndValueToRemove : metricTimestampAndValuesToRemove) {
-                            recentMetricTimestampsAndValues.remove(metricTimestampAndValueToRemove);
-                            numValuesRemoved++;
-                            numTrackedValuesRemoved++;
+                            for (MetricTimestampAndValue metricTimestampAndValueToRemove : metricTimestampAndValuesToRemove) {
+                                recentMetricTimestampsAndValues.remove(metricTimestampAndValueToRemove);
+                                numValuesRemoved++;
+                                numTrackedValuesRemoved++;
+                            }
                         }
                         
-                        if (recentMetricTimestampsAndValues.isEmpty() || isImmeadiateCleanup) {
+                        if ((recentMetricTimestampsAndValues.isEmpty() || isImmeadiateCleanup) && !MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning.get()) {
                             GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
+                            
                             numKeysRemoved++;
                             numTrackedKeysRemoved++;
                         }
                     }
                     // the metric isn't currently associated with an alert, so we can get rid this metric key's data
-                    else if (recentMetricTimestampsAndValues != null) {
+                    else if ((recentMetricTimestampsAndValues != null) && !MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning.get()) {
                         synchronized (recentMetricTimestampsAndValues) {
                             numValuesRemoved += recentMetricTimestampsAndValues.size();
                             recentMetricTimestampsAndValues.clear();
@@ -242,7 +274,7 @@ public class Cleanup {
                         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
                         numKeysRemoved++;
                     }
-                    else {
+                    else if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning.get()) {
                         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
                         numKeysRemoved++;
                     }      
@@ -256,9 +288,7 @@ public class Cleanup {
         
         long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
 
-        String outputMessage = "ThreadId=" + threadId_
-                + ", Routine=CleanupRecentMetricTimestampsAndValues"
-                + ", CleanupTime=" + cleanupTimeElasped
+        String outputMessage = "CleanupRecentMetricTimestampsAndValuesTime=" + cleanupTimeElasped
                 + ", NumRecentMetricKeys=" + metricKeys.size()
                 + ", NumRecentMetricValuesRemoved=" + numValuesRemoved
                 + ", NumRecentMetricKeysRemoved=" + numKeysRemoved
@@ -372,7 +402,7 @@ public class Cleanup {
             for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
                 Matcher matcher = pattern.matcher(metricKey);
 
-                if (matcher.find()) {
+                if (matcher.matches()) {
                     metricKeysToForget.add(metricKey);
                 }
             }

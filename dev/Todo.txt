@@ -1,5 +1,7 @@
 Short/Medium term
  * Alert Suspension Associations -- link in details page
+ * Update documentation to reflect regex 'matches' vs 'find'
+ * Document that stuff can't be removed when it has dependencies 
  * Documentation on how StatsAgg is not a metric storage engine, and how long metrics live in memory
    * Should go in overview
  * Support OpenTSDB input formats 
@@ -12,7 +14,6 @@ Short/Medium term
  * debug mode for "details" pages
  * manual injection of metrics via a new servlet
  * stop resending metric after X time of no updates
- * make alert suspension datetime bars be full width of column
  * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
 
 Long term

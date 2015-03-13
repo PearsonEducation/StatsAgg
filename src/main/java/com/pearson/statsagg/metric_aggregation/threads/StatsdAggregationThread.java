@@ -16,6 +16,7 @@ import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.math.BigDecimal;
@@ -127,17 +128,16 @@ public class StatsdAggregationThread implements Runnable {
             forgetStatsdMetrics();
             long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
 
-            long generateGraphiteStringsTimeElasped = 0;
+            // send to graphite
             if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                // generate messages for graphite
-                long generateGraphiteStringsTimeStart = System.currentTimeMillis();
-                List<String> statsdOutputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(statsdMetricsAggregatedMerged, ApplicationConfiguration.getGraphiteMaxBatchSize());
-                generateGraphiteStringsTimeElasped = System.currentTimeMillis() - generateGraphiteStringsTimeStart; 
-
-                // send to graphite
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(statsdOutputMessagesForGraphite, threadId_);
+                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
-
+            
+            // send to opentsdb
+            if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
+                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(statsdMetricsAggregatedMerged, threadId_);
+            }
+            
             // total time for this thread took to aggregate the statsd metrics
             long timeAggregationTimeElasped = System.currentTimeMillis() - timeAggregationTimeStart - waitInMsCounter;
             String aggregationRate = "0";
@@ -160,8 +160,7 @@ public class StatsdAggregationThread implements Runnable {
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped 
                     + ", AggNewAndOldMetricCount=" + statsdMetricsAggregatedMerged.size() 
-                    + ", ForgetMetricsTime=" + forgetStatsdMetricsTimeElasped
-                    + ", GenGraphiteStringsTime=" + generateGraphiteStringsTimeElasped;
+                    + ", ForgetMetricsTime=" + forgetStatsdMetricsTimeElasped;
             
             if (statsdMetricsAggregatedMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);

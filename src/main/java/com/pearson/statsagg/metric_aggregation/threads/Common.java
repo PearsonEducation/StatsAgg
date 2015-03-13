@@ -7,8 +7,6 @@ import java.util.TreeSet;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
@@ -179,7 +177,7 @@ public class Common {
                 for (GenericMetricFormat genericMetric : metricsMostRecentValue.values()) {
                     Matcher matcher = pattern.matcher(genericMetric.getMetricKey());
 
-                    if (matcher.find()) {
+                    if (matcher.matches()) {
                         metricKeysToForget.add(genericMetric.getMetricKey());
                     }
                 }
@@ -207,5 +205,4 @@ public class Common {
         
     }
     
-
 }

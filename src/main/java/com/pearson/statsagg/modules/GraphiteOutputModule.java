@@ -21,46 +21,17 @@ public class GraphiteOutputModule {
     private final String host_;
     private final int port_;
     private final int numSendRetryAttempts_;
-    
-    public GraphiteOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts) {
+    private final int maxMetricsPerMessage_;
+
+    public GraphiteOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, int maxMetricsPerMessage) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.host_ = host;
         this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
-    }
-
-    public static List<String> buildMultiMetricGraphiteMessages(List<? extends GraphiteMetricFormat> metrics, int maxMetricsPerMessage) {
-        
-        if ((metrics == null) || metrics.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        List<String> multiMetricMessages = new ArrayList<>();
-
-        int i = 0;
-        StringBuilder multiMetricMessage = new StringBuilder("");
-        
-        for (GraphiteMetricFormat metric : metrics) {
-
-            if (i == maxMetricsPerMessage) {
-                multiMetricMessages.add(multiMetricMessage.toString());
-                multiMetricMessage = new StringBuilder("");
-                i = 0;
-            }
-            
-            multiMetricMessage.append(metric.getGraphiteFormatString()).append("\n");
-
-            i++;
-        }
-        
-        if ((!multiMetricMessage.toString().equals(""))) {
-            multiMetricMessages.add(multiMetricMessage.toString());
-        }
-
-        return multiMetricMessages;
+        this.maxMetricsPerMessage_ = maxMetricsPerMessage;
     }
     
-    public static void sendMetricsToGraphiteEndpoints(List<String> outputMessagesForGraphite, String threadId) {
+    public static void sendMetricsToGraphiteEndpoints(List<? extends GraphiteMetricFormat> outputMessagesForGraphite, String threadId, int sendTimeWarningThresholdInMs) {
         
         try {
             
@@ -71,7 +42,8 @@ public class GraphiteOutputModule {
                 if (!graphiteOutputModule.isOutputEnabled()) continue;
                 
                 SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(outputMessagesForGraphite, graphiteOutputModule.getHost(), 
-                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), 
+                        threadId, sendTimeWarningThresholdInMs);
                 
                 SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
             }
@@ -128,6 +100,8 @@ public class GraphiteOutputModule {
         return numSendRetryAttempts_;
     }
     
+    public int getMaxMetricsPerMessage() {
+        return maxMetricsPerMessage_;
+    }
+    
 }
-
-

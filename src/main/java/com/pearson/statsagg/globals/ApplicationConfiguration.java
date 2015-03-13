@@ -132,8 +132,8 @@ public class ApplicationConfiguration {
             debugModeEnabled_ = applicationConfiguration_.getBoolean("debug_mode_enabled", false);
             
             // graphite configuration
-            graphiteOutputModules_.addAll(readGraphiteOutputModules());
             graphiteMaxBatchSize_ = applicationConfiguration_.getInt("graphite_max_batch_size", 100);
+            graphiteOutputModules_.addAll(readGraphiteOutputModules(graphiteMaxBatchSize_));
 
             // opentsdb configuration
             openTsdbTelnetOutputModules_.addAll(readOpenTsdbTelnetOutputModules());
@@ -221,7 +221,7 @@ public class ApplicationConfiguration {
         }
     }
     
-    private static List<GraphiteOutputModule> readGraphiteOutputModules() {
+    private static List<GraphiteOutputModule> readGraphiteOutputModules(int graphiteMaxBatchSize) {
         
         List<GraphiteOutputModule> graphiteOutputModules = new ArrayList<>();
         
@@ -244,7 +244,7 @@ public class ApplicationConfiguration {
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
                         
-                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts);
+                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, graphiteMaxBatchSize);
                         graphiteOutputModules.add(graphiteOutputModule);
                     }
 

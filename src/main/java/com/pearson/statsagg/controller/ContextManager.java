@@ -25,6 +25,7 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
+import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
 import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
@@ -71,6 +72,7 @@ public class ContextManager implements ServletContextListener {
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
     private AlertInvokerThread alertInvokerThread_ = null;
+    private CleanupInvokerThread cleanupInvokerThread_ = null;
     private InternalStatsInvokerThread internalStatsInvokerThread_ = null;
     
     @Override
@@ -174,6 +176,10 @@ public class ContextManager implements ServletContextListener {
         alertInvokerThread_ = new AlertInvokerThread();
         Thread alertInvokerThread = new Thread(alertInvokerThread_);
         alertInvokerThread.start();
+        
+        cleanupInvokerThread_ = new CleanupInvokerThread();
+        Thread cleanupInvokerThread = new Thread(cleanupInvokerThread_);
+        cleanupInvokerThread.start();
         
         internalStatsInvokerThread_ = new InternalStatsInvokerThread();
         Thread internalStatsInvokerThread = new Thread(internalStatsInvokerThread_);
@@ -693,6 +699,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownInvokerThread_Thread shutdownAlertInvokerThread = new ShutdownInvokerThread_Thread(alertInvokerThread_);
         Thread shutdownAlertInvokerThread_Thread = new Thread(shutdownAlertInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownAlertInvokerThread_Thread);
+        
+        ShutdownInvokerThread_Thread shutdownCleanupInvokerThread = new ShutdownInvokerThread_Thread(cleanupInvokerThread_);
+        Thread shutdownCleanupInvokerThread_Thread = new Thread(shutdownCleanupInvokerThread);
+        shutdownThreadInvokerThreads.add(shutdownCleanupInvokerThread_Thread);
 
         ShutdownInvokerThread_Thread shutdownInternalStatsInvokerThread = new ShutdownInvokerThread_Thread(internalStatsInvokerThread_);
         Thread shutdownInternalStatsInvokerThread_Thread = new Thread(shutdownInternalStatsInvokerThread);

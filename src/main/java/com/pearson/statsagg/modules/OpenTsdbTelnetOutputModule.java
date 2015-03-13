@@ -45,7 +45,7 @@ public class OpenTsdbTelnetOutputModule {
         return messages;
     }
     
-    public static void sendMetricsToOpenTsdbEndpoints(List<String> outputMessagesForOpenTsdb, String threadId) {
+    public static void sendMetricsToOpenTsdbEndpoints(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String threadId) {
         
         try {
             
@@ -55,7 +55,7 @@ public class OpenTsdbTelnetOutputModule {
             for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
                 if (!openTsdbOutputModule.isOutputEnabled()) continue;
                 
-                SendMetricsToOpenTsdbThread sendMetricsToOpenTsdbThread = new SendMetricsToOpenTsdbThread(outputMessagesForOpenTsdb, openTsdbOutputModule.getHost(), 
+                SendMetricsToOpenTsdbThread sendMetricsToOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbOutputModule.getHost(), 
                        openTsdbOutputModule.getPort(), openTsdbOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
                 
                 SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToOpenTsdbThread);

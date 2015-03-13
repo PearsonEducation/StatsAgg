@@ -14,7 +14,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import com.pearson.statsagg.utilities.Threads;
-import org.apache.commons.lang3.StringUtils;
+import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,13 +25,21 @@ public class MetricAssociation {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricAssociation.class.getName());
 
-    public static void associateMetricKeysWithMetricGroups() {
+    public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning = new AtomicBoolean(false);
+    public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating = new AtomicBoolean(false);
+    
+    protected static void associateMetricKeysWithMetricGroups(String threadId) {
         
-        Set<String> metricKeys = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet();
-        
-        synchronized(GlobalVariables.metricGroupChanges) {
-            applyMetricGroupGlobalVariableChanges();
+        // stops multiple metric association methods from running simultaneously 
+        if (!IsMetricAssociationRoutineCurrentlyRunning.compareAndSet(false, true)) {
+            logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation, Message=\"Only 1 metric association routine can run at a time\"");
+            return;
         }
+        
+        //  wait until the the cleanup thread is done running
+        if (CleanupThread.isThreadCurrentlyRunning.get()) Threads.sleepMilliseconds(50, false);
+        
+        applyMetricGroupGlobalVariableChanges();
   
         MetricGroupsDao metricGrouspDao = new MetricGroupsDao();
         List<Integer> metricGroupIds = metricGrouspDao.getAllMetricGroupIds();
@@ -41,41 +49,46 @@ public class MetricAssociation {
         }
         
         updateMergedRegexsForMetricGroups(metricGroupIds);
-                
-        for (String metricKey : metricKeys) {
-            associateMetricKeyWithMetricGroups(metricKey, metricGroupIds);
-        }
         
+        IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
+        Set<String> metricKeys = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet();
+        for (String metricKey : metricKeys) associateMetricKeyWithMetricGroups(metricKey, metricGroupIds);
+        IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
+
+        IsMetricAssociationRoutineCurrentlyRunning.set(false);
     }
 
     private static void applyMetricGroupGlobalVariableChanges() {
-        Set<Integer> metricGroupIdsLocal = new HashSet<>(GlobalVariables.metricGroupChanges.keySet());
         
-        for (Integer metricGroupId : metricGroupIdsLocal) {
-            String alterOrRemove = GlobalVariables.metricGroupChanges.get(metricGroupId);
+        synchronized(GlobalVariables.metricGroupChanges) {
+            Set<Integer> metricGroupIdsLocal = new HashSet<>(GlobalVariables.metricGroupChanges.keySet());
 
-            // update global variables for the case of a metric group being newly added, changed, or removed
-            if ((alterOrRemove != null) && (alterOrRemove.equalsIgnoreCase("Alter") || alterOrRemove.equalsIgnoreCase("Remove"))) {
+            for (Integer metricGroupId : metricGroupIdsLocal) {
+                String alterOrRemove = GlobalVariables.metricGroupChanges.get(metricGroupId);
 
-                for (String metricKey : GlobalVariables.metricGroupsAssociatedWithMetricKeys.keySet()) {
-                    ArrayList[] associationLists = GlobalVariables.metricGroupsAssociatedWithMetricKeys.get(metricKey);
-                    if ((associationLists != null) && associationLists.length == 2) {
-                        associationLists[0].remove(metricGroupId);
-                        associationLists[0].trimToSize();
-                        associationLists[1].remove(metricGroupId);
-                        associationLists[1].trimToSize();
+                // update global variables for the case of a metric group being newly added, changed, or removed
+                if ((alterOrRemove != null) && (alterOrRemove.equalsIgnoreCase("Alter") || alterOrRemove.equalsIgnoreCase("Remove"))) {
+
+                    for (String metricKey : GlobalVariables.metricGroupsAssociatedWithMetricKeys.keySet()) {
+                        ArrayList[] associationLists = GlobalVariables.metricGroupsAssociatedWithMetricKeys.get(metricKey);
+                        if ((associationLists != null) && associationLists.length == 2) {
+                            associationLists[0].remove(metricGroupId);
+                            associationLists[0].trimToSize();
+                            associationLists[1].remove(metricGroupId);
+                            associationLists[1].trimToSize();
+                        }
                     }
+
+                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
+                    GlobalVariables.mergedRegexsForMetricGroups.remove(metricGroupId);
+                    GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.clear();
+                    GlobalVariables.metricGroupChanges.remove(metricGroupId);
+
+                    while (GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
+                    while (GlobalVariables.mergedRegexsForMetricGroups.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
+                    while (GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.size() > 0) Threads.sleepMilliseconds(10);
+                    while (GlobalVariables.metricGroupChanges.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
                 }
-                
-                GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
-                GlobalVariables.mergedRegexsForMetricGroups.remove(metricGroupId);
-                GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.clear();
-                GlobalVariables.metricGroupChanges.remove(metricGroupId);
-                
-                while (GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
-                while (GlobalVariables.mergedRegexsForMetricGroups.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
-                while (GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.size() > 0) Threads.sleepMilliseconds(10);
-                while (GlobalVariables.metricGroupChanges.containsKey(metricGroupId)) Threads.sleepMilliseconds(10);
             }
         }
     }
@@ -153,7 +166,7 @@ public class MetricAssociation {
                     
                     if (pattern != null) {
                         Matcher matcher = pattern.matcher(metricKey);
-                        boolean isMetricKeyAssociatedWithMetricGroup = matcher.find();
+                        boolean isMetricKeyAssociatedWithMetricGroup = matcher.matches();
 
                         if (isMetricKeyAssociatedWithMetricGroup) {
                             positiveMatchList.add(metricGroupId);
@@ -197,7 +210,7 @@ public class MetricAssociation {
     /* 
      This method merges every regex associated with a single metric group into a single regex (using '|' as the glue between regexs).
      */
-    public static String createMergedMetricGroupRegex(Integer metricGroupId) {
+    private static String createMergedMetricGroupRegex(Integer metricGroupId) {
 
         if (metricGroupId == null) {
             return null;
@@ -206,15 +219,8 @@ public class MetricAssociation {
         MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
         List<String> regexs = metricGroupRegexsDao.getPatterns(metricGroupId);
         
-        List<String> optimizedRegexs = new ArrayList<>();
-        for (String regex : regexs) {
-            String optimizedRegex = StringUtils.removeEnd(regex, ".*");
-            optimizedRegex = StringUtils.removeStart(optimizedRegex, ".*");
-            optimizedRegexs.add(optimizedRegex);
-        }
-        
         if (regexs != null) {
-            String mergedRegex = StringUtilities.createMergedRegex(optimizedRegexs);
+            String mergedRegex = StringUtilities.createMergedRegex(regexs);
             return mergedRegex;
         }
         else {
@@ -222,7 +228,7 @@ public class MetricAssociation {
         }
     }
 
-    public static Pattern getPatternFromRegexString(String regex) {
+    private static Pattern getPatternFromRegexString(String regex) {
 
         if (regex == null) {
             return null;
@@ -247,7 +253,7 @@ public class MetricAssociation {
         return pattern;
     }
 
-    public static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {
+    protected static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {
 
         if (alert == null) {
             return new ArrayList<>();

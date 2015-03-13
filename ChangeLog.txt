@@ -6,4 +6,9 @@ StatsAgg 1.1
    * Acknowledge alerts in the WebUI. Shows someone 'acknowledged' it, and prevents additional alert notification (unless unacknowledged)
  * 3 column 'alert details' page -- more readable
  * 'Details' pages now link to other 'details' pages
+ * Separated the metric cleanup routine from the alert routine. This should greatly reduce the risk of out-of-memory issues on StatsAgg startup.
  * Changed some boolean values in the tables to 'Yes' / 'No' (more professional looking)
+ * Improvements to how word-wrapping is handled in the WebUI
+ * OpenTSDB support...
+   * Incoming metrics on the telnet interface
+   * Outgoing metrics on the telnet interface

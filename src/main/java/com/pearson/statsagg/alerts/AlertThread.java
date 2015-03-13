@@ -88,7 +88,7 @@ public class AlertThread implements Runnable {
   
         // stops multiple alert threads from running simultaneously 
         if (!isThreadCurrentlyRunning_.compareAndSet(false, true)) {
-            logger.warn("ThreadId=" + threadId_ + ", Routine=AlertAndCleanup, Message=\"Only 1 alert thread can run at a time\"");
+            logger.warn("ThreadId=" + threadId_ + ", Routine=Alert, Message=\"Only 1 alert thread can run at a time\"");
             return;
         }
         
@@ -96,7 +96,7 @@ public class AlertThread implements Runnable {
         long metricAssociationTimeElasped = 0;
         if (ApplicationConfiguration.isAlertRoutineEnabled()) {
             long metricAssociationStartTime = System.currentTimeMillis();
-            MetricAssociation.associateMetricKeysWithMetricGroups();
+            MetricAssociation.associateMetricKeysWithMetricGroups(threadId_);
             metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
         }
         
@@ -122,27 +122,18 @@ public class AlertThread implements Runnable {
                 if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
                     // generate messages for graphite
                     List<GraphiteMetricAggregated> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
-                    List<String> outputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(alertStatusMetricsForGraphite,
-                            ApplicationConfiguration.getGraphiteMaxBatchSize());
-
+                    
                     // send to graphite
-                    GraphiteOutputModule.sendMetricsToGraphiteEndpoints(outputMessagesForGraphite, threadId_);
+                    GraphiteOutputModule.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
                 }
             }
         }
 
-        // cleans up recent metric data that isn't being specifically tracked by an alert
-        long cleanupStartTime = System.currentTimeMillis();
-        Cleanup cleanup = new Cleanup(threadId_);
-        cleanup.runCleanupRoutine(enabledAlerts_);
-        long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime; 
-
         String outputMessage = "ThreadId=" + threadId_
-                + ", Routine=AlertAndCleanup"
+                + ", Routine=Alert"
                 + ", MetricAssociationTime=" + metricAssociationTimeElasped
                 + ", AlertRoutineTime=" + alertRoutineTimeElasped
                 + ", AlertSuspensionRoutineTime=" + alertSuspensionRoutineTimeElapsed
-                + ", TotalCleanupTime=" + cleanupTimeElasped
                 ;
 
         logger.info(outputMessage);
@@ -150,7 +141,6 @@ public class AlertThread implements Runnable {
         GlobalVariables.associatedMetricsWithValuesCount.set(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.size());
 
         isThreadCurrentlyRunning_.set(false);
-        
     }
 
     private void runAlertRoutine(List<Alert> alerts) {

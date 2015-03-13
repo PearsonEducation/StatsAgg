@@ -92,23 +92,14 @@ public class GraphitePassthroughThread implements Runnable {
             Common.forgetGenericMetrics(GlobalVariables.forgetGraphitePassthroughMetrics, GlobalVariables.forgetGraphitePassthroughMetricsRegexs, GlobalVariables.graphitePassthroughMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
-            long generateGraphiteStringsTimeElasped = 0;
+            // send to graphite
             if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                // generate messages for graphite
-                long generateGraphiteStringsTimeStart = System.currentTimeMillis();
-                List<String> graphiteOutputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(graphiteMetricsRawMerged, ApplicationConfiguration.getGraphiteMaxBatchSize());
-                generateGraphiteStringsTimeElasped = System.currentTimeMillis() - generateGraphiteStringsTimeStart; 
-            
-                // send to graphite
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteOutputMessagesForGraphite, threadId_);
+                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteMetricsRawMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
+            // send to opentsdb
             if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
-                // generate messages for OpenTsdb
-                List<String> openTsdbOutputMessagesForOpenTsdb = OpenTsdbTelnetOutputModule.buildOpenTsdbMessages(graphiteMetricsRawMerged);
-            
-                // send to OpenTsdb
-                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(openTsdbOutputMessagesForOpenTsdb, threadId_);
+                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(graphiteMetricsRawMerged, threadId_);
             }
             
             // total time for this thread took to get & send the graphite metrics
@@ -129,8 +120,7 @@ public class GraphitePassthroughThread implements Runnable {
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped
                     + ", NewAndOldMetricCount=" + graphiteMetricsRawMerged.size() 
-                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped
-                    + ", GenGraphiteStringsTime=" + generateGraphiteStringsTimeElasped;
+                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped;
             
             if (graphiteMetricsRawMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);

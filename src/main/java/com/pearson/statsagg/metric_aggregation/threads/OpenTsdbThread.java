@@ -91,23 +91,14 @@ public class OpenTsdbThread implements Runnable {
             Common.forgetGenericMetrics(GlobalVariables.forgetOpenTsdbMetrics, GlobalVariables.forgetOpenTsdbMetricsRegexs, GlobalVariables.openTsdbMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
             long forgetOpenTsdbMetricsTimeElasped = System.currentTimeMillis() - forgetOpenTsdbMetricsTimeStart;  
             
-            long generateGraphiteStringsTimeElasped = 0;
+            // send to graphite
             if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                // generate messages for graphite
-                long generateGraphiteStringsTimeStart = System.currentTimeMillis();
-                List<String> openTsdbOutputMessagesForGraphite = GraphiteOutputModule.buildMultiMetricGraphiteMessages(openTsdbMetricsRawMerged, ApplicationConfiguration.getGraphiteMaxBatchSize());
-                generateGraphiteStringsTimeElasped = System.currentTimeMillis() - generateGraphiteStringsTimeStart; 
-            
-                // send to graphite
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(openTsdbOutputMessagesForGraphite, threadId_);
+                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(openTsdbMetricsRawMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
+            // send to opentsdb
             if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
-                // generate messages for OpenTsdb
-                List<String> openTsdbOutputMessagesForOpenTsdb = OpenTsdbTelnetOutputModule.buildOpenTsdbMessages(openTsdbMetricsRawMerged);
-            
-                // send to OpenTsdb
-                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(openTsdbOutputMessagesForOpenTsdb, threadId_);
+                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(openTsdbMetricsRawMerged, threadId_);
             }
             
             // total time for this thread took to get & send the graphite metrics
@@ -128,8 +119,7 @@ public class OpenTsdbThread implements Runnable {
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped
                     + ", NewAndOldMetricCount=" + openTsdbMetricsRawMerged.size() 
-                    + ", ForgetMetricsTime=" + forgetOpenTsdbMetricsTimeElasped
-                    + ", GenGraphiteStringsTime=" + generateGraphiteStringsTimeElasped;
+                    + ", ForgetMetricsTime=" + forgetOpenTsdbMetricsTimeElasped;
             
             if (openTsdbMetricsRawMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);

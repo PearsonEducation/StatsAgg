@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
 import java.util.List;
 import com.pearson.statsagg.utilities.TcpClient;
 import org.slf4j.Logger;
@@ -12,16 +13,16 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
     
     private static final Logger logger = LoggerFactory.getLogger(SendMetricsToOpenTsdbThread.class.getName());
     
-    private final List<String> outputMessagesForOpenTsdb_;
+    private final List<? extends OpenTsdbMetricFormat> openTsdbMetrics_;
     private final String openTsdbHost_;
     private final int openTsdbPort_;
     private final int numSendRetries_;
     private final String threadId_;
     private final int sendTimeWarningThreshold_;
     
-    public SendMetricsToOpenTsdbThread(List<String> outputMessagesForOpenTsdb, String openTsdbHost, int openTsdbPort, 
+    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String openTsdbHost, int openTsdbPort, 
             int numSendRetries, String threadId, int sendTimeWarningThreshold) {
-        this.outputMessagesForOpenTsdb_ = outputMessagesForOpenTsdb;
+        this.openTsdbMetrics_ = openTsdbMetrics;
         this.openTsdbHost_ = openTsdbHost;
         this.openTsdbPort_ = openTsdbPort;
         this.numSendRetries_ = numSendRetries;
@@ -32,10 +33,10 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
     @Override
     public void run() {
         
-        if (outputMessagesForOpenTsdb_ != null && !outputMessagesForOpenTsdb_.isEmpty()) {
+        if (openTsdbMetrics_ != null && !openTsdbMetrics_.isEmpty()) {
             long sendToOpenTsdbTimeStart = System.currentTimeMillis();
 
-            boolean isSendSuccess = sendMetricsToOpenTsdb_Telnet(outputMessagesForOpenTsdb_, openTsdbHost_, openTsdbPort_, numSendRetries_);
+            boolean isSendSuccess = sendMetricsToOpenTsdb_Telnet(openTsdbMetrics_, openTsdbHost_, openTsdbPort_, numSendRetries_);
 
             long sendToOpenTsdbTimeElasped = System.currentTimeMillis() - sendToOpenTsdbTimeStart;
 
@@ -50,38 +51,41 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         
     }
     
-    public static boolean sendMetricsToOpenTsdb_Telnet(List<String> outputMessagesForOpenTsdb, String openTsdbHost, int openTsdbPort, int numSendRetries) {
+    public static boolean sendMetricsToOpenTsdb_Telnet(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String openTsdbHost, int openTsdbPort, int numSendRetries) {
         
-        if ((outputMessagesForOpenTsdb == null) || outputMessagesForOpenTsdb.isEmpty() || (openTsdbHost == null) || (openTsdbHost.isEmpty()) || 
+        if ((openTsdbMetrics == null) || openTsdbMetrics.isEmpty() || (openTsdbHost == null) || (openTsdbHost.isEmpty()) || 
                 (openTsdbPort < 0) || (openTsdbPort > 65535) || (numSendRetries < 0))  {
             return false;
         }
         
         boolean isSendAllSuccess = true;
         
+        // connect to opentsdb
         TcpClient tcpClient = new TcpClient(openTsdbHost, openTsdbPort, true);
-
         int retryCounter = 0;
         while (!tcpClient.isConnected() && (retryCounter < numSendRetries)) {
             tcpClient.reset();
             retryCounter++;
         }
         
-        if (tcpClient.isConnected()) {
-            for (String outputMessageForOpenTsdb : outputMessagesForOpenTsdb) {
-                boolean isSendSucess = tcpClient.send("put " + outputMessageForOpenTsdb + "\n", numSendRetries, false, false);
+        // if connecting to opentsdb failed, give up
+        if (!tcpClient.isConnected()) {
+            logger.error("Error creating TCP connection to graphite.");
+            tcpClient.close();
+            return false;
+        }
+        
+        // send metrics to opentsdb
+        for (OpenTsdbMetricFormat openTsdbMetric : openTsdbMetrics) {
+            boolean isSendSucess = tcpClient.send("put " + openTsdbMetric.getOpenTsdbFormatString() + "\n", numSendRetries, false, false);
 
-                if (!isSendSucess) {
-                    logger.error("Error sending message to OpenTSDB.");
-                    isSendAllSuccess = false;
-                }
+            if (!isSendSucess) {
+                logger.error("Error sending message to OpenTSDB.");
+                isSendAllSuccess = false;
             }
         }
-        else {
-            logger.error("Error creating TCP connection to OpenTSDB.");
-            isSendAllSuccess = false;
-        }
-
+        
+        // disconnect from opentsdb
         tcpClient.close();
         
         return isSendAllSuccess;
