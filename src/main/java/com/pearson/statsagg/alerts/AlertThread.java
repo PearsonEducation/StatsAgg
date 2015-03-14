@@ -21,7 +21,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
-import com.pearson.statsagg.modules.GraphiteOutputModule;
+import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
@@ -119,12 +119,12 @@ public class AlertThread implements Runnable {
                 runAlertRoutine(alerts);
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
                 
-                if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
+                if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
                     // generate messages for graphite
                     List<GraphiteMetricAggregated> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
                     
                     // send to graphite
-                    GraphiteOutputModule.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                    SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
                 }
             }
         }

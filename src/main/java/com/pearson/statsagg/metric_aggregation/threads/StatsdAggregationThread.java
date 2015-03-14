@@ -15,8 +15,6 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
-import com.pearson.statsagg.modules.GraphiteOutputModule;
-import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.math.BigDecimal;
@@ -129,13 +127,13 @@ public class StatsdAggregationThread implements Runnable {
             long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
 
             // send to graphite
-            if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+            if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
             // send to opentsdb
-            if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
-                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(statsdMetricsAggregatedMerged, threadId_);
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbOutputModuleEnabled()) {
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbEndpoints(statsdMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the statsd metrics

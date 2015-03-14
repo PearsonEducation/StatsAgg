@@ -99,7 +99,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricValueBigDecimal_;
     }
 
-    public Long createAndGetMetricTimestamp() {
+    public Long createAndGetMetricTimestampInMilliseconds() {
         
         try {
             if ((metricTimestampInMilliseconds_ == null)) {
@@ -467,7 +467,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     
     @Override
     public Long getMetricTimestampInMilliseconds() {
-        return metricTimestampInMilliseconds_;
+        return createAndGetMetricTimestampInMilliseconds();
     }
     
     public String getMetricValue() {

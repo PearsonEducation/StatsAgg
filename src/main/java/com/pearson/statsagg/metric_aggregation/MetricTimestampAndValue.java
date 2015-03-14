@@ -28,6 +28,10 @@ public class MetricTimestampAndValue {
         
         @Override
         public int compare(MetricTimestampAndValue metricTimestampAndValue1, MetricTimestampAndValue metricTimestampAndValue2) {
+            if ((metricTimestampAndValue1.getTimestamp() == null) && (metricTimestampAndValue2.getTimestamp() != null)) return -1;
+            else if ((metricTimestampAndValue1.getTimestamp() != null) && (metricTimestampAndValue2.getTimestamp() == null)) return 1;
+            else if ((metricTimestampAndValue1.getTimestamp() == null) && (metricTimestampAndValue2.getTimestamp() == null)) return 0;
+            
             if (metricTimestampAndValue1.getTimestamp() > metricTimestampAndValue2.getTimestamp()) {
                 return 1;
             }

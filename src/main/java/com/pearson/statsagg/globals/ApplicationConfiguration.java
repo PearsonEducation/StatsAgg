@@ -2,9 +2,6 @@ package com.pearson.statsagg.globals;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
-import com.pearson.statsagg.modules.GraphiteOutputModule;
-import com.pearson.statsagg.modules.OpenTsdbHttpOutputModule;
-import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import java.io.InputStream;

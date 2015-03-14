@@ -1,8 +1,13 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.globals.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
+import com.pearson.statsagg.utilities.StackTrace;
 import java.util.List;
 import com.pearson.statsagg.utilities.TcpClient;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -91,4 +96,56 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         return isSendAllSuccess;
     }
         
+    public static void sendMetricsToOpenTsdbEndpoints(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String threadId) {
+        
+        try {
+            
+            List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+            if (openTsdbOutuputModules == null) return;
+                    
+            for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+                if (!openTsdbOutputModule.isOutputEnabled()) continue;
+                
+                SendMetricsToOpenTsdbThread sendMetricsToOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbOutputModule.getHost(), 
+                       openTsdbOutputModule.getPort(), openTsdbOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                
+                SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToOpenTsdbThread);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+    }
+    
+    public static boolean isAnyOpenTsdbOutputModuleEnabled() {
+        
+        List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+        if (openTsdbOutuputModules == null) return false;
+        
+        for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+            if (openTsdbOutputModule.isOutputEnabled()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public static List<OpenTsdbTelnetOutputModule> getEnabledOpenTsdbOutputModules() {
+        
+        List<OpenTsdbTelnetOutputModule> openTsdbOutuputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+        if (openTsdbOutuputModules == null) return new ArrayList<>();
+        
+        List<OpenTsdbTelnetOutputModule> enabledOpenTsdbOutputModules = new ArrayList<>();
+        
+        for (OpenTsdbTelnetOutputModule openTsdbOutputModule : openTsdbOutuputModules) {
+            if (openTsdbOutputModule.isOutputEnabled()) {
+                enabledOpenTsdbOutputModules.add(openTsdbOutputModule);
+            }
+        }
+        
+        return enabledOpenTsdbOutputModules;
+    }
+    
 }

@@ -42,7 +42,7 @@ public class OpenTsdbRawTest {
         String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
         
         OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, 1366998400999L);
-        parsedMetric.createAndGetMetricTimestamp();
+        parsedMetric.createAndGetMetricTimestampInMilliseconds();
         parsedMetric.createAndGetMetricValueBigDecimal();
         
         assertTrue(parsedMetric.getMetric().equals("tcollector.reader.lines_collected"));

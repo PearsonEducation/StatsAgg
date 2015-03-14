@@ -147,4 +147,7 @@ public class GlobalVariables {
     
     // Used to lock down the alert routine so that the alert routine can have exclusive access to the data structures it uses
     public final static Object alertRoutineLock = new Object();
+    
+    // Used to lock down the cleanup routine so that it doesn't clear out any metrics while the metric association routine is running
+    public final static Object cleanupOldMetricsLock = new Object();
 }

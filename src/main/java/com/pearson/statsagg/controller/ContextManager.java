@@ -27,6 +27,7 @@ import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
+import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
 import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
@@ -71,6 +72,7 @@ public class ContextManager implements ServletContextListener {
     private StatsdAggregationInvokerThread statsdAggregationInvokerThread_ = null;
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
+    private OpenTsdbInvokerThread openTsdbInvokerThread_ = null;
     private AlertInvokerThread alertInvokerThread_ = null;
     private CleanupInvokerThread cleanupInvokerThread_ = null;
     private InternalStatsInvokerThread internalStatsInvokerThread_ = null;
@@ -171,6 +173,10 @@ public class ContextManager implements ServletContextListener {
         graphitePassthroughInvokerThread_ = new GraphitePassthroughInvokerThread();
         Thread graphitePassthroughInvokerThread = new Thread(graphitePassthroughInvokerThread_);
         graphitePassthroughInvokerThread.start();
+        
+        openTsdbInvokerThread_ = new OpenTsdbInvokerThread();
+        Thread openTsdbInvokerThread = new Thread(openTsdbInvokerThread_);
+        openTsdbInvokerThread.start();
         
         AlertThread.reset();
         alertInvokerThread_ = new AlertInvokerThread();
@@ -695,6 +701,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownInvokerThread_Thread shutdownGraphitePassthroughInvokerThread = new ShutdownInvokerThread_Thread(graphitePassthroughInvokerThread_);
         Thread shutdownGraphitePassthroughAggregationInvokerThread_Thread = new Thread(shutdownGraphitePassthroughInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownGraphitePassthroughAggregationInvokerThread_Thread);
+        
+        ShutdownInvokerThread_Thread shutdownOpenTsdbInvokerThread = new ShutdownInvokerThread_Thread(openTsdbInvokerThread_);
+        Thread shutdownOpenTsdbAggregationInvokerThread_Thread = new Thread(shutdownOpenTsdbInvokerThread);
+        shutdownThreadInvokerThreads.add(shutdownOpenTsdbAggregationInvokerThread_Thread);
         
         ShutdownInvokerThread_Thread shutdownAlertInvokerThread = new ShutdownInvokerThread_Thread(alertInvokerThread_);
         Thread shutdownAlertInvokerThread_Thread = new Thread(shutdownAlertInvokerThread);

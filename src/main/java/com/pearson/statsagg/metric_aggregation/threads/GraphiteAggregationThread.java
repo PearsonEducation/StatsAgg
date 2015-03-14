@@ -10,8 +10,6 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
-import com.pearson.statsagg.modules.GraphiteOutputModule;
-import com.pearson.statsagg.modules.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -92,13 +90,13 @@ public class GraphiteAggregationThread implements Runnable {
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
             // send to graphite
-            if (GraphiteOutputModule.isAnyGraphiteOutputModuleEnabled()) {
-                GraphiteOutputModule.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+            if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
             // send to opentsdb
-            if (OpenTsdbTelnetOutputModule.isAnyOpenTsdbOutputModuleEnabled()) {
-                OpenTsdbTelnetOutputModule.sendMetricsToOpenTsdbEndpoints(graphiteMetricsAggregatedMerged, threadId_);
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbOutputModuleEnabled()) {
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbEndpoints(graphiteMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the graphite metrics
