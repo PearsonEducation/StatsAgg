@@ -2,6 +2,7 @@ package com.pearson.statsagg.controller.threads;
 
 import com.pearson.statsagg.alerts.CleanupThread;
 import com.pearson.statsagg.utilities.Threads;
+import java.util.Random;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -13,9 +14,11 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(CleanupInvokerThread.class.getName());
     
     private final int threadExecutorShutdownWaitTime_;
+    private final Random randomNumberGenerator_ = new Random();
+    private final int cleanupInvokerAverageWaitTimeInMilliseconds_ = 10000;
     
     public CleanupInvokerThread() {
-        threadExecutorShutdownWaitTime_ = 15000;
+        threadExecutorShutdownWaitTime_ = cleanupInvokerAverageWaitTimeInMilliseconds_ + 3000;
     }
     
     @Override
@@ -28,7 +31,17 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
                 threadExecutor_.execute(new CleanupThread(currentTimeInMilliseconds));
 
                 try {
-                    lockObject_.wait(15000);
+                    // the delay between cleanup routine invokations has been randomized to avoid having the cleanup routine 
+                    // always execute in sync with the alert-routine/metric-association-routine
+                    int minWaitTime = 5000;
+                    int maxWaitTime = cleanupInvokerAverageWaitTimeInMilliseconds_ * 2;
+                    int randomWaitTime = randomNumberGenerator_.nextInt(maxWaitTime);
+                    
+                    int waitTime;
+                    if (minWaitTime >= randomWaitTime) waitTime = minWaitTime;
+                    else waitTime = randomWaitTime;
+                    
+                    lockObject_.wait(waitTime);
                 }
                 catch (Exception e) {}
             }

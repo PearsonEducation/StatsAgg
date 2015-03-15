@@ -1,25 +1,30 @@
 Short/Medium term
  * Alert Suspension Associations -- link in details page
- * Update documentation to reflect regex 'matches' vs 'find'
  * Document that stuff can't be removed when it has dependencies 
  * Documentation on how StatsAgg is not a metric storage engine, and how long metrics live in memory
    * Should go in overview
+ * Update readme.md for project overview
+ * Document upgrade to 1.1 instructions
  * Support OpenTSDB input formats 
-   * Test agg routine
-   * Unit tests
- * Flot graphs on 'Recent Metric Values' page
- * Control what statsd 'timer' fields are outputted (so people can ignore the more useless ones)
- * Statsd histograms
- * new option -- limit metric results # in webui (and in underlying code)
- * debug mode for "details" pages
- * manual injection of metrics via a new servlet
- * stop resending metric after X time of no updates
- * when altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same
+   * test OpenTSDB http/json input
+ * Support OpenTSDB output
+   * test telnet output
+   * test http/json output
+ * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
+ * New application config option -- limit metric results # in WebUI
+ * Debug mode for "details" pages (include additional details)
+ * Manual injection of metrics via a new servlet
+ * Stop resending metric after X time of no updates
 
 Long term
+ * Flot graphs on 'Recent Metric Values' page
+ * StatsD histograms
+ * Native InfluxDB support
  * Support Graphite Pickle format
- * Migrate to HikariCP
- * Calculator
+ * Migrate connection pool to HikariCP
  * Events log w/ UI component
- * Server-side webui tables
+ * Server-side WebUI tables
+ * Calculator (add/multiply/etc) all the most recent values of a metric group)?
  * Alert by individual metric?
+ * When altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same.
+   * May require substantial refactoring
