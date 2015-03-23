@@ -3,11 +3,13 @@
 ## Overview
 StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, and StatsD-formatted metrics.
 
-StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The ‘value add’ is metric aggregation (Graphite, StatsD) & a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
+StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
+<br>
 [StatsAgg component diagram](./docs/component-diagram.png)
 
 <br>
 ## What are StatsAgg's core features?
+
 * A complete re-implementation of StatsD
     * TCP & UDP support (both can run concurrently).
     * Support for all metric-types.
@@ -30,6 +32,7 @@ A more detailed discussion of StatsAgg's features can be found in the [StatsAgg 
 
 <br>
 ## Why should I use StatsAgg?
+
 StatsAgg was originally written to fill some gaps that in some other popular open-source monitoring tools. Specifically...
 * Graphite, StatsD, and OpenTSDB do not have native alerting mechanisms
     * Most alerting solutions for StatsD, Graphite, and/or OpenTSDB metrics are provided by (expensive) SaaS venders.
