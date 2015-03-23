@@ -4,10 +4,14 @@
 StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, and StatsD-formatted metrics.
 
 StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
+
 <br>
+<br>
+
 [StatsAgg component diagram](./docs/component-diagram.png)
 
 <br>
+
 ## What are StatsAgg's core features?
 
 * A complete re-implementation of StatsD
@@ -31,6 +35,7 @@ StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally)
 A more detailed discussion of StatsAgg's features can be found in the [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
+
 ## Why should I use StatsAgg?
 
 StatsAgg was originally written to fill some gaps that in some other popular open-source monitoring tools. Specifically...
@@ -51,13 +56,17 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
     * A server with 2 cpu cores & 4 gigabytes of RAM should have no trouble processing thousands of metrics per second.
 
 <br>
+
 ## What isn't StatsAgg?
 StatsAgg aims only to fill a gap in open-source monitoring tool stack. The biggest void that it is filling is answering the question of "how can we alert off of all these metrics that we’re collecting". 
-*StatsAgg is not, and likely never will be, a solution for:
-    * Metrics dashboarding. There are many great tools on the market that accomplish this. For example, Grafana.
-    * Metric storage. OpenTSDB, Graphite, InfluxDB, etc all are specifically made for metric storage, whereas StatsAgg is mainly meant to function as a metric ‘pass through’.
+
+StatsAgg is not, and likely never will be, a solution for:
+
+* Metrics dashboarding. There are many great tools on the market that accomplish this. For example, Grafana.
+* Metric storage. OpenTSDB, Graphite, InfluxDB, etc all are specifically made for metric storage, whereas StatsAgg is mainly meant to function as a metric ‘pass through’.
 
 <br>
+
 ## Screenshots
 * [Homepage](./docs/home.png)
 * [Alerts List](./docs/alerts.png)
@@ -70,10 +79,12 @@ StatsAgg aims only to fill a gap in open-source monitoring tool stack. The bigge
 * [Notification Groups List](./docs/notification_groups.png)
 
 <br>
+
 ## Installation
 Detailed installation instructions can be found in the [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
+
 ## Example programs/frameworks/etc that are compatible with StatsAgg
 * [Java Metrics](https://dropwizard.github.io/metrics)
 * [CollectD](https://collectd.org/)
@@ -82,16 +93,19 @@ Detailed installation instructions can be found in the [StatsAgg user manual](./
 * Anything that can output in Graphite, StatsD, or OpenTSDB format
 
 <br>
+
 ## Accepted input formats
 Detailed information about StatsAgg's metric format support, including examples, can be found in the [StatsAgg user manual](./docs/manual.pdf)
 
 <br>
+
 ## Technology
 * StatsAgg is a Java 1.7 based webapp. It compiles into a war file, and is intended to be deployed into Apache Tomcat 7+.
 * StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby Embedded, or MySQL 5.6+.
 * StatsAgg can run on almost any modern OS. Windows, Linux, etc.
 
 <br>
+
 ## Limitations
 * StatsAgg only supports running in a single-server configuration. 
     * While this is a limitation, a lot of time/energy was put into tuning StatsAgg's performance. For *most* implementations, a single StatsAgg server should be adequate. 
@@ -105,6 +119,7 @@ Detailed information about StatsAgg's metric format support, including examples,
 * OpenTSDB listens for metrics on a single port for the telnet & HTTP formats. StatsAgg listens for OpenTSDB metrics on two different ports. See the manual for more information.
 
 <br>
+
 ## Thanks to...
 * StatsD : etsy @ https://github.com/etsy/statsd/
 * Graphite : Orbitz @ http://graphite.wikidot.com/
