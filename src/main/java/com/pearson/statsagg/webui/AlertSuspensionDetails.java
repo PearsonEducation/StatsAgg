@@ -123,11 +123,15 @@ public class AlertSuspensionDetails extends HttpServlet {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
             
             outputString.append("<b>Is Enabled?</b> = ");
-            if (alertSuspension.isEnabled() != null) outputString.append(alertSuspension.isEnabled()).append("<br>");
+            String isEnabled = "No";
+            if ((alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) isEnabled = "Yes";
+            if (alertSuspension.isEnabled() != null) outputString.append(isEnabled).append("<br>");
             else outputString.append("N/A <br>");
                 
             outputString.append("<b>Suspend notification only?</b> = ");
-            if (alertSuspension.isSuspendNotificationOnly() != null) outputString.append(alertSuspension.isSuspendNotificationOnly()).append("<br>");
+            String isSuspendNotificationOnly = "No";
+            if ((alertSuspension.isSuspendNotificationOnly() != null) && alertSuspension.isSuspendNotificationOnly()) isSuspendNotificationOnly = "Yes";
+            if (alertSuspension.isSuspendNotificationOnly() != null) outputString.append(isSuspendNotificationOnly).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<br>");
@@ -208,40 +212,62 @@ public class AlertSuspensionDetails extends HttpServlet {
             if ((alertSuspension.isOneTime() != null) && alertSuspension.isOneTime()) outputString.append("<del>");
             
             outputString.append("<b>Recur Sunday?</b> = ");
-            if (alertSuspension.isRecurSunday() != null) outputString.append(alertSuspension.isRecurSunday()).append("<br>");
+            String isRecurSunday = "No";
+            if ((alertSuspension.isRecurSunday() != null) && alertSuspension.isRecurSunday()) isRecurSunday = "Yes";
+            if (alertSuspension.isRecurSunday() != null) outputString.append(isRecurSunday).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Recur Monday?</b> = ");
-            if (alertSuspension.isRecurMonday() != null) outputString.append(alertSuspension.isRecurMonday()).append("<br>");
+            String isRecurMonday = "No";
+            if ((alertSuspension.isRecurMonday() != null) && alertSuspension.isRecurMonday()) isRecurMonday = "Yes";
+            if (alertSuspension.isRecurMonday() != null) outputString.append(isRecurMonday).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Recur Tuesday?</b> = ");
-            if (alertSuspension.isRecurTuesday() != null) outputString.append(alertSuspension.isRecurTuesday()).append("<br>");
+            String isRecurTuesday = "No";
+            if ((alertSuspension.isRecurTuesday() != null) && alertSuspension.isRecurTuesday()) isRecurTuesday = "Yes";
+            if (alertSuspension.isRecurTuesday() != null) outputString.append(isRecurTuesday).append("<br>");
             else outputString.append("N/A <br>");
      
             outputString.append("<b>Recur Wednesday?</b> = ");
-            if (alertSuspension.isRecurWednesday() != null) outputString.append(alertSuspension.isRecurWednesday()).append("<br>");
+            String isRecurWednesday = "No";
+            if ((alertSuspension.isRecurWednesday() != null) && alertSuspension.isRecurWednesday()) isRecurWednesday = "Yes";
+            if (alertSuspension.isRecurWednesday() != null) outputString.append(isRecurWednesday).append("<br>");
             else outputString.append("N/A <br>");
      
             outputString.append("<b>Recur Thursday?</b> = ");
-            if (alertSuspension.isRecurThursday() != null) outputString.append(alertSuspension.isRecurThursday()).append("<br>");
+            String isRecurThursday = "No";
+            if ((alertSuspension.isRecurThursday() != null) && alertSuspension.isRecurThursday()) isRecurThursday = "Yes";
+            if (alertSuspension.isRecurThursday() != null) outputString.append(isRecurThursday).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Recur Friday?</b> = ");
-            if (alertSuspension.isRecurFriday() != null) outputString.append(alertSuspension.isRecurFriday()).append("<br>");
+            String isRecurFriday = "No";
+            if ((alertSuspension.isRecurFriday() != null) && alertSuspension.isRecurFriday()) isRecurFriday = "Yes";
+            if (alertSuspension.isRecurFriday() != null) outputString.append(isRecurFriday).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Recur Saturday?</b> = ");
-            if (alertSuspension.isRecurSaturday() != null) outputString.append(alertSuspension.isRecurSaturday()).append("<br>");
+            String isRecurSaturday = "No";
+            if ((alertSuspension.isRecurSaturday() != null) && alertSuspension.isRecurSaturday()) isRecurSaturday = "Yes";
+            if (alertSuspension.isRecurSaturday() != null) outputString.append(isRecurSaturday).append("<br>");
             else outputString.append("N/A <br>");
             
             if ((alertSuspension.isOneTime() != null) && alertSuspension.isOneTime()) outputString.append("</del>");
             
             outputString.append("<br>");
 
-            outputString.append("<b>Is alert suspension configuration valid?</b> = ").append(AlertSuspension.isValid(alertSuspension)).append("<br>");
-            outputString.append("<b>Is currently in the suspension window?</b> = ").append(AlertSuspension.isAlertSuspensionInSuspensionTimeWindow(alertSuspension)).append("<br>");
-            outputString.append("<b>Is suspension active?</b> = ").append(AlertSuspension.isAlertSuspensionActive(alertSuspension)).append("<br>");
+            String isValid = "No";
+            if (AlertSuspension.isValid(alertSuspension)) isValid = "Yes";
+            outputString.append("<b>Is alert suspension configuration valid?</b> = ").append(isValid).append("<br>");
+            
+            String isAlertSuspensionInSuspensionTimeWindow = "No";
+            if (AlertSuspension.isAlertSuspensionInSuspensionTimeWindow(alertSuspension)) isAlertSuspensionInSuspensionTimeWindow = "Yes";
+            outputString.append("<b>Is currently in the suspension window?</b> = ").append(isAlertSuspensionInSuspensionTimeWindow).append("<br>");
+            
+            String isAlertSuspensionActive = "No";
+            if (AlertSuspension.isAlertSuspensionActive(alertSuspension)) isAlertSuspensionActive = "Yes";
+            outputString.append("<b>Is suspension active?</b> = ").append(isAlertSuspensionActive).append("<br>");
         }
         
         return outputString.toString();

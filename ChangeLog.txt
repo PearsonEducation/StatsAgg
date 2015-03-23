@@ -1,4 +1,5 @@
-StatsAgg 1.1
+StatsAgg 1.1  - released 2015-xx-xx
+ * If you are using StatsAgg 1.0, then you will need to run the commands found in "Upgrade to 1.1.txt" @ https://github.com/PearsonEducation/StatsAgg/tree/master/sql
  * Reduced Netty shutdown time to 30sec
  * Swapped out WebUI table column-filtering library -- the previous one had some form of incompatibility with the column visibility plugin
    * Now using yadcf - https://github.com/vedmack/yadcf
@@ -6,9 +7,15 @@ StatsAgg 1.1
    * Acknowledge alerts in the WebUI. Shows someone 'acknowledged' it, and prevents additional alert notification (unless unacknowledged)
  * 3 column 'alert details' page -- more readable
  * 'Details' pages now link to other 'details' pages
- * Separated the metric cleanup routine from the alert routine. This should greatly reduce the risk of out-of-memory issues on StatsAgg startup.
- * Changed some boolean values in the tables to 'Yes' / 'No' (more professional looking)
+ * Separated the metric 'cleanup routine' from the 'alert routine'. This should greatly reduce the risk of out-of-memory issues on StatsAgg startup.
+ * Changed some boolean values in the tables & details pages to 'Yes' / 'No' (more professional looking)
  * Improvements to how word-wrapping is handled in the WebUI
+ * Tweaked line-breaking behaviour on all pages.
+ * Changed the default port for the Graphite-Aggregation listener to port 22003
+   * This was done to avoid confusion with the Graphite-Pickle listener (which is on port 2004 in the actual Graphite program) 
  * OpenTSDB support...
-   * Incoming metrics on the telnet interface
-   * Outgoing metrics on the telnet interface
+   * Incoming metrics on the telnet interface (User-defined port, default 4242)
+   * Incoming metrics on the http interface (Same as Tomcat port. See the manual for more info)
+   * Outgoing metrics on the telnet interface (user-defined port, default 4242)
+ * Documentation improvements
+   

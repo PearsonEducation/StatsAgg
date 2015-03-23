@@ -1,5 +1,4 @@
-Short/Medium term
- * Alert Suspension Details -- 'true/false' --> 'yes/no'
+1.1 release
  * Alert Suspension Associations -- link in details page
  * Update readme.md for project overview
  * Test flush after sending batch
@@ -9,6 +8,8 @@ Short/Medium term
  * Support OpenTSDB output
    * test http/json output
 
+Short/Medium term
+ * Convert 'Alert Suspension Details' page into panel-based UI
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * New application config option -- limit metric results # in WebUI
  * Debug mode for "details" pages (include additional details)
