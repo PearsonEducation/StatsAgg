@@ -6,7 +6,6 @@ StatsAgg is a metric aggregation and alerting platform. It currently accepts Gra
 StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
 
 <br>
-<br>
 
 [StatsAgg component diagram](./docs/component-diagram.png)
 
@@ -58,12 +57,12 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
 <br>
 
 ## What isn't StatsAgg?
-StatsAgg aims only to fill a gap in open-source monitoring tool stack. The biggest void that it is filling is answering the question of "how can we alert off of all these metrics that we’re collecting". 
+StatsAgg aims only to fill a gap in open-source monitoring tool stack. The biggest void that it is filling is answering the question of "how can we alert off of all these metrics that we're collecting". 
 
 StatsAgg is not, and likely never will be, a solution for:
 
 * Metrics dashboarding. There are many great tools on the market that accomplish this. For example, Grafana.
-* Metric storage. OpenTSDB, Graphite, InfluxDB, etc all are specifically made for metric storage, whereas StatsAgg is mainly meant to function as a metric ‘pass through’.
+* Metric storage. OpenTSDB, Graphite, InfluxDB, etc all are specifically made for metric storage, whereas StatsAgg is mainly meant to function as a metric 'pass-through'.
 
 <br>
 
