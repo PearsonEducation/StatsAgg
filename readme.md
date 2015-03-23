@@ -34,6 +34,7 @@ A more detailed discussion of StatsAgg's features can be found in the [StatsAgg 
 ## Why should I use StatsAgg?
 
 StatsAgg was originally written to fill some gaps that in some other popular open-source monitoring tools. Specifically...
+
 * Graphite, StatsD, and OpenTSDB do not have native alerting mechanisms
     * Most alerting solutions for StatsD, Graphite, and/or OpenTSDB metrics are provided by (expensive) SaaS venders.
     * The alerting mechanism in StatsAgg compares favourably to many pay-based solutions.
