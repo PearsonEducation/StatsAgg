@@ -27,7 +27,7 @@ public class TcpServer implements Runnable, NettyServer {
     public static final String SERVER_TYPE_STATSD = "STATSD";
     public static final String SERVER_TYPE_GRAPHITE_AGGREGATOR = "GRAPHITE_AGGREGATOR";
     public static final String SERVER_TYPE_GRAPHITE_PASSTHROUGH = "GRAPHITE_PASSTHROUGH";
-    public static final String SERVER_TYPE_OPENTSDB = "OPENTSDB";
+    public static final String SERVER_TYPE_OPENTSDB_TELNET = "OPENTSDB";
     
     private final int port_;
     private final String serverType_;
@@ -91,7 +91,7 @@ public class TcpServer implements Runnable, NettyServer {
                     }
                 });
             }
-            else if (serverType_.equals(SERVER_TYPE_OPENTSDB)) {
+            else if (serverType_.equals(SERVER_TYPE_OPENTSDB_TELNET)) {
                 b.group(bossGroup_, workerGroup_).channel(NioServerSocketChannel.class).childHandler(new ChannelInitializer<SocketChannel>() {
                     @Override
                     public void initChannel(SocketChannel socketChannel) throws Exception {

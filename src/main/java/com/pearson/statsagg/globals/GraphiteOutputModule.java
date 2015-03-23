@@ -43,5 +43,5 @@ public class GraphiteOutputModule {
     public int getMaxMetricsPerMessage() {
         return maxMetricsPerMessage_;
     }
-    
+
 }

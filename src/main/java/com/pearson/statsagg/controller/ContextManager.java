@@ -610,8 +610,8 @@ public class ContextManager implements ServletContextListener {
             }
             
             // start the netty opentsdb tcp server
-            if (ApplicationConfiguration.isOpenTsdbTcpListenerEnabled()) {
-                openTsdbTcpServer_ = new TcpServer(ApplicationConfiguration.getOpenTsdbTcpListenerPort(), TcpServer.SERVER_TYPE_OPENTSDB);
+            if (ApplicationConfiguration.isOpenTsdbTcpTelnetListenerEnabled()) {
+                openTsdbTcpServer_ = new TcpServer(ApplicationConfiguration.getOpenTsdbTcpTelnetListenerPort(), TcpServer.SERVER_TYPE_OPENTSDB_TELNET);
                 Thread openTsdbTcpServerThread = new Thread(openTsdbTcpServer_);
                 openTsdbTcpServerThread.start();
                 if (!openTsdbTcpServer_.isInitializeSuccess()) isStartupSuccess = false;

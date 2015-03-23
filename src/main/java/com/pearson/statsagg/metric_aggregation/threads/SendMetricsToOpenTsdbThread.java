@@ -45,7 +45,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
 
             long sendToOpenTsdbTimeElasped = System.currentTimeMillis() - sendToOpenTsdbTimeStart;
 
-            String outputString = "ThreadId=" + threadId_ + ", SendToOpenTsdbSuccess=" + isSendSuccess + ", SendToOpenTsdbTime=" + sendToOpenTsdbTimeElasped;
+            String outputString = "ThreadId=" + threadId_ + ", SendToOpenTsdbTelnetSuccess=" + isSendSuccess + ", SendToOpenTsdbTime=" + sendToOpenTsdbTimeElasped;
             if (sendToOpenTsdbTimeElasped < sendTimeWarningThreshold_) {
                 logger.info(outputString);
             }

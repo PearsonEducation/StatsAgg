@@ -151,12 +151,18 @@ public class AlertDetails extends HttpServlet {
                 outputString.append(metricGroupDetails).append("<br>");
             }
             else outputString.append("<br>");
-                    
-            outputString.append("<b>Is alert enabled?</b> = ").append(alert.isEnabled()).append("<br>");
             
-            outputString.append("<b>Is caution alerting enabled?</b> = ").append(alert.isCautionEnabled()).append("<br>");
+            String isEnabled = "No";
+            if ((alert.isEnabled() != null) && alert.isEnabled()) isEnabled = "Yes";
+            outputString.append("<b>Is alert enabled?</b> = ").append(isEnabled).append("<br>");
             
-            outputString.append("<b>Is danger alerting enabled?</b> = ").append(alert.isDangerEnabled()).append("<br>");
+            String isCautionEnabled = "No";
+            if ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()) isCautionEnabled = "Yes";
+            outputString.append("<b>Is caution alerting enabled?</b> = ").append(isCautionEnabled).append("<br>");
+            
+            String isDangerEnabled = "No";
+            if ((alert.isDangerEnabled() != null) && alert.isDangerEnabled()) isDangerEnabled = "Yes";
+            outputString.append("<b>Is danger alerting enabled?</b> = ").append(isDangerEnabled).append("<br>");
             
             outputString.append("<b>Alert type</b> = ");
             if (alert.getAlertType() != null) {
@@ -166,8 +172,13 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            outputString.append("<b>Alert on positive?</b> = ").append(alert.isAlertOnPositive()).append("<br>");
-            outputString.append("<b>Resend Alert?</b> = ").append(alert.isAllowResendAlert()).append("<br>");
+            String isAlertOnPositive = "No";
+            if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) isAlertOnPositive = "Yes";
+            outputString.append("<b>Alert on positive?</b> = ").append(isAlertOnPositive).append("<br>");
+            
+            String isAllowResendAlert = "No";
+            if ((alert.isAllowResendAlert() != null) && alert.isAllowResendAlert()) isAllowResendAlert = "Yes";
+            outputString.append("<b>Resend Alert?</b> = ").append(isAllowResendAlert).append("<br>");
             
             outputString.append("<b>Resent alert every...</b> = ");
             if (alert.getSendAlertEveryNumMilliseconds() != null) {
@@ -183,17 +194,17 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Is alert suspended?</b> = ");
             if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
                     GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
-                outputString.append("yes <br>");
+                outputString.append("Yes <br>");
                 isAlertSuspended = true;
             }
-            else outputString.append("no <br>");
+            else outputString.append("No <br>");
             
             outputString.append("<b>Is alert suspended, notification only?</b> = ");
             if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
                 Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
                 
-                if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("yes <br>");
-                else outputString.append("no <br>");
+                if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
+                else outputString.append("No <br>");
             }
             else outputString.append("N/A <br>");
             
@@ -254,12 +265,18 @@ public class AlertDetails extends HttpServlet {
             
             if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()))) outputString.append("</del>");
             
-            outputString.append("<b>Are caution configuration settings valid?</b> = ").append(alert.isCautionAlertCriteriaValid()).append("<br>");
+            String isCautionAlertCriteriaValid = "No";
+            if (alert.isCautionAlertCriteriaValid()) isCautionAlertCriteriaValid = "Yes";
+            outputString.append("<b>Is the caution criteria valid?</b> = ").append(isCautionAlertCriteriaValid).append("<br>");
             
-            outputString.append("<b>Caution alert active?</b> = ").append(alert.isCautionAlertActive()).append("<br>");
+            String isCautionAlertActive = "No";
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "Yes";
+            outputString.append("<b>Caution alert active?</b> = ").append(isCautionAlertActive).append("<br>");
             
             outputString.append("<b>Caution acknowledged?</b> = ");
-            if (alert.isCautionAcknowledged() != null) outputString.append(alert.isCautionAcknowledged()).append("<br>");
+            String isCautionAcknowledged = "No";
+            if ((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) isCautionAcknowledged = "Yes";
+            if (alert.isCautionAcknowledged() != null) outputString.append(isCautionAcknowledged).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution alert last notification timestamp</b> = ");
@@ -268,9 +285,9 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Is caution alert status pending? (caused by application restart) </b> = ");
             if ((alert.getId() != null) && (GlobalVariables.pendingCautionAlertsByAlertId != null) && GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
-                outputString.append("yes <br>");  
+                outputString.append("Yes <br>");  
             }
-            else outputString.append("no <br>");  
+            else outputString.append("No <br>");  
             
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("</del>");
 
@@ -331,12 +348,18 @@ public class AlertDetails extends HttpServlet {
             
             if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("</del>");
             
-            outputString.append("<b>Are danger configuration settings valid?</b> = ").append(alert.isDangerAlertCriteriaValid()).append("<br>");
+            String isDangerAlertCriteriaValid = "No";
+            if (alert.isDangerAlertCriteriaValid()) isDangerAlertCriteriaValid = "Yes";
+            outputString.append("<b>Is the danger criteria valid?</b> = ").append(isDangerAlertCriteriaValid).append("<br>");
             
-            outputString.append("<b>Danger alert active?</b> = ").append(alert.isDangerAlertActive()).append("<br>");
+            String isDangerAlertActive = "No";
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "Yes";
+            outputString.append("<b>Danger alert active?</b> = ").append(isDangerAlertActive).append("<br>");
             
             outputString.append("<b>Danger acknowledged?</b> = ");
-            if (alert.isDangerAcknowledged() != null) outputString.append(alert.isDangerAcknowledged()).append("<br>");
+            String isDangerAcknowledged = "No";
+            if ((alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged()) isDangerAcknowledged = "Yes";
+            if (alert.isDangerAcknowledged() != null) outputString.append(isDangerAcknowledged).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger alert last notification timestamp</b> = ");
@@ -345,9 +368,9 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Is danger alert status pending? (caused by application restart) </b> = ");
             if ((alert.getId() != null) && (GlobalVariables.pendingDangerAlertsByAlertId != null) && GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
-                outputString.append("yes <br>");  
+                outputString.append("Yes <br>");  
             }
-            else outputString.append("no <br>");  
+            else outputString.append("No <br>");  
             
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("</del>");
             

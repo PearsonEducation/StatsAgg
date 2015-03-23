@@ -30,7 +30,6 @@ public class ApplicationConfiguration {
     private static boolean debugModeEnabled_ = false;
     
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
-    private static int graphiteMaxBatchSize_ = VALUE_NOT_SET_CODE;     
     private static final List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules_ = new ArrayList<>();
     private static final List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules_ = new ArrayList<>();
 
@@ -46,8 +45,8 @@ public class ApplicationConfiguration {
     private static int graphitePassthroughTcpListenerPort_ = VALUE_NOT_SET_CODE;
     private static boolean graphitePassthroughUdpListenerEnabled_ = false;
     private static int graphitePassthroughUdpListenerPort_ = VALUE_NOT_SET_CODE;
-    private static boolean openTsdbTcpListenerEnabled_ = false;
-    private static int openTsdbTcpListenerPort_ = VALUE_NOT_SET_CODE;
+    private static boolean openTsdbTcpTelnetListenerEnabled_ = false;
+    private static int openTsdbTcpTelnetListenerPort_ = VALUE_NOT_SET_CODE;
     
     private static boolean globalMetricNamePrefixEnabled_ = false;
     private static String globalMetricNamePrefixValue_ = null;
@@ -129,11 +128,13 @@ public class ApplicationConfiguration {
             debugModeEnabled_ = applicationConfiguration_.getBoolean("debug_mode_enabled", false);
             
             // graphite configuration
-            graphiteMaxBatchSize_ = applicationConfiguration_.getInt("graphite_max_batch_size", 100);
-            graphiteOutputModules_.addAll(readGraphiteOutputModules(graphiteMaxBatchSize_));
+            graphiteOutputModules_.addAll(readGraphiteOutputModules());
 
             // opentsdb configuration
             openTsdbTelnetOutputModules_.addAll(readOpenTsdbTelnetOutputModules());
+            
+            // opentsdb configuration
+            openTsdbHttpOutputModules_.addAll(readOpenTsdbHttpOutputModules());
             
             // listener config
             statsdTcpListenerEnabled_ = applicationConfiguration_.getBoolean("statsd_tcp_listener_enabled", true);
@@ -148,8 +149,8 @@ public class ApplicationConfiguration {
             graphitePassthroughTcpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_tcp_listener_port", 2003);
             graphitePassthroughUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_udp_listener_enabled", true);
             graphitePassthroughUdpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_udp_listener_port", 2003);
-            openTsdbTcpListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_tcp_listener_enabled", true);
-            openTsdbTcpListenerPort_ = applicationConfiguration_.getInt("opentsdb_tcp_listener_port", 4242);
+            openTsdbTcpTelnetListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_tcp_telnet_listener_enabled", true);
+            openTsdbTcpTelnetListenerPort_ = applicationConfiguration_.getInt("opentsdb_tcp_telnet_listener_port", 4242);
             
             // metric naming config
             globalMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("global_metric_name_prefix_enabled", false);
@@ -218,7 +219,7 @@ public class ApplicationConfiguration {
         }
     }
     
-    private static List<GraphiteOutputModule> readGraphiteOutputModules(int graphiteMaxBatchSize) {
+    private static List<GraphiteOutputModule> readGraphiteOutputModules() {
         
         List<GraphiteOutputModule> graphiteOutputModules = new ArrayList<>();
         
@@ -235,13 +236,16 @@ public class ApplicationConfiguration {
                 if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
                     String[] csvValues = csvValuesArray.get(0);
 
-                    if (csvValues.length == 4) {                                
+                    if (csvValues.length >= 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
                         String host = csvValues[1];
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
+                        int maxMetricsPerMessage = 100;
                         
-                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, graphiteMaxBatchSize);
+                        if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
+                        
+                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, maxMetricsPerMessage);
                         graphiteOutputModules.add(graphiteOutputModule);
                     }
 
@@ -292,6 +296,47 @@ public class ApplicationConfiguration {
         }
         
         return openTsdbTelnetOutputModules;
+    }
+    
+    private static List<OpenTsdbHttpOutputModule> readOpenTsdbHttpOutputModules() {
+        
+        List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = new ArrayList<>();
+        
+        for (int i = 0; i < 1000; i++) {
+            String openTsdbHttpOutputModuleKey = "opentsdb_http_output_module_" + (i + 1);
+            String openTsdbHttpOutputModuleValue = applicationConfiguration_.getString(openTsdbHttpOutputModuleKey, null);
+            
+            if (openTsdbHttpOutputModuleValue == null) continue;
+            
+            try {
+                CSVReader reader = new CSVReader(new StringReader(openTsdbHttpOutputModuleValue));
+                List<String[]> csvValuesArray = reader.readAll();
+
+                if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
+                    String[] csvValues = csvValuesArray.get(0);
+
+                    if (csvValues.length >= 4) {                                
+                        boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
+                        String host = csvValues[1];
+                        int port = Integer.valueOf(csvValues[2]);
+                        int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
+                        int maxMetricsPerMessage = 100;
+                        
+                        if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
+                        
+                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, maxMetricsPerMessage);
+                        openTsdbHttpOutputModules.add(openTsdbHttpOutputModule);
+                    }
+
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+        }
+        
+        return openTsdbHttpOutputModules;
     }
     
     private static List<HttpLink> readCustomActionUrls() {
@@ -351,10 +396,6 @@ public class ApplicationConfiguration {
         else return new ArrayList<>(graphiteOutputModules_);
     }
 
-    public static int getGraphiteMaxBatchSize() {
-        return graphiteMaxBatchSize_;
-    }
-    
     public static List<OpenTsdbTelnetOutputModule> getOpenTsdbTelnetOutputModules() {
         if (openTsdbTelnetOutputModules_ == null) return null;
         else return new ArrayList<>(openTsdbTelnetOutputModules_);
@@ -413,12 +454,12 @@ public class ApplicationConfiguration {
         return graphitePassthroughUdpListenerPort_;
     }
 
-    public static boolean isOpenTsdbTcpListenerEnabled() {
-        return openTsdbTcpListenerEnabled_;
+    public static boolean isOpenTsdbTcpTelnetListenerEnabled() {
+        return openTsdbTcpTelnetListenerEnabled_;
     }
 
-    public static int getOpenTsdbTcpListenerPort() {
-        return openTsdbTcpListenerPort_;
+    public static int getOpenTsdbTcpTelnetListenerPort() {
+        return openTsdbTcpTelnetListenerPort_;
     }
 
     public static boolean isGlobalMetricNamePrefixEnabled() {

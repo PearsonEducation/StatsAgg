@@ -1,15 +1,14 @@
 Short/Medium term
+ * Alert Suspension Details -- 'true/false' --> 'yes/no'
  * Alert Suspension Associations -- link in details page
- * Document that stuff can't be removed when it has dependencies 
- * Documentation on how StatsAgg is not a metric storage engine, and how long metrics live in memory
-   * Should go in overview
  * Update readme.md for project overview
+ * Test flush after sending batch
  * Document upgrade to 1.1 instructions
  * Support OpenTSDB input formats 
-   * test OpenTSDB http/json input
+   * Add support for summary & details responses
  * Support OpenTSDB output
-   * test telnet output
    * test http/json output
+
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * New application config option -- limit metric results # in WebUI
  * Debug mode for "details" pages (include additional details)
@@ -22,6 +21,7 @@ Long term
  * Native InfluxDB support
  * Support Graphite Pickle format
  * Migrate connection pool to HikariCP
+ * OpenTSDB HTTP & Telnet on the same port
  * Events log w/ UI component
  * Server-side WebUI tables
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?

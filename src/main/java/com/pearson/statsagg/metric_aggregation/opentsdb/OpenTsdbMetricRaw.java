@@ -242,7 +242,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         }
     }
     
-    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricReceivedTimestampInMilliseconds) {
+    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricsReceivedTimestampInMilliseconds) {
 
         if ((inputJson == null) || inputJson.isEmpty()) {
             return new ArrayList<>();
@@ -299,7 +299,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             }
         }
 
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(openTsdbMetricsString.toString(), metricReceivedTimestampInMilliseconds);
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(openTsdbMetricsString.toString(), metricsReceivedTimestampInMilliseconds);
         
         return openTsdbMetricsRaw;
     }

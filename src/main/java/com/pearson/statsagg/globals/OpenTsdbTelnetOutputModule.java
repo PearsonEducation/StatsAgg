@@ -1,12 +1,5 @@
 package com.pearson.statsagg.globals;
 
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
-import com.pearson.statsagg.utilities.StackTrace;
-import java.util.ArrayList;
-import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

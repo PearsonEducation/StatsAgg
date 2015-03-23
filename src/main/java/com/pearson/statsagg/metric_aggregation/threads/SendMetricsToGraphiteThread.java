@@ -119,7 +119,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
         boolean isSendSuccess = false;
         
         if (tcpClient.isConnected()) {
-            boolean isSendSucess = tcpClient.send(graphiteMessage, numSendRetries, false, false);
+            boolean isSendSucess = tcpClient.send(graphiteMessage, numSendRetries, false, true);
 
             if (!isSendSucess) {
                 logger.error("Error sending message to graphite.");
