@@ -317,14 +317,14 @@ public class ApplicationConfiguration {
 
                     if (csvValues.length >= 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
-                        String host = csvValues[1];
+                        String url = csvValues[1];
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
                         int maxMetricsPerMessage = 100;
                         
                         if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
                         
-                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, maxMetricsPerMessage);
+                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, port, numSendRetryAttempts, maxMetricsPerMessage);
                         openTsdbHttpOutputModules.add(openTsdbHttpOutputModule);
                     }
 

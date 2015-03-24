@@ -95,9 +95,9 @@ public class GraphitePassthroughThread implements Runnable {
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsRawMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
-            // send to opentsdb
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbOutputModuleEnabled()) {
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbEndpoints(graphiteMetricsRawMerged, threadId_);
+            // send to opentsdb via telnet
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) {
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(graphiteMetricsRawMerged, threadId_);
             }
             
             // total time for this thread took to get & send the graphite metrics

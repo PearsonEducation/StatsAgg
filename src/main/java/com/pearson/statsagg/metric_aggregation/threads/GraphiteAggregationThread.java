@@ -94,9 +94,9 @@ public class GraphiteAggregationThread implements Runnable {
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
-            // send to opentsdb
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbOutputModuleEnabled()) {
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbEndpoints(graphiteMetricsAggregatedMerged, threadId_);
+            // send to opentsdb via telnet
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) {
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(graphiteMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the graphite metrics

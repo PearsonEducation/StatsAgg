@@ -4,8 +4,6 @@
    * Update screenshots as needed
  * Support OpenTSDB input formats 
    * Add support for summary & details responses
- * Support OpenTSDB output
-   * test http/json output
 
 Short/Medium term
  * Convert 'Alert Suspension Details' page into panel-based UI
@@ -14,6 +12,7 @@ Short/Medium term
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet
  * Stop resending metric after X time of no updates
+ * Support output via OpenTSDB HTTP/JSON
 
 Long term
  * Flot graphs on 'Recent Metric Values' page

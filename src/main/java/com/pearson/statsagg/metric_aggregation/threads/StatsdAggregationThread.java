@@ -131,9 +131,9 @@ public class StatsdAggregationThread implements Runnable {
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
-            // send to opentsdb
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbOutputModuleEnabled()) {
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbEndpoints(statsdMetricsAggregatedMerged, threadId_);
+            // send to opentsdb via telnet
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) {
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(statsdMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the statsd metrics

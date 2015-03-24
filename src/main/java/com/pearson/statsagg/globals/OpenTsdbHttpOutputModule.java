@@ -11,14 +11,14 @@ public class OpenTsdbHttpOutputModule {
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdbHttpOutputModule.class.getName());
     
     private final boolean isOutputEnabled_;
-    private final String host_;
+    private final String url_;
     private final int port_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
     
-    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, int maxMetricsPerMessage) {
+    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int port, int numSendRetryAttempts, int maxMetricsPerMessage) {
         this.isOutputEnabled_ = isOutputEnabled;
-        this.host_ = host;
+        this.url_ = url;
         this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
@@ -28,8 +28,8 @@ public class OpenTsdbHttpOutputModule {
         return isOutputEnabled_;
     }
 
-    public String getHost() {
-        return host_;
+    public String getUrl() {
+        return url_;
     }
 
     public int getPort() {

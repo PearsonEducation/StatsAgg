@@ -116,6 +116,7 @@ Detailed information about StatsAgg's metric format support, including examples,
 * StatsAgg is not (currently) meant for use as an incident management tool. It doesn't support alert history, event management, etc.
 * StatsAgg does not (currently) support the Graphite 'Pickle' format (will be included in a future build).
 * OpenTSDB listens for metrics on a single port for the telnet & HTTP formats. StatsAgg listens for OpenTSDB metrics on two different ports. See the manual for more information.
+* StatsAgg cannot output via the OpenTSDB HTTP/JSON interface. This may be included in a future StatsAgg release.
 
 <br>
 
