@@ -1,8 +1,7 @@
 1.1 release
  * Alert Suspension Associations -- link in details page
  * Update readme.md for project overview
- * Test flush after sending batch
- * Document upgrade to 1.1 instructions
+   * Update screenshots as needed
  * Support OpenTSDB input formats 
    * Add support for summary & details responses
  * Support OpenTSDB output

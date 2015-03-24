@@ -241,7 +241,7 @@ public class ApplicationConfiguration {
                         String host = csvValues[1];
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
-                        int maxMetricsPerMessage = 100;
+                        int maxMetricsPerMessage = 1000;
                         
                         if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
                         

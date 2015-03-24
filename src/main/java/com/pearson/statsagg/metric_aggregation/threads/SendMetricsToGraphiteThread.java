@@ -47,7 +47,9 @@ public class SendMetricsToGraphiteThread implements Runnable {
 
             long sendToGraphiteTimeElasped = System.currentTimeMillis() - sendToGraphiteTimeStart;
 
-            String outputString = "ThreadId=" + threadId_ + ", SendToGraphiteSuccess=" + isSendSuccess + ", SendToGraphiteTime=" + sendToGraphiteTimeElasped;
+            String outputString = "ThreadId=" + threadId_ + ", Destination=" + graphiteHost_ + ":" + graphitePort_ + 
+                                ", SendToGraphiteSuccess=" + isSendSuccess + ", SendToGraphiteTime=" + sendToGraphiteTimeElasped;
+            
             if (sendToGraphiteTimeElasped < sendTimeWarningThresholdInMs_) {
                 logger.info(outputString);
             }
@@ -116,7 +118,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
         
     private static boolean sendGraphiteMessage(TcpClient tcpClient, int numSendRetries, String graphiteMessage) {
         
-        boolean isSendSuccess = false;
+        boolean isSendSuccess = true;
         
         if (tcpClient.isConnected()) {
             boolean isSendSucess = tcpClient.send(graphiteMessage, numSendRetries, false, true);
@@ -136,6 +138,10 @@ public class SendMetricsToGraphiteThread implements Runnable {
     
     public static void sendMetricsToGraphiteEndpoints(List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId, int sendTimeWarningThresholdInMs) {
         
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (threadId == null) || threadId.isEmpty()) {
+            return;
+        }
+        
         try {
             List<GraphiteOutputModule> graphiteOutuputModules = ApplicationConfiguration.getGraphiteOutputModules();
             if (graphiteOutuputModules == null) return;
@@ -149,6 +155,26 @@ public class SendMetricsToGraphiteThread implements Runnable {
                 
                 SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
             }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+    }
+    
+    public static void sendMetricsToGraphiteOutputModule(GraphiteOutputModule graphiteOutputModule, List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId) {
+        
+        if ((graphiteOutputModule == null) || (graphiteMetrics == null) || graphiteMetrics.isEmpty() || (threadId == null) || threadId.isEmpty()) {
+            return;
+        }
+        
+        try {
+            SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, 
+                    graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), 
+                    graphiteOutputModule.getMaxMetricsPerMessage(),
+                    threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+
+            SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
