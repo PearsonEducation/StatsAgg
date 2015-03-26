@@ -135,13 +135,25 @@ public class OpenTsdbRawTest {
                 + "           \"host\": \"web02\",\n"
                 + "           \"dc\": \"lga\"\n"
                 + "        }\n"
+                + "    },\n"
+                + "    {\n"
+                + "        \"metric\": \"sys.cpu.nice3\",\n"
+                + "        \"timestamp\": 1346846400,\n"
+                + "        \"value\": taco,\n"
+                + "        \"tags\": {\n"
+                + "           \"host\": \"web03\",\n"
+                + "           \"dc\": \"lga\"\n"
+                + "        }\n"
                 + "    }\n"
                 + "]";
         
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, System.currentTimeMillis());
+        List<Integer> successCountAndFailCount = new ArrayList<>();
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, System.currentTimeMillis(), successCountAndFailCount);
         
         assertEquals(openTsdbMetricsRaw.size(), 2);
-        
+        assertEquals(successCountAndFailCount.get(0).intValue(), 2);
+        assertEquals(successCountAndFailCount.get(1).intValue(), 1);
+
         int matchCount = 0;
         for (OpenTsdbMetricRaw openTsdbMetricRaw: openTsdbMetricsRaw) {
             if (openTsdbMetricRaw.getMetric().equals("sys.cpu.nice1")) {

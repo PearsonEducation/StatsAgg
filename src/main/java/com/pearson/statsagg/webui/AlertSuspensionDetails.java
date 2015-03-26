@@ -268,6 +268,11 @@ public class AlertSuspensionDetails extends HttpServlet {
             String isAlertSuspensionActive = "No";
             if (AlertSuspension.isAlertSuspensionActive(alertSuspension)) isAlertSuspensionActive = "Yes";
             outputString.append("<b>Is suspension active?</b> = ").append(isAlertSuspensionActive).append("<br>");
+            
+            outputString.append("<br>");
+            outputString.append("<b>Alert Suspension - Alert Associations</b> = ");            
+            String alertSuspensionAlertAssociationsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
+            outputString.append(alertSuspensionAlertAssociationsLink);  
         }
         
         return outputString.toString();

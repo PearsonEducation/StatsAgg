@@ -112,13 +112,15 @@ Detailed information about StatsAgg's metric format support, including examples,
     * configuring StatsAgg to be in a 'proxy cluster' configuration (you can use the official StatsD program to do this, and forward to StatsAgg). 
     * outputting frequently sent metric-keys to log files.
 * StatsAgg is not (currently) meant for use as an incident management tool. It doesn't support alert history, event management, etc.
-* StatsAgg does not (currently) support the Graphite 'Pickle' format (will be included in a future build).
-* OpenTSDB listens for metrics on a single port for the telnet & HTTP formats. StatsAgg listens for OpenTSDB metrics on two different ports. See the manual for more information.
-* StatsAgg cannot output via the OpenTSDB HTTP/JSON interface. This may be included in a future StatsAgg release.
+* StatsAgg does not (currently) support the Graphite 'Pickle' format (may be included in a future build).
+* OpenTSDB listens for metrics on a single port for the telnet & HTTP formats. StatsAgg listens for OpenTSDB metrics on two different ports. See the [manual](./docs/manual.pdf) for more information.
+* The OpenTSDB HTTP interface has full support for the 'summary' parameter, and partial support for the 'details' parameter. See the OpenTSDB documentation for more information.
+    * The 'details' parameter will return accurate counts for 'failed' & 'success', but the 'errors' field is not currently being populated.
 
 <br>
 
 ## Thanks to...
 * StatsD : etsy @ https://github.com/etsy/statsd/
 * Graphite : Orbitz @ http://graphite.wikidot.com/
+* OpenTSDB : http://opentsdb.net/
 * Pearson Assessments, a division of Pearson Education: http://www.pearsonassessments.com/

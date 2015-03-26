@@ -6,7 +6,9 @@ import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.BufferedReader;
 import java.io.PrintWriter;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -53,49 +55,65 @@ public class put extends HttpServlet {
         }
         
         long metricsReceivedTimestampInMilliseconds = System.currentTimeMillis();
-        BufferedReader requestBodyReader = null;
+        
         PrintWriter out = null;
         
         try {
-            response.setContentType("text/json");     
-            StringBuilder inputJson = new StringBuilder("");
+            response.setContentType("text/json"); 
             
-            requestBodyReader = request.getReader();
-            
-            if (requestBodyReader != null) {
-                String requestLine = "";
-                
-                while (requestLine != null) {
-                    requestLine = requestBodyReader.readLine();
-                    if (requestLine != null) inputJson.append(requestLine);
-                }
+            boolean doesRequestSummary = false, doesRequestDetails = false;
+            if ((request.getParameterMap() != null) && (request.getParameterMap().keySet() != null) && !request.getParameterMap().keySet().isEmpty()) {
+                if (request.getParameterMap().keySet().contains("summary")) doesRequestSummary = true;
+                if (request.getParameterMap().keySet().contains("details")) doesRequestDetails = true;
             }
+
+            String json = getJsonPayloadFromRequest(request);
             
-            List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson.toString(), metricsReceivedTimestampInMilliseconds);
-
-            for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
-                Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
-                openTsdbMetricRaw.setHashKey(hashKey);
-
-                if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-                    openTsdbMetricRaw.createAndGetMetricTimestampInMilliseconds();
-                }
-
-                GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
-                GlobalVariables.incomingMetricsCount.incrementAndGet();
-            }
+            String responseMessage = parseMetrics(json, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);
+                            
+            if (doesRequestSummary) response.setStatus(200);
+            else if (doesRequestDetails) response.setStatus(200);
+            else response.setStatus(204);
             
-            if (ApplicationConfiguration.isDebugModeEnabled()) {
-                logger.info("HTTP_TCP_OpenTsdb_Received_Metrics=" + openTsdbMetricsRaw.size());
-                logger.info("HTTP_TCP_OpenTsdb_String=\"" + inputJson.toString() + "\"");
-            }
-                
-            response.setStatus(204);
             out = response.getWriter();
-            out.println("");
+            if (doesRequestSummary || doesRequestDetails) out.println(responseMessage);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+    
+    protected String getJsonPayloadFromRequest(HttpServletRequest request) {
+        
+        if (request == null) {
+            return null;
+        }
+        
+        BufferedReader requestBodyReader = null;
+
+        try {
+            StringBuilder json = new StringBuilder("");
+            requestBodyReader = request.getReader();
+
+            if (requestBodyReader != null) {
+                String requestLine = "";
+
+                while (requestLine != null) {
+                    requestLine = requestBodyReader.readLine();
+                    if (requestLine != null) json.append(requestLine);
+                }
+            }
+            
+            return json.toString();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
         finally {            
             if (requestBodyReader != null) {
@@ -104,11 +122,52 @@ public class put extends HttpServlet {
                 }
                 catch (Exception e){}
             }
-            
-            if (out != null) {
-                out.close();
-            }
         }
+        
     }
-  
+    
+    public static String parseMetrics(String inputJson, long metricsReceivedTimestampInMilliseconds, boolean doesRequestSummary, boolean doesRequestDetails) {
+        
+        List<Integer> successCountAndFailCount = new ArrayList<>();
+        
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, metricsReceivedTimestampInMilliseconds, successCountAndFailCount);
+        
+        if (successCountAndFailCount.isEmpty()) {
+            successCountAndFailCount.add(0);
+            successCountAndFailCount.add(0);
+        }
+        
+        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
+            Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
+            openTsdbMetricRaw.setHashKey(hashKey);
+
+            if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
+                openTsdbMetricRaw.createAndGetMetricTimestampInMilliseconds();
+            }
+
+            GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
+            GlobalVariables.incomingMetricsCount.incrementAndGet();
+        }
+        
+        if (ApplicationConfiguration.isDebugModeEnabled()) {
+            logger.info("HTTP_TCP_OpenTsdb_Received_Metrics=" + openTsdbMetricsRaw.size());
+            logger.info("HTTP_TCP_OpenTsdb_String=\"" + inputJson + "\"");
+        }
+        
+        if (doesRequestSummary) {
+            StringBuilder summaryResponse = new StringBuilder("");
+            summaryResponse.append("{\"failed\":").append(successCountAndFailCount.get(1)).append(",\"success\":").append(successCountAndFailCount.get(0)).append("}");
+            return summaryResponse.toString();
+        }
+        
+        if (doesRequestDetails) {
+            StringBuilder detailsResponse = new StringBuilder("");
+            detailsResponse.append("{\"failed\":").append(successCountAndFailCount.get(1)).append(",\"success\":")
+                    .append(successCountAndFailCount.get(0)).append(",\"errors\":[]").append("}");
+            return detailsResponse.toString();
+        }
+    
+        return "";
+    }
+
 }

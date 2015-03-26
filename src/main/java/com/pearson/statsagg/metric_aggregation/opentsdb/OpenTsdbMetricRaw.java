@@ -233,7 +233,11 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 
                 OpenTsdbMetricRaw openTsdbRaw = new OpenTsdbMetricRaw(metric.trim(), metricTimestamp.trim(), 
                         metricValue.trim(), openTsdbTags, sortedUnparsedTags, metricReceivedTimestampInMilliseconds); 
-                return openTsdbRaw;
+                
+                if ((openTsdbRaw.getMetricValueBigDecimal() != null) && (openTsdbRaw.getMetricTimestampInMilliseconds() != null) && (openTsdbRaw.getMetricKey() != null)) {
+                    return openTsdbRaw;
+                }
+                else return null;
             }
         }
         catch (Exception e) {
@@ -243,11 +247,18 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     }
     
     public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricsReceivedTimestampInMilliseconds) {
+        return parseOpenTsdbJson(inputJson, metricsReceivedTimestampInMilliseconds, new ArrayList<Integer>());
+    }
+    
+    /* successCountAndFailCount is modified by this method. index-0 will have the successfully parsed metric count, and index-1 will have the metrics with errors count */
+    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricsReceivedTimestampInMilliseconds, List<Integer> successCountAndFailCount) {
 
         if ((inputJson == null) || inputJson.isEmpty()) {
             return new ArrayList<>();
         }
 
+        int successMetricCount = 0, errorMetricCount = 0, totalMetricCount = 0;
+        
         ValueList parsedJsonObject = null;
         
         try {
@@ -293,14 +304,24 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 
                 String openTsdbMetricString = metric + " " + timestampString + " " + valueString + " " + tagsString.toString() + "\n";
                 openTsdbMetricsString.append(openTsdbMetricString);
+                
+                totalMetricCount++;
             }
             catch (Exception e) {
+                totalMetricCount++;                
                 logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
 
         List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(openTsdbMetricsString.toString(), metricsReceivedTimestampInMilliseconds);
         
+        successMetricCount = openTsdbMetricsRaw.size();
+        errorMetricCount = totalMetricCount - successMetricCount;
+        if (successCountAndFailCount == null) successCountAndFailCount = new ArrayList<>();
+        if (!successCountAndFailCount.isEmpty()) successCountAndFailCount.clear();
+        successCountAndFailCount.add(successMetricCount);
+        successCountAndFailCount.add(errorMetricCount);
+
         return openTsdbMetricsRaw;
     }
     
@@ -331,10 +352,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
                     OpenTsdbMetricRaw openTsdbMetricRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric.trim(), metricReceivedTimestampInMilliseconds);
-
-                    if (openTsdbMetricRaw != null) {
-                        openTsdbMetricsRaw.add(openTsdbMetricRaw);
-                    }
+                    if (openTsdbMetricRaw != null) openTsdbMetricsRaw.add(openTsdbMetricRaw);
                 }
             }
         }
@@ -394,7 +412,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             boolean useGlobalPrefix, String globalPrefixValue,
             boolean useOpenTsdbPrefix, String openTsdbPrefixValue) {
         
-        if (openTsdbMetricsRaw == null || openTsdbMetricsRaw.isEmpty()) {
+        if ((openTsdbMetricsRaw == null) || openTsdbMetricsRaw.isEmpty()) {
             return new ArrayList<>();
         }
         

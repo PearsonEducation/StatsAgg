@@ -1,26 +1,27 @@
 1.1 release
- * Alert Suspension Associations -- link in details page
  * Update readme.md for project overview
-   * Update screenshots as needed
- * Support OpenTSDB input formats 
-   * Add support for summary & details responses
 
 Short/Medium term
  * Convert 'Alert Suspension Details' page into panel-based UI
+ * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
+ * OpenTSDB HTTP & Telnet on the same port
+ * StatsD histograms
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * New application config option -- limit metric results # in WebUI
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet
  * Stop resending metric after X time of no updates
- * Support output via OpenTSDB HTTP/JSON
-
+ * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
+ 
 Long term
+ * Mobile versions of essential WebUI pages
+   * Make existing pages more mobile friendly?
+ * Simplify installation -- target Windows first
  * Flot graphs on 'Recent Metric Values' page
- * StatsD histograms
  * Native InfluxDB support
  * Support Graphite Pickle format
  * Migrate connection pool to HikariCP
- * OpenTSDB HTTP & Telnet on the same port
+ * Support output via OpenTSDB HTTP/JSON
  * Events log w/ UI component
  * Server-side WebUI tables
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?
