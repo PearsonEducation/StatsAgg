@@ -262,14 +262,23 @@ public class MetricAssociation {
         }
 
         List<String> metricKeysAssociatedWithAlert = new ArrayList<>();
-
+        
         Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(alert.getMetricGroupId());
+        
+        List<String> matchingMetricKeysAssociatedWithMetricGroup_Local;
+        
+        if (matchingMetricKeysAssociatedWithMetricGroup != null) {
+            synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
+                matchingMetricKeysAssociatedWithMetricGroup_Local = new ArrayList<>(matchingMetricKeysAssociatedWithMetricGroup);
+            }
+        }
+        else {
+            matchingMetricKeysAssociatedWithMetricGroup_Local = new ArrayList<>();
+        }
 
         try {
-            if (matchingMetricKeysAssociatedWithMetricGroup != null) {
-                for (String metricKey : matchingMetricKeysAssociatedWithMetricGroup) {
-                    metricKeysAssociatedWithAlert.add(metricKey);
-                }
+            for (String metricKey : matchingMetricKeysAssociatedWithMetricGroup_Local) {
+                metricKeysAssociatedWithAlert.add(metricKey);
             }
         }
         catch (Exception e) {

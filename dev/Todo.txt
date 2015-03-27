@@ -1,7 +1,6 @@
-1.1 release
- * Update readme.md for project overview
-
 Short/Medium term
+ * Maximum concurrently running output-threads
+ * Output-thread timeout
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
  * OpenTSDB HTTP & Telnet on the same port
@@ -14,6 +13,7 @@ Short/Medium term
  * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
  
 Long term
+ * APIs to create alerts / metric-groups / etc
  * Mobile versions of essential WebUI pages
    * Make existing pages more mobile friendly?
  * Simplify installation -- target Windows first

@@ -4,7 +4,7 @@
 
     <groupId>com.pearson.StatsAgg</groupId>
     <artifactId>StatsAgg</artifactId>
-    <version>1.1-beta</version>
+    <version>1.1</version>
     <packaging>war</packaging>
     <name>StatsAgg</name>
 
