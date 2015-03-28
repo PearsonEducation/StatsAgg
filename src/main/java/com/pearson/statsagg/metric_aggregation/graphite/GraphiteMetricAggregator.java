@@ -152,8 +152,8 @@ public class GraphiteMetricAggregator {
             BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValue.divide(responsesPerInterval, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
             maximumMetricValue = (maximumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(maximumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
-            long averagedMetricTimestamp = Math.round((double) ((double) sumMetricTimestamp / (double) metricCounter));
-            long averagedMetricReceivedTimestamp = Math.round((double) ((double) sumReceivedTimestamp / (double) metricCounter));
+            long averagedMetricTimestamp = Math.round((double) sumMetricTimestamp / (double) metricCounter);
+            long averagedMetricReceivedTimestamp = Math.round((double) sumReceivedTimestamp / (double) metricCounter);
             
             String aggregatedMetricsSeparator;
             if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = "";

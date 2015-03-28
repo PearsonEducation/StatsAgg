@@ -114,7 +114,7 @@ public class StatsdMetricAggregatorTest {
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateCounter(statsdMetricsRaw, new BigDecimal(10000), ".", false);
         
@@ -169,7 +169,7 @@ public class StatsdMetricAggregatorTest {
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateCounter(statsdMetricsRaw, new BigDecimal(10000), ".", true);
         
@@ -238,7 +238,7 @@ public class StatsdMetricAggregatorTest {
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
             timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
         }
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         assertEquals("gaugeMetric", statsdMetricAggregated.getBucket());
         assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
@@ -271,7 +271,7 @@ public class StatsdMetricAggregatorTest {
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateSet(statsdMetricsRaw, ".", false);    
         assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
@@ -295,7 +295,7 @@ public class StatsdMetricAggregatorTest {
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         StatsdNthPercentiles statsdNthPercentiles = new StatsdNthPercentiles("70.00000000");
         List<StatsdMetricAggregated> statsdMetricsAggregated = StatsdMetricAggregator.aggregateTimer(statsdMetricsRaw, new BigDecimal(10000), ".", statsdNthPercentiles, false);  
@@ -345,7 +345,7 @@ public class StatsdMetricAggregatorTest {
         
         long timestampAverage = 0;
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) timestampAverage += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
-        timestampAverage = Math.round((double) ((double) timestampAverage / (double) statsdMetricsRaw.size()));
+        timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
                         
         testAggregateTimer_NoNth(statsdMetricsRaw, timestampAverage);
         testAggregateTimer_Negative100thPct(statsdMetricsRaw);

@@ -124,8 +124,8 @@ public class AlertThreadTest {
 
         String mergedString = AlertThread.appendActiveAlertsToSet(currentActiveMetricKeys, previousMetricKeySet, 7);
         assertEquals("2\n3\n88\n89\n90\n91\n92\n", mergedString);
-    };
-    
+    }
+
     /**
      * Test of getAlertsByAlertId method, of class AlertThread.
      */

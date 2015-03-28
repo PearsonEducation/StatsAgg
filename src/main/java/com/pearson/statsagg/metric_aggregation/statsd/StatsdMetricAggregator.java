@@ -318,7 +318,7 @@ public class StatsdMetricAggregator {
                     count.multiply(ONE_THOUSAND)
                     .divide(aggregationWindowLengthInMs, STATSD_MATH_CONTEXT), 
                     STATSD_SCALE, STATSD_ROUNDING_MODE);
-            long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
                         
             String bucket_Count;
             if (useLegacyNameSpacing) {
@@ -476,7 +476,7 @@ public class StatsdMetricAggregator {
             List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
             
             String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket();
-            long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
 
             BigDecimal count = metricCounter_BigDecimal;
             BigDecimal countPs = MathUtilities.smartBigDecimalScaleChange(
@@ -686,7 +686,7 @@ public class StatsdMetricAggregator {
         
         if (metricCounter > 0) {
             String bucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE, useLegacyNameSpacing) + statsdMetricsRawLocal.get(0).getBucket() + generateSeparatorAndSuffix();
-            long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.GAUGE_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
@@ -730,7 +730,7 @@ public class StatsdMetricAggregator {
         
         if (metricCounter > 0) {
             String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
-            long averagedTimestamp = Math.round((double) ((double) sumTimestamp / (double) metricCounter));
+            long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, uniqueMetricValueCount, averagedTimestamp, StatsdMetricAggregated.SET_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());

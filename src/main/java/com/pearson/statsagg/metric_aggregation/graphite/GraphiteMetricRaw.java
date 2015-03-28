@@ -84,7 +84,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 createAndGetMetricTimestampInt();
                 
                 if (metricTimestampInt_ != null) {
-                    metricTimestampInMilliseconds_ = (long) ((long) metricTimestampInt_ * 1000);
+                    metricTimestampInMilliseconds_ = (long) metricTimestampInt_ * 1000;
                 }
             }
         }

@@ -71,7 +71,7 @@ public class GraphiteOutputModule {
                 if (!graphiteOutputModule.isOutputEnabled()) continue;
                 
                 SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(outputMessagesForGraphite, graphiteOutputModule.getHost(), 
-                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), threadId, ApplicationConfiguration.getFlushTimeAgg());
                 
                 SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
             }

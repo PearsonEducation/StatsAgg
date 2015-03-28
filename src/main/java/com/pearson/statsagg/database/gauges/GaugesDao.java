@@ -141,10 +141,10 @@ public class GaugesDao extends DatabaseObjectDao<Gauge> {
                 List<Object> parameters = new ArrayList<>();
 
                 for (Gauge gauge : gaugesPartition) {
-                    parameters.add((Object) gauge.getBucketSha1());
-                    parameters.add((Object) gauge.getBucket());
-                    parameters.add((Object) gauge.getMetricValue());
-                    parameters.add((Object) gauge.getLastModified());
+                    parameters.add(gauge.getBucketSha1());
+                    parameters.add(gauge.getBucket());
+                    parameters.add(gauge.getMetricValue());
+                    parameters.add(gauge.getLastModified());
                 }
 
                 boolean wasUpsertSuccess = genericDmlStatement(GaugesSql.generateBatchUpsert(gaugesPartition.size()), parameters);
