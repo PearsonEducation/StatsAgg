@@ -191,7 +191,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                 URL url = new URL(openTsdbHttpOutputModule.getUrl());
                 
                 SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, url, 
-                       openTsdbHttpOutputModule.getPort(), openTsdbHttpOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                       openTsdbHttpOutputModule.getPort(), openTsdbHttpOutputModule.getNumSendRetryAttempts(), threadId, ApplicationConfiguration.getFlushTimeAgg());
                 
                 SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread);
             }

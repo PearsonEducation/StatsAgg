@@ -172,7 +172,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
             SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, 
                     graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), 
                     graphiteOutputModule.getMaxMetricsPerMessage(),
-                    threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                    threadId, ApplicationConfiguration.getFlushTimeAgg());
 
             SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
         }
