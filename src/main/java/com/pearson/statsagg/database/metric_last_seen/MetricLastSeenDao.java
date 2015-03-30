@@ -133,9 +133,9 @@ public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
                 List<Object> parameters = new ArrayList<>();
 
                 for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
-                    parameters.add((Object) metricLastSeen.getMetricKeySha1());
-                    parameters.add((Object) metricLastSeen.getMetricKey());
-                    parameters.add((Object) metricLastSeen.getLastModified());
+                    parameters.add(metricLastSeen.getMetricKeySha1());
+                    parameters.add(metricLastSeen.getMetricKey());
+                    parameters.add(metricLastSeen.getLastModified());
                 }
 
                 boolean wasUpsertSuccess = genericDmlStatement(MetricLastSeenSql.generateBatchUpsert(metricLastSeenPartition.size()), parameters);

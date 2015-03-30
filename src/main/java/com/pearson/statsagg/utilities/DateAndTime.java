@@ -198,9 +198,9 @@ public class DateAndTime {
             return;
         }
         
-        dateAndTime.set(Calendar.HOUR_OF_DAY, (int) (secondsIntoDay / 3600));
-        dateAndTime.set(Calendar.MINUTE, (int) ((secondsIntoDay % 3600) / 60));
-        dateAndTime.set(Calendar.SECOND, (int) ((secondsIntoDay % 3600) % 60));
+        dateAndTime.set(Calendar.HOUR_OF_DAY, secondsIntoDay / 3600);
+        dateAndTime.set(Calendar.MINUTE, (secondsIntoDay % 3600) / 60);
+        dateAndTime.set(Calendar.SECOND, (secondsIntoDay % 3600) % 60);
         dateAndTime.set(Calendar.MILLISECOND, 0);
     }
     

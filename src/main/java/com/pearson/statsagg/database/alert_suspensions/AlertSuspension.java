@@ -307,12 +307,12 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
             return false;
         }
 
-        long alertSuspensionDuration_Milliseconds = (long) (60000 * (long) alertSuspension.getDuration());
+        long alertSuspensionDuration_Milliseconds = 60000 * (long) alertSuspension.getDuration();
         long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();
         int suspensionStartTime_HourOfDay = alertSuspension.getStartTime().getHours();
         int suspensionStartTime_Minute = alertSuspension.getStartTime().getMinutes();
         int suspensionStartTime_Second = alertSuspension.getStartTime().getSeconds();
-        int suspensionStartTime_Millisecond = (int) ((long) alertSuspension.getStartTime().getTime() % 1000);
+        int suspensionStartTime_Millisecond = (int) (alertSuspension.getStartTime().getTime() % 1000);
         
         Date specifiedDateAndTime_Date = new Date(specifiedDateAndTime_Milliseconds);
         Date specifiedDateAndTime_MinusDuration = new Date(specifiedDateAndTime_Milliseconds - alertSuspensionDuration_Milliseconds);
