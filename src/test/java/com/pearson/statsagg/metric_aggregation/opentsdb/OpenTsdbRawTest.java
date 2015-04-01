@@ -80,7 +80,7 @@ public class OpenTsdbRawTest {
     @Test
     public void testCreatePrefixedOpenTsdbMetricsRaw() {
         
-        String unparsedMetric = "tcollector.reader.lines_collected 1424566500654 1203.3  tag1=meow tag2=mix";
+        String unparsedMetric = "tcollector.reader.lines_collected 1424566500654 1203.3  tag1=meow tag2=mix  ";
         OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, 1366998400999L);
         List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList<>();
         openTsdbMetricsRaw.add(parsedMetric);
@@ -98,7 +98,7 @@ public class OpenTsdbRawTest {
     public void testGetOpenTsdbJson() {
         
         String unparsedMetric1 = "tcollector1.reader.lines_collected2 1424566501 1203.1  tag2=mix  tag1=meow";
-        String unparsedMetric2 = "tcollector2.reader.lines_collected2 1424566502 1203.2  tag3=maow tag4=mox";
+        String unparsedMetric2 = "tcollector2.reader.lines_collected2 1424566502 1203.2 tag3=maow tag4=mox";
         
         OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, 1366998400991L);
         OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, 1366998400992L);

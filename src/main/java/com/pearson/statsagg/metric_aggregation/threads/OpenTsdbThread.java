@@ -172,7 +172,7 @@ public class OpenTsdbThread implements Runnable {
             for (OpenTsdbMetricRaw openTsdbMetricRaw : GlobalVariables.openTsdbMetricsMostRecentValue.values()) {
                 OpenTsdbMetricRaw updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetric(), 
                         timestampInSecondsString, openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), 
-                        openTsdbMetricRaw.getSortedUnparsedTags(), timestampInMilliseconds, timestampInMilliseconds);
+                        timestampInMilliseconds, timestampInMilliseconds);
                 updatedOpenTsdbMetricRaw.setHashKey(openTsdbMetricRaw.getHashKey());
                 
                 GlobalVariables.openTsdbMetricsMostRecentValue.put(updatedOpenTsdbMetricRaw.getMetricKey(), updatedOpenTsdbMetricRaw);

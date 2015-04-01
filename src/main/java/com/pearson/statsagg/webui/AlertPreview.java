@@ -146,91 +146,147 @@ public class AlertPreview extends HttpServlet {
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             
             parameter = request.getParameter("CautionWindowDuration");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
-                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setCautionWindowDuration(bigDecimalValueInSeconds.longValue());
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
+                    BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                    alert.setCautionWindowDuration(bigDecimalValueInSeconds.longValue());
+                }
             }
 
             parameter = request.getParameter("CautionStopTrackingAfter");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
-                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setCautionStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
+                    BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                    alert.setCautionStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+                }
             }
             
             parameter = request.getParameter("CautionMinimumSampleCount");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Integer.parseInt(parameter.trim());
-                alert.setCautionMinimumSampleCount(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Integer.parseInt(parameterTrimmed);
+                    alert.setCautionMinimumSampleCount(intValue);
+                }
             }
             
             parameter = request.getParameter("CautionOperator");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Alert.getOperatorCodeFromOperatorString(parameter.trim());
-                alert.setCautionOperator(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Alert.getOperatorCodeFromOperatorString(parameterTrimmed);
+                    alert.setCautionOperator(intValue);
+                }
             }
 
             parameter = request.getParameter("CautionCombination");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Alert.getCombinationCodeFromString(parameter.trim());
-                alert.setCautionCombination(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Alert.getCombinationCodeFromString(parameterTrimmed);
+                    alert.setCautionCombination(intValue);
+                }
             }
             
             parameter = request.getParameter("CautionCombinationCount");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Integer.parseInt(parameter.trim());
-                alert.setCautionCombinationCount(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Integer.parseInt(parameterTrimmed);
+                    alert.setCautionCombinationCount(intValue);
+                }
             }
 
             parameter = request.getParameter("CautionThreshold");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValue = new BigDecimal(parameter.trim());
-                alert.setCautionThreshold(bigDecimalValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    BigDecimal bigDecimalValue = new BigDecimal(parameterTrimmed);
+                    alert.setCautionThreshold(bigDecimalValue);
+                }
             }
 
             parameter = request.getParameter("DangerWindowDuration");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
-                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setDangerWindowDuration(bigDecimalValueInSeconds.longValue());
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {                
+                    BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
+                    BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                    alert.setDangerWindowDuration(bigDecimalValueInSeconds.longValue());                
+                }
             }
 
             parameter = request.getParameter("DangerStopTrackingAfter");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValueMs = new BigDecimal(parameter.trim());
-                BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                alert.setDangerStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
+                    BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
+                    alert.setDangerStopTrackingAfter(bigDecimalValueInSeconds.longValue());                
+                }
             }
             
             parameter = request.getParameter("DangerMinimumSampleCount");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Integer.parseInt(parameter.trim());
-                alert.setDangerMinimumSampleCount(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Integer.parseInt(parameterTrimmed);
+                    alert.setDangerMinimumSampleCount(intValue);
+                }
             }
             
             parameter = request.getParameter("DangerOperator");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Alert.getOperatorCodeFromOperatorString(parameter.trim());
-                alert.setDangerOperator(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Alert.getOperatorCodeFromOperatorString(parameterTrimmed);
+                    alert.setDangerOperator(intValue);
+                }
             }
 
             parameter = request.getParameter("DangerCombination");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Alert.getCombinationCodeFromString(parameter.trim());
-                alert.setDangerCombination(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Alert.getCombinationCodeFromString(parameterTrimmed);
+                    alert.setDangerCombination(intValue);
+                }
             }
             
             parameter = request.getParameter("DangerCombinationCount");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Integer.parseInt(parameter.trim());
-                alert.setDangerCombinationCount(intValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    Integer intValue = Integer.parseInt(parameterTrimmed);
+                    alert.setDangerCombinationCount(intValue);
+                }
             }
 
             parameter = request.getParameter("DangerThreshold");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                BigDecimal bigDecimalValue = new BigDecimal(parameter.trim());
-                alert.setDangerThreshold(bigDecimalValue);
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    BigDecimal bigDecimalValue = new BigDecimal(parameterTrimmed);
+                    alert.setDangerThreshold(bigDecimalValue);
+                }
             }
         }
         catch (Exception e) {

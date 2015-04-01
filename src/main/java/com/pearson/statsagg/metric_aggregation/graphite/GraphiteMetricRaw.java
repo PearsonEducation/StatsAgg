@@ -314,7 +314,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             return graphiteMetricRaw.metricPath_;
         }
         
-        StringBuilder prefix = new StringBuilder("");
+        StringBuilder prefix = new StringBuilder(graphiteMetricRaw.getMetricPath().length() + 50);
         
         if (useGlobalPrefix) prefix.append(globalPrefixValue).append(".");
         if (useGraphitePrefix) prefix.append(graphitePrefixValue).append(".");

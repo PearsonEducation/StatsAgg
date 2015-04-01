@@ -1,12 +1,14 @@
 Short/Medium term
- * Maximum concurrently running output-threads
- * Output-thread timeout
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
- * OpenTSDB HTTP & Telnet on the same port
+ * OpenTSDB HTTP on a separate port from Tomcat WebUI
+ * OpenTSDB SSL for HTTP interface
  * StatsD histograms
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
- * New application config option -- limit metric results # in WebUI
+ * Advanced options
+   * New application config option -- limit metric results # in WebUI
+   * Maximum concurrently running output-threads
+   * Output-thread timeout
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet
  * Stop resending metric after X time of no updates
@@ -16,7 +18,6 @@ Long term
  * APIs to create alerts / metric-groups / etc
  * Mobile versions of essential WebUI pages
    * Make existing pages more mobile friendly?
- * Simplify installation -- target Windows first
  * Flot graphs on 'Recent Metric Values' page
  * Native InfluxDB support
  * Support Graphite Pickle format
@@ -26,5 +27,7 @@ Long term
  * Server-side WebUI tables
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?
  * Alert by individual metric?
+ * Convert to a regular Java app & use embedded Tomcat for the WebUI
+   * Prereq for simplifying installation
  * When altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same.
    * May require substantial refactoring

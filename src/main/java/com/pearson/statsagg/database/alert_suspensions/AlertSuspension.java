@@ -437,7 +437,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
 
     public static String trimNewLineDelimitedTags(String newLineDelimitedTags) {
         
-        if (newLineDelimitedTags == null || newLineDelimitedTags.isEmpty()) {
+        if ((newLineDelimitedTags == null) || newLineDelimitedTags.isEmpty()) {
             return newLineDelimitedTags;
         }
         

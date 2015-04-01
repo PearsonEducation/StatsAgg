@@ -101,7 +101,7 @@ public class Common {
                     }
                 }
                 else {
-                    metricTimestampsAndValues = Collections.synchronizedSet(new TreeSet<>(MetricTimestampAndValue.COMPARE_BY_TIMESTAMP));
+                    metricTimestampsAndValues = Collections.synchronizedSortedSet(new TreeSet<>(MetricTimestampAndValue.COMPARE_BY_TIMESTAMP));
                     MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(
                             metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
 

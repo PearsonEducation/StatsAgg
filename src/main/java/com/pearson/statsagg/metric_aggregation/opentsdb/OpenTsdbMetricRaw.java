@@ -34,27 +34,24 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private String metricKey_ = null;
     private Long metricTimestampInMilliseconds_ = null;
     private BigDecimal metricValueBigDecimal_ = null;
-    private List<String> sortedUnparsedTags_ = null;
     
     public OpenTsdbMetricRaw(String metric, String metricTimestamp, String metricValue, List<OpenTsdbTag> tags, 
-            List<String> sortedUnparsedtags, Long metricReceivedTimestampInMilliseconds) {
+            Long metricReceivedTimestampInMilliseconds) {
         this.metric_ = metric;
         this.metricTimestamp_ = metricTimestamp;
         this.metricValue_ = metricValue;
         this.tags_ = tags;
-        this.sortedUnparsedTags_ = sortedUnparsedtags;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
         
         this.metricKey_ = createAndGetMetricKey();
     }
     
     public OpenTsdbMetricRaw(String metric, String metricTimestamp, String metricValue, List<OpenTsdbTag> tags, 
-            List<String> sortedUnparsedtags, Long metricTimestampInMilliseconds, Long metricReceivedTimestampInMilliseconds) {
+            Long metricTimestampInMilliseconds, Long metricReceivedTimestampInMilliseconds) {
         this.metric_ = metric;
         this.metricTimestamp_ = metricTimestamp;
         this.metricValue_ = metricValue;
         this.tags_ = tags;
-        this.sortedUnparsedTags_ = sortedUnparsedtags;
         this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
         
@@ -66,17 +63,18 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         if (metricKey_ != null) return metricKey_;
         if (metric_ == null) return null;
         
-        StringBuilder metricKey = new StringBuilder("");
+        ArrayList sortedUnparseTags = getSortedUnparsedTags(tags_);
+        if ((sortedUnparseTags == null) || sortedUnparseTags.isEmpty()) return null;
+        
+        StringBuilder metricKey = new StringBuilder(200);
         
         metricKey.append(metric_);
         
-        if ((sortedUnparsedTags_ != null) && !sortedUnparsedTags_.isEmpty()) {
-            metricKey.append(" : ");
-            
-            for (int i = 0; i < sortedUnparsedTags_.size(); i++) {
-                metricKey.append(sortedUnparsedTags_.get(i));
-                if ((i + 1) != sortedUnparsedTags_.size()) metricKey.append(" ");
-            }
+        metricKey.append(" : ");
+
+        for (int i = 0; i < sortedUnparseTags.size(); i++) {
+            metricKey.append(sortedUnparseTags.get(i));
+            if ((i + 1) != sortedUnparseTags.size()) metricKey.append(" ");
         }
         
         metricKey_ = metricKey.toString();
@@ -213,26 +211,19 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 metricValue = unparsedMetric.substring(metricTimestampIndexRange + 1, metricValueIndexRange);
             }
             
-            String metricTags_String = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length());
-            List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseRawTags(metricTags_String);
-            List<String> sortedUnparsedTags = new ArrayList<>();
-            for (OpenTsdbTag openTsdbTag : openTsdbTags) if (openTsdbTag.getUnparsedTag() != null) sortedUnparsedTags.add(openTsdbTag.getUnparsedTag());
-            Collections.sort(sortedUnparsedTags);
+            List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseRawTags(unparsedMetric, metricValueIndexRange);
             
             if ((metric == null) || metric.isEmpty() || 
                     (metricValue == null) || metricValue.isEmpty() || 
                     (metricTimestamp == null) || metricTimestamp.isEmpty() || 
+                    (openTsdbTags == null) || (openTsdbTags.isEmpty()) || 
                     ((metricTimestamp.length() != 10) && (metricTimestamp.length() != 13))) {
                 logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
-                if ((openTsdbTags == null) || openTsdbTags.isEmpty() || sortedUnparsedTags.isEmpty()) {
-                    logger.warn("No tags associated with metric: \"" + metric + "\"");
-                }
-                
-                OpenTsdbMetricRaw openTsdbRaw = new OpenTsdbMetricRaw(metric.trim(), metricTimestamp.trim(), 
-                        metricValue.trim(), openTsdbTags, sortedUnparsedTags, metricReceivedTimestampInMilliseconds); 
+                OpenTsdbMetricRaw openTsdbRaw = new OpenTsdbMetricRaw(metric, metricTimestamp, 
+                        metricValue, openTsdbTags, metricReceivedTimestampInMilliseconds); 
                 
                 if ((openTsdbRaw.getMetricValueBigDecimal() != null) && (openTsdbRaw.getMetricTimestampInMilliseconds() != null) && (openTsdbRaw.getMetricKey() != null)) {
                     return openTsdbRaw;
@@ -244,6 +235,26 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
+    }
+    
+    public static ArrayList getSortedUnparsedTags(List<OpenTsdbTag> openTsdbTags) {
+        
+        ArrayList<String> sortedUnparsedTags = new ArrayList<>();
+        
+        if ((openTsdbTags == null) || openTsdbTags.isEmpty()) {
+            sortedUnparsedTags.trimToSize();
+            return sortedUnparsedTags;
+        }
+                
+        for (OpenTsdbTag openTsdbTag : openTsdbTags) {
+            String unparsedTag = openTsdbTag.getUnparsedTag();
+            if (unparsedTag != null) sortedUnparsedTags.add(unparsedTag);
+        }
+        
+        Collections.sort(sortedUnparsedTags);
+        sortedUnparsedTags.trimToSize();
+        
+        return sortedUnparsedTags;
     }
     
     public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, long metricsReceivedTimestampInMilliseconds) {
@@ -424,7 +435,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                     useOpenTsdbPrefix, openTsdbPrefixValue);
             
             OpenTsdbMetricRaw prefixedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(prefixedMetric, openTsdbMetricRaw.getMetricTimestamp(), 
-                    openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), openTsdbMetricRaw.getSortedUnparsedTags(), openTsdbMetricRaw.getMetricTimestampInMilliseconds(), 
+                    openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), openTsdbMetricRaw.getMetricTimestampInMilliseconds(), 
                     openTsdbMetricRaw.getMetricReceivedTimestampInMilliseconds());
 
             prefixedOpenTsdbMetricRaw.setHashKey(openTsdbMetricRaw.getHashKey());
@@ -508,10 +519,6 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
 
     public void setMetricReceivedTimestampInMilliseconds(Long metricReceivedTimestampInMilliseconds) {
         metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
-    }
-
-    public List<String> getSortedUnparsedTags() {
-        return sortedUnparsedTags_;
     }
 
 }

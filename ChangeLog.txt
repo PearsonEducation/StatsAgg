@@ -1,3 +1,9 @@
+StatsAgg 1.2  - released 2015-xx-xx
+ * OpenTSDB performance improvements
+ * Security improvements
+ * 
+
+
 StatsAgg 1.1  - released 2015-03-27
  * If you upgrading from StatsAgg 1.0, then you will need to run the SQL found in "Upgrade to 1.1.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql

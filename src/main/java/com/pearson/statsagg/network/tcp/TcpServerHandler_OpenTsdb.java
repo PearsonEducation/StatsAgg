@@ -24,7 +24,7 @@ public class TcpServerHandler_OpenTsdb extends SimpleChannelInboundHandler<Strin
             if ((message != null) && message.trim().equals("version")) {
                 ctx.write(com.pearson.statsagg.controller.Version.getProjectVersion() + "-" + com.pearson.statsagg.controller.Version.getBuildTimestamp() + "\n");
             }
-            else if ((message != null) && message.startsWith("put ")){
+            else if ((message != null) && (message.length() > 4) && message.startsWith("put ")){
                 long currentTimestampInMilliseconds = System.currentTimeMillis();
 
                 List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(message.substring(4), currentTimestampInMilliseconds);

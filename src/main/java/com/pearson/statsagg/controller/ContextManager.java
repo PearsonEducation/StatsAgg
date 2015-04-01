@@ -44,6 +44,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.network.NettyServer;
+import com.pearson.statsagg.network.http.JettyOpenTsdb;
 import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
 import com.pearson.statsagg.utilities.Threads;
@@ -69,6 +70,7 @@ public class ContextManager implements ServletContextListener {
     private TcpServer graphitePassthroughTcpServer_ = null;
     private UdpServer graphitePassthroughUdpServer_ = null;
     private TcpServer openTsdbTcpServer_ = null;
+    private JettyOpenTsdb jettyOpenTsdb_ = null;
     private StatsdAggregationInvokerThread statsdAggregationInvokerThread_ = null;
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
@@ -104,7 +106,13 @@ public class ContextManager implements ServletContextListener {
         Threads.sleepSeconds(1);
         
         GlobalVariables.isApplicationInitializeSuccess.set(false);
-                
+
+        
+        
+        //jettyOpenTsdb_.stopServer();
+        
+        
+        
         shutdownServerListeners();
         
         shutdownInvokerThreads();
@@ -194,6 +202,12 @@ public class ContextManager implements ServletContextListener {
         // startup netty servers
         boolean isStartupServerListenersSuccess = startServerListeners();
    
+        
+//        jettyOpenTsdb_ = new JettyOpenTsdb(9999, 30000);
+//        jettyOpenTsdb_.startServer();
+        
+        
+        
         // set the start time for statsagg
         GlobalVariables.statsaggStartTimestamp.set(System.currentTimeMillis());
 

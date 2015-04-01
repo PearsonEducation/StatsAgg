@@ -8,7 +8,6 @@ import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -25,7 +24,18 @@ public class put extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(put.class.getName());
 
     public static final String PAGE_NAME = "OpenTSDB Put API";
-
+    
+    /**
+     * Handles the HTTP <code>GET</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     */
+    @Override
+    protected void doGet(HttpServletRequest request, HttpServletResponse response) {
+        processGetRequest(request, response);
+    }
+    
     /**
      * Handles the HTTP
      * <code>POST</code> method.
@@ -47,7 +57,30 @@ public class put extends HttpServlet {
     public String getServletInfo() {
         return PAGE_NAME;
     }
-    
+   
+    protected void processGetRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        if ((request == null) || (response == null)) {
+            return;
+        }
+                
+        PrintWriter out = null;
+        
+        try {
+            response.setContentType("text/html"); 
+            out = response.getWriter();
+            out.println("<head>" + PAGE_NAME + "</head>" + "<body><h1>" + PAGE_NAME + "</h1></body>");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }
+    }
+   
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
         
         if ((request == null) || (response == null)) {
