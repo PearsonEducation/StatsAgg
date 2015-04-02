@@ -1,7 +1,8 @@
 StatsAgg 1.2  - released 2015-xx-xx
  * OpenTSDB performance improvements
+ * Graphite performance improvements
+ * Minor OpenTSDB 'send previous value' improvements
  * Security improvements
- * 
 
 
 StatsAgg 1.1  - released 2015-03-27

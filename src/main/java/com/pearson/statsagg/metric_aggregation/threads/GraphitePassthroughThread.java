@@ -56,28 +56,24 @@ public class GraphitePassthroughThread implements Runnable {
             List<GraphiteMetricRaw> graphiteMetricsRaw = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
             
-            // prefix graphite metrics (if this option is enabled)
-            long prefixMetricsTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricRaw> prefixedGraphiteMetricsRaw = GraphiteMetricRaw.createPrefixedGraphiteMetricsRaw(graphiteMetricsRaw, 
-                    ApplicationConfiguration.isGlobalMetricNamePrefixEnabled(), ApplicationConfiguration.getGlobalMetricNamePrefixValue(), 
-                    ApplicationConfiguration.isGraphitePassthroughMetricNamePrefixEnabled(), ApplicationConfiguration.getGraphitePassthroughMetricNamePrefixValue());
-            long prefixMetricsTimeElasped = System.currentTimeMillis() - prefixMetricsTimeStart;  
-                    
             // update the global lists of the graphite passthrough's most recent values
             long updateMostRecentDataValueForMetricsTimeStart = System.currentTimeMillis();
-            updateMetricMostRecentValues(prefixedGraphiteMetricsRaw);
+            updateMetricMostRecentValues(graphiteMetricsRaw);
             long updateMostRecentDataValueForMetricsTimeElasped = System.currentTimeMillis() - updateMostRecentDataValueForMetricsTimeStart; 
             
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricRaw> graphiteMetricsRawMerged = mergePreviousValuesWithCurrentValues(prefixedGraphiteMetricsRaw, 
+            List<GraphiteMetricRaw> graphiteMetricsRawMerged = mergePreviousValuesWithCurrentValues(graphiteMetricsRaw, 
                     GlobalVariables.graphitePassthroughMetricsMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
-            // updates the global list that tracks the last time a metric was received. 
+            // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(prefixedGraphiteMetricsRaw);
-            Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsRawMerged);
+            if (ApplicationConfiguration.isGraphitePassthroughSendPreviousValue()) {
+                Common.updateMetricLastSeenTimestamps_MostRecentNew(graphiteMetricsRaw);
+                Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsRawMerged);
+            }
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsRaw);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
@@ -108,11 +104,11 @@ public class GraphitePassthroughThread implements Runnable {
             }
             
             String aggregationStatistics = "ThreadId=" + threadId_
-                    + ", RawMetricCount=" + graphiteMetricsRaw.size() 
                     + ", AggTotalTime=" + threadTimeElasped 
-                    + ", MetricsPerSec=" + rate
+                    + ", RawMetricCount=" + graphiteMetricsRaw.size() 
+                    + ", RawMetricRatePerSec=" + (graphiteMetricsRaw.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", MetricsProcessedPerSec=" + rate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped
-                    + ", PrefixMetricsTime=" + prefixMetricsTimeElasped
                     + ", UpdateRecentValuesTime=" + updateMostRecentDataValueForMetricsTimeElasped 
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
@@ -163,16 +159,15 @@ public class GraphitePassthroughThread implements Runnable {
     }
     
     private void updateMetricMostRecentValues(List<GraphiteMetricRaw> graphiteMetricsRaw) {
-        
-        long timestampInMilliseconds = System.currentTimeMillis();
-        int timestampInSeconds = (int) (timestampInMilliseconds / 1000);
-            
+
         if (GlobalVariables.graphitePassthroughMetricsMostRecentValue != null) {
+            long timestampInMilliseconds = System.currentTimeMillis();
+            int timestampInSeconds = (int) (timestampInMilliseconds / 1000);
             String timestampInSecondsString = Integer.toString(timestampInSeconds);
             
             for (GraphiteMetricRaw graphiteMetricRaw : GlobalVariables.graphitePassthroughMetricsMostRecentValue.values()) {
                 GraphiteMetricRaw updatedGraphiteMetricRaw = new GraphiteMetricRaw(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw.getMetricValue(), 
-                        timestampInSecondsString, timestampInSeconds, timestampInMilliseconds);
+                        timestampInSecondsString, timestampInMilliseconds, graphiteMetricRaw.getMetricValueBigDecimal(), timestampInSeconds, timestampInMilliseconds);
                 updatedGraphiteMetricRaw.setHashKey(graphiteMetricRaw.getHashKey());
                 
                 GlobalVariables.graphitePassthroughMetricsMostRecentValue.put(updatedGraphiteMetricRaw.getMetricPath(), updatedGraphiteMetricRaw);
@@ -203,6 +198,9 @@ public class GraphitePassthroughThread implements Runnable {
             return new ArrayList<>(graphiteMetricsRawOld.values());
         }
         else if ((graphiteMetricsRawNew != null) && (graphiteMetricsRawOld == null)) {
+            return graphiteMetricsRawNew;
+        }
+        else if (!ApplicationConfiguration.isGraphitePassthroughSendPreviousValue()) {
             return graphiteMetricsRawNew;
         }
         

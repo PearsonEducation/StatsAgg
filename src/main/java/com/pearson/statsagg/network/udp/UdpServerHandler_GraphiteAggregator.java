@@ -23,8 +23,9 @@ public class UdpServerHandler_GraphiteAggregator extends SimpleChannelInboundHan
         String udpContentString = packet.content().toString(CharsetUtil.UTF_8);
         
         long currentTimestampInMilliseconds = System.currentTimeMillis();
-
-        List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(udpContentString, currentTimestampInMilliseconds);
+        
+        List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(udpContentString, 
+                GlobalVariables.graphiteAggregatedPrefix, currentTimestampInMilliseconds);
 
         for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
             Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();

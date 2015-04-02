@@ -55,28 +55,24 @@ public class OpenTsdbThread implements Runnable {
             long createMetricsTimeStart = System.currentTimeMillis();
             List<OpenTsdbMetricRaw> openTsdbMetricsRaw = getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal();
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
-            
-            // prefix opentsdb metrics (if this option is enabled)
-            long prefixMetricsTimeStart = System.currentTimeMillis();
-            List<OpenTsdbMetricRaw> prefixedOpenTsdbMetricsRaw = OpenTsdbMetricRaw.createPrefixedOpenTsdbMetricsRaw(openTsdbMetricsRaw, 
-                    ApplicationConfiguration.isGlobalMetricNamePrefixEnabled(), ApplicationConfiguration.getGlobalMetricNamePrefixValue(), 
-                    ApplicationConfiguration.isOpenTsdbMetricNamePrefixEnabled(), ApplicationConfiguration.getOpenTsdbMetricNamePrefixValue());
-            long prefixMetricsTimeElasped = System.currentTimeMillis() - prefixMetricsTimeStart;  
                     
             // update the global lists of the opentsdb's most recent values
             long updateMostRecentDataValueForMetricsTimeStart = System.currentTimeMillis();
-            updateMetricMostRecentValues(prefixedOpenTsdbMetricsRaw);
+            updateMetricMostRecentValues(openTsdbMetricsRaw);
             long updateMostRecentDataValueForMetricsTimeElasped = System.currentTimeMillis() - updateMostRecentDataValueForMetricsTimeStart; 
             
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<OpenTsdbMetricRaw> openTsdbMetricsRawMerged = mergePreviousValuesWithCurrentValues(prefixedOpenTsdbMetricsRaw, GlobalVariables.openTsdbMetricsMostRecentValue);
+            List<OpenTsdbMetricRaw> openTsdbMetricsRawMerged = mergePreviousValuesWithCurrentValues(openTsdbMetricsRaw, GlobalVariables.openTsdbMetricsMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
-            // updates the global list that tracks the last time a metric was received. 
+            // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(prefixedOpenTsdbMetricsRaw);
-            Common.updateMetricLastSeenTimestamps_UpdateOnResend(openTsdbMetricsRawMerged);
+            if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
+                Common.updateMetricLastSeenTimestamps_MostRecentNew(openTsdbMetricsRaw);
+                Common.updateMetricLastSeenTimestamps_UpdateOnResend(openTsdbMetricsRawMerged);
+            }
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(openTsdbMetricsRawMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
@@ -107,11 +103,11 @@ public class OpenTsdbThread implements Runnable {
             }
             
             String aggregationStatistics = "ThreadId=" + threadId_
-                    + ", RawMetricCount=" + openTsdbMetricsRaw.size() 
                     + ", AggTotalTime=" + threadTimeElasped 
-                    + ", MetricsPerSec=" + rate
+                    + ", RawMetricCount=" + openTsdbMetricsRaw.size() 
+                    + ", RawMetricRatePerSec=" + (openTsdbMetricsRaw.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", MetricsProcessedPerSec=" + rate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped
-                    + ", PrefixMetricsTime=" + prefixMetricsTimeElasped
                     + ", UpdateRecentValuesTime=" + updateMostRecentDataValueForMetricsTimeElasped 
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
@@ -163,16 +159,30 @@ public class OpenTsdbThread implements Runnable {
     
     private void updateMetricMostRecentValues(List<OpenTsdbMetricRaw> openTsdbMetricsRaw) {
         
-        long timestampInMilliseconds = System.currentTimeMillis();
-        int timestampInSeconds = (int) (timestampInMilliseconds / 1000);
-            
         if (GlobalVariables.openTsdbMetricsMostRecentValue != null) {
-            String timestampInSecondsString = Integer.toString(timestampInSeconds);
-                                
+            long timestampInMilliseconds = System.currentTimeMillis();
+            int timestampInSeconds;
+            String timestampInSecondsString, timestampInMillisecondsString;
+            
             for (OpenTsdbMetricRaw openTsdbMetricRaw : GlobalVariables.openTsdbMetricsMostRecentValue.values()) {
-                OpenTsdbMetricRaw updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetric(), 
-                        timestampInSecondsString, openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), 
-                        timestampInMilliseconds, timestampInMilliseconds);
+                OpenTsdbMetricRaw updatedOpenTsdbMetricRaw;
+                
+                if (openTsdbMetricRaw.getMetricTimestamp().length() == 10) {
+                    timestampInSeconds = (int) (timestampInMilliseconds / 1000);
+                    timestampInSecondsString = Integer.toString(timestampInSeconds);
+                    
+                    updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetric(), timestampInSecondsString,
+                            openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), timestampInMilliseconds,
+                            openTsdbMetricRaw.getMetricKey(), timestampInMilliseconds, openTsdbMetricRaw.getMetricValueBigDecimal());
+                }
+                else {
+                    timestampInMillisecondsString = Long.toString(timestampInMilliseconds);
+                    
+                    updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(openTsdbMetricRaw.getMetric(), timestampInMillisecondsString,
+                            openTsdbMetricRaw.getMetricValue(), openTsdbMetricRaw.getTags(), timestampInMilliseconds,
+                            openTsdbMetricRaw.getMetricKey(), timestampInMilliseconds, openTsdbMetricRaw.getMetricValueBigDecimal());
+                }
+
                 updatedOpenTsdbMetricRaw.setHashKey(openTsdbMetricRaw.getHashKey());
                 
                 GlobalVariables.openTsdbMetricsMostRecentValue.put(updatedOpenTsdbMetricRaw.getMetricKey(), updatedOpenTsdbMetricRaw);
@@ -203,6 +213,9 @@ public class OpenTsdbThread implements Runnable {
             return new ArrayList<>(openTsdbMetricsRawOld.values());
         }
         else if ((openTsdbMetricsRawNew != null) && (openTsdbMetricsRawOld == null)) {
+            return openTsdbMetricsRawNew;
+        }
+        else if (!ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
             return openTsdbMetricsRawNew;
         }
         

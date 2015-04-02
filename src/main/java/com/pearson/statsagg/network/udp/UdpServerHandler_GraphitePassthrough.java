@@ -24,8 +24,9 @@ public class UdpServerHandler_GraphitePassthrough extends SimpleChannelInboundHa
         
         long currentTimestampInMilliseconds = System.currentTimeMillis();
 
-        List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(udpContentString, currentTimestampInMilliseconds);
-
+        List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(udpContentString, 
+                GlobalVariables.graphitePassthroughPrefix, currentTimestampInMilliseconds);
+            
         for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
             Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
             graphiteMetricRaw.setHashKey(hashKey);

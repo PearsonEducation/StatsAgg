@@ -102,7 +102,7 @@ public class put extends HttpServlet {
 
             String json = getJsonPayloadFromRequest(request);
             
-            String responseMessage = parseMetrics(json, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);
+            String responseMessage = parseMetrics(json, GlobalVariables.openTsdbPrefix, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);
                             
             if (doesRequestSummary) response.setStatus(200);
             else if (doesRequestDetails) response.setStatus(200);
@@ -159,11 +159,13 @@ public class put extends HttpServlet {
         
     }
     
-    public static String parseMetrics(String inputJson, long metricsReceivedTimestampInMilliseconds, boolean doesRequestSummary, boolean doesRequestDetails) {
+    public static String parseMetrics(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds, 
+            boolean doesRequestSummary, boolean doesRequestDetails) {
         
         List<Integer> successCountAndFailCount = new ArrayList<>();
         
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, metricsReceivedTimestampInMilliseconds, successCountAndFailCount);
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, metricPrefix, 
+                metricsReceivedTimestampInMilliseconds, successCountAndFailCount);
         
         if (successCountAndFailCount.isEmpty()) {
             successCountAndFailCount.add(0);

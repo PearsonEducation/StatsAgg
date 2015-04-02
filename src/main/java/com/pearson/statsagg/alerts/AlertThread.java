@@ -680,6 +680,8 @@ public class AlertThread implements Runnable {
                         synchronized(recentMetricTimestampsAndValues) {
                             recentMetricTimestampsAndValuesLocal = new ArrayList<>(recentMetricTimestampsAndValues);
                         }
+                        
+                        Collections.sort(recentMetricTimestampsAndValuesLocal, MetricTimestampAndValue.COMPARE_BY_TIMESTAMP);
                     }
 
                     if (isCautionAlertCriteriaValid && (alert.isCautionEnabled() != null) && alert.isCautionEnabled()) {

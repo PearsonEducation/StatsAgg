@@ -112,7 +112,7 @@ public class StatsdAggregationThread implements Runnable {
 
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregated);
+            Common.updateMetricLastSeenTimestamps_MostRecentNew(statsdMetricsAggregated);
             Common.updateMetricLastSeenTimestamps_UpdateOnResend(statsdMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
@@ -144,10 +144,11 @@ public class StatsdAggregationThread implements Runnable {
             }
 
             String aggregationStatistics = "ThreadId=" + threadId_
-                    + ", NewRawMetricCount=" + statsdMetricsRaw.size() 
-                    + ", AggMetricCount=" + statsdMetricsAggregated.size()                    
                     + ", AggTotalTime=" + timeAggregationTimeElasped 
-                    + ", AggMetricsPerSec=" + aggregationRate
+                    + ", RawMetricCount=" + statsdMetricsRaw.size() 
+                    + ", RawMetricRatePerSec=" + (statsdMetricsRaw.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", AggMetricCount=" + statsdMetricsAggregated.size()                    
+                    + ", MetricsProcessedPerSec=" + aggregationRate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped 
                     + ", UpdateDbTime=" + updateDatabaseTimeElasped 
                     + ", AggNotGaugeTime=" + aggregateNotGaugeTimeElasped 

@@ -27,15 +27,12 @@ public class TcpServerHandler_OpenTsdb extends SimpleChannelInboundHandler<Strin
             else if ((message != null) && (message.length() > 4) && message.startsWith("put ")){
                 long currentTimestampInMilliseconds = System.currentTimeMillis();
 
-                List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(message.substring(4), currentTimestampInMilliseconds);
+                List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(message.substring(4), 
+                        GlobalVariables.openTsdbPrefix, currentTimestampInMilliseconds);
 
                 for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
                     Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
                     openTsdbMetricRaw.setHashKey(hashKey);
-
-                    if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-                        openTsdbMetricRaw.createAndGetMetricTimestampInMilliseconds();
-                    }
 
                     GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
                     GlobalVariables.incomingMetricsCount.incrementAndGet();

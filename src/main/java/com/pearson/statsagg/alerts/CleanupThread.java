@@ -252,9 +252,6 @@ public class CleanupThread implements Runnable {
                                 if ((metricValueAge > windowDuration) || isImmeadiateCleanup) {
                                     metricTimestampAndValuesToRemove.add(metricTimestampAndValue);
                                 }
-                                else { // because recentMetricTimestampsAndValues ordered sorted by timestamp, we can break once we hit the first metric within the window
-                                    break;
-                                }
                             }
 
                             for (MetricTimestampAndValue metricTimestampAndValueToRemove : metricTimestampAndValuesToRemove) {

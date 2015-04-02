@@ -74,10 +74,13 @@ public class GraphiteAggregationThread implements Runnable {
                     GlobalVariables.graphiteAggregatedMetricsMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
             
-            // updates the global list that tracks the last time a metric was received. 
+            // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(graphiteMetricsAggregated);
-            Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsAggregatedMerged);
+            if (ApplicationConfiguration.isGraphiteAggregatorSendPreviousValue()) {
+                Common.updateMetricLastSeenTimestamps_MostRecentNew(graphiteMetricsAggregated);
+                Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsAggregatedMerged);
+            }
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsAggregated);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
@@ -107,10 +110,11 @@ public class GraphiteAggregationThread implements Runnable {
             }
                     
             String aggregationStatistics = "ThreadId=" + threadId_
-                    + ", NewRawMetricCount=" + graphiteMetricsRaw.size() 
-                    + ", AggMetricCount=" + graphiteMetricsAggregated.size() 
                     + ", AggTotalTime=" + timeAggregationTimeElasped 
-                    + ", AggMetricsPerSec=" + aggregationRate
+                    + ", RawMetricCount=" + graphiteMetricsRaw.size() 
+                    + ", RawMetricRatePerSec=" + (graphiteMetricsRaw.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", AggMetricCount=" + graphiteMetricsAggregated.size() 
+                    + ", MetricsProcessedPerSec=" + aggregationRate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped 
                     + ", AggTime=" + aggregateTimeElasped 
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
@@ -198,6 +202,9 @@ public class GraphiteAggregationThread implements Runnable {
             return new ArrayList<>(graphiteMetricsAggregatedOld.values());
         }
         else if ((graphiteMetricsAggregatedNew != null) && (graphiteMetricsAggregatedOld == null)) {
+            return graphiteMetricsAggregatedNew;
+        }
+        else if (!ApplicationConfiguration.isGraphiteAggregatorSendPreviousValue()) {
             return graphiteMetricsAggregatedNew;
         }
         

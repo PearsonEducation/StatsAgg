@@ -22,7 +22,8 @@ public class TcpServerHandler_GraphitePassthrough extends SimpleChannelInboundHa
         try {
             long currentTimestampInMilliseconds = System.currentTimeMillis();
             
-            List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(message, currentTimestampInMilliseconds);
+            List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(message, 
+                    GlobalVariables.graphitePassthroughPrefix, currentTimestampInMilliseconds);
             
             for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
                 Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();

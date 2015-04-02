@@ -147,7 +147,7 @@ public class GraphiteMetricAggregator {
         if (metricCounter > 0) {
             List<GraphiteMetricAggregated> graphiteMetricsAggregated = new ArrayList<>();
             
-            String metricPath = generatePrefix() + graphiteMetricsRaw.get(0).getMetricPath();
+            String metricPath = graphiteMetricsRaw.get(0).getMetricPath();
             BigDecimal responsesPerInterval = new BigDecimal(metricCounter);
             BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValue.divide(responsesPerInterval, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
@@ -179,20 +179,6 @@ public class GraphiteMetricAggregator {
         else {
             return new ArrayList<>();
         }
-    }
-    
-    private static String generatePrefix() {
-        StringBuilder prefix = new StringBuilder("");
-        
-        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) {
-            prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
-        }
-        
-        if (ApplicationConfiguration.isGraphiteAggregatorMetricNamePrefixEnabled()) {
-            prefix.append(ApplicationConfiguration.getGraphiteAggregatorMetricNamePrefixValue()).append(".");
-        }
-
-        return prefix.toString();
     }
     
 }

@@ -41,7 +41,7 @@ public class OpenTsdbRawTest {
     public void testParseOpenTsdbRaw() {
         String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
         
-        OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, 1366998400999L);
+        OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, "",1366998400999L);
         parsedMetric.createAndGetMetricTimestampInMilliseconds();
         parsedMetric.createAndGetMetricValueBigDecimal();
         
@@ -73,23 +73,6 @@ public class OpenTsdbRawTest {
         
         assertEquals(tagCount, 2);
     }
-
-    /**
-     * Test of createPrefixedOpenTsdbMetricsRaw method, of class OpenTsdbMetricRaw.
-     */
-    @Test
-    public void testCreatePrefixedOpenTsdbMetricsRaw() {
-        
-        String unparsedMetric = "tcollector.reader.lines_collected 1424566500654 1203.3  tag1=meow tag2=mix  ";
-        OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, 1366998400999L);
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList<>();
-        openTsdbMetricsRaw.add(parsedMetric);
-        
-        List<OpenTsdbMetricRaw> prefixedOpenTsdbMetricsRaw = OpenTsdbMetricRaw.createPrefixedOpenTsdbMetricsRaw(openTsdbMetricsRaw, true, "myGlobalPrefix", true, "myOpenTsdbPrefix");
-        assertEquals(prefixedOpenTsdbMetricsRaw.size(), 1);
-        
-        assertTrue(prefixedOpenTsdbMetricsRaw.get(0).getMetric().equals("myGlobalPrefix.myOpenTsdbPrefix.tcollector.reader.lines_collected"));
-    }
       
     /**
      * Test of getOpenTsdbJson method, of class OpenTsdbMetricRaw.
@@ -100,15 +83,15 @@ public class OpenTsdbRawTest {
         String unparsedMetric1 = "tcollector1.reader.lines_collected2 1424566501 1203.1  tag2=mix  tag1=meow";
         String unparsedMetric2 = "tcollector2.reader.lines_collected2 1424566502 1203.2 tag3=maow tag4=mox";
         
-        OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, 1366998400991L);
-        OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, 1366998400992L);
+        OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, "global.opentsdb.", 1366998400991L);
+        OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, null, 1366998400992L);
 
         List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList<>();
         openTsdbMetricsRaw.add(parsedMetric1);
         openTsdbMetricsRaw.add(parsedMetric2);
         
         String json = OpenTsdbMetricRaw.getOpenTsdbJson(openTsdbMetricsRaw);
-        assertEquals(json, "[{\"metric\":\"tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1424566501,\"tags\":{\"tag2\":\"mix\",\"tag1\":\"meow\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502,\"value\":1424566502,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]");
+        assertEquals(json, "[{\"metric\":\"global.opentsdb.tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1424566501,\"tags\":{\"tag2\":\"mix\",\"tag1\":\"meow\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502,\"value\":1424566502,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]");
     }
 
     /**
@@ -148,7 +131,7 @@ public class OpenTsdbRawTest {
                 + "]";
         
         List<Integer> successCountAndFailCount = new ArrayList<>();
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, System.currentTimeMillis(), successCountAndFailCount);
+        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, "global.opentsdb.", System.currentTimeMillis(), successCountAndFailCount);
         
         assertEquals(openTsdbMetricsRaw.size(), 2);
         assertEquals(successCountAndFailCount.get(0).intValue(), 2);
@@ -156,17 +139,17 @@ public class OpenTsdbRawTest {
 
         int matchCount = 0;
         for (OpenTsdbMetricRaw openTsdbMetricRaw: openTsdbMetricsRaw) {
-            if (openTsdbMetricRaw.getMetric().equals("sys.cpu.nice1")) {
+            if (openTsdbMetricRaw.getMetric().equals("global.opentsdb.sys.cpu.nice1")) {
                 assertTrue(openTsdbMetricRaw.getMetricValue().equals("11.4"));
                 assertTrue(openTsdbMetricRaw.getMetricTimestamp().equals("1346846400123"));
-                assertTrue(openTsdbMetricRaw.getMetricKey().equals("sys.cpu.nice1 : dc=lga host=web01"));
+                assertTrue(openTsdbMetricRaw.getMetricKey().equals("global.opentsdb.sys.cpu.nice1 : dc=lga host=web01"));
                 matchCount++;
             }
             
-            if (openTsdbMetricRaw.getMetric().equals("sys.cpu.nice2")) {
+            if (openTsdbMetricRaw.getMetric().equals("global.opentsdb.sys.cpu.nice2")) {
                 assertTrue(openTsdbMetricRaw.getMetricValue().equals("9"));
                 assertTrue(openTsdbMetricRaw.getMetricTimestamp().equals("1346846400"));
-                assertTrue(openTsdbMetricRaw.getMetricKey().equals("sys.cpu.nice2 : dc=lga host=web02"));
+                assertTrue(openTsdbMetricRaw.getMetricKey().equals("global.opentsdb.sys.cpu.nice2 : dc=lga host=web02"));
                 matchCount++;
             }
         }

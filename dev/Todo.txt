@@ -1,4 +1,6 @@
 Short/Medium term
+ * Retest 'resend previous value' for all formats
+
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
  * OpenTSDB HTTP on a separate port from Tomcat WebUI
@@ -9,6 +11,7 @@ Short/Medium term
    * New application config option -- limit metric results # in WebUI
    * Maximum concurrently running output-threads
    * Output-thread timeout
+   * Cleanup metrics after... (currently hardcoded to 24hrs)
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet
  * Stop resending metric after X time of no updates

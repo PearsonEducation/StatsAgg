@@ -120,8 +120,8 @@ public class GraphiteMetricRawTest {
         String unparsedMetric = "test.metric.path 12345.123 1382848111";
         long metricReceivedTimestampInMilliseconds = Long.valueOf("1382848222222");
         
-        GraphiteMetricRaw expResult = new GraphiteMetricRaw("test.metric.path", "12345.123", "1382848111", Long.valueOf("1382848222222").longValue());
-        GraphiteMetricRaw result = GraphiteMetricRaw.parseGraphiteMetricRaw(unparsedMetric, metricReceivedTimestampInMilliseconds);
+        GraphiteMetricRaw expResult = new GraphiteMetricRaw("global.graphite.test.metric.path", "12345.123", "1382848111", Long.valueOf("1382848222222").longValue());
+        GraphiteMetricRaw result = GraphiteMetricRaw.parseGraphiteMetricRaw(unparsedMetric, "global.graphite.", metricReceivedTimestampInMilliseconds);
         assertEquals(expResult, result);
     }
 
@@ -144,7 +144,7 @@ public class GraphiteMetricRawTest {
         expectedGraphiteMetricsRaw.add(new GraphiteMetricRaw("test.metric.path3", "12345.23", "1382848113", Long.valueOf("1382848222222").longValue()));
         expectedGraphiteMetricsRaw.add(new GraphiteMetricRaw("test.metric.path4", "12345.234", "1382848114", Long.valueOf("1382848222222").longValue()));
         
-        List<GraphiteMetricRaw> resultGraphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(unparsedMetrics, metricReceivedTimestampInMilliseconds);
+        List<GraphiteMetricRaw> resultGraphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(unparsedMetrics, null, metricReceivedTimestampInMilliseconds);
         
         for (GraphiteMetricRaw graphiteMetricRaw : resultGraphiteMetricsRaw) {
             assertTrue(expectedGraphiteMetricsRaw.contains(graphiteMetricRaw));

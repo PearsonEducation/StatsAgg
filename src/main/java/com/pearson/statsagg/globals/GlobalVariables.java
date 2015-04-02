@@ -22,6 +22,11 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class GlobalVariables {
 
+    // the prefixes (added on by StatsAgg) for the various types of metrics
+    public static String graphiteAggregatedPrefix = "";
+    public static String graphitePassthroughPrefix = "";
+    public static String openTsdbPrefix = "";
+    
     // A flag indicating whether statsagg has finished going through its initialization routine. This will only be true if it has gone through the initialization routine successfully.
     public static AtomicBoolean isApplicationInitializeSuccess = new AtomicBoolean(false);
     
@@ -97,7 +102,7 @@ public class GlobalVariables {
     // k=MetricGroupId, v=string representing a single, merged, regex statement that is composed of the metric group's associated regexs
     public final static ConcurrentHashMap<Integer,String> mergedRegexsForMetricGroups = new ConcurrentHashMap<>(); 
     
-    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedSet(TreeSet<MetricTimestampAndValue>()))
+    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedSet(HashSet<MetricTimestampAndValue>()))
     public final static ConcurrentHashMap<String,Set<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(); 
 
     // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."

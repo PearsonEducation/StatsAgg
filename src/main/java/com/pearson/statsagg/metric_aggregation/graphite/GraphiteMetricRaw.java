@@ -26,10 +26,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private final String metricPath_;
     private final String metricValue_;
     private final String metricTimestamp_;
-    private Integer metricTimestampInt_ = null;
-    private Long metricReceivedTimestampInMilliseconds_ = null;
+    private final Long metricReceivedTimestampInMilliseconds_;
     
     private BigDecimal metricValueBigDecimal_ = null;
+    private Integer metricTimestampInt_ = null;
     private Long metricTimestampInMilliseconds_ = null;
 
     public GraphiteMetricRaw(String metricPath, String metricValue, String metricTimestamp, Long metricReceivedTimestampInMilliseconds) {
@@ -37,17 +37,26 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
+        
+        this.metricValueBigDecimal_ = createAndGetMetricValueBigDecimal();
+        this.metricTimestampInt_ = createAndGetMetricTimestampInt();
+        this.metricTimestampInMilliseconds_ = createAndGetMetricTimestampInMilliseconds();
     }
     
-    public GraphiteMetricRaw(String metricPath, String metricValue, String metricTimestamp, Integer metricTimestampInt, Long metricReceivedTimestampInMilliseconds) {
+    public GraphiteMetricRaw(String metricPath, String metricValue, String metricTimestamp, Long metricReceivedTimestampInMilliseconds,
+            BigDecimal metricValueBigDecimal, Integer metricTimestampInt, Long metricTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricTimestampInt_ = metricTimestampInt;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
+        
+        this.metricValueBigDecimal_ = metricValueBigDecimal;
+        this.metricTimestampInt_ = metricTimestampInt;
+        this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
     }
     
-    public BigDecimal createAndGetMetricValueBigDecimal() {
+    public final BigDecimal createAndGetMetricValueBigDecimal() {
         
         try {
             if (metricValueBigDecimal_ == null) {
@@ -62,7 +71,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricValueBigDecimal_;
     }
 
-    public Integer createAndGetMetricTimestampInt() {
+    public final Integer createAndGetMetricTimestampInt() {
         
         try {
             if (metricTimestampInt_ == null) {
@@ -77,7 +86,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricTimestampInt_;
     }
     
-    public Long createAndGetMetricTimestampInMilliseconds() {
+    public final Long createAndGetMetricTimestampInMilliseconds() {
         
         try {
             if (metricTimestampInMilliseconds_ == null) {
@@ -153,7 +162,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return stringBuilder.toString();
     }
     
-    public static GraphiteMetricRaw parseGraphiteMetricRaw(String unparsedMetric, long metricReceivedTimestampInMilliseconds) {
+    public static GraphiteMetricRaw parseGraphiteMetricRaw(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {
             return null;
@@ -163,7 +172,8 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             int metricPathIndexRange = unparsedMetric.indexOf(' ', 0);
             String metricPath = null;
             if (metricPathIndexRange > 0) {
-                metricPath = unparsedMetric.substring(0, metricPathIndexRange);
+                if ((metricPrefix != null) && !metricPrefix.isEmpty()) metricPath = metricPrefix + unparsedMetric.substring(0, metricPathIndexRange);
+                else metricPath = unparsedMetric.substring(0, metricPathIndexRange);
             }
 
             int metricValueIndexRange = unparsedMetric.indexOf(' ', metricPathIndexRange + 1);
@@ -191,7 +201,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         }
     }
     
-    public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
+    public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
             return new ArrayList<>();
@@ -217,7 +227,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 }
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
-                    GraphiteMetricRaw graphiteMetricRaw = GraphiteMetricRaw.parseGraphiteMetricRaw(unparsedMetric.trim(), metricReceivedTimestampInMilliseconds);
+                    GraphiteMetricRaw graphiteMetricRaw = GraphiteMetricRaw.parseGraphiteMetricRaw(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
 
                     if (graphiteMetricRaw != null) {
                         graphiteMetricsRaw.add(graphiteMetricRaw);
@@ -276,54 +286,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
 
         return mostRecentGraphiteMetricsByMetricPath;
     }
-    
-    public static List<GraphiteMetricRaw> createPrefixedGraphiteMetricsRaw(List<GraphiteMetricRaw> graphiteMetricsRaw, 
-            boolean useGlobalPrefix, String globalPrefixValue,
-            boolean useGraphitePrefix, String graphitePrefixValue) {
-        
-        if (graphiteMetricsRaw == null || graphiteMetricsRaw.isEmpty()) {
-            return new ArrayList<>();
-        }
-        
-        int prefixedGraphiteMetricsRawListInitialSize = (int) (graphiteMetricsRaw.size() * 1.3);
-        List<GraphiteMetricRaw> prefixedGraphiteMetricsRaw = new ArrayList<>(prefixedGraphiteMetricsRawListInitialSize);
-        
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
-            String prefixedMetricPath = createPrefixedGraphiteMetricPath(graphiteMetricRaw, useGlobalPrefix, globalPrefixValue, 
-                    useGraphitePrefix, graphitePrefixValue);
-            
-            GraphiteMetricRaw prefixedGraphiteMetricRaw = new GraphiteMetricRaw(prefixedMetricPath, graphiteMetricRaw.getMetricValue(), 
-                    graphiteMetricRaw.getMetricTimestamp(), graphiteMetricRaw.getMetricTimestampInt(), graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds());
-            prefixedGraphiteMetricRaw.setHashKey(graphiteMetricRaw.getHashKey());
-            
-            prefixedGraphiteMetricsRaw.add(prefixedGraphiteMetricRaw);
-        }
-        
-        return prefixedGraphiteMetricsRaw;
-    }
-    
-    public static String createPrefixedGraphiteMetricPath(GraphiteMetricRaw graphiteMetricRaw, 
-            boolean useGlobalPrefix, String globalPrefixValue,
-            boolean useGraphitePrefix, String graphitePrefixValue) {
-        
-        if (graphiteMetricRaw == null) {
-            return null;
-        }
-        
-        if (!useGlobalPrefix && !useGraphitePrefix) {
-            return graphiteMetricRaw.metricPath_;
-        }
-        
-        StringBuilder prefix = new StringBuilder(graphiteMetricRaw.getMetricPath().length() + 50);
-        
-        if (useGlobalPrefix) prefix.append(globalPrefixValue).append(".");
-        if (useGraphitePrefix) prefix.append(graphitePrefixValue).append(".");
-        
-        prefix.append(graphiteMetricRaw.getMetricPath());
-        
-        return prefix.toString();
-    }
-    
+
     public Long getHashKey() {
         return this.hashKey_;
     }
@@ -373,8 +336,4 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricReceivedTimestampInMilliseconds_;
     }
 
-    public void setMetricReceivedTimestampInMilliseconds(Long metricReceivedTimestampInMilliseconds) {
-        metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
-    }
-    
 }

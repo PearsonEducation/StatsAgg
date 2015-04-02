@@ -51,8 +51,8 @@ import com.pearson.statsagg.utilities.Threads;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
-import java.util.TreeSet;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -160,6 +160,11 @@ public class ContextManager implements ServletContextListener {
             logger.info("Finished adding gauges from database to recent metric global history. NumGaugesFromDbAddedToGlobal=" + numGaugesFromDatabase);
         }
         
+        // create the prefixes (added on by StatsAgg) for the various types of metrics
+        createGraphiteAggregatorMetricPrefix();
+        createGraphitePassthroughMetricPrefix();
+        createOpenTsdbMetricPrefix();
+                
         // start the thread pool that is responsible for sending alert emails 
         startSendEmailThreadPool();
         
@@ -512,6 +517,57 @@ public class ContextManager implements ServletContextListener {
         return isSchemaCreateSuccess;
     }
 
+    public static String createGraphiteAggregatorMetricPrefix() {
+        StringBuilder prefixBuilder = new StringBuilder();
+        
+        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+        }
+        
+        if (ApplicationConfiguration.isGraphiteAggregatorMetricNamePrefixEnabled() && (ApplicationConfiguration.getGraphiteAggregatorMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGraphiteAggregatorMetricNamePrefixValue()).append(".");
+        }
+
+        String prefix = prefixBuilder.toString();
+        GlobalVariables.graphiteAggregatedPrefix = prefix;
+        
+        return prefix;
+    }
+    
+    public static String createGraphitePassthroughMetricPrefix() {
+        StringBuilder prefixBuilder = new StringBuilder();
+        
+        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+        }
+        
+        if (ApplicationConfiguration.isGraphitePassthroughMetricNamePrefixEnabled() && (ApplicationConfiguration.getGraphitePassthroughMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGraphitePassthroughMetricNamePrefixValue()).append(".");
+        }
+
+        String prefix = prefixBuilder.toString();
+        GlobalVariables.graphitePassthroughPrefix = prefix;
+        
+        return prefix;
+    }
+    
+    public static String createOpenTsdbMetricPrefix() {
+        StringBuilder prefixBuilder = new StringBuilder();
+        
+        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+        }
+        
+        if (ApplicationConfiguration.isOpenTsdbMetricNamePrefixEnabled() && (ApplicationConfiguration.getOpenTsdbMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getOpenTsdbMetricNamePrefixValue()).append(".");
+        }
+
+        String prefix = prefixBuilder.toString();
+        GlobalVariables.openTsdbPrefix = prefix;
+        
+        return prefix;
+    }
+    
     private static long readMetricLastSeenFromDatabaseAndAddToGlobalVariables() {
         
         MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao();
@@ -525,7 +581,7 @@ public class ContextManager implements ServletContextListener {
                     Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricLastSeen.getMetricKey());
 
                     if (metricTimestampsAndValues == null) {
-                        metricTimestampsAndValues = Collections.synchronizedSet(new TreeSet<>(MetricTimestampAndValue.COMPARE_BY_TIMESTAMP));
+                        metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
                         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricLastSeen.getMetricKey(), metricTimestampsAndValues);
                     }
                 }
