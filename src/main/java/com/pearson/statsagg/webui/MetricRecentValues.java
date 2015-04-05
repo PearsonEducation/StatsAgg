@@ -147,11 +147,9 @@ public class MetricRecentValues extends HttpServlet {
             
             MetricTimestampAndValue metricTimestampAndValue = metricTimestampsAndValuesLocal.get(i);
             
-            if ((metricTimestampAndValue.getTimestamp() != null) && (metricTimestampAndValue.getMetricValue() != null)) {
+            if ((metricTimestampAndValue != null) && (metricTimestampAndValue.getTimestamp() != -1) && (metricTimestampAndValue.getMetricValue() != null)) {
                 String timestamp = dateAndTimeFormat.format(metricTimestampAndValue.getTimestamp());
-                String metricValue = metricTimestampAndValue.getMetricValue().stripTrailingZeros().toPlainString();
-                
-                outputString.append(timestamp).append(" : ").append(metricValue).append("<br>");
+                outputString.append(timestamp).append(" : ").append(metricTimestampAndValue.getMetricValue().stripTrailingZeros().toPlainString()).append("<br>");
             }
             
         }

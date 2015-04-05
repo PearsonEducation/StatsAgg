@@ -14,24 +14,20 @@ public class MetricTimestampAndValue {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricTimestampAndValue.class.getName());
 
-    private final Long timestamp_;
+    private final long timestamp_;
     private final BigDecimal metricValue_;
-    private final Long metricReceivedHashKey_;
-    
-    public MetricTimestampAndValue(Long timestamp, BigDecimal metricValue, Long metricReceivedHashKey) {
+    private final long metricReceivedHashKey_;
+        
+    public MetricTimestampAndValue(long timestamp, BigDecimal metricValue, long metricReceivedHashKey) {
         this.timestamp_ = timestamp;
         this.metricValue_ = metricValue;
         this.metricReceivedHashKey_ = metricReceivedHashKey;
     }
-
+    
     public final static Comparator<MetricTimestampAndValue> COMPARE_BY_TIMESTAMP = new Comparator<MetricTimestampAndValue>() {
         
         @Override
         public int compare(MetricTimestampAndValue metricTimestampAndValue1, MetricTimestampAndValue metricTimestampAndValue2) {
-            if ((metricTimestampAndValue1.getTimestamp() == null) && (metricTimestampAndValue2.getTimestamp() != null)) return -1;
-            else if ((metricTimestampAndValue1.getTimestamp() != null) && (metricTimestampAndValue2.getTimestamp() == null)) return 1;
-            else if ((metricTimestampAndValue1.getTimestamp() == null) && (metricTimestampAndValue2.getTimestamp() == null)) return 0;
-            
             if (metricTimestampAndValue1.getTimestamp() > metricTimestampAndValue2.getTimestamp()) {
                 return 1;
             }
@@ -47,9 +43,7 @@ public class MetricTimestampAndValue {
     
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(13, 109)
-                .append(timestamp_)
-                .append(metricValue_)
+        return new HashCodeBuilder(71, 109)
                 .append(metricReceivedHashKey_)
                 .toHashCode();
     }
@@ -63,22 +57,14 @@ public class MetricTimestampAndValue {
         
         MetricTimestampAndValue metricTimestampAndValue = (MetricTimestampAndValue) obj;
 
-        boolean isMetricValueEqual = false;
-        if ((metricValue_ != null) && (metricTimestampAndValue.getMetricValue() != null)) {
-            isMetricValueEqual = metricValue_.compareTo(metricTimestampAndValue.getMetricValue()) == 0;
-        }
-        else if (metricValue_ == null) {
-            isMetricValueEqual = metricTimestampAndValue.getMetricValue() == null;
-        }
-        
         return new EqualsBuilder()
                 .append(timestamp_, metricTimestampAndValue.getTimestamp())
-                .append(isMetricValueEqual, true)
+                .append(metricValue_, metricTimestampAndValue.getMetricValue())
                 .append(metricReceivedHashKey_, metricTimestampAndValue.getMetricReceivedHashKey())
                 .isEquals();
     }
    
-    public Long getTimestamp() {
+    public long getTimestamp() {
         return timestamp_;
     }
 
@@ -86,8 +72,8 @@ public class MetricTimestampAndValue {
         return metricValue_;
     }
 
-    public Long getMetricReceivedHashKey() {
+    public long getMetricReceivedHashKey() {
         return metricReceivedHashKey_;
     }
-    
+
 }

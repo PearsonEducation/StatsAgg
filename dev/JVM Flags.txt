@@ -1,0 +1,7 @@
+# Print GC details to logs
+-XX:+PrintGCDateStamps -verbose:gc -XX:+PrintGCDetails
+
+# GC flag combinations
+-XX:+UseConcMarkSweepGC -XX:+CMSParallelRemarkEnabled -XX:+ScavengeBeforeFullGC -XX:+CMSScavengeBeforeRemark
+-XX:+UseG1GC -XX:MaxGCPauseMillis=500 -XX:+UseStringDeduplication
+-XX:NewRatio=6

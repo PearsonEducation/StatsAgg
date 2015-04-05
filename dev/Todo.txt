@@ -1,9 +1,17 @@
-Short/Medium term
+StatsAgg 1.2
  * Retest 'resend previous value' for all formats
+ * Emphasize metric transcoding aspect in documentation
+ * Document that OpenTSDB tags may be reordered
+ * Prefix StatsD metrics in same pattern as OpenTsdb & Graphite
+ * Refactor StatsdMetricRaw for lower memory usage
+ * Document security benefits of using StatsAgg for OpenTSDB
+ * Unit test output format conversions
+ * OpenTSDB HTTP on a separate port from Tomcat WebUI
 
+Short/Medium term
+ * Last received metric in WebUI
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
- * OpenTSDB HTTP on a separate port from Tomcat WebUI
  * OpenTSDB SSL for HTTP interface
  * StatsD histograms
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)

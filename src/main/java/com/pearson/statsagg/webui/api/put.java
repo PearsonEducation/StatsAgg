@@ -173,13 +173,8 @@ public class put extends HttpServlet {
         }
         
         for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
-            Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
+            Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             openTsdbMetricRaw.setHashKey(hashKey);
-
-            if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-                openTsdbMetricRaw.createAndGetMetricTimestampInMilliseconds();
-            }
-
             GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
         }

@@ -80,7 +80,7 @@ public class GraphiteAggregationThread implements Runnable {
                 Common.updateMetricLastSeenTimestamps_MostRecentNew(graphiteMetricsAggregated);
                 Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsAggregatedMerged);
             }
-            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsAggregated);
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
@@ -174,7 +174,7 @@ public class GraphiteAggregationThread implements Runnable {
             for (GraphiteMetricAggregated graphiteMetricAggregated : GlobalVariables.graphiteAggregatedMetricsMostRecentValue.values()) {
                 GraphiteMetricAggregated updatedGraphiteMetricAggregated = new GraphiteMetricAggregated(graphiteMetricAggregated.getMetricPath(),
                         graphiteMetricAggregated.getMetricValue(), timestampInMilliseconds, timestampInMilliseconds);
-                updatedGraphiteMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                updatedGraphiteMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
                 GlobalVariables.graphiteAggregatedMetricsMostRecentValue.put(updatedGraphiteMetricAggregated.getMetricPath(), updatedGraphiteMetricAggregated);
             }

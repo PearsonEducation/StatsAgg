@@ -18,47 +18,49 @@ public class GraphiteMetricAggregated implements GraphiteMetricFormat, OpenTsdbM
     
     private final String metricPath_;
     private final BigDecimal metricValue_;
-    private final long metricTimestampInSeconds_;
+    private final int metricTimestampInSeconds_;
     private final long metricTimestampInMilliseconds_;
     private final long metricReceivedTimestampInMilliseconds_;
     
     public GraphiteMetricAggregated(String metricPath, BigDecimal metricValue, long metricTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
-        this.metricTimestampInSeconds_ = metricTimestampInMilliseconds / 1000;
+        this.metricTimestampInSeconds_ = (int) (metricTimestampInMilliseconds / 1000);
         this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
     }
     
+    public String createAndGetMetricValueString() {
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
+    }
+    
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append(metricPath_).append(" ")
-                .append(metricValue_).append(" ")
+                .append(getMetricValueString()).append(" ")
                 .append(metricTimestampInSeconds_).append(" ")
-                .append(metricTimestampInMilliseconds_).append(" ")
-                .append(metricReceivedTimestampInMilliseconds_);
+                .append(" @ ").append(metricReceivedTimestampInMilliseconds_);
         
         return stringBuilder.toString();
     }
     
     @Override
     public String getGraphiteFormatString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_)
-                .append(" ").append(metricValue_)
-                .append(" ").append(metricTimestampInSeconds_);
+        stringBuilder.append(metricPath_).append(" ").append(getMetricValueString()).append(" ").append(metricTimestampInSeconds_);
 
         return stringBuilder.toString();
     }
     
     @Override
     public String getOpenTsdbFormatString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(metricTimestampInSeconds_).append(" ").append(metricValue_).append(" Format=Graphite");
+        stringBuilder.append(metricPath_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }
@@ -75,7 +77,7 @@ public class GraphiteMetricAggregated implements GraphiteMetricFormat, OpenTsdbM
     public void setHashKey(Long hashKey) {
         this.hashKey_ = hashKey;
     }
-    
+
     public String getMetricPath() {
         return metricPath_;
     }
@@ -91,20 +93,25 @@ public class GraphiteMetricAggregated implements GraphiteMetricFormat, OpenTsdbM
     
     @Override
     public BigDecimal getMetricValueBigDecimal() {
-        return getMetricValue();
+        return metricValue_;
     }
     
-    public long getMetricTimestampInSeconds() {
+    @Override
+    public String getMetricValueString() {
+        return createAndGetMetricValueString();
+    }
+    
+    public int getMetricTimestampInSeconds() {
         return metricTimestampInSeconds_;
     }
     
     @Override
-    public Long getMetricTimestampInMilliseconds() {
+    public long getMetricTimestampInMilliseconds() {
         return metricTimestampInMilliseconds_;
     }
 
     @Override
-    public Long getMetricReceivedTimestampInMilliseconds() {
+    public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
     }
     

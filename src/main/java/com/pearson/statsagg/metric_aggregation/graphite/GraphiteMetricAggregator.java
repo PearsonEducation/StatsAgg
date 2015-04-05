@@ -118,7 +118,7 @@ public class GraphiteMetricAggregator {
         for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
 
             try {
-                BigDecimal metricValue = new BigDecimal(graphiteMetricRaw.getMetricValue());
+                BigDecimal metricValue = graphiteMetricRaw.getMetricValue();
 
                 sumMetricValue = sumMetricValue.add(metricValue);
                 sumMetricTimestamp += graphiteMetricRaw.getMetricTimestampInMilliseconds();
@@ -161,17 +161,17 @@ public class GraphiteMetricAggregator {
             
             GraphiteMetricAggregated graphiteMetricAverageAggregated = new GraphiteMetricAggregated(metricPath + aggregatedMetricsSeparator 
                     + "Avg", averageMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricAverageAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            graphiteMetricAverageAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             graphiteMetricsAggregated.add(graphiteMetricAverageAggregated);
             
             GraphiteMetricAggregated graphiteMetricMaximumAggregated = new GraphiteMetricAggregated(metricPath + aggregatedMetricsSeparator 
                     + "Max", maximumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricMaximumAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            graphiteMetricMaximumAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             graphiteMetricsAggregated.add(graphiteMetricMaximumAggregated);
 
             GraphiteMetricAggregated graphiteMetricMinimumAggregated = new GraphiteMetricAggregated(metricPath + aggregatedMetricsSeparator 
                     + "Min", minimumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricMinimumAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            graphiteMetricMinimumAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             graphiteMetricsAggregated.add(graphiteMetricMinimumAggregated);
             
             return graphiteMetricsAggregated;

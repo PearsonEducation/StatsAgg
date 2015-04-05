@@ -161,6 +161,7 @@ public class CleanupThread implements Runnable {
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.remove(metricKey);
+        GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
     }
     
     private void cleanupActiveAvailabilityAlerts(String metricKey) {
@@ -224,7 +225,7 @@ public class CleanupThread implements Runnable {
     private String cleanupRecentMetricTimestampsAndValues(List<Alert> alerts) {
 
         long cleanupStartTime = System.currentTimeMillis();
-        int numValuesRemoved = 0, numKeysRemoved = 0, numTrackedValuesRemoved = 0, numTrackedKeysRemoved = 0;
+        int numValuesRemoved = 0;
         
         Map<String,Long> longestWindowDurationsForMetricKeys = getLongestWindowDurationsForMetricKeys(alerts);
         Set<String> metricKeys = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet();
@@ -237,51 +238,34 @@ public class CleanupThread implements Runnable {
                 // lookup the longest window duration associated with this metric key...
                 Long windowDuration = longestWindowDurationsForMetricKeys.get(metricKey);
 
-                synchronized (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
-                    Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+                Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
-                    // remove data that is outside of the window duration (older than 'now' minus 'duration') for this metric key               
-                    if ((windowDuration != null) && (recentMetricTimestampsAndValues != null)) { 
-                        List<MetricTimestampAndValue> metricTimestampAndValuesToRemove = new ArrayList<>();
-                        
-                        synchronized (recentMetricTimestampsAndValues) {
-                            for (MetricTimestampAndValue metricTimestampAndValue : recentMetricTimestampsAndValues) {
-                                Long metricValueTimestamp = metricTimestampAndValue.getTimestamp();
-                                long metricValueAge = cleanupStartTime - metricValueTimestamp;
+                // remove data that is outside of the window duration (older than 'now' minus 'duration') for this metric key               
+                if ((windowDuration != null) && (recentMetricTimestampsAndValues != null)) { 
+                    List<MetricTimestampAndValue> metricTimestampAndValuesToRemove = new ArrayList<>();
 
-                                if ((metricValueAge > windowDuration) || isImmeadiateCleanup) {
-                                    metricTimestampAndValuesToRemove.add(metricTimestampAndValue);
-                                }
-                            }
+                    synchronized (recentMetricTimestampsAndValues) {
+                        for (MetricTimestampAndValue metricTimestampAndValue : recentMetricTimestampsAndValues) {
+                            Long metricValueTimestamp = metricTimestampAndValue.getTimestamp();
+                            long metricValueAge = cleanupStartTime - metricValueTimestamp;
 
-                            for (MetricTimestampAndValue metricTimestampAndValueToRemove : metricTimestampAndValuesToRemove) {
-                                recentMetricTimestampsAndValues.remove(metricTimestampAndValueToRemove);
-                                numValuesRemoved++;
-                                numTrackedValuesRemoved++;
+                            if ((metricValueAge > windowDuration) || isImmeadiateCleanup) {
+                                metricTimestampAndValuesToRemove.add(metricTimestampAndValue);
                             }
                         }
-                        
-                        if (recentMetricTimestampsAndValues.isEmpty() || isImmeadiateCleanup) {
-                            GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
-                            
-                            numKeysRemoved++;
-                            numTrackedKeysRemoved++;
-                        }
-                    }
-                    // the metric isn't currently associated with an alert, so we can get rid this metric key's data
-                    else if (recentMetricTimestampsAndValues != null) {
-                        synchronized (recentMetricTimestampsAndValues) {
-                            numValuesRemoved += recentMetricTimestampsAndValues.size();
-                            recentMetricTimestampsAndValues.clear();
-                        }
 
-                        GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
-                        numKeysRemoved++;
+                        for (MetricTimestampAndValue metricTimestampAndValueToRemove : metricTimestampAndValuesToRemove) {
+                            recentMetricTimestampsAndValues.remove(metricTimestampAndValueToRemove);
+                            numValuesRemoved++;
+                        }
                     }
-                    else {
-                        GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
-                        numKeysRemoved++;
-                    }      
+                }
+                // the metric isn't currently associated with an alert, so we can get rid this metric key's data
+                else if (recentMetricTimestampsAndValues != null) {
+                    synchronized (recentMetricTimestampsAndValues) {
+                        numValuesRemoved += recentMetricTimestampsAndValues.size();
+                        recentMetricTimestampsAndValues.clear();
+                    }
                 }
             }
         }
@@ -294,10 +278,7 @@ public class CleanupThread implements Runnable {
 
         String outputMessage = "CleanupRecentMetricTimestampsAndValuesTime=" + cleanupTimeElasped
                 + ", NumRecentMetricKeys=" + metricKeys.size()
-                + ", NumRecentMetricValuesRemoved=" + numValuesRemoved
-                + ", NumRecentMetricKeysRemoved=" + numKeysRemoved
-                + ", NumTrackedRecentMetricValuesRemoved=" + numTrackedValuesRemoved
-                + ", NumTrackedRecentMetricKeysRemoved=" + numTrackedKeysRemoved;
+                + ", NumRecentMetricValuesRemoved=" + numValuesRemoved;
 
         return outputMessage;
     }

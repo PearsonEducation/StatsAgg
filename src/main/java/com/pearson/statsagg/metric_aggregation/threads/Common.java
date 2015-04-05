@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -101,27 +102,25 @@ public class Common {
         for (GenericMetricFormat metric : metrics) {
             String metricKey = metric.getMetricKey();
 
-            synchronized (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
-                Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+            MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(
+                    metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
 
-                MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(
-                        metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
+            Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
-                if (metricTimestampsAndValues != null) {
-                    synchronized (metricTimestampsAndValues) {
-                        if (!metricTimestampsAndValues.contains(metricTimestampAndValue)) {
-                            metricTimestampsAndValues.add(metricTimestampAndValue);
-                        }
+            if (metricTimestampsAndValues != null) {
+                synchronized (metricTimestampsAndValues) {
+                    if (!metricTimestampsAndValues.contains(metricTimestampAndValue)) {
+                        metricTimestampsAndValues.add(metricTimestampAndValue);
                     }
                 }
-                else {
-                    metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
-                    metricTimestampsAndValues.add(metricTimestampAndValue);
-                    GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricKey, metricTimestampsAndValues);
-                }
-                
-                didDoAnyUpdates = true;
             }
+            else {
+                metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
+                metricTimestampsAndValues.add(metricTimestampAndValue);
+                GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricKey, metricTimestampsAndValues);
+            }
+
+            didDoAnyUpdates = true;
         }
         
         return didDoAnyUpdates;

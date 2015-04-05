@@ -26,7 +26,7 @@ public class TcpServerHandler_GraphiteAggregator extends SimpleChannelInboundHan
                     GlobalVariables.graphiteAggregatedPrefix, currentTimestampInMilliseconds);
             
             for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
-                Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
+                Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
                 graphiteMetricRaw.setHashKey(hashKey);
                 GlobalVariables.graphiteAggregatorMetricsRaw.put(graphiteMetricRaw.getHashKey(), graphiteMetricRaw);
                 GlobalVariables.incomingMetricsCount.incrementAndGet();

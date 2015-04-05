@@ -73,7 +73,7 @@ public class GraphitePassthroughThread implements Runnable {
                 Common.updateMetricLastSeenTimestamps_MostRecentNew(graphiteMetricsRaw);
                 Common.updateMetricLastSeenTimestamps_UpdateOnResend(graphiteMetricsRawMerged);
             }
-            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsRaw);
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsRawMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
@@ -114,7 +114,8 @@ public class GraphitePassthroughThread implements Runnable {
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped
                     + ", NewAndOldMetricCount=" + graphiteMetricsRawMerged.size() 
-                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped;
+                    + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped
+                    ;
             
             if (graphiteMetricsRawMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);
@@ -163,12 +164,11 @@ public class GraphitePassthroughThread implements Runnable {
         if (GlobalVariables.graphitePassthroughMetricsMostRecentValue != null) {
             long timestampInMilliseconds = System.currentTimeMillis();
             int timestampInSeconds = (int) (timestampInMilliseconds / 1000);
-            String timestampInSecondsString = Integer.toString(timestampInSeconds);
             
             for (GraphiteMetricRaw graphiteMetricRaw : GlobalVariables.graphitePassthroughMetricsMostRecentValue.values()) {
                 GraphiteMetricRaw updatedGraphiteMetricRaw = new GraphiteMetricRaw(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw.getMetricValue(), 
-                        timestampInSecondsString, timestampInMilliseconds, graphiteMetricRaw.getMetricValueBigDecimal(), timestampInSeconds, timestampInMilliseconds);
-                updatedGraphiteMetricRaw.setHashKey(graphiteMetricRaw.getHashKey());
+                        timestampInSeconds, timestampInMilliseconds, timestampInMilliseconds);
+                updatedGraphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
                 GlobalVariables.graphitePassthroughMetricsMostRecentValue.put(updatedGraphiteMetricRaw.getMetricPath(), updatedGraphiteMetricRaw);
             }

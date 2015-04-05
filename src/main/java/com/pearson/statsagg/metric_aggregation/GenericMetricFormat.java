@@ -7,14 +7,16 @@ import java.math.BigDecimal;
  */
 public interface GenericMetricFormat {
     
+    public Long getMetricHashKey();
+
     public String getMetricKey();
     
-    public Long getMetricHashKey();
-    
     public BigDecimal getMetricValueBigDecimal();
+
+    public String getMetricValueString();
     
-    public Long getMetricTimestampInMilliseconds();
+    public long getMetricTimestampInMilliseconds();
     
-    public Long getMetricReceivedTimestampInMilliseconds();
+    public long getMetricReceivedTimestampInMilliseconds();
     
 }

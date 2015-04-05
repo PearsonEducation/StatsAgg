@@ -24,7 +24,7 @@ import static org.junit.Assert.*;
 public class AlertThreadTest {
     
     private static AlertThread alertThread_;
-    private static final AtomicLong hashKeyGen_ = GlobalVariables.aggregatedMetricHashKeyGenerator;
+    private static final AtomicLong hashKeyGen_ = GlobalVariables.metricHashKeyGenerator;
         
     private static final List<MetricTimestampAndValue> metricTimestampsAndValues_ = new ArrayList<>();
     private static Alert alert1_ = null;
@@ -1174,7 +1174,7 @@ public class AlertThreadTest {
         
         try {
             List<MetricTimestampAndValue> metricTimestampsAndValuesLocal = new  ArrayList<>(metricTimestampsAndValues);
-            metricTimestampsAndValuesLocal.add(new MetricTimestampAndValue(new Long(701), new BigDecimal("75"), hashKeyGen_.incrementAndGet()));         
+            metricTimestampsAndValuesLocal.add(new MetricTimestampAndValue((long) 701, new BigDecimal("75"), hashKeyGen_.incrementAndGet()));         
 
             result = (BigDecimal) method.invoke(alertThread_, metricTimestampsAndValuesLocal, new BigDecimal("74"), Alert.OPERATOR_EQUALS, 0);
             assertEquals(null, result);

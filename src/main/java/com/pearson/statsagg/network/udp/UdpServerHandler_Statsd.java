@@ -27,7 +27,7 @@ public class UdpServerHandler_Statsd extends SimpleChannelInboundHandler<Datagra
         List<StatsdMetricRaw> statsdMetricsRaw = StatsdMetricRaw.parseStatsdMetricsRaw(udpContentString, currentTimestampInMilliseconds); 
 
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
+            Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             statsdMetricRaw.setHashKey(hashKey);
             GlobalVariables.statsdMetricsRaw.put(statsdMetricRaw.getHashKey(), statsdMetricRaw);
             GlobalVariables.incomingMetricsCount.incrementAndGet();

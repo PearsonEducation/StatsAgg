@@ -25,7 +25,7 @@ public class TcpServerHandler_Statsd extends SimpleChannelInboundHandler<String>
             List<StatsdMetricRaw> statsdMetricsRaw = StatsdMetricRaw.parseStatsdMetricsRaw(message, currentTimestampInMilliseconds);
             
             for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-                Long hashKey = GlobalVariables.rawMetricHashKeyGenerator.incrementAndGet();
+                Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
                 statsdMetricRaw.setHashKey(hashKey);
                 GlobalVariables.statsdMetricsRaw.put(statsdMetricRaw.getHashKey(), statsdMetricRaw);
                 GlobalVariables.incomingMetricsCount.incrementAndGet();

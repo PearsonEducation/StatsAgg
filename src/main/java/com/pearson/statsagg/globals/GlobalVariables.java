@@ -46,8 +46,7 @@ public class GlobalVariables {
     public final static AtomicLong associatedMetricsWithValuesCount = new AtomicLong(0);
     
     // Used to generate hash keys for incoming metrics
-    public final static AtomicLong rawMetricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
-    public final static AtomicLong aggregatedMetricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
+    public final static AtomicLong metricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
 
     // k="Value assigned at raw metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="Raw metric object"
     public final static ConcurrentHashMap<Long,StatsdMetricRaw> statsdMetricsRaw = new ConcurrentHashMap<>();
@@ -118,19 +117,19 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Integer,List<String>> activeDangerAlertMetricKeysByAlertId = new ConcurrentHashMap<>(); 
     
     // k=AlertId, v=Alert
-    public final static ConcurrentHashMap<Integer, Alert> pendingCautionAlertsByAlertId = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<Integer,Alert> pendingCautionAlertsByAlertId = new ConcurrentHashMap<>(); 
     
     // k=AlertId, v=Alert
-    public final static ConcurrentHashMap<Integer, Alert> pendingDangerAlertsByAlertId = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<Integer,Alert> pendingDangerAlertsByAlertId = new ConcurrentHashMap<>(); 
 
     // k=MetricKey, v=MetricKey
-    public static final ConcurrentHashMap<String, String> activeAvailabilityAlerts = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<String,String> activeAvailabilityAlerts = new ConcurrentHashMap<>();
    
     // k=AlertId, v=Set<MetricKey>
-    public static final ConcurrentHashMap<Integer, Set<String>> activeCautionAvailabilityAlerts = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<Integer,Set<String>> activeCautionAvailabilityAlerts = new ConcurrentHashMap<>();
     
     // k=AlertId, v=Set<MetricKey>
-    public static final ConcurrentHashMap<Integer, Set<String>> activeDangerAvailabilityAlerts = new ConcurrentHashMap<>();
+    public static final ConcurrentHashMap<Integer,Set<String>> activeDangerAvailabilityAlerts = new ConcurrentHashMap<>();
     
     // k="{metricKey}-{alertId}", v='Alert routine calculated metric value'
     public final static ConcurrentHashMap<String,BigDecimal> activeCautionAlertMetricValues = new ConcurrentHashMap<>(); 
@@ -139,13 +138,13 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,BigDecimal> activeDangerAlertMetricValues = new ConcurrentHashMap<>(); 
     
     // k=AlertId, v='is alert suspended (as of last alert routine run)?'
-    public final static ConcurrentHashMap<Integer, Boolean> alertSuspensionStatusByAlertId = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Boolean> alertSuspensionStatusByAlertId = new ConcurrentHashMap<>();
     
     // k=AlertId, v=alert suspension ids that are currently associated with a specific alert
-    public final static ConcurrentHashMap<Integer, Set<Integer>> alertSuspensionIdAssociationsByAlertId = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Set<Integer>> alertSuspensionIdAssociationsByAlertId = new ConcurrentHashMap<>();
     
     // k=AlertId, v=the alert suspension level (ALERT_NOT_SUSPENDED, SUSPEND_ALERT_NOTIFICATION_ONLY, SUSPEND_ENTIRE_ALERT)
-    public final static ConcurrentHashMap<Integer, Integer> alertSuspensionLevelsByAlertId = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Integer> alertSuspensionLevelsByAlertId = new ConcurrentHashMap<>();
     
     // The timestamp of the last time the alert routine finished executing. This variable does not persist across application restarts.
     public final static AtomicLong alertRountineLastExecutedTimestamp = new AtomicLong(0);

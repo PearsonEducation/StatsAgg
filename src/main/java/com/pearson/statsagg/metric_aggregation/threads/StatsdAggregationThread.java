@@ -252,22 +252,19 @@ public class StatsdAggregationThread implements Runnable {
                 
                 if ((statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.COUNTER_TYPE) && ApplicationConfiguration.isStatsdCounterSendZeroOnInactive()) {
                     updatedStatsdMetricAggregated = new StatsdMetricAggregated(statsdMetricAggregated.getBucket(), BigDecimal.ZERO, timestampInMilliseconds, statsdMetricAggregated.getMetricTypeKey());
-                    updatedStatsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 }
                 else if ((statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.TIMER_TYPE) && ApplicationConfiguration.isStatsdTimerSendZeroOnInactive()) {
                     updatedStatsdMetricAggregated = new StatsdMetricAggregated(statsdMetricAggregated.getBucket(), BigDecimal.ZERO, timestampInMilliseconds, statsdMetricAggregated.getMetricTypeKey());
-                    updatedStatsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 }
                 else if ((statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.GAUGE_TYPE) && ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
                     updatedStatsdMetricAggregated = new StatsdMetricAggregated(statsdMetricAggregated.getBucket(), statsdMetricAggregated.getMetricValue(), timestampInMilliseconds, statsdMetricAggregated.getMetricTypeKey());
-                    updatedStatsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 }
                 else if ((statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.SET_TYPE) && ApplicationConfiguration.isStatsdSetSendZeroOnInactive()) {
                     updatedStatsdMetricAggregated = new StatsdMetricAggregated(statsdMetricAggregated.getBucket(), BigDecimal.ZERO, timestampInMilliseconds, statsdMetricAggregated.getMetricTypeKey());
-                    updatedStatsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
                 }
 
                 if (updatedStatsdMetricAggregated != null) {
+                    updatedStatsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     GlobalVariables.statsdMetricsAggregatedMostRecentValue.put(updatedStatsdMetricAggregated.getBucket(), updatedStatsdMetricAggregated);
                 }
             }

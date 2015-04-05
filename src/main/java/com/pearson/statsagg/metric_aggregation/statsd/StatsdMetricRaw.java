@@ -21,14 +21,14 @@ public final class StatsdMetricRaw {
     public static final byte UNDEFINED_TYPE = 5;
     
     private Long hashKey_ = null;
-    
+
     private final String bucket_;
     private final String metricValue_;
     private final String metricType_;
     private final String sampleRate_;
     private final long metricReceivedTimestampInMilliseconds_;
     private final byte metricTypeKey_;
-    
+        
     public StatsdMetricRaw(String bucket, String metricValue, String metricType, String sampleRate, long metricReceivedTimestampInMilliseconds) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
@@ -64,7 +64,7 @@ public final class StatsdMetricRaw {
     
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append(bucket_).append(":").append(metricValue_).append("|").append(metricType_);
         
@@ -102,7 +102,7 @@ public final class StatsdMetricRaw {
             }
 
             int metricTypeIndexRange = unparsedMetric.indexOf('|', metricValueIndexRange + 1);
-            String metricType = null;
+            String metricType;
             String sampleRate = null;
             if (metricTypeIndexRange > 0) {
                 metricType = unparsedMetric.substring(metricValueIndexRange + 1, metricTypeIndexRange);
@@ -224,7 +224,11 @@ public final class StatsdMetricRaw {
     public String getMetricValue() {
         return metricValue_;
     }
-
+    
+    public String getMetricValueString() {
+        return metricValue_;
+    }
+    
     public String getMetricType() {
         return metricType_;
     }
@@ -233,7 +237,7 @@ public final class StatsdMetricRaw {
         return sampleRate_;
     }
     
-    public Long getMetricReceivedTimestampInMilliseconds() {
+    public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
     }
 

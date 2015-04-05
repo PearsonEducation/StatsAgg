@@ -123,8 +123,8 @@ public class StatsdMetricAggregatorTest {
             if (statsdMetricAggregated.getBucket().equals("counterMetric.count")) {
                 assertEquals("counterMetric.count", statsdMetricAggregated.getBucket());
                 assertEquals(new BigDecimal("3126.38"), statsdMetricAggregated.getMetricValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
                 assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
                 assertEquals(StatsdMetricAggregated.COUNTER_TYPE, statsdMetricAggregated.getMetricTypeKey());
                 matchCount++;
@@ -132,15 +132,15 @@ public class StatsdMetricAggregatorTest {
             else if (statsdMetricAggregated.getBucket().equals("counterMetric.rate")) {
                 assertEquals("counterMetric.rate", statsdMetricAggregated.getBucket());
                 assertEquals(new BigDecimal("312.638"), statsdMetricAggregated.getMetricValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
                 assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
                 assertEquals(StatsdMetricAggregated.COUNTER_TYPE, statsdMetricAggregated.getMetricTypeKey());
                 matchCount++;
             }
             
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
             assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
         }
         
@@ -178,8 +178,8 @@ public class StatsdMetricAggregatorTest {
             if (statsdMetricAggregated.getBucket().equals("stats_counts.counterMetric")) {
                 assertEquals("stats_counts.counterMetric", statsdMetricAggregated.getBucket());
                 assertEquals(new BigDecimal("3126.38"), statsdMetricAggregated.getMetricValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
                 assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
                 assertEquals(StatsdMetricAggregated.COUNTER_TYPE, statsdMetricAggregated.getMetricTypeKey());
                 matchCount++;
@@ -187,15 +187,15 @@ public class StatsdMetricAggregatorTest {
             else if (statsdMetricAggregated.getBucket().equals("stats.counterMetric")) {
                 assertEquals("stats.counterMetric", statsdMetricAggregated.getBucket());
                 assertEquals(new BigDecimal("312.638"), statsdMetricAggregated.getMetricValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+                assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
                 assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
                 assertEquals(StatsdMetricAggregated.COUNTER_TYPE, statsdMetricAggregated.getMetricTypeKey());
                 matchCount++;
             }
             
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
             assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
         }
         
@@ -241,8 +241,8 @@ public class StatsdMetricAggregatorTest {
         timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         assertEquals("gaugeMetric", statsdMetricAggregated.getBucket());
-        assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-        assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+        assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+        assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
         assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
         assertEquals(StatsdMetricAggregated.GAUGE_TYPE, statsdMetricAggregated.getMetricTypeKey());
     }
@@ -274,8 +274,8 @@ public class StatsdMetricAggregatorTest {
         timestampAverage = Math.round((double) timestampAverage / (double) statsdMetricsRaw.size());
         
         StatsdMetricAggregated statsdMetricAggregated = StatsdMetricAggregator.aggregateSet(statsdMetricsRaw, ".", false);    
-        assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-        assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+        assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+        assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
         assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
         assertEquals(StatsdMetricAggregated.SET_TYPE, statsdMetricAggregated.getMetricTypeKey());
         
@@ -381,8 +381,8 @@ public class StatsdMetricAggregatorTest {
             if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
             if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.std ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "260.5603337"); matchCount++;}
             
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds().longValue());
-            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds().longValue());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
+            assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
             assertEquals(timestampAverage / 1000, statsdMetricAggregated.getMetricTimestampInSeconds());
         }
         

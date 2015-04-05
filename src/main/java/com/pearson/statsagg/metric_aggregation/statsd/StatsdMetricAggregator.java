@@ -332,14 +332,14 @@ public class StatsdMetricAggregator {
             }
 
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucket_Count, count, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
-            statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
             
             String bucket_Rate = useLegacyNameSpacing ? 
                     generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + generateSeparatorAndSuffix() : 
                     generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "rate" + generateSeparatorAndSuffix();
             statsdMetricAggregated = new StatsdMetricAggregated(bucket_Rate, ratePs, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
-            statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
 
             return statsdMetricsAggregated;
@@ -494,7 +494,7 @@ public class StatsdMetricAggregator {
             if (count != null) {
                 StatsdMetricAggregated statsdCount = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix(),  
                         count, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdCount.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdCount.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdCount);
             }
     
@@ -506,7 +506,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdCountNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
                             "count_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             countNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdCountNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdCountNthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdCountNthPercentile);
                 }
             }
@@ -514,14 +514,14 @@ public class StatsdMetricAggregator {
             if (countPs != null) {
                 StatsdMetricAggregated statsdCountPs = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "count_ps" + generateSeparatorAndSuffix(), 
                         countPs, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdCountPs.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdCountPs.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdCountPs);
             }
             
             if (lower != null) {
                 StatsdMetricAggregated statsdLower = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "lower" + generateSeparatorAndSuffix(),  
                         lower, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdLower.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdLower.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdLower);
             }
             
@@ -533,7 +533,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdLowerNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
                             + "lower_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             lowerNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdLowerNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdLowerNthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdLowerNthPercentile);
                 }
             }
@@ -541,7 +541,7 @@ public class StatsdMetricAggregator {
             if (mean != null) {
                 StatsdMetricAggregated statsdMean = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "mean" + generateSeparatorAndSuffix(), 
                         mean, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdMean.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMean.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdMean);
             }
             
@@ -553,7 +553,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdMeanNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
                             "mean_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             meanNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdMeanNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdMeanNthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdMeanNthPercentile);
                 }
             }
@@ -561,14 +561,14 @@ public class StatsdMetricAggregator {
             if (median != null) {
                 StatsdMetricAggregated statsdMedian = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "median" + generateSeparatorAndSuffix(),   
                         median, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdMedian.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMedian.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdMedian);
             }
 
             if (sum != null) {
                 StatsdMetricAggregated statsdSum = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum" + generateSeparatorAndSuffix(),   
                         sum, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdSum.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdSum.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdSum);
             }
             
@@ -580,7 +580,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdSumNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
                             "sum_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),  
                             sumNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdSumNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdSumNthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdSumNthPercentile);
                 }
             }
@@ -588,7 +588,7 @@ public class StatsdMetricAggregator {
             if (sumOfSquares != null) {
                 StatsdMetricAggregated statsdSumOfSquares = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "sum_squares" + generateSeparatorAndSuffix(),  
                         sumOfSquares, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdSumOfSquares.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdSumOfSquares.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdSumOfSquares);
             }
             
@@ -600,7 +600,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdSumOfSquares_NthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + 
                             "sum_squares_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             sumOfSquaresNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdSumOfSquares_NthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdSumOfSquares_NthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdSumOfSquares_NthPercentile);
                 }
             }
@@ -608,14 +608,14 @@ public class StatsdMetricAggregator {
             if (standardDeviation != null) {
                 StatsdMetricAggregated statsdStandardDeviation = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "std" + generateSeparatorAndSuffix(),  
                         standardDeviation, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdStandardDeviation.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdStandardDeviation.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdStandardDeviation);
             }
             
             if (upper != null) {
                 StatsdMetricAggregated statsdUpper = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator + "upper" + generateSeparatorAndSuffix(),  
                         upper, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                statsdUpper.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdUpper.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 statsdMetricsAggregated.add(statsdUpper);
             }
             
@@ -627,7 +627,7 @@ public class StatsdMetricAggregator {
                     StatsdMetricAggregated statsdUpperNthPercentile = new StatsdMetricAggregated(bucketName + aggregatedMetricsSeparator 
                             + "upper_" + outputPercentageStringsNthPercentiles.get(i) + generateSeparatorAndSuffix(),   
                             upperNthPercentile, averagedTimestamp, StatsdMetricAggregated.TIMER_TYPE);
-                    statsdUpperNthPercentile.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                    statsdUpperNthPercentile.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                     statsdMetricsAggregated.add(statsdUpperNthPercentile);
                 }
             }
@@ -689,7 +689,7 @@ public class StatsdMetricAggregator {
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.GAUGE_TYPE);
-            statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             return statsdMetricAggregated;
         }
         else {
@@ -733,7 +733,7 @@ public class StatsdMetricAggregator {
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, uniqueMetricValueCount, averagedTimestamp, StatsdMetricAggregated.SET_TYPE);
-            statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+            statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             return statsdMetricAggregated;
         }
         else {

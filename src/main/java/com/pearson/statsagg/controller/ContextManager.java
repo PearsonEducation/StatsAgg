@@ -613,7 +613,7 @@ public class ContextManager implements ServletContextListener {
             try {
                 StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(gauge.getBucket(), gauge.getMetricValue(), 
                         System.currentTimeMillis(), StatsdMetricAggregated.GAUGE_TYPE);
-                statsdMetricAggregated.setHashKey(GlobalVariables.aggregatedMetricHashKeyGenerator.incrementAndGet());
+                statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
                 GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
                 GlobalVariables.statsdGaugeCache.putIfAbsent(gauge.getBucket(), gauge);

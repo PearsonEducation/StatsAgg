@@ -24,102 +24,46 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private Long hashKey_ = null;
     
     private final String metricPath_;
-    private final String metricValue_;
-    private final String metricTimestamp_;
-    private final Long metricReceivedTimestampInMilliseconds_;
+    private final BigDecimal metricValue_;
+    private final int metricTimestamp_;
+    private final long metricReceivedTimestampInMilliseconds_;
     
-    private BigDecimal metricValueBigDecimal_ = null;
-    private Integer metricTimestampInt_ = null;
-    private Long metricTimestampInMilliseconds_ = null;
-
-    public GraphiteMetricRaw(String metricPath, String metricValue, String metricTimestamp, Long metricReceivedTimestampInMilliseconds) {
+    private long metricTimestampInMilliseconds_ = -1;
+    
+    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
         
-        this.metricValueBigDecimal_ = createAndGetMetricValueBigDecimal();
-        this.metricTimestampInt_ = createAndGetMetricTimestampInt();
         this.metricTimestampInMilliseconds_ = createAndGetMetricTimestampInMilliseconds();
     }
     
-    public GraphiteMetricRaw(String metricPath, String metricValue, String metricTimestamp, Long metricReceivedTimestampInMilliseconds,
-            BigDecimal metricValueBigDecimal, Integer metricTimestampInt, Long metricTimestampInMilliseconds) {
+    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds, long metricTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
-        this.metricTimestampInt_ = metricTimestampInt;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
-        
-        this.metricValueBigDecimal_ = metricValueBigDecimal;
-        this.metricTimestampInt_ = metricTimestampInt;
+
         this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
     }
     
-    public final BigDecimal createAndGetMetricValueBigDecimal() {
-        
-        try {
-            if (metricValueBigDecimal_ == null) {
-                metricValueBigDecimal_ = new BigDecimal(metricValue_);
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            metricValueBigDecimal_ = null;
-        }
-        
-        return metricValueBigDecimal_;
+    public String createAndGetMetricValueString() {
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
     }
 
-    public final Integer createAndGetMetricTimestampInt() {
-        
-        try {
-            if (metricTimestampInt_ == null) {
-                metricTimestampInt_ = Integer.valueOf(metricTimestamp_);
-            }
+    public final long createAndGetMetricTimestampInMilliseconds() {
+        if ((metricTimestampInMilliseconds_ == -1) &&  (metricTimestamp_ != -1)) {
+            metricTimestampInMilliseconds_ = (long) metricTimestamp_ * 1000;
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            metricTimestampInt_ = null;
-        }
-        
-        return metricTimestampInt_;
-    }
-    
-    public final Long createAndGetMetricTimestampInMilliseconds() {
-        
-        try {
-            if (metricTimestampInMilliseconds_ == null) {
-                createAndGetMetricTimestampInt();
-                
-                if (metricTimestampInt_ != null) {
-                    metricTimestampInMilliseconds_ = (long) metricTimestampInt_ * 1000;
-                }
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            metricTimestampInMilliseconds_ = null;
-        }
-        
+
         return metricTimestampInMilliseconds_;
     }
-    
-    @Override
-    public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
-        
-        stringBuilder.append(metricPath_).append(" ")
-                .append(metricValue_).append(" ")       
-                .append(metricTimestamp_)
-                .append(" @ ").append(metricReceivedTimestampInMilliseconds_);
-        
-        return stringBuilder.toString();
-    }
-    
+
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(53, 59)
+        return new HashCodeBuilder(11, 13)
                 .append(metricPath_)
                 .append(metricValue_)
                 .append(metricTimestamp_)
@@ -129,35 +73,54 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     
     @Override
     public boolean equals(Object obj) {
-        
         if (obj == null) return false;
         if (obj == this) return true;
         if (obj.getClass() != getClass()) return false;
         
         GraphiteMetricRaw graphiteMetricRaw = (GraphiteMetricRaw) obj;
         
+        boolean isMetricValueEqual = false;
+        if ((metricValue_ != null) && (graphiteMetricRaw.getMetricValue() != null)) {
+            isMetricValueEqual = metricValue_.compareTo(graphiteMetricRaw.getMetricValue()) == 0;
+        }
+        else if (metricValue_ == null) {
+            isMetricValueEqual = graphiteMetricRaw.getMetricValue() == null;
+        }
+        
         return new EqualsBuilder()
                 .append(metricPath_, graphiteMetricRaw.getMetricPath())
-                .append(metricValue_, graphiteMetricRaw.getMetricValue())
+                .append(isMetricValueEqual, true)
                 .append(metricTimestamp_, graphiteMetricRaw.getMetricTimestamp())
                 .append(metricReceivedTimestampInMilliseconds_, graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds())
                 .isEquals();
     }
     
     @Override
-    public String getGraphiteFormatString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+    public String toString() {
+        StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(metricValue_).append(" ").append(metricTimestamp_);
+        stringBuilder.append(metricPath_).append(" ")
+                .append(getMetricValueString()).append(" ")       
+                .append(metricTimestamp_)
+                .append(" @ ").append(metricReceivedTimestampInMilliseconds_);
+        
+        return stringBuilder.toString();
+    }
+    
+    @Override
+    public String getGraphiteFormatString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        
+        stringBuilder.append(metricPath_).append(" ").append(getMetricValueString()).append(" ").append(metricTimestamp_);
 
         return stringBuilder.toString();
     }
     
     @Override
     public String getOpenTsdbFormatString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(metricTimestamp_).append(" ").append(metricValue_).append(" Format=Graphite");
+        stringBuilder.append(metricPath_).append(" ").append(metricTimestamp_).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }
@@ -177,21 +140,23 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             }
 
             int metricValueIndexRange = unparsedMetric.indexOf(' ', metricPathIndexRange + 1);
-            String metricValue = null;
+            BigDecimal metricValueBigDecimal = null;
             if (metricValueIndexRange > 0) {
-                metricValue = unparsedMetric.substring(metricPathIndexRange + 1, metricValueIndexRange);
+                String metricValue = unparsedMetric.substring(metricPathIndexRange + 1, metricValueIndexRange);
+                metricValueBigDecimal = new BigDecimal(metricValue);
             }
 
-            String metricTimestamp = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length());
-
-            if ((metricPath == null) || metricPath.isEmpty() || 
-                    (metricValue == null) || metricValue.isEmpty() || 
-                    (metricTimestamp == null) || metricTimestamp.isEmpty() || (metricTimestamp.length() != 10)) {
+            String metricTimestampString = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length());
+            int metricTimestamp = Integer.parseInt(metricTimestampString);
+            
+            if ((metricPath == null) || metricPath.isEmpty() || (metricValueBigDecimal == null) ||
+                    (metricTimestampString == null) || metricTimestampString.isEmpty() || 
+                    (metricTimestampString.length() != 10) || (metricTimestamp < 0)) {
                 logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath, metricValue, metricTimestamp, metricReceivedTimestampInMilliseconds); 
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath, metricValueBigDecimal, metricTimestamp, metricReceivedTimestampInMilliseconds); 
                 return graphiteMetricRaw;
             }
         }
@@ -216,7 +181,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             while(newLineLocation != -1) {
                 newLineLocation = unparsedMetrics.indexOf('\n', currentIndex);
 
-                String unparsedMetric = null;
+                String unparsedMetric;
 
                 if (newLineLocation == -1) {
                     unparsedMetric = unparsedMetrics.substring(currentIndex, unparsedMetrics.length());
@@ -266,10 +231,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 if (doesAlreadyContainMetricPath) {
                     GraphiteMetricRaw currentMostRecentGraphiteMetricRaw = mostRecentGraphiteMetricsByMetricPath.get(graphiteMetricRaw.getMetricPath());
 
-                    if (graphiteMetricRaw.getMetricTimestampInt() > currentMostRecentGraphiteMetricRaw.getMetricTimestampInt()) {
+                    if (graphiteMetricRaw.getMetricTimestamp() > currentMostRecentGraphiteMetricRaw.getMetricTimestamp()) {
                         mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                     }
-                    else if (graphiteMetricRaw.getMetricTimestampInt().intValue() == currentMostRecentGraphiteMetricRaw.getMetricTimestampInt()) {
+                    else if (graphiteMetricRaw.getMetricTimestamp() == currentMostRecentGraphiteMetricRaw.getMetricTimestamp()) {
                         if (graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricReceivedTimestampInMilliseconds()) {
                             mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                         }
@@ -299,7 +264,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     public void setHashKey(Long hashKey) {
         this.hashKey_ = hashKey;
     }
-    
+
     public String getMetricPath() {
         return metricPath_;
     }
@@ -309,30 +274,31 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return getMetricPath();
     }
     
-    public String getMetricValue() {
+    public BigDecimal getMetricValue() {
         return metricValue_;
     }
     
     @Override
     public BigDecimal getMetricValueBigDecimal() {
-        return createAndGetMetricValueBigDecimal();
+        return metricValue_;
     }
     
-    public String getMetricTimestamp() {
+    @Override
+    public String getMetricValueString() {
+        return createAndGetMetricValueString();
+    }
+
+    public int getMetricTimestamp() {
         return metricTimestamp_;
     }
 
-    public Integer getMetricTimestampInt() {
-        return createAndGetMetricTimestampInt();
-    }
-
     @Override
-    public Long getMetricTimestampInMilliseconds() {
+    public long getMetricTimestampInMilliseconds() {
         return createAndGetMetricTimestampInMilliseconds();
     }
     
     @Override
-    public Long getMetricReceivedTimestampInMilliseconds() {
+    public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
     }
 

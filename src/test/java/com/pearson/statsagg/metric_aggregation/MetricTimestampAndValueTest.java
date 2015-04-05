@@ -19,7 +19,7 @@ import org.junit.Test;
  */
 public class MetricTimestampAndValueTest {
     
-    private static final AtomicLong hashKeyGen_ = GlobalVariables.aggregatedMetricHashKeyGenerator;
+    private static final AtomicLong hashKeyGen_ = GlobalVariables.metricHashKeyGenerator;
     private static final List<MetricTimestampAndValue> metricTimestampsAndValues_ = new ArrayList<>();
     
     public MetricTimestampAndValueTest() {
