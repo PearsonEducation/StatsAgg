@@ -37,62 +37,6 @@ public class StatsdMetricAggregatorTest {
     }
 
     /**
-     * Test of aggregateStatsdMetrics method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testAggregateStatsdMetrics() {
-
-    }
-
-    /**
-     * Test of getStatsdMetricsRawByMetricType method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testGetStatsdMetricsRawByMetricType() {
-
-    }
-
-    /**
-     * Test of getStatsdMetricsRawByMetricTypeKey method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testGetStatsdMetricsRawByMetricTypeKey() {
-
-    }
-
-    /**
-     * Test of getStatsdMetricsRawExcludeMetricType method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testGetStatsdMetricsRawExcludeMetricType() {
-
-    }
-
-    /**
-     * Test of getStatsdMetricsRawExcludeMetricTypeKey method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testGetStatsdMetricsRawExcludeMetricTypeKey() {
-
-    }
-
-    /**
-     * Test of divideStatsdMetricsRawByMetricTypeKey method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testDivideStatsdMetricsRawByMetricTypeKey() {
-
-    }
-
-    /**
-     * Test of divideStatsdMetricsRawByBucket method, of class StatsdMetricAggregator.
-     */
-    @Test
-    public void testDivideStatsdMetricsRawByBucket() {
-
-    }
-
-    /**
      * Test of aggregateCounter method, of class StatsdMetricAggregator.
      */
     @Test

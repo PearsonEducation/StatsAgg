@@ -40,7 +40,10 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
 * Graphite, StatsD, and OpenTSDB do not have native alerting mechanisms
     * Most alerting solutions for StatsD, Graphite, and/or OpenTSDB metrics are provided by (expensive) SaaS venders.
     * The alerting mechanism in StatsAgg compares favourably to many pay-based solutions.
-* Provides an alternative way of managing servers/services/etc compared to tools like Nagios, Zabbix, etc
+* StatsAgg can act as a sort of 'metric transcoder' between various technologies. 
+    * It allows any combination of input metrics StatsD, Graphite, and OpenTSDB metrics to be output to OpenTSDB, Graphite, InfluxDB (via the Graphite listener), etc.
+    * Support for more input & output formats will increase as StatsAgg evolves.
+* StatsAgg provides an alternative way of managing servers/services/etc compared to tools like Nagios, Zabbix, etc
     * StatsAgg allows you to break away from viewing everything from the perspective of servers/hosts. You could structure your metrics to group everything by host, but you aren't required to.
     * Generally speaking, tools like Nagios, Zabbix, etc lack the ability to alert off of free-form metrics. Since StatsAgg uses regular-expressions to tie metrics to alerts, you can just as easily alert off of a 'free-form metric hierarchy' as you can a 'highly structured metric hierarchy'.
     * Tools like Nagios, Zabbix, etc aren't built around having fine datapoint granularity (more frequent than once per minute). StatsAgg was written to be able to receive, aggregate, alert on, and output metrics that are sent at any interval.

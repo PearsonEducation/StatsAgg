@@ -61,7 +61,7 @@ public class OpenTsdbRawTest {
         assertTrue(parsedMetric.getMetricKey().equals("tcollector.reader.lines_collected : tag1=meow tag2=mix"));
         assertTrue(parsedMetric.getMetricTimestampInMilliseconds() == 1424566500000L);
         assertEquals(parsedMetric.getGraphiteFormatString(), "tcollector.reader.lines_collected 1203.3 1424566500");
-        assertEquals(parsedMetric.toString(), "tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix");
+        assertEquals(parsedMetric.getOpenTsdbFormatString(), "tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix");
         assertEquals(parsedMetric.getTags().size(), 2);
         
         int tagCount = 0;

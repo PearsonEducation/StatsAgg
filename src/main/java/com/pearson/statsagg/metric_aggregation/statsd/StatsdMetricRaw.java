@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.math.BigDecimal;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,20 +25,30 @@ public final class StatsdMetricRaw {
     private Long hashKey_ = null;
 
     private final String bucket_;
-    private final String metricValue_;
-    private final String metricType_;
-    private final String sampleRate_;
-    private final long metricReceivedTimestampInMilliseconds_;
+    private final BigDecimal metricValue_;
     private final byte metricTypeKey_;
+    private final boolean doesContainOperator_;
+    private final BigDecimal sampleRate_;
+    private final long metricReceivedTimestampInMilliseconds_;
         
-    public StatsdMetricRaw(String bucket, String metricValue, String metricType, String sampleRate, long metricReceivedTimestampInMilliseconds) {
+    
+    public StatsdMetricRaw(String bucket, BigDecimal metricValue, String metricType, boolean doesContainOperator, BigDecimal sampleRate, long metricReceivedTimestampInMilliseconds) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
-        this.metricType_ = metricType;
+        this.metricTypeKey_ = determineMetricTypeKey(metricType);
+        this.doesContainOperator_ = doesContainOperator;
         this.sampleRate_ = sampleRate;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
-        
-        this.metricTypeKey_ = determineMetricTypeKey(metricType);
+    }
+    
+    private String createAndGetMetricValueString() {
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
+    }
+    
+    private String createAndGetSampleRateString() {
+        if (sampleRate_ == null) return null;
+        return sampleRate_.stripTrailingZeros().toPlainString();
     }
     
     private byte determineMetricTypeKey(String metricType) {
@@ -45,34 +57,53 @@ public final class StatsdMetricRaw {
             return UNDEFINED_TYPE;
         }
         
-        if (metricType.equals("c")) {
-            return COUNTER_TYPE;
-        }
-        else if (metricType.equals("ms")) {
-            return TIMER_TYPE;
-        }
-        else if (metricType.equals("g")) {
-            return GAUGE_TYPE;
-        }
-        else if (metricType.equals("s")) {
-            return SET_TYPE;
-        }
-        else {
-            return UNDEFINED_TYPE;
-        }
+        if (metricType.equals("c")) return COUNTER_TYPE;
+        else if (metricType.equals("ms")) return TIMER_TYPE;
+        else if (metricType.equals("g")) return GAUGE_TYPE;
+        else if (metricType.equals("s")) return SET_TYPE;
+        else return UNDEFINED_TYPE;
+    }
+    
+    private String createAndGetMetricTypeString(byte metricType) {
+        if (metricType == COUNTER_TYPE) return "c";
+        else if (metricType == TIMER_TYPE) return "ms";        
+        else if (metricType == GAUGE_TYPE) return "g";  
+        else if (metricType == SET_TYPE) return "s";  
+        else return null;
     }
     
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(":").append(metricValue_).append("|").append(metricType_);
-        
-        if (sampleRate_ != null) {
-            stringBuilder.append("|@").append(sampleRate_);
+        boolean isMetricValueGreaterThanOrEqualToZero = false;
+        if (metricValue_ != null) {
+            int compareResult = metricValue_.compareTo(BigDecimal.ZERO);
+            if (compareResult != -1) isMetricValueGreaterThanOrEqualToZero = true; 
         }
         
+        stringBuilder.append(bucket_).append(":");
+        if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
+        stringBuilder.append(getMetricValueString()).append("|").append(createAndGetMetricTypeString(metricTypeKey_));
+        if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         stringBuilder.append(" @ ").append(metricReceivedTimestampInMilliseconds_);
+        
+        return stringBuilder.toString();
+    }
+    
+    public String getStatsdMetricFormatString() {
+        StringBuilder stringBuilder = new StringBuilder();
+        
+        boolean isMetricValueGreaterThanOrEqualToZero = false;
+        if (metricValue_ != null) {
+            int compareResult = metricValue_.compareTo(BigDecimal.ZERO);
+            if (compareResult != -1) isMetricValueGreaterThanOrEqualToZero = true; 
+        }
+        
+        stringBuilder.append(bucket_).append(":");
+        if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
+        stringBuilder.append(getMetricValueString()).append("|").append(createAndGetMetricTypeString(metricTypeKey_));
+        if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         
         return stringBuilder.toString();
     }
@@ -96,30 +127,33 @@ public final class StatsdMetricRaw {
             }
 
             int metricValueIndexRange = unparsedMetric.indexOf('|', bucketIndexRange + 1);
-            String metricValue = null;
+            
+            BigDecimal metricValue = null;
+            boolean doesContainOperator = false;
             if (metricValueIndexRange > 0) {
-                metricValue = unparsedMetric.substring(bucketIndexRange + 1, metricValueIndexRange);
+                String metricValueString = unparsedMetric.substring(bucketIndexRange + 1, metricValueIndexRange);
+                doesContainOperator = StringUtils.containsAny(metricValueString, "+-");
+                metricValue = new BigDecimal(metricValueString);
             }
 
             int metricTypeIndexRange = unparsedMetric.indexOf('|', metricValueIndexRange + 1);
             String metricType;
-            String sampleRate = null;
+            BigDecimal sampleRate = null;
             if (metricTypeIndexRange > 0) {
-                metricType = unparsedMetric.substring(metricValueIndexRange + 1, metricTypeIndexRange);
-                sampleRate = unparsedMetric.substring(metricTypeIndexRange + 2, unparsedMetric.length());
+                metricType = unparsedMetric.substring(metricValueIndexRange + 1, metricTypeIndexRange).trim();
+                String sampleRateString = unparsedMetric.substring(metricTypeIndexRange + 2, unparsedMetric.length()).trim();
+                if (sampleRateString != null) sampleRate = new BigDecimal(sampleRateString);
             }
             else {
-                metricType = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length());
+                metricType = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length()).trim();
             }
             
-            if ((bucketValue == null) || bucketValue.isEmpty() || 
-                    (metricValue == null) || metricValue.isEmpty() || 
-                    (metricType == null) || metricType.isEmpty()) {
+            if ((bucketValue == null) || bucketValue.isEmpty() || (metricValue == null) || (metricType == null) || metricType.isEmpty()) {
                 logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
-                StatsdMetricRaw statsdMetricRaw = new StatsdMetricRaw(bucketValue, metricValue, metricType, sampleRate, metricReceivedTimestampInMilliseconds); 
+                StatsdMetricRaw statsdMetricRaw = new StatsdMetricRaw(bucketValue, metricValue, metricType, doesContainOperator, sampleRate, metricReceivedTimestampInMilliseconds); 
                 return statsdMetricRaw;
             }
         }
@@ -221,28 +255,36 @@ public final class StatsdMetricRaw {
         return bucket_;
     }
 
-    public String getMetricValue() {
+    public BigDecimal getMetricValue() {
         return metricValue_;
     }
     
     public String getMetricValueString() {
-        return metricValue_;
+        return createAndGetMetricValueString();
     }
     
     public String getMetricType() {
-        return metricType_;
-    }
-
-    public String getSampleRate() {
-        return sampleRate_;
-    }
-    
-    public long getMetricReceivedTimestampInMilliseconds() {
-        return metricReceivedTimestampInMilliseconds_;
+        return createAndGetMetricTypeString(metricTypeKey_);
     }
 
     public byte getMetricTypeKey() {
         return metricTypeKey_;
     }
-
+    
+    public boolean doesContainOperator() {
+        return doesContainOperator_;
+    }
+    
+    public BigDecimal getSampleRate() {
+        return sampleRate_;
+    }
+    
+    public String getSampleRateString() {
+        return createAndGetSampleRateString();
+    }
+    
+    public long getMetricReceivedTimestampInMilliseconds() {
+        return metricReceivedTimestampInMilliseconds_;
+    }
+    
 }

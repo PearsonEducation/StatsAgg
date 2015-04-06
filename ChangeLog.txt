@@ -1,10 +1,10 @@
 StatsAgg 1.2  - released 2015-xx-xx
- * OpenTSDB performance improvements -- most noticeable under high load scenarios
- * Graphite performance improvements -- most noticeable under high load scenarios
+ * Performance & memory utilization improvements -- most noticeable under high load scenarios
  * Minor OpenTSDB 'send previous value' improvements
  * Security improvements
  * Bugfix for Graphite-Agg & StatsD -- metric values being output to OpenTSDB and/or Graphite could have been improperly formatted
 
+ 
 StatsAgg 1.1  - released 2015-03-27
  * If you upgrading from StatsAgg 1.0, then you will need to run the SQL found in "Upgrade to 1.1.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql

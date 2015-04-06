@@ -31,13 +31,13 @@ public class StatsdMetricAggregator {
     public static final MathContext STATSD_MATH_CONTEXT = new MathContext(STATSD_PRECISION, STATSD_ROUNDING_MODE);
     private static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
 
-    private static String statsdSuffix_ = null;
     private static String counterMetricPrefix_ = null;
     private static String counterMetricLegacyPrefix_ = null;
     private static String timerMetricPrefix_ = null;
     private static String gaugeMetricPrefix_ = null;
     private static String setMetricPrefix_ = null;
-    
+    private static String statsdSuffix_ = null;
+
     public static List<StatsdMetricAggregated> aggregateStatsdMetrics(List<StatsdMetricRaw> statsdMetricsRaw) {
         
         if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
@@ -276,12 +276,12 @@ public class StatsdMetricAggregator {
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
             
             try {
-                BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
+                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
 
                 sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
                 
                 if (statsdMetricRaw.getSampleRate() != null) {
-                    BigDecimal sampleRate = new BigDecimal(statsdMetricRaw.getSampleRate());
+                    BigDecimal sampleRate = statsdMetricRaw.getSampleRate();
                     BigDecimal sampleRateMultiplier;
                     
                     if (sampleRate.compareTo(BigDecimal.ZERO) == 1) {
@@ -368,7 +368,7 @@ public class StatsdMetricAggregator {
         List<BigDecimal> rollingSum = new ArrayList<>();
         List<BigDecimal> rollingSumOfSquares = new ArrayList<>();
 
-        BigDecimal lower = null, upper = null, sum = BigDecimal.ZERO, sumOfSquares = BigDecimal.ZERO;
+        BigDecimal count = BigDecimal.ZERO, lower = null, upper = null, sum = BigDecimal.ZERO, sumOfSquares = BigDecimal.ZERO;
         List<BigDecimal> countNthPercentiles = null, meanNthPercentiles = null, lowerNthPercentiles = null, sumNthPercentiles = null, sumOfSquaresNthPercentiles = null, upperNthPercentiles = null;
         List<String> outputPercentageStringsNthPercentiles = null;
         
@@ -377,9 +377,30 @@ public class StatsdMetricAggregator {
 
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
             try {
-                BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
+                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
                 metricValues.add(metricValue);
-                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
+                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();     
+                
+//                if (statsdMetricRaw.getSampleRate() != null) {
+//                    BigDecimal sampleRate = statsdMetricRaw.getSampleRate();
+//                    BigDecimal sampleRateMultiplier;
+//
+//                    if (sampleRate.compareTo(BigDecimal.ZERO) == 1) {
+//                        sampleRateMultiplier = BigDecimal.ONE.divide(sampleRate, MathContext.DECIMAL64);
+//                    }
+//                    else {
+//                        sampleRateMultiplier = BigDecimal.ONE;
+//
+//                        logger.warn("Invalid sample rate for counter=\"" + statsdMetricsRaw.get(0).getBucket() 
+//                                + "\". Value=\"" + statsdMetricRaw.getSampleRate() 
+//                                + "\". Defaulting to sample-rate of 1.0");
+//                    }
+//
+//                    count = count.add(metricValue.multiply(sampleRateMultiplier));
+//                }
+//                else {
+//                    count = count.add(metricValue);
+//                }
             }
             catch (Exception e) {
                 logger.error("Invalid data for timer=\"" + statsdMetricRaw.getBucket()
@@ -397,7 +418,7 @@ public class StatsdMetricAggregator {
             BigDecimal metricValueSquared = metricValue.multiply(metricValue);
             sumOfSquares = sumOfSquares.add(metricValueSquared);
             rollingSumOfSquares.add(sumOfSquares);
-
+            
             if (metricCounter == 0) {
                 upper = metricValue;
                 lower = metricValue;
@@ -478,7 +499,7 @@ public class StatsdMetricAggregator {
             String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket();
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
 
-            BigDecimal count = metricCounter_BigDecimal;
+            count = metricCounter_BigDecimal;
             BigDecimal countPs = MathUtilities.smartBigDecimalScaleChange(
                     count.multiply(ONE_THOUSAND)
                     .divide(aggregationWindowLengthInMs, STATSD_MATH_CONTEXT), 
@@ -664,9 +685,9 @@ public class StatsdMetricAggregator {
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRawLocal) {
 
             try {
-                BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
+                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
                 
-                if (statsdMetricRaw.getMetricValue().contains("+") || statsdMetricRaw.getMetricValue().contains("-")) {
+                if (statsdMetricRaw.doesContainOperator()) {
                     aggregatedMetricValue = aggregatedMetricValue.add(metricValue);
                 }
                 else {
@@ -715,7 +736,7 @@ public class StatsdMetricAggregator {
         for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
 
             try {
-                BigDecimal metricValue = new BigDecimal(statsdMetricRaw.getMetricValue());
+                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
                 String metricValueNormalized = metricValue.stripTrailingZeros().toPlainString();
                 metricSet.add(metricValueNormalized);
                 sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
