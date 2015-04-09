@@ -108,7 +108,7 @@ public class TcpServer implements Runnable, NettyServer {
         }
         catch (Exception e) {
             initializeSuccess = false;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            logger.error(e.toString() + " - Port=" + port_ + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
             shutdownServer();

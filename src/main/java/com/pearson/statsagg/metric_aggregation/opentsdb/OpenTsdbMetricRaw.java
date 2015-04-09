@@ -138,7 +138,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         
         if (openTsdbMetricRaws == null) return null;
 
-        StringBuilder openTsdbJson = new StringBuilder("");
+        StringBuilder openTsdbJson = new StringBuilder();
         
         openTsdbJson.append("[");
         

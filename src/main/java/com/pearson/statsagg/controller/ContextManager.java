@@ -43,6 +43,7 @@ import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
+import com.pearson.statsagg.network.JettyServer;
 import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.network.http.JettyOpenTsdb;
 import com.pearson.statsagg.network.tcp.TcpServer;
@@ -107,12 +108,6 @@ public class ContextManager implements ServletContextListener {
         
         GlobalVariables.isApplicationInitializeSuccess.set(false);
 
-        
-        
-        //jettyOpenTsdb_.stopServer();
-        
-        
-        
         shutdownServerListeners();
         
         shutdownInvokerThreads();
@@ -207,12 +202,6 @@ public class ContextManager implements ServletContextListener {
         // startup netty servers
         boolean isStartupServerListenersSuccess = startServerListeners();
    
-        
-//        jettyOpenTsdb_ = new JettyOpenTsdb(9999, 30000);
-//        jettyOpenTsdb_.startServer();
-        
-        
-        
         // set the start time for statsagg
         GlobalVariables.statsaggStartTimestamp.set(System.currentTimeMillis());
 
@@ -686,6 +675,12 @@ public class ContextManager implements ServletContextListener {
                 openTsdbTcpServerThread.start();
                 if (!openTsdbTcpServer_.isInitializeSuccess()) isStartupSuccess = false;
             }
+            
+            // start the opentsdb jetty http server
+            if (ApplicationConfiguration.isOpenTsdbHttpListenerEnabled()) {
+                jettyOpenTsdb_ = new JettyOpenTsdb(ApplicationConfiguration.getOpenTsdbHttpListenerPort(), 30000);
+                jettyOpenTsdb_.startServer();
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + File.separator + StackTrace.getStringFromStackTrace(e));
@@ -710,7 +705,7 @@ public class ContextManager implements ServletContextListener {
         logger.info("Start - shutting down server listeners");
         
         List<Thread> shutdownServerThreads = new ArrayList<>();
-        
+
         ShutdownNettyServer shutdownStatsdTcpServer = new ShutdownNettyServer(statsdTcpServer_);
         Thread threadShutdownStatsdTcpServer_ = new Thread(shutdownStatsdTcpServer);
         shutdownServerThreads.add(threadShutdownStatsdTcpServer_);
@@ -738,6 +733,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownNettyServer shutdownOpenTsdbTcpServer = new ShutdownNettyServer(openTsdbTcpServer_);
         Thread threadShutdownOpenTsdbTcpServer_ = new Thread(shutdownOpenTsdbTcpServer);
         shutdownServerThreads.add(threadShutdownOpenTsdbTcpServer_);
+        
+        ShutdownJettyServer shutdownOpenTsdbJettyServer = new ShutdownJettyServer(jettyOpenTsdb_);
+        Thread threadShutdownOpenTsdbJettyServer_ = new Thread(shutdownOpenTsdbJettyServer);
+        shutdownServerThreads.add(threadShutdownOpenTsdbJettyServer_);
         
         Threads.threadExecutorCachedPool(shutdownServerThreads, 30, TimeUnit.SECONDS);
 
@@ -821,6 +820,24 @@ public class ContextManager implements ServletContextListener {
         public void run() {
             if (server__ != null) {
                 server__.shutdownServer();
+                server__ = null;
+            }
+        }
+        
+    }
+    
+    private static class ShutdownJettyServer implements Runnable {
+    
+        private JettyServer server__;
+        
+        public ShutdownJettyServer(JettyServer server) {
+            this.server__ = server;
+        }
+        
+        @Override
+        public void run() {
+            if (server__ != null) {
+                server__.stopServer();
                 server__ = null;
             }
         }

@@ -47,6 +47,8 @@ public class ApplicationConfiguration {
     private static int graphitePassthroughUdpListenerPort_ = VALUE_NOT_SET_CODE;
     private static boolean openTsdbTcpTelnetListenerEnabled_ = false;
     private static int openTsdbTcpTelnetListenerPort_ = VALUE_NOT_SET_CODE;
+    private static boolean openTsdbHttpListenerEnabled_ = false;
+    private static int openTsdbHttpListenerPort_ = VALUE_NOT_SET_CODE;
     
     private static boolean globalMetricNamePrefixEnabled_ = false;
     private static String globalMetricNamePrefixValue_ = null;
@@ -151,6 +153,8 @@ public class ApplicationConfiguration {
             graphitePassthroughUdpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_udp_listener_port", 2003);
             openTsdbTcpTelnetListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_tcp_telnet_listener_enabled", true);
             openTsdbTcpTelnetListenerPort_ = applicationConfiguration_.getInt("opentsdb_tcp_telnet_listener_port", 4242);
+            openTsdbHttpListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_http_listener_enabled", true);
+            openTsdbHttpListenerPort_ = applicationConfiguration_.getInt("opentsdb_http_listener_port", 4243);
             
             // metric naming config
             globalMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("global_metric_name_prefix_enabled", false);
@@ -460,6 +464,14 @@ public class ApplicationConfiguration {
 
     public static int getOpenTsdbTcpTelnetListenerPort() {
         return openTsdbTcpTelnetListenerPort_;
+    }
+
+    public static boolean isOpenTsdbHttpListenerEnabled() {
+        return openTsdbHttpListenerEnabled_;
+    }
+
+    public static int getOpenTsdbHttpListenerPort() {
+        return openTsdbHttpListenerPort_;
     }
 
     public static boolean isGlobalMetricNamePrefixEnabled() {

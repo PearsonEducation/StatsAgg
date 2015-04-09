@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
@@ -100,7 +101,7 @@ public class put extends HttpServlet {
                 if (request.getParameterMap().keySet().contains("details")) doesRequestDetails = true;
             }
 
-            String json = getJsonPayloadFromRequest(request);
+            String json = CharStreams.toString(request.getReader());
             
             String responseMessage = parseMetrics(json, GlobalVariables.openTsdbPrefix, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);
                             
@@ -120,45 +121,7 @@ public class put extends HttpServlet {
             }
         }
     }
-    
-    protected String getJsonPayloadFromRequest(HttpServletRequest request) {
-        
-        if (request == null) {
-            return null;
-        }
-        
-        BufferedReader requestBodyReader = null;
 
-        try {
-            StringBuilder json = new StringBuilder("");
-            requestBodyReader = request.getReader();
-
-            if (requestBodyReader != null) {
-                String requestLine = "";
-
-                while (requestLine != null) {
-                    requestLine = requestBodyReader.readLine();
-                    if (requestLine != null) json.append(requestLine);
-                }
-            }
-            
-            return json.toString();
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        finally {            
-            if (requestBodyReader != null) {
-                try {
-                    requestBodyReader.close();
-                }
-                catch (Exception e){}
-            }
-        }
-        
-    }
-    
     public static String parseMetrics(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds, 
             boolean doesRequestSummary, boolean doesRequestDetails) {
         

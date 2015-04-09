@@ -1,11 +1,12 @@
 StatsAgg 1.2
+ * Investigate opentsdb tagKey being the same in telnet & http  -- dedup on tagKey?
  * Retest 'resend previous value' for all formats
  * Implement/document/test timers with sample rates
  * Document that we don't support sample rate with timers (yet)
  * Document security benefits of using StatsAgg for OpenTSDB
  * Unit test output format conversions
- * OpenTSDB HTTP on a separate port from Tomcat WebUI
-
+ * Fix 'get' output for opentsdb /api/put
+ 
 Short/Medium term
  * Last received metric in WebUI
  * Convert 'Alert Suspension Details' page into panel-based UI
@@ -25,6 +26,7 @@ Short/Medium term
  * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
  
 Long term
+ * Alert escalation notification group in Alerts
  * APIs to create alerts / metric-groups / etc
  * Mobile versions of essential WebUI pages
    * Make existing pages more mobile friendly?
