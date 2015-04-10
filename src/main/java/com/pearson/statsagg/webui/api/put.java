@@ -4,8 +4,8 @@ import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
+import com.pearson.statsagg.utilities.Compression;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.io.BufferedReader;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
@@ -70,7 +70,7 @@ public class put extends HttpServlet {
         try {
             response.setContentType("text/html"); 
             out = response.getWriter();
-            out.println("<head>" + PAGE_NAME + "</head>" + "<body><h1>" + PAGE_NAME + "</h1></body>");
+            out.println("<head>" + "</head>" + "<body><h1>" + PAGE_NAME + "</h1></body>");
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -101,7 +101,11 @@ public class put extends HttpServlet {
                 if (request.getParameterMap().keySet().contains("details")) doesRequestDetails = true;
             }
 
-            String json = CharStreams.toString(request.getReader());
+            String contentEncoding = request.getHeader("Content-Encoding");
+            String json;
+            if (contentEncoding.equalsIgnoreCase("gzip")) json = Compression.decompressGzipToString(request.getInputStream(), "UTF-8");
+            else if (contentEncoding.equalsIgnoreCase("deflate")) json = Compression.decompressDeflateToString(request.getInputStream(), "UTF-8");
+            else json = CharStreams.toString(request.getReader());
             
             String responseMessage = parseMetrics(json, GlobalVariables.openTsdbPrefix, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);
                             

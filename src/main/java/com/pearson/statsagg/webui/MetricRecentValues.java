@@ -121,10 +121,10 @@ public class MetricRecentValues extends HttpServlet {
     private String getRecentMetricTimestampsAndValues(String metricKey) {
         
         if (metricKey == null) {
-            return "";
+            return "<b>No metric key specified</b>";
         }
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         SimpleDateFormat dateAndTimeFormat = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
 
         List<MetricTimestampAndValue> metricTimestampsAndValuesLocal = new ArrayList<>();
@@ -143,6 +143,12 @@ public class MetricRecentValues extends HttpServlet {
 
         outputString.append("<b>").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</b>").append("<br>").append("<br>");
 
+        if (metricTimestampsAndValuesLocal.isEmpty()) {
+            return outputString.toString() +
+                    "No metric values found. This is usually the result of StatsAgg removing unneeded metric values from its memory.<br>" +
+                    "For a metric value to persist in StatsAgg for more than a few seconds, it must be associated with a metric group that is associated with an alert.";
+        }
+        
         for (int i = (metricTimestampsAndValuesLocal.size() - 1); i >= 0; i--) {
             
             MetricTimestampAndValue metricTimestampAndValue = metricTimestampsAndValuesLocal.get(i);

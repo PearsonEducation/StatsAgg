@@ -20,9 +20,11 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.concurrent.ConcurrentHashMap;
+import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -172,7 +174,7 @@ public class NotificationGroups extends HttpServlet {
     
     private String buildNotificationGroupsHtml() {
         
-        StringBuilder html = new StringBuilder("");
+        StringBuilder html = new StringBuilder();
 
         StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
         String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -206,6 +208,17 @@ public class NotificationGroups extends HttpServlet {
         for (NotificationGroup notificationGroup : notificationGroups) {     
             
             String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
+            
+            StringBuilder emailAddressesOutput = new StringBuilder();
+            String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
+            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
+                for (int i = 0; i < emailAddresses.length; i++) {
+                    String trimmedEmailAddress = emailAddresses[0].trim();
+                    emailAddressesOutput.append(trimmedEmailAddress);
+                    if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");;
+                }
+            }
+            
             String alter = "<a href=\"CreateNotificationGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">alter</a>";
 
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
@@ -227,7 +240,7 @@ public class NotificationGroups extends HttpServlet {
             
             htmlBodyStringBuilder.append("<tr>\n")
                 .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupDetails).append("</td>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses())).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesOutput.toString())).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
             
             if (notificationGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);

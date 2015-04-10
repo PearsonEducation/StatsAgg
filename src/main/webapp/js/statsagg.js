@@ -8,6 +8,13 @@ function confirmAction(formName, confirmString) {
     return confirmed;
 }
 
+// Code from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
+function getUrlParameters() {
+    var qd = {};
+    location.search.substr(1).split("&").forEach(function(item) {var k = item.split("=")[0], v = decodeURIComponent(item.split("=")[1]); (k in qd) ? qd[k].push(v) : qd[k] = [v,]})
+    return qd;
+}
+
 function generateAlertPreviewLink(warningLevel) {
 
     var warningLevelParameter = "WarningLevel=" + encodeURIComponent(warningLevel);
@@ -425,6 +432,11 @@ $(document).ready(function () {
                 yadcf_init_AlertsTable(alertsTable);
             }
         });
+        
+        var urlParameters = getUrlParameters();
+        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
+            alertsTable.search(urlParameters["TableSearch"][0]).draw();
+        }
     }
 });
 
@@ -471,6 +483,11 @@ $(document).ready(function () {
                 yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
             }
         });
+        
+        var urlParameters = getUrlParameters();
+        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
+            alertSuspensionsTable.search(urlParameters["TableSearch"][0]).draw();
+        }
     }
 });
 
@@ -511,6 +528,11 @@ $(document).ready(function () {
                 yadcf_init_MetricGroupsTable(metricGroupsTable);
             }
         });
+        
+        var urlParameters = getUrlParameters();
+        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
+            metricGroupsTable.search(urlParameters["TableSearch"][0]).draw();
+        }
     }
 });
 
@@ -550,6 +572,11 @@ $(document).ready(function () {
                 yadcf_init_NotificationGroupsTable(notificationGroupsTable);
             }
         });
+        
+        var urlParameters = getUrlParameters();
+        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
+            notificationGroupsTable.search(urlParameters["TableSearch"][0]).draw();
+        }
     }
 });
 

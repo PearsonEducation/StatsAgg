@@ -158,13 +158,14 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
     protected String getAlertSuspension_AlertAssociations(AlertSuspension alertSuspension) {
         
         if (alertSuspension == null) {
-            return "";
+            return "<b>Invalid alert suspension specified</b>";
         }
         
         List<String> alertNames = new ArrayList<>();
         
-        AlertsDao alertsDao = new AlertsDao(false);
+        AlertsDao alertsDao = new AlertsDao();
         List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        
         for (Alert alert : alerts) {
             if ((alert.getName() == null) || alert.getName().isEmpty()) continue;
             
@@ -184,11 +185,10 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
                 alertNames.add(alert.getName());
             }
         }
-        alertsDao.close();
-
+        
         Collections.sort(alertNames);
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         outputString.append("<b>Total Alert Associations</b> = ").append(alertNames.size()).append("<br><br>");
         
         if (alertNames.size() > 0) {

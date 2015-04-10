@@ -176,7 +176,7 @@ public class RegexTester extends HttpServlet {
     public static String getRegexMatchesHtml(String regex, int metricMatchLimit) {
         
         if (regex == null) {
-            return "";
+            return "<b>No regex specified</b>";
         }
         
         Pattern pattern = null;
@@ -209,7 +209,7 @@ public class RegexTester extends HttpServlet {
         
         Collections.sort(matchingMetricKeys);
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         
         String matchCountString;
         if (matchingMetricKeys.size() > metricMatchLimit) matchCountString = "More than " + Integer.toString(metricMatchLimit);

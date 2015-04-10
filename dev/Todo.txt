@@ -1,17 +1,17 @@
 StatsAgg 1.2
- * Investigate opentsdb tagKey being the same in telnet & http  -- dedup on tagKey?
+ * Document that OpenTSDB cannot handle tags with the same tagKey
  * Retest 'resend previous value' for all formats
  * Implement/document/test timers with sample rates
  * Document that we don't support sample rate with timers (yet)
  * Document security benefits of using StatsAgg for OpenTSDB
+ * Document support for compressed OpenTSDB HTTP
  * Unit test output format conversions
- * Fix 'get' output for opentsdb /api/put
+
  
 Short/Medium term
  * Last received metric in WebUI
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
- * OpenTSDB SSL for HTTP interface
  * StatsD histograms
  * StatsD forwarder
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
@@ -32,6 +32,7 @@ Long term
    * Make existing pages more mobile friendly?
  * Flot graphs on 'Recent Metric Values' page
  * Native InfluxDB support
+ * OpenTSDB SSL for HTTP interface
  * Support Graphite Pickle format
  * Migrate connection pool to HikariCP
  * Support output via OpenTSDB HTTP/JSON

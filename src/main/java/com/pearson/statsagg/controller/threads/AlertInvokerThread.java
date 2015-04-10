@@ -25,8 +25,9 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
         synchronized (lockObject_) {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
-
-                threadExecutor_.execute(new AlertThread(currentTimeInMilliseconds));
+                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds));
+                alertThread.setPriority(3);
+                threadExecutor_.execute(alertThread);
 
                 try {
                     lockObject_.wait(ApplicationConfiguration.getAlertRoutineInterval());

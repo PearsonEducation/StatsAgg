@@ -76,8 +76,11 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 return returnString;
             }
             else if (metricGroupUpsertSuccess && (newMetricGroupFromDb != null)) {
-                boolean isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), regexs, newMetricGroupFromDb);
-                boolean isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
+                boolean isAllMetricGroupRegexsUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true;
+                
+                // add conditional logic to only update when necessary
+                isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), regexs, newMetricGroupFromDb);
+                isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
 
                 if (isAllMetricGroupRegexsUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
                     boolean didCommitSucceed = metricGroupsDao.getDatabaseInterface().endTransaction(true);

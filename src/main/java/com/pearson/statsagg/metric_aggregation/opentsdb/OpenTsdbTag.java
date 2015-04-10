@@ -27,16 +27,27 @@ public class OpenTsdbTag {
         }
         
         ArrayList<OpenTsdbTag> openTsdbTags = new ArrayList<>();
+        ArrayList<String> openTsdbTagKeys = new ArrayList<>();
+        
         String[] unparsedTags_Split = StringUtils.split(unparsedTags.trim(), ' ');
         
         if ((unparsedTags_Split != null) && (unparsedTags_Split.length > 0)) {
-            for (String metricTag : unparsedTags_Split) {
-                int equalsIndex = metricTag.indexOf('=');
+            for (String unparsedTag : unparsedTags_Split) {
+                int equalsIndex = unparsedTag.indexOf('=');
                 
                 if (equalsIndex > -1) {
-                    String tag = metricTag.substring(0, metricTag.length()).trim();
-                    OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
-                    openTsdbTags.add(openTsdbTag);
+                    String tagKey = unparsedTag.substring(0, equalsIndex);
+                    
+                    if (!openTsdbTagKeys.contains(tagKey)) {
+                        openTsdbTagKeys.add(tagKey);
+                        String tag = unparsedTag.substring(0, unparsedTag.length()).trim();
+                        OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
+                        openTsdbTags.add(openTsdbTag);
+                    }
+                    else {
+                        logger.info("Duplicate Tag-Key Detected:" + tagKey);
+                        return new ArrayList<>();
+                    }
                 }
             }
         }
@@ -55,6 +66,7 @@ public class OpenTsdbTag {
         }
         
         ArrayList<OpenTsdbTag> openTsdbTags = new ArrayList<>();
+        ArrayList<String> openTsdbTagKeys = new ArrayList<>();
         
         int offset = startPosition;
         
@@ -67,9 +79,18 @@ public class OpenTsdbTag {
                 int equalsIndex = unparsedTag.indexOf('=');
                 
                 if (equalsIndex > -1) {
-                    String tag = unparsedTag.substring(0, unparsedTag.length()).trim();
-                    OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
-                    openTsdbTags.add(openTsdbTag);
+                    String tagKey = unparsedTag.substring(0, equalsIndex);
+                    
+                    if (!openTsdbTagKeys.contains(tagKey)) {
+                        openTsdbTagKeys.add(tagKey);
+                        String tag = unparsedTag.substring(0, unparsedTag.length()).trim();
+                        OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
+                        openTsdbTags.add(openTsdbTag);
+                    }
+                    else {
+                        logger.info("Duplicate Tag-Key Detected:" + tagKey);
+                        return new ArrayList<>();
+                    }
                 }
 
                 offset = metricTagIndexRange;
@@ -79,9 +100,18 @@ public class OpenTsdbTag {
                 int equalsIndex = unparsedTag.indexOf('=');
                 
                 if (equalsIndex > -1) {
-                    String tag = unparsedTag.substring(0, unparsedTag.length()).trim();
-                    OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
-                    openTsdbTags.add(openTsdbTag);
+                    String tagKey = unparsedTag.substring(0, equalsIndex);
+                    
+                    if (!openTsdbTagKeys.contains(tagKey)) {
+                        openTsdbTagKeys.add(tagKey);
+                        String tag = unparsedTag.substring(0, unparsedTag.length()).trim();
+                        OpenTsdbTag openTsdbTag = new OpenTsdbTag(tag);
+                        openTsdbTags.add(openTsdbTag);
+                    }
+                    else {
+                        logger.info("Duplicate Tag-Key Detected: " + tagKey);
+                        return new ArrayList<>();
+                    }
                 }
                 
                 break;

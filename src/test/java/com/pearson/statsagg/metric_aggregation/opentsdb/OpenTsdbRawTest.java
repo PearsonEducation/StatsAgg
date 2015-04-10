@@ -83,6 +83,16 @@ public class OpenTsdbRawTest {
     }
       
     /**
+     * Test of parseOpenTsdbMetricRaw method, of class OpenTsdbMetricRaw.
+     */
+    @Test
+    public void testParseOpenTsdbRaw_DuplicatedTagKey() {
+        String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag=mix  tag=meow";
+        OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, "", 1366998400999L);
+        assertEquals(parsedMetric, null);
+    }
+    
+    /**
      * Test of getOpenTsdbJson method, of class OpenTsdbMetricRaw.
      */
     @Test

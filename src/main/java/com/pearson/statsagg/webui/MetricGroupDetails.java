@@ -112,15 +112,18 @@ public class MetricGroupDetails extends HttpServlet {
     private String getMetricGroupDetailsString(String metricGroupName) {
         
         if (metricGroupName == null) {
-            return "";
+            return "<b>No metric group specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
         
-        if (metricGroup != null) {
+        if (metricGroup == null) {
+            return "<b>Metric group not found</b>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder();
+
             MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
             List<MetricGroupRegex> metricGroupRegexs =  metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
                   
@@ -161,9 +164,9 @@ public class MetricGroupDetails extends HttpServlet {
             outputString.append("<b>Metric Group Associations</b> = ");            
             String metricAssociationsLink = "<a href=\"MetricGroupAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             outputString.append(metricAssociationsLink);  
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
 
 }

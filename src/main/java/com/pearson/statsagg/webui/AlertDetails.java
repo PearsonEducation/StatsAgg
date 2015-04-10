@@ -113,15 +113,18 @@ public class AlertDetails extends HttpServlet {
     private String getAlertDetailsString(String alertName) {
         
         if (alertName == null) {
-            return "";
+            return "<div class=\"col-md-4\"><b>No alert specified</b></div>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(alertName);
         
-        if (alert != null) {
+        if (alert == null) {
+            return "<div class=\"col-md-4\"><b>Alert not found</b></div>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder("");
+
             NotificationGroup cautionNotificationGroup = null, dangerNotificationGroup = null;
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
             if (alert.getCautionNotificationGroupId() != null) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
@@ -375,9 +378,9 @@ public class AlertDetails extends HttpServlet {
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("</del>");
             
             outputString.append("</div></div></div>");
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
 
 }

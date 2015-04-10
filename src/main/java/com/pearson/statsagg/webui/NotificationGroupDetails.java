@@ -110,35 +110,47 @@ public class NotificationGroupDetails extends HttpServlet {
     private String getNotificationDetailsString(String notificationGroupName) {
         
         if (notificationGroupName == null) {
-            return "";
+            return "<b>No notification group specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
         
-        if (notificationGroup != null) {                  
+        if (notificationGroup == null) {
+            return "<b>Notification group not found</b>";
+        }
+        else {     
+            StringBuilder outputString = new StringBuilder();
+            
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName())).append("<br>");
             
             outputString.append("<b>Email addresses</b> = ");
-            if (notificationGroup.getEmailAddresses() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses())).append("<br>");
+            
+            StringBuilder emailAddressesOutput = new StringBuilder();
+            String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
+            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
+                for (int i = 0; i < emailAddresses.length; i++) {
+                    String trimmedEmailAddress = emailAddresses[0].trim();
+                    emailAddressesOutput.append(trimmedEmailAddress);
+                    if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");;
+                }
+            }
+            if (notificationGroup.getEmailAddresses() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(emailAddressesOutput.toString())).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<br>");
-            
-            String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
-            
-            for (String emailAddress : emailAddresses) {
-                String trimmedEmailAddress = emailAddress.trim();
-                boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
-                outputString.append("<b>Is \"").append(StatsAggHtmlFramework.htmlEncode(trimmedEmailAddress)).
-                        append("\" a valid email address?</b> = ").append(isValidEmailAddress).append("<br>");
+                        
+            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
+                for (String emailAddress : emailAddresses) {
+                    String trimmedEmailAddress = emailAddress.trim();
+                    boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
+                    outputString.append("<b>Is \"").append(StatsAggHtmlFramework.htmlEncode(trimmedEmailAddress)).
+                            append("\" a valid email address?</b> = ").append(isValidEmailAddress).append("<br>");
+                }
             }
             
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
 
 }

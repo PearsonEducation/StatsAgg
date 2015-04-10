@@ -116,15 +116,15 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
     protected String getAlertSuspension_AlertAssociations(String alertSuspensionName) {
         
         if (alertSuspensionName == null) {
-            return "";
+            return "<b>No alert suspension specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
         AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
-        if (alertSuspension == null) return outputString.toString();
+        if (alertSuspension == null) return "<b>Alert suspension not found</b>";
         
+        StringBuilder outputString = new StringBuilder();
+
         outputString.append("<b>Alert Suspension Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
 
         Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId = null;

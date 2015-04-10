@@ -1,7 +1,15 @@
 StatsAgg 1.2  - released 2015-xx-xx
  * Performance & memory utilization improvements -- most noticeable under high load scenarios
+ * Added a new OpenTSDB HTTP listener. This listener listens on port 4243 by default. 
+   This is now the recommended way to get metrics into OpenTSDB via HTTP. The Tomcat listener (same port as the WebUI) is still supported, but not recommended.
+ * Added support for OpenTSDB compression on metric-sending
+ * Tweaks to many WebUI pages
+   * Friendly messages when page input parameters aren't valid.
+   * Applied formatting to the list of email addresses in 'Notification Groups' & 'Notification Group Details'
  * Minor OpenTSDB 'send previous value' improvements
- * Security improvements
+ * Lowered the thread priority of alert-routine threads
+ * Minor security improvements
+ * Bugfix to OpenTSDB -- it will now reject metrics that have tags with duplicate tag-keys
  * Bugfix for Graphite-Agg & StatsD -- metric values being output to OpenTSDB and/or Graphite could have been improperly formatted
 
  

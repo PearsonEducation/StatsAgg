@@ -202,15 +202,18 @@ public class AlertAssociations extends HttpServlet {
     private String getTriggeredAlertAssociations(String alertName) {
         
         if (alertName == null) {
-            return "";
+            return "<b>No alert specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         AlertsDao altersDao = new AlertsDao();
         Alert alert = altersDao.getAlertByName(alertName);
         
-        if (alert != null) {
+        if (alert == null) {
+            return "<b>Alert not found</b>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder("");
+
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Caution Acknowledged</b> = ");
@@ -234,23 +237,26 @@ public class AlertAssociations extends HttpServlet {
             
             String dangerBody = getDangerAlertAssociations_Body(alert);
             outputString.append(dangerBody);
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
     
     private String getCautionAlertAssociations(String alertName) {
         
         if (alertName == null) {
-            return "";
+            return "<b>No alert specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         AlertsDao altersDao = new AlertsDao();
         Alert alert = altersDao.getAlertByName(alertName);
         
-        if (alert != null) {
+        if (alert == null) {
+            return "<b>Alert not found</b>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder("");
+
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Caution Acknowledged</b> = ");
@@ -261,9 +267,9 @@ public class AlertAssociations extends HttpServlet {
             
             String body = getCautionAlertAssociations_Body(alert);
             outputString.append(body);
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
     
     private String getCautionAlertAssociations_Body(Alert alert) {
@@ -339,15 +345,17 @@ public class AlertAssociations extends HttpServlet {
     private String getDangerAlertAssociations(String alertName) {
         
         if (alertName == null) {
-            return "";
+            return "<b>No alert specified</b>";
         }
-        
-        StringBuilder outputString = new StringBuilder("");
         
         AlertsDao altersDao = new AlertsDao();
         Alert alert = altersDao.getAlertByName(alertName);
         
-        if (alert != null) {
+        if (alert == null) {
+            return "<b>Alert not found</b>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder("");
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Danger Acknowledged</b> = ");
@@ -358,9 +366,9 @@ public class AlertAssociations extends HttpServlet {
             
             String body = getDangerAlertAssociations_Body(alert);
             outputString.append(body);
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
     
     private String getDangerAlertAssociations_Body(Alert alert) {

@@ -111,15 +111,19 @@ public class AlertSuspensionDetails extends HttpServlet {
     private String getAlertSuspensionDetailsString(String alertSuspensionName) {
         
         if (alertSuspensionName == null) {
-            return "";
+            return "<b>No alert suspension specified</b>";
         }
         
-        StringBuilder outputString = new StringBuilder("");
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
         AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
         
-        if (alertSuspension != null) {
+        if (alertSuspension == null) {
+            return "<b>Alert suspension not found</b>";
+        }
+        else {
+            StringBuilder outputString = new StringBuilder();
+
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
             
             outputString.append("<b>Is Enabled?</b> = ");
@@ -273,9 +277,9 @@ public class AlertSuspensionDetails extends HttpServlet {
             outputString.append("<b>Alert Suspension - Alert Associations</b> = ");            
             String alertSuspensionAlertAssociationsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
             outputString.append(alertSuspensionAlertAssociationsLink);  
+            
+            return outputString.toString();
         }
-        
-        return outputString.toString();
     }
 
 }

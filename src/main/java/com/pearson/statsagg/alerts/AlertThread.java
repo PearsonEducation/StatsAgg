@@ -530,6 +530,7 @@ public class AlertThread implements Runnable {
         List<Thread> determineAlertStatusThreads = new ArrayList<>();
         for (List<Alert> alertsSingleCore : alertsByCpuCore.values()) {
             Thread determineAlertStatus_Thread = new Thread(new determineAlertStatus_Thread(alertsSingleCore, this));
+            determineAlertStatus_Thread.setPriority(3);
             determineAlertStatusThreads.add(determineAlertStatus_Thread);
         }
 
