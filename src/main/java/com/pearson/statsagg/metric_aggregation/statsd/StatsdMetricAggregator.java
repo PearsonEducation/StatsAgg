@@ -696,14 +696,14 @@ public class StatsdMetricAggregator {
     
     private static StatsdHistogramConfiguration getAppropriateStatsdHistogramConfiguration(List<StatsdHistogramConfiguration> statsdHistogramConfigurations, String bucket) {
         
-        if ((statsdHistogramConfigurations == null) || statsdHistogramConfigurations.isEmpty()) {
+        if ((statsdHistogramConfigurations == null) || statsdHistogramConfigurations.isEmpty() || (bucket == null)) {
             return null;
         }
 
         for (StatsdHistogramConfiguration statsdHistogramConfiguration : statsdHistogramConfigurations) {
             String statsdHistogramConfigurationMetric = statsdHistogramConfiguration.getMetric();
 
-            if (bucket.equals(statsdHistogramConfigurationMetric) || "".equals(statsdHistogramConfigurationMetric)) {
+            if (statsdHistogramConfigurationMetric.isEmpty() || bucket.contains(statsdHistogramConfigurationMetric)) {
                 return statsdHistogramConfiguration;
             }
         }

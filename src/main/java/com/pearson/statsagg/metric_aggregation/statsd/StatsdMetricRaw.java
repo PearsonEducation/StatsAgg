@@ -31,7 +31,6 @@ public final class StatsdMetricRaw {
     private final BigDecimal sampleRate_;
     private final long metricReceivedTimestampInMilliseconds_;
         
-    
     public StatsdMetricRaw(String bucket, BigDecimal metricValue, String metricType, boolean doesContainOperator, BigDecimal sampleRate, long metricReceivedTimestampInMilliseconds) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
@@ -148,7 +147,8 @@ public final class StatsdMetricRaw {
                 metricType = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length()).trim();
             }
             
-            if ((bucketValue == null) || bucketValue.isEmpty() || (metricValue == null) || (metricType == null) || metricType.isEmpty()) {
+            if ((bucketValue == null) || bucketValue.isEmpty() || (metricValue == null) || (metricType == null) || metricType.isEmpty() || 
+                    (metricType.equals("ms") && (metricValue.compareTo(BigDecimal.ZERO) == -1))) {
                 logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }

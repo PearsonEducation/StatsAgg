@@ -95,7 +95,7 @@ public class StatsdMetricRawTest {
         long currentTime = System.currentTimeMillis();
         
         StatsdMetricRaw statsdMetricRaw1 = StatsdMetricRaw.parseStatsdMetricRaw("timerMetric_1:100|ms", currentTime);
-        StatsdMetricRaw statsdMetricRaw2 = StatsdMetricRaw.parseStatsdMetricRaw("timerMetric_2:-800.3|ms|@.1\n", currentTime);
+        StatsdMetricRaw statsdMetricRaw2 = StatsdMetricRaw.parseStatsdMetricRaw("timerMetric_2:+800.3|ms|@.1\n", currentTime);
         StatsdMetricRaw statsdMetricRaw3 = StatsdMetricRaw.parseStatsdMetricRaw("timerMetric_3:10000000000000|ms|@1.11111\n", currentTime);
 
         assertEquals(statsdMetricRaw1.getBucket(), "timerMetric_1");
@@ -108,13 +108,13 @@ public class StatsdMetricRawTest {
         assertEquals(statsdMetricRaw1.getStatsdMetricFormatString(), "timerMetric_1:100|ms");
         
         assertEquals(statsdMetricRaw2.getBucket(), "timerMetric_2");
-        assertEquals(0, statsdMetricRaw2.getMetricValue().compareTo(new BigDecimal("-800.3")));
+        assertEquals(0, statsdMetricRaw2.getMetricValue().compareTo(new BigDecimal("800.3")));
         assertEquals(statsdMetricRaw2.getMetricType(), "ms");
         assertEquals(statsdMetricRaw2.getMetricTypeKey(), StatsdMetricRaw.TIMER_TYPE);
         assertEquals(statsdMetricRaw2.doesContainOperator(), true);
         assertEquals(0, statsdMetricRaw2.getSampleRate().compareTo(new BigDecimal("0.1")));
         assertEquals(statsdMetricRaw2.getMetricReceivedTimestampInMilliseconds(), currentTime);
-        assertEquals(statsdMetricRaw2.getStatsdMetricFormatString(), "timerMetric_2:-800.3|ms|@0.1");
+        assertEquals(statsdMetricRaw2.getStatsdMetricFormatString(), "timerMetric_2:800.3|ms|@0.1");
 
         assertEquals(statsdMetricRaw3.getBucket(), "timerMetric_3");
         assertEquals(0, statsdMetricRaw3.getMetricValue().compareTo(new BigDecimal("10000000000000")));

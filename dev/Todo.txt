@@ -1,12 +1,8 @@
 StatsAgg 1.2
  * Retest 'resend previous value' for all formats
  * Document that OpenTSDB cannot handle tags with the same tagKey
- * Document timers with sample rates
  * Document security benefits of using StatsAgg for OpenTSDB
  * Document support for compressed OpenTSDB HTTP
- * Document StatsD histograms
-   * Can't be negative because timer values can't be negative
-   * Lower = inclusive, upper = non-inclusive
  * Unit test output format conversions
 
 Short/Medium term
