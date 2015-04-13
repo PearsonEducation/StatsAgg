@@ -7,7 +7,6 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -60,7 +59,7 @@ public class GraphiteAggregationThread implements Runnable {
             
             // aggregate graphite metrics
             long aggregateTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricAggregated> graphiteMetricsAggregated = GraphiteMetricAggregator.aggregateGraphiteMetrics(graphiteMetricsRaw);
+            List<GraphiteMetricRaw> graphiteMetricsAggregated = GraphiteMetricAggregator.aggregateGraphiteMetrics(graphiteMetricsRaw);
             long aggregateTimeElasped = System.currentTimeMillis() - aggregateTimeStart; 
             
             // update the global lists of the graphite aggregator's most recent aggregated values
@@ -70,7 +69,7 @@ public class GraphiteAggregationThread implements Runnable {
             
             // merge current aggregated values with the previous aggregated window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricAggregated> graphiteMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(graphiteMetricsAggregated, 
+            List<GraphiteMetricRaw> graphiteMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(graphiteMetricsAggregated, 
                     GlobalVariables.graphiteAggregatedMetricsMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
             
@@ -132,7 +131,7 @@ public class GraphiteAggregationThread implements Runnable {
             }
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (GraphiteMetricAggregated graphiteMetricAggregated : graphiteMetricsAggregatedMerged) {
+                for (GraphiteMetricRaw graphiteMetricAggregated : graphiteMetricsAggregatedMerged) {
                     logger.info("Graphite aggregated metric= " + graphiteMetricAggregated.toString());
                 }
             }
@@ -166,13 +165,13 @@ public class GraphiteAggregationThread implements Runnable {
         return graphiteMetricsRaw;
     }
     
-    private void updateMetricMostRecentValues(List<GraphiteMetricAggregated> graphiteMetricsAggregated) {
+    private void updateMetricMostRecentValues(List<GraphiteMetricRaw> graphiteMetricsAggregated) {
         
         long timestampInMilliseconds = System.currentTimeMillis();
         
         if (GlobalVariables.graphiteAggregatedMetricsMostRecentValue != null) {
-            for (GraphiteMetricAggregated graphiteMetricAggregated : GlobalVariables.graphiteAggregatedMetricsMostRecentValue.values()) {
-                GraphiteMetricAggregated updatedGraphiteMetricAggregated = new GraphiteMetricAggregated(graphiteMetricAggregated.getMetricPath(),
+            for (GraphiteMetricRaw graphiteMetricAggregated : GlobalVariables.graphiteAggregatedMetricsMostRecentValue.values()) {
+                GraphiteMetricRaw updatedGraphiteMetricAggregated = new GraphiteMetricRaw(graphiteMetricAggregated.getMetricPath(),
                         graphiteMetricAggregated.getMetricValue(), timestampInMilliseconds, timestampInMilliseconds);
                 updatedGraphiteMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
@@ -185,15 +184,15 @@ public class GraphiteAggregationThread implements Runnable {
         }
         
         if ((GlobalVariables.graphiteAggregatedMetricsMostRecentValue != null) && ApplicationConfiguration.isGraphiteAggregatorSendPreviousValue()) {
-            for (GraphiteMetricAggregated graphiteMetricAggregated : graphiteMetricsAggregated) {
+            for (GraphiteMetricRaw graphiteMetricAggregated : graphiteMetricsAggregated) {
                 GlobalVariables.graphiteAggregatedMetricsMostRecentValue.put(graphiteMetricAggregated.getMetricPath(), graphiteMetricAggregated);
             }
         }
 
     }    
     
-    private List<GraphiteMetricAggregated> mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(List<GraphiteMetricAggregated> graphiteMetricsAggregatedNew, 
-            Map<String,GraphiteMetricAggregated> graphiteMetricsAggregatedOld) {
+    private List<GraphiteMetricRaw> mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(List<GraphiteMetricRaw> graphiteMetricsAggregatedNew, 
+            Map<String,GraphiteMetricRaw> graphiteMetricsAggregatedOld) {
         
         if ((graphiteMetricsAggregatedNew == null) && (graphiteMetricsAggregatedOld == null)) {
             return new ArrayList<>();
@@ -208,10 +207,10 @@ public class GraphiteAggregationThread implements Runnable {
             return graphiteMetricsAggregatedNew;
         }
         
-        List<GraphiteMetricAggregated> graphiteMetricsAggregatedMerged = new ArrayList<>(graphiteMetricsAggregatedNew);
-        Map<String,GraphiteMetricAggregated> graphiteMetricsAggregatedOldLocal = new HashMap<>(graphiteMetricsAggregatedOld);
+        List<GraphiteMetricRaw> graphiteMetricsAggregatedMerged = new ArrayList<>(graphiteMetricsAggregatedNew);
+        Map<String,GraphiteMetricRaw> graphiteMetricsAggregatedOldLocal = new HashMap<>(graphiteMetricsAggregatedOld);
         
-        for (GraphiteMetricAggregated graphiteMetricAggregatedNew : graphiteMetricsAggregatedNew) {
+        for (GraphiteMetricRaw graphiteMetricAggregatedNew : graphiteMetricsAggregatedNew) {
             try {
                 graphiteMetricsAggregatedOldLocal.remove(graphiteMetricAggregatedNew.getMetricPath());
             }

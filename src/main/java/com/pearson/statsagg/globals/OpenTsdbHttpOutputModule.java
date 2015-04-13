@@ -12,14 +12,12 @@ public class OpenTsdbHttpOutputModule {
     
     private final boolean isOutputEnabled_;
     private final String url_;
-    private final int port_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
     
-    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int port, int numSendRetryAttempts, int maxMetricsPerMessage) {
+    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.url_ = url;
-        this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
     }
@@ -30,10 +28,6 @@ public class OpenTsdbHttpOutputModule {
 
     public String getUrl() {
         return url_;
-    }
-
-    public int getPort() {
-        return port_;
     }
 
     public int getNumSendRetryAttempts() {

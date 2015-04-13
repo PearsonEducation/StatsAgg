@@ -1,18 +1,20 @@
 StatsAgg 1.2
- * Document that OpenTSDB cannot handle tags with the same tagKey
  * Retest 'resend previous value' for all formats
- * Implement/document/test timers with sample rates
- * Document that we don't support sample rate with timers (yet)
+ * Document that OpenTSDB cannot handle tags with the same tagKey
+ * Document timers with sample rates
  * Document security benefits of using StatsAgg for OpenTSDB
  * Document support for compressed OpenTSDB HTTP
+ * Document StatsD histograms
+   * Can't be negative because timer values can't be negative
+   * Lower = inclusive, upper = non-inclusive
  * Unit test output format conversions
 
- 
 Short/Medium term
+ * View application config in WebUI
  * Last received metric in WebUI
+ * Alert associations in Metric Groups table
  * Convert 'Alert Suspension Details' page into panel-based UI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
- * StatsD histograms
  * StatsD forwarder
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Advanced options
@@ -21,11 +23,11 @@ Short/Medium term
    * Output-thread timeout
    * Cleanup metrics after... (currently hardcoded to 24hrs)
  * Debug mode for "details" pages (include additional details)
- * Manual injection of metrics via a new servlet
+ * Manual injection of metrics via a new servlet w/ a WebUI component
  * Stop resending metric after X time of no updates
  * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
  
-Long term
+Long term / Wishlist / Brainstorming
  * Alert escalation notification group in Alerts
  * APIs to create alerts / metric-groups / etc
  * Mobile versions of essential WebUI pages
@@ -37,10 +39,11 @@ Long term
  * Migrate connection pool to HikariCP
  * Support output via OpenTSDB HTTP/JSON
  * Events log w/ UI component
- * Server-side WebUI tables
+ * Server-side WebUI tables?
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?
  * Alert by individual metric?
  * Convert to a regular Java app & use embedded Tomcat for the WebUI
-   * Prereq for simplifying installation
+   * Simplifies installation, but removes all the nice stuff we get from Tomcat.
+   * Would need to be a separate git repo
  * When altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same.
    * May require substantial refactoring

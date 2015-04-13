@@ -8,7 +8,6 @@ import java.util.regex.Pattern;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
@@ -56,7 +55,7 @@ public class GlobalVariables {
     
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,GraphiteMetricAggregated> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<String,OpenTsdbMetricRaw> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>();
 

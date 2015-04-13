@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.google.common.io.CharStreams;
 import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.OpenTsdbHttpOutputModule;
@@ -8,6 +9,10 @@ import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.List;
 import com.pearson.statsagg.utilities.TcpClient;
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
 import java.net.URL;
 import java.util.ArrayList;
 import org.slf4j.Logger;
@@ -25,6 +30,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
     private final URL openTsdbUrl_;
     private final int openTsdbPort_;
     private final int numSendRetries_;
+    private final int maxMetricsPerMessage_;
     private final String threadId_;
     private final int sendTimeWarningThreshold_;
     
@@ -35,17 +41,19 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         this.openTsdbUrl_ = null;
         this.openTsdbPort_ = openTsdbPort;
         this.numSendRetries_ = numSendRetries;
+        this.maxMetricsPerMessage_ = -1;
         this.threadId_ = threadId;
         this.sendTimeWarningThreshold_ = sendTimeWarningThreshold;
     }
 
-    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, URL openTsdbUrl, int openTsdbPort, 
-            int numSendRetries, String threadId, int sendTimeWarningThreshold) {
+    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, URL openTsdbUrl, 
+            int numSendRetries, int maxMetricsPerMessage, String threadId, int sendTimeWarningThreshold) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.openTsdbHost_ = null;
         this.openTsdbUrl_ = openTsdbUrl;
-        this.openTsdbPort_ = openTsdbPort;
+        this.openTsdbPort_ = -1;
         this.numSendRetries_ = numSendRetries;
+        this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.threadId_ = threadId;
         this.sendTimeWarningThreshold_ = sendTimeWarningThreshold;
     }
@@ -58,7 +66,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
 
             boolean isSendSuccess = false;
             if (openTsdbHost_ != null) isSendSuccess = sendMetricsToOpenTsdb_Telnet(openTsdbMetrics_, openTsdbHost_, openTsdbPort_, numSendRetries_);
-            else if (openTsdbUrl_ != null) isSendSuccess = sendMetricsToOpenTsdb_HTTP(openTsdbMetrics_, openTsdbUrl_, openTsdbPort_, numSendRetries_);
+            //else if (openTsdbUrl_ != null) isSendSuccess = sendMetricsToOpenTsdb_HTTP(openTsdbMetrics_, openTsdbUrl_, numSendRetries_);
             else return;
             
             long sendToOpenTsdbTimeElasped = System.currentTimeMillis() - sendToOpenTsdbTimeStart;
@@ -70,7 +78,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                                 ", SendToOpenTsdbTelnetSuccess=" + isSendSuccess + ", SendToOpenTsdbTime=" + sendToOpenTsdbTimeElasped;     
             }
             else if (openTsdbUrl_ != null) {
-                outputString = "ThreadId=" + threadId_ + ", Destination=" + openTsdbUrl_.getPath() + ":" + openTsdbPort_ + 
+                outputString = "ThreadId=" + threadId_ + ", Destination=" + openTsdbUrl_.getPath() + 
                                 ", SendToOpenTsdbTelnetSuccess=" + isSendSuccess + ", SendToOpenTsdbTime=" + sendToOpenTsdbTimeElasped;                 
             }
                 
@@ -124,38 +132,68 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         return isSendAllSuccess;
     }
         
-    public static boolean sendMetricsToOpenTsdb_HTTP(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, URL openTsdbUrl, int openTsdbPort, int numSendRetries) {
+    public static String generateOpenTsdbJsonBatch(List<? extends OpenTsdbMetricFormat> openTsdbMetrics) {
         
-        if ((openTsdbMetrics == null) || openTsdbMetrics.isEmpty() || (openTsdbUrl == null) || (openTsdbPort < 0) || (openTsdbPort > 65535) || (numSendRetries < 0))  {
+        List<OpenTsdbMetricFormat> openTsdbMetricsToConvertToJson = new ArrayList<>();
+        
+//        for (int i = 0; i < openTsdbMetrics.size(); i++) {
+//        }
+        
+        return null;
+    }
+    
+    public static boolean sendMetricsToOpenTsdb_HTTP(String openTsdbJson, URL openTsdbUrl, int numSendRetries) {
+        
+        if ((openTsdbJson == null) || openTsdbJson.isEmpty() || (openTsdbUrl == null) || (numSendRetries < 0))  {
             return false;
         }
         
-        boolean isSendAllSuccess = true;
+        boolean isSendSuccess = true;
         
-//        try {
-//            String urlParameters = "";
-//            byte[] postData = urlParameters.getBytes(Charset.forName("UTF-8"));
-//            int postDataLength = postData.length;
-//
-//            HttpURLConnection httpUrlConnection = (HttpURLConnection) openTsdbUrl.openConnection();
-//            httpUrlConnection.setDoOutput(true);
-//            httpUrlConnection.setDoInput(true);
-//            httpUrlConnection.setInstanceFollowRedirects(false);
-//            httpUrlConnection.setRequestMethod("POST");
-//                        
-//            httpUrlConnection.setRequestProperty("charset", "utf-8");
-//            httpUrlConnection.setRequestProperty("Content-Length", Integer.toString(postDataLength));
-//            httpUrlConnection.setUseCaches(false);
-//            
-//            try (DataOutputStream wr = new DataOutputStream(httpUrlConnection.getOutputStream())) {
-//                wr.write(postData);
-//            }
-//        }
-//        catch (Exception e) {
-//            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-//        }
+        HttpURLConnection httpUrlConnection = null;
+        DataOutputStream dataOutputStream = null;
 
-        return isSendAllSuccess;
+        try {
+            httpUrlConnection = (HttpURLConnection) openTsdbUrl.openConnection();
+            httpUrlConnection.setDoOutput(true);
+            httpUrlConnection.setRequestMethod("POST");
+            httpUrlConnection.setRequestProperty("Content-Type", ""); 
+            httpUrlConnection.setRequestProperty("Charset", "UTF-8");
+            httpUrlConnection.setRequestProperty("Content-Length", Integer.toString(openTsdbJson.length()));
+
+            dataOutputStream = new DataOutputStream(httpUrlConnection.getOutputStream());
+
+            dataOutputStream.write(openTsdbJson.getBytes());
+            BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(httpUrlConnection.getInputStream()));
+            CharStreams.toString(bufferedReader);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            isSendSuccess = false;
+        }
+        finally {
+            if (dataOutputStream != null) {
+                try {
+                    dataOutputStream.close();
+                    dataOutputStream = null;
+                } 
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+
+            if (httpUrlConnection != null) {
+                try {
+                    httpUrlConnection.disconnect();
+                    httpUrlConnection = null;
+                } 
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        }
+
+        return isSendSuccess;
     }
     
     public static void sendMetricsToOpenTsdbTelnetEndpoints(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String threadId) {
@@ -191,7 +229,8 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                 URL url = new URL(openTsdbHttpOutputModule.getUrl());
                 
                 SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, url, 
-                       openTsdbHttpOutputModule.getPort(), openTsdbHttpOutputModule.getNumSendRetryAttempts(), threadId, ApplicationConfiguration.getFlushTimeAgg());
+                       openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(),
+                       threadId, ApplicationConfiguration.getFlushTimeAgg());
                 
                 SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread);
             }

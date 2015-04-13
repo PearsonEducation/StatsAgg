@@ -87,7 +87,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
         
         // build multi-metric messages & send to graphite
         int i = 0;
-        StringBuilder multiMetricMessage = new StringBuilder("");
+        StringBuilder multiMetricMessage = new StringBuilder();
         for (GraphiteMetricFormat graphiteMetric : graphiteMetrics) {
             if (i == maxMetricsPerMessage) {     
                 String graphiteMessage = multiMetricMessage.toString();
@@ -96,7 +96,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
                     if (!isSendSuccess) isSendAllSuccess = false;
                 }
 
-                multiMetricMessage = new StringBuilder("");
+                multiMetricMessage = new StringBuilder();
                 i = 0;
             }
 

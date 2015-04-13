@@ -167,7 +167,7 @@ public class GraphitePassthroughThread implements Runnable {
             
             for (GraphiteMetricRaw graphiteMetricRaw : GlobalVariables.graphitePassthroughMetricsMostRecentValue.values()) {
                 GraphiteMetricRaw updatedGraphiteMetricRaw = new GraphiteMetricRaw(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw.getMetricValue(), 
-                        timestampInSeconds, timestampInMilliseconds, timestampInMilliseconds);
+                        timestampInSeconds, timestampInMilliseconds);
                 updatedGraphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
                 GlobalVariables.graphitePassthroughMetricsMostRecentValue.put(updatedGraphiteMetricRaw.getMetricPath(), updatedGraphiteMetricRaw);

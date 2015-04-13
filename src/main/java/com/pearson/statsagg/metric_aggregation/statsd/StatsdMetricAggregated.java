@@ -25,14 +25,12 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     private final String bucket_;
     private final BigDecimal metricValue_;
     private final long metricTimestampInMilliseconds_;
-    private final int metricTimestampInSeconds_;
     private final byte metricTypeKey_;
         
     public StatsdMetricAggregated(String bucket, BigDecimal metricValue, long metricTimestampInMilliseconds, Byte metricTypeKey) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
         this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
-        this.metricTimestampInSeconds_ = (int) (metricTimestampInMilliseconds / 1000);
         this.metricTypeKey_ = metricTypeKey;
     }
     
@@ -41,12 +39,16 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
         return metricValue_.stripTrailingZeros().toPlainString();
     }
     
+    public int createAndGetMetricTimestampInSeconds() {
+        return (int) (metricTimestampInMilliseconds_ / 1000);
+    }
+    
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append(bucket_).append(" ").append(getMetricValueString()).append(" ").append(metricTimestampInMilliseconds_)
-                .append(" ").append(metricTimestampInSeconds_).append(" ").append(metricTypeKey_);
+                .append(" ").append(getMetricTimestampInSeconds()).append(" ").append(metricTypeKey_);
 
         return stringBuilder.toString();
     }
@@ -55,7 +57,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     public String getGraphiteFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(" ").append(getMetricValueString()).append(" ").append(metricTimestampInSeconds_);
+        stringBuilder.append(bucket_).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
 
         return stringBuilder.toString();
     }
@@ -64,7 +66,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     public String getOpenTsdbFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(metricValue_).append(" Format=StatsD");
+        stringBuilder.append(bucket_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(createAndGetMetricValueString()).append(" Format=StatsD");
 
         return stringBuilder.toString();
     }
@@ -110,7 +112,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     }
     
     public int getMetricTimestampInSeconds() {
-        return metricTimestampInSeconds_;
+        return createAndGetMetricTimestampInSeconds();
     }
     
     @Override

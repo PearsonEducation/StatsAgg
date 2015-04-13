@@ -34,49 +34,13 @@ public class GraphiteMetricRawTest {
     
     @Before
     public void setUp() {
-        graphiteMetricRaw1_ = new GraphiteMetricRaw("test.metric.path", new BigDecimal("12345.123"), 1382848111, 1382848222222L);
-        graphiteMetricRaw2_ = new GraphiteMetricRaw("test.metric.path?><!@#$!", new BigDecimal("12345"), 123, 1234L);
+        graphiteMetricRaw1_ = new GraphiteMetricRaw("test.metric.path", new BigDecimal("12345.1230"), 1382848111, 1382848222222L);
+        graphiteMetricRaw2_ = new GraphiteMetricRaw("test.metric.path?><!@#$!", new BigDecimal("12345.000"), 123, 1234L);
         graphiteMetricRaw3_ = new GraphiteMetricRaw("test.metric.path", new BigDecimal("12345.123"), 1382848111, 1382848222222L); // same as Raw1
     }
     
     @After
     public void tearDown() {
-    }
-
-//    /**
-//     * Test of createAndGetMetricValueBigDecimal method, of class GraphiteMetricRaw.
-//     */
-//    @Test
-//    public void testCreateAndGetMetricValueBigDecimal() {
-//        BigDecimal result = graphiteMetricRaw1_.createAndGetMetricValueBigDecimal();
-//        assertEquals(new BigDecimal("12345.123"), result);
-//        
-//        result = graphiteMetricRaw2_.createAndGetMetricValueBigDecimal();
-//        assertEquals(new BigDecimal("12345"), result);
-//    }
-
-//    /**
-//     * Test of createAndGetMetricTimestampInt method, of class GraphiteMetricRaw.
-//     */
-//    @Test
-//    public void testCreateAndGetMetricTimestampInt() {
-//        Integer result = graphiteMetricRaw1_.createAndGetMetricTimestampInt();
-//        assertEquals(new Integer(1382848111), result);
-//        
-//        result = graphiteMetricRaw2_.createAndGetMetricTimestampInt();
-//        assertEquals(new Integer(123), result);
-//    }
-
-    /**
-     * Test of createAndGetMetricTimestampInMilliseconds method, of class GraphiteMetricRaw.
-     */
-    @Test
-    public void testCreateAndGetMetricTimestampInMilliseconds() {
-        Long result = graphiteMetricRaw1_.createAndGetMetricTimestampInMilliseconds();
-        assertEquals(Long.valueOf("1382848111000"), result);
-        
-        result = graphiteMetricRaw2_.createAndGetMetricTimestampInMilliseconds();
-        assertEquals(Long.valueOf("123000"), result);
     }
 
     /**
@@ -106,12 +70,26 @@ public class GraphiteMetricRawTest {
     @Test
     public void testGetGraphiteFormatString() {
         String graphiteFormatString = "test.metric.path 12345.123 1382848111";
+        System.out.println(graphiteMetricRaw1_.getGraphiteFormatString());
         assertEquals(graphiteMetricRaw1_.getGraphiteFormatString(), graphiteFormatString);
         
         graphiteFormatString = "test.metric.path?><!@#$! 12345 123";
+        System.out.println(graphiteMetricRaw2_.getGraphiteFormatString());
         assertEquals(graphiteMetricRaw2_.getGraphiteFormatString(), graphiteFormatString);
     }
 
+    /**
+     * Test of getOpenTsdbFormatString method, of class GraphiteMetricRaw.
+     */
+    @Test
+    public void testGetOpenTsdbFormatString() {
+        String openTsdbFormatString1 = "test.metric.path 1382848111 12345.123 Format=Graphite";
+        assertEquals(graphiteMetricRaw1_.getOpenTsdbFormatString(), openTsdbFormatString1);     
+        
+        String openTsdbFormatString2 = "test.metric.path?><!@#$! 123 12345 Format=Graphite";
+        assertEquals(graphiteMetricRaw2_.getOpenTsdbFormatString(), openTsdbFormatString2);        
+    }
+    
     /**
      * Test of parseGraphiteMetricRaw method, of class GraphiteMetricRaw.
      */
@@ -200,49 +178,4 @@ public class GraphiteMetricRawTest {
         assertNotEquals(graphiteMetricRaw2_.getMetricPath(), graphiteMetricRaw1_.getMetricKey());
     }
 
-//    /**
-//     * Test of getMetricValueBigDecimal method, of class GraphiteMetricRaw.
-//     */
-//    @Test
-//    public void testGetMetricValueBigDecimal() {
-//        assertEquals(graphiteMetricRaw1_.getMetricValueBigDecimal(), graphiteMetricRaw1_.createAndGetMetricValueBigDecimal());
-//        assertEquals(graphiteMetricRaw2_.getMetricValueBigDecimal(), graphiteMetricRaw2_.createAndGetMetricValueBigDecimal());
-//        
-//        assertEquals(graphiteMetricRaw1_.getMetricValueBigDecimal(), new BigDecimal(graphiteMetricRaw1_.getMetricValue()));
-//        assertEquals(graphiteMetricRaw2_.getMetricValueBigDecimal(), new BigDecimal(graphiteMetricRaw2_.getMetricValue()));
-//        
-//        assertNotEquals(graphiteMetricRaw1_.getMetricValueBigDecimal(), graphiteMetricRaw2_.createAndGetMetricValueBigDecimal());
-//        assertNotEquals(graphiteMetricRaw2_.getMetricValueBigDecimal(), graphiteMetricRaw1_.createAndGetMetricValueBigDecimal());
-//    }
-
-//    /**
-//     * Test of getMetricTimestampInt method, of class GraphiteMetricRaw.
-//     */
-//    @Test
-//    public void testGetMetricTimestampInt() {
-//        assertEquals(graphiteMetricRaw1_.getMetricTimestampInt(), graphiteMetricRaw1_.createAndGetMetricTimestampInt());
-//        assertEquals(graphiteMetricRaw2_.getMetricTimestampInt(), graphiteMetricRaw2_.createAndGetMetricTimestampInt());
-//        
-//        assertEquals(Integer.toString(graphiteMetricRaw1_.getMetricTimestampInt()), graphiteMetricRaw1_.getMetricTimestamp());
-//        assertEquals(Integer.toString(graphiteMetricRaw2_.getMetricTimestampInt()), graphiteMetricRaw2_.getMetricTimestamp());
-//        
-//        assertNotEquals(graphiteMetricRaw1_.getMetricTimestampInt(), graphiteMetricRaw2_.createAndGetMetricTimestampInt());
-//        assertNotEquals(graphiteMetricRaw2_.getMetricTimestampInt(), graphiteMetricRaw1_.createAndGetMetricTimestampInt());
-//    }
-
-    /**
-     * Test of getMetricTimestampInMilliseconds method, of class GraphiteMetricRaw.
-     */
-    @Test
-    public void testGetMetricTimestampInMilliseconds() {
-        assertEquals(graphiteMetricRaw1_.getMetricTimestampInMilliseconds(), graphiteMetricRaw1_.createAndGetMetricTimestampInMilliseconds());
-        assertEquals(graphiteMetricRaw2_.getMetricTimestampInMilliseconds(), graphiteMetricRaw2_.createAndGetMetricTimestampInMilliseconds());
-        
-        assertEquals(Long.valueOf(graphiteMetricRaw1_.getMetricTimestampInMilliseconds() / 1000), new Long(graphiteMetricRaw1_.getMetricTimestamp()));
-        assertEquals(Long.valueOf(graphiteMetricRaw1_.getMetricTimestampInMilliseconds() / 1000), new Long(graphiteMetricRaw1_.getMetricTimestamp()));
-        
-        assertNotEquals(graphiteMetricRaw1_.getMetricTimestampInMilliseconds(), graphiteMetricRaw2_.createAndGetMetricTimestampInMilliseconds());
-        assertNotEquals(graphiteMetricRaw2_.getMetricTimestampInMilliseconds(), graphiteMetricRaw1_.createAndGetMetricTimestampInMilliseconds());
-    }
-    
 }

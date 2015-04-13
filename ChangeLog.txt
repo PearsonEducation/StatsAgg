@@ -3,9 +3,12 @@ StatsAgg 1.2  - released 2015-xx-xx
  * Added a new OpenTSDB HTTP listener. This listener listens on port 4243 by default. 
    This is now the recommended way to get metrics into OpenTSDB via HTTP. The Tomcat listener (same port as the WebUI) is still supported, but not recommended.
  * Added support for OpenTSDB compression on metric-sending
+ * Added support for StatsD histograms -- see manual for more details.
+ * Added Support for sample-rates on StatsD timers
  * Tweaks to many WebUI pages
    * Friendly messages when page input parameters aren't valid.
    * Applied formatting to the list of email addresses in 'Notification Groups' & 'Notification Group Details'
+ * WebUI -- Added support for doing a search on a table based off a uri parameter. Allows immediate filtering of the table on page load. Applies to all tables.
  * Minor OpenTSDB 'send previous value' improvements
  * Lowered the thread priority of alert-routine threads
  * Minor security improvements

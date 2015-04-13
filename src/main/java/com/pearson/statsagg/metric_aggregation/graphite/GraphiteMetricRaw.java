@@ -25,27 +25,29 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     
     private final String metricPath_;
     private final BigDecimal metricValue_;
-    private final int metricTimestamp_;
+    private final long metricTimestamp_;
     private final long metricReceivedTimestampInMilliseconds_;
+        
+    private final boolean isMetricTimestampInSeconds_;
     
-    private long metricTimestampInMilliseconds_ = -1;
-    
+    // metricTimestamp is assumed to be in seconds
     public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
         
-        this.metricTimestampInMilliseconds_ = createAndGetMetricTimestampInMilliseconds();
+        this.isMetricTimestampInSeconds_ = true;
     }
     
-    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds, long metricTimestampInMilliseconds) {
+    // metricTimestamp is assumed to be in milliseconds
+    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, long metricTimestamp, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
-
-        this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
+        
+        this.isMetricTimestampInSeconds_ = false;
     }
     
     public String createAndGetMetricValueString() {
@@ -53,14 +55,16 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricValue_.stripTrailingZeros().toPlainString();
     }
 
-    public final long createAndGetMetricTimestampInMilliseconds() {
-        if ((metricTimestampInMilliseconds_ == -1) &&  (metricTimestamp_ != -1)) {
-            metricTimestampInMilliseconds_ = (long) metricTimestamp_ * 1000;
-        }
-
-        return metricTimestampInMilliseconds_;
+    public long createAndGetMetricTimestampInSeconds() {
+        if (isMetricTimestampInSeconds_) return metricTimestamp_;
+        else return (long) (metricTimestamp_ / 1000);
     }
-
+    
+    public long createAndGetMetricTimestampInMilliseconds() {
+        if (!isMetricTimestampInSeconds_) return metricTimestamp_;
+        else return (long) (metricTimestamp_ * 1000);
+    }
+    
     @Override
     public int hashCode() {
         return new HashCodeBuilder(11, 13)
@@ -68,6 +72,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 .append(metricValue_)
                 .append(metricTimestamp_)
                 .append(metricReceivedTimestampInMilliseconds_)
+                .append(isMetricTimestampInSeconds_)
                 .toHashCode();
     }
     
@@ -92,6 +97,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 .append(isMetricValueEqual, true)
                 .append(metricTimestamp_, graphiteMetricRaw.getMetricTimestamp())
                 .append(metricReceivedTimestampInMilliseconds_, graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds())
+                .append(isMetricTimestampInSeconds_, isMetricTimestampInSeconds())
                 .isEquals();
     }
     
@@ -111,7 +117,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     public String getGraphiteFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(getMetricValueString()).append(" ").append(metricTimestamp_);
+        stringBuilder.append(metricPath_).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
 
         return stringBuilder.toString();
     }
@@ -120,7 +126,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     public String getOpenTsdbFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(metricTimestamp_).append(" ").append(getMetricValueString()).append(" Format=Graphite");
+        stringBuilder.append(metricPath_).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }
@@ -231,10 +237,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 if (doesAlreadyContainMetricPath) {
                     GraphiteMetricRaw currentMostRecentGraphiteMetricRaw = mostRecentGraphiteMetricsByMetricPath.get(graphiteMetricRaw.getMetricPath());
 
-                    if (graphiteMetricRaw.getMetricTimestamp() > currentMostRecentGraphiteMetricRaw.getMetricTimestamp()) {
+                    if (graphiteMetricRaw.getMetricTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricTimestampInMilliseconds()) {
                         mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                     }
-                    else if (graphiteMetricRaw.getMetricTimestamp() == currentMostRecentGraphiteMetricRaw.getMetricTimestamp()) {
+                    else if (graphiteMetricRaw.getMetricTimestampInMilliseconds() == currentMostRecentGraphiteMetricRaw.getMetricTimestampInMilliseconds()) {
                         if (graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricReceivedTimestampInMilliseconds()) {
                             mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
                         }
@@ -287,11 +293,15 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     public String getMetricValueString() {
         return createAndGetMetricValueString();
     }
-
-    public int getMetricTimestamp() {
+    
+    public long getMetricTimestamp() {
         return metricTimestamp_;
     }
-
+   
+    public long getMetricTimestampInSeconds() {
+        return createAndGetMetricTimestampInSeconds();
+    }
+    
     @Override
     public long getMetricTimestampInMilliseconds() {
         return createAndGetMetricTimestampInMilliseconds();
@@ -300,6 +310,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     @Override
     public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
+    }
+
+    public boolean isMetricTimestampInSeconds() {
+        return isMetricTimestampInSeconds_;
     }
 
 }

@@ -81,6 +81,7 @@ public class ApplicationConfiguration {
     private static boolean openTsdbSendPreviousValue_ = false;  
     
     private static StatsdNthPercentiles statsdNthPercentiles_ = null;
+    private static List<StatsdHistogramConfiguration> statsdHistogramConfigurations_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
     
     private static boolean alertRoutineEnabled_ = false;
@@ -190,6 +191,7 @@ public class ApplicationConfiguration {
             
             // statsd specific variables
             statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.getString("statsd_nth_percentiles", "90"));
+            statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.getString("statsd_histograms", null));
             statsdUseLegacyNameSpacing_ = applicationConfiguration_.getBoolean("statsd_use_legacy_name_spacing", false);
             
             // alerting variables
@@ -246,19 +248,16 @@ public class ApplicationConfiguration {
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
                         int maxMetricsPerMessage = 1000;
-                        
                         if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
                         
                         GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, maxMetricsPerMessage);
                         graphiteOutputModules.add(graphiteOutputModule);
                     }
-
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-            
         }
         
         return graphiteOutputModules;
@@ -290,13 +289,11 @@ public class ApplicationConfiguration {
                         OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule = new OpenTsdbTelnetOutputModule(isOutputEnabled, host, port, numSendRetryAttempts);
                         openTsdbTelnetOutputModules.add(openTsdbTelnetOutputModule);
                     }
-
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-            
         }
         
         return openTsdbTelnetOutputModules;
@@ -322,25 +319,26 @@ public class ApplicationConfiguration {
                     if (csvValues.length >= 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
                         String url = csvValues[1];
-                        int port = Integer.valueOf(csvValues[2]);
-                        int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
+                        int numSendRetryAttempts = Integer.valueOf(csvValues[2]);
                         int maxMetricsPerMessage = 100;
+                        if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
                         
-                        if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
-                        
-                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, port, numSendRetryAttempts, maxMetricsPerMessage);
+                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, maxMetricsPerMessage);
                         openTsdbHttpOutputModules.add(openTsdbHttpOutputModule);
                     }
-
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-            
         }
         
         return openTsdbHttpOutputModules;
+    }
+    
+    private static List<StatsdHistogramConfiguration> readStatsdHistogramConfiguration(String unparsedStatsdHistogramConfigurations) {
+        List<StatsdHistogramConfiguration> statsdHistogramConfigurations = StatsdHistogramConfiguration.getStatsdHistogramConfigurations(unparsedStatsdHistogramConfigurations);
+        return statsdHistogramConfigurations;
     }
     
     private static List<HttpLink> readCustomActionUrls() {
@@ -378,7 +376,7 @@ public class ApplicationConfiguration {
         
         return customActionUrls;
     }
-    
+
     public static boolean isUsingDefaultSettings() {
         return isUsingDefaultSettings_;
     }
@@ -588,6 +586,10 @@ public class ApplicationConfiguration {
 
     public static StatsdNthPercentiles getStatsdNthPercentiles() {
         return statsdNthPercentiles_;
+    }
+
+    public static List<StatsdHistogramConfiguration> getStatsdHistogramConfigurations() {
+        return new ArrayList<>(statsdHistogramConfigurations_);
     }
 
     public static boolean isStatsdUseLegacyNameSpacing() {

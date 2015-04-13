@@ -20,7 +20,7 @@ import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregated;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -121,7 +121,7 @@ public class AlertThread implements Runnable {
                 
                 if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
                     // generate messages for graphite
-                    List<GraphiteMetricAggregated> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
+                    List<GraphiteMetricRaw> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
                     
                     // send to graphite
                     SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
@@ -1606,7 +1606,7 @@ public class AlertThread implements Runnable {
         return null;
     }
 
-    public List<GraphiteMetricAggregated> generateAlertStatusMetricsForGraphite(List<Alert> alerts) {
+    public List<GraphiteMetricRaw> generateAlertStatusMetricsForGraphite(List<Alert> alerts) {
         
         if ((alerts == null) || alerts.isEmpty()) {
             return new ArrayList<>();
@@ -1614,7 +1614,7 @@ public class AlertThread implements Runnable {
         
         long timestamp = System.currentTimeMillis();
 
-        List<GraphiteMetricAggregated> alertStatusGraphiteMetrics = new ArrayList<>();
+        List<GraphiteMetricRaw> alertStatusGraphiteMetrics = new ArrayList<>();
         Set<String> alertStatusGraphiteMetricNames = new HashSet<>();
 
         for (Alert alert : alerts) {
@@ -1622,7 +1622,7 @@ public class AlertThread implements Runnable {
             
             BigDecimal alertGraphiteMetricValue;
 
-            StringBuilder graphiteFormattedAlertName = new StringBuilder("");
+            StringBuilder graphiteFormattedAlertName = new StringBuilder();
             if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
             if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
             graphiteFormattedAlertName.append(com.pearson.statsagg.metric_aggregation.graphite.Common.getGraphiteFormattedMetricPath(alert.getName()));
@@ -1648,8 +1648,8 @@ public class AlertThread implements Runnable {
             
             String graphiteFormattedAlertName_Final = graphiteFormattedAlertName.toString();
             alertStatusGraphiteMetricNames.add(graphiteFormattedAlertName_Final);
-            GraphiteMetricAggregated graphiteMetricAggregated = new GraphiteMetricAggregated(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
-            alertStatusGraphiteMetrics.add(graphiteMetricAggregated);
+            GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
+            alertStatusGraphiteMetrics.add(graphiteMetricRaw);
         }
         
         return alertStatusGraphiteMetrics;

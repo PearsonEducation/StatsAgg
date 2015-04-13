@@ -3,6 +3,7 @@ package com.pearson.statsagg.metric_aggregation.opentsdb;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
+import com.pearson.statsagg.utilities.Json;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -285,7 +286,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             
         if (parsedJsonObject == null) return new ArrayList<>();
             
-        StringBuilder openTsdbMetricsString = new StringBuilder("");
+        StringBuilder openTsdbMetricsString = new StringBuilder();
                 
         for (Object openTsdbMetricJsonObject : parsedJsonObject) {
             try {
@@ -302,15 +303,11 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 else if (timestampObject instanceof String) timestampString = (String) timestampObject;
                 
                 Object valueObject = openTsdbMetric.get("value");
-                String valueString = null;
-                if (valueObject instanceof Double) valueString = Double.toString((Double) valueObject);
-                else if (valueObject instanceof Integer) valueString = Integer.toString((Integer) valueObject);
-                else if (valueObject instanceof Long) valueString = Long.toString((Long) valueObject);
-                else if (valueObject instanceof Float) valueString = Float.toString((Float) valueObject);
-                else if (valueObject instanceof String) valueString = (String) valueObject;
+                String valueString = Json.convertBoxedPrimativeNumberToString(valueObject);
+                if ((valueString == null) && (valueObject instanceof String)) valueString = (String) valueObject;
                 
                 LazyValueMap tagsObject = (LazyValueMap) openTsdbMetric.get("tags");
-                StringBuilder tagsString = new StringBuilder("");
+                StringBuilder tagsString = new StringBuilder();
                 int tagCounter = 0;
                 for (String tagKey : tagsObject.keySet()) {
                     tagsString.append(tagKey).append("=").append(tagsObject.get(tagKey));

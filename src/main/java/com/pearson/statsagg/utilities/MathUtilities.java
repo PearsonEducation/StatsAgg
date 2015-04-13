@@ -20,7 +20,7 @@ public class MathUtilities {
     private static final Logger logger = LoggerFactory.getLogger(MathUtilities.class.getName());
     
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
-
+    
     public static Long computeMedianOfLongs(List<Long> numbers) {
         
         if ((numbers == null) || (numbers.isEmpty())) {

@@ -141,8 +141,8 @@ public final class StatsdMetricRaw {
             BigDecimal sampleRate = null;
             if (metricTypeIndexRange > 0) {
                 metricType = unparsedMetric.substring(metricValueIndexRange + 1, metricTypeIndexRange).trim();
-                String sampleRateString = unparsedMetric.substring(metricTypeIndexRange + 2, unparsedMetric.length()).trim();
-                if (sampleRateString != null) sampleRate = new BigDecimal(sampleRateString);
+                String sampleRateString = unparsedMetric.substring(metricTypeIndexRange + 1, unparsedMetric.length()).trim();
+                if ((sampleRateString != null) && sampleRateString.contains("@") && sampleRateString.length() > 1) sampleRate = new BigDecimal(sampleRateString.substring(1));
             }
             else {
                 metricType = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length()).trim();
