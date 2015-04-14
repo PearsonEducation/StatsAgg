@@ -146,15 +146,6 @@ public class CleanupThread implements Runnable {
             }
         }
         
-        List[] associationLists = GlobalVariables.metricGroupsAssociatedWithMetricKeys.get(metricKey);
-        if (associationLists != null) {
-            associationLists[0].clear();
-            associationLists[0] = null;
-            associationLists[1].clear();
-            associationLists[1] = null;
-            GlobalVariables.metricGroupsAssociatedWithMetricKeys.remove(metricKey);
-        }
-        
         cleanupActiveAvailabilityAlerts(metricKey);
         
         GlobalVariables.statsdGaugeCache.remove(metricKey);

@@ -87,9 +87,6 @@ public class GlobalVariables {
     
     // k=MetricKey, v="The most timestamp that this metric was received by this program. Gets updated if the metric is configured to send 0 or previous value when no new metrics were received."
     public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp_UpdateOnResend = new ConcurrentHashMap<>(); 
-
-    // k=MetricKey, v=[0] "list of metric groups ids with negative associations with the metric key", [1] "list of metric groups ids with positive associations with the metric key"
-    public final static ConcurrentHashMap<String,ArrayList[]> metricGroupsAssociatedWithMetricKeys = new ConcurrentHashMap<>(); 
     
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 

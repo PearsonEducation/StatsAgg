@@ -103,8 +103,8 @@ public class put extends HttpServlet {
 
             String contentEncoding = request.getHeader("Content-Encoding");
             String json;
-            if (contentEncoding.equalsIgnoreCase("gzip")) json = Compression.decompressGzipToString(request.getInputStream(), "UTF-8");
-            else if (contentEncoding.equalsIgnoreCase("deflate")) json = Compression.decompressDeflateToString(request.getInputStream(), "UTF-8");
+            if ((contentEncoding != null) && contentEncoding.equalsIgnoreCase("gzip")) json = Compression.decompressGzipToString(request.getInputStream(), "UTF-8");
+            else if ((contentEncoding != null) && contentEncoding.equalsIgnoreCase("deflate")) json = Compression.decompressDeflateToString(request.getInputStream(), "UTF-8");
             else json = CharStreams.toString(request.getReader());
             
             String responseMessage = parseMetrics(json, GlobalVariables.openTsdbPrefix, metricsReceivedTimestampInMilliseconds, doesRequestSummary, doesRequestDetails);

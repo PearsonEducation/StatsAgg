@@ -49,57 +49,65 @@ public class StatsdHistogramConfiguration {
         List<StatsdHistogramConfiguration> statsdHistogramConfigurations = new ArrayList<>();
         
         try {
-            ValueList parsedJsonObject = (ValueList) Boon.fromJson(unparsedStatsdHistogramConfigurations);
-            if (parsedJsonObject == null) return new ArrayList<>();
+            Object parsedJsonObject = (Object) Boon.fromJson(unparsedStatsdHistogramConfigurations);
+            ValueList parsedJsonValueList = null;
+            if ((parsedJsonObject != null) && (parsedJsonObject instanceof ValueList)) parsedJsonValueList = (ValueList) Boon.fromJson(unparsedStatsdHistogramConfigurations);
+            
+            if (parsedJsonValueList == null) return new ArrayList<>();
 
-            for (Object statsdHistogramConfigurationObject : parsedJsonObject) {
-                LazyValueMap statsdHistogramConfiguration = (LazyValueMap) statsdHistogramConfigurationObject;
+            for (Object statsdHistogramConfigurationObject : parsedJsonValueList) {
+                try {
+                    LazyValueMap statsdHistogramConfiguration = (LazyValueMap) statsdHistogramConfigurationObject;
 
-                String metric = (String) statsdHistogramConfiguration.get("metric");
-                if (metric != null) metric = metric.trim();
-                
-                List<String> binValues_String = new ArrayList<>();
-                List<String> binValues_GraphiteFriendlyString = new ArrayList<>();
-                Set<BigDecimal> binValues_BigDecimal = new TreeSet<>();
-                boolean isInfDetected = false;
-                
-                if (statsdHistogramConfiguration.get("bins") instanceof ValueList) {
-                    ValueList binObjects = (ValueList) statsdHistogramConfiguration.get("bins");
+                    String metric = (String) statsdHistogramConfiguration.get("metric");
+                    if (metric != null) metric = metric.trim();
 
-                    for (Object binObject : binObjects) {
-                        Object binsObject = (Object) binObject;
-                        String binValue = Json.convertBoxedPrimativeNumberToString(binsObject);
-                        
-                        if (binValue != null) {
-                            BigDecimal binValue_BigDecimal = new BigDecimal(binValue.trim()).stripTrailingZeros();
-                            if (binValue_BigDecimal.compareTo(BigDecimal.ZERO) == 1) binValues_BigDecimal.add(binValue_BigDecimal);
-                        }
+                    List<String> binValues_String = new ArrayList<>();
+                    List<String> binValues_GraphiteFriendlyString = new ArrayList<>();
+                    Set<BigDecimal> binValues_BigDecimal = new TreeSet<>();
+                    boolean isInfDetected = false;
 
-                        if ((binsObject != null) && (binValue == null) && (binsObject instanceof String)) {
-                            binValue = (String) binsObject;
-                            if (binValue.trim().equalsIgnoreCase("inf")) isInfDetected = true;
+                    if (statsdHistogramConfiguration.get("bins") instanceof ValueList) {
+                        ValueList binObjects = (ValueList) statsdHistogramConfiguration.get("bins");
+
+                        for (Object binObject : binObjects) {
+                            Object binsObject = (Object) binObject;
+                            String binValue = Json.convertBoxedPrimativeNumberToString(binsObject);
+
+                            if (binValue != null) {
+                                BigDecimal binValue_BigDecimal = new BigDecimal(binValue.trim()).stripTrailingZeros();
+                                if (binValue_BigDecimal.compareTo(BigDecimal.ZERO) == 1) binValues_BigDecimal.add(binValue_BigDecimal);
+                            }
+
+                            if ((binsObject != null) && (binValue == null) && (binsObject instanceof String)) {
+                                binValue = (String) binsObject;
+                                if (binValue.trim().equalsIgnoreCase("inf")) isInfDetected = true;
+                            }
                         }
                     }
-                }
-                
-                for (BigDecimal binValue : binValues_BigDecimal) {
-                    String binValue_String = binValue.stripTrailingZeros().toPlainString();
-                    binValues_String.add(binValue_String);
-                    binValues_GraphiteFriendlyString.add(binValue_String.replace('.', '_'));
-                }
-                
-                if (isInfDetected) {
-                    binValues_String.add("inf");
-                    binValues_GraphiteFriendlyString.add("inf");
-                }
 
-                if (metric != null) {
-                    ImmutableList<BigDecimal> bigValues_BigDecimal_Immutable = ImmutableList.copyOf(binValues_BigDecimal);
-                    ImmutableList<String> bigValues_String_Immutable = ImmutableList.copyOf(binValues_String);
-                    ImmutableList<String> bigValues_GraphiteFriendlyString_Immutable = ImmutableList.copyOf(binValues_GraphiteFriendlyString);
-                    StatsdHistogramConfiguration statsdHistogram = new StatsdHistogramConfiguration(metric, bigValues_BigDecimal_Immutable, 
-                            bigValues_String_Immutable, bigValues_GraphiteFriendlyString_Immutable, isInfDetected);
-                    statsdHistogramConfigurations.add(statsdHistogram);
+                    for (BigDecimal binValue : binValues_BigDecimal) {
+                        String binValue_String = binValue.stripTrailingZeros().toPlainString();
+                        binValues_String.add(binValue_String);
+                        binValues_GraphiteFriendlyString.add(binValue_String.replace('.', '_'));
+                    }
+
+                    if (isInfDetected) {
+                        binValues_String.add("inf");
+                        binValues_GraphiteFriendlyString.add("inf");
+                    }
+
+                    if (metric != null) {
+                        ImmutableList<BigDecimal> bigValues_BigDecimal_Immutable = ImmutableList.copyOf(binValues_BigDecimal);
+                        ImmutableList<String> bigValues_String_Immutable = ImmutableList.copyOf(binValues_String);
+                        ImmutableList<String> bigValues_GraphiteFriendlyString_Immutable = ImmutableList.copyOf(binValues_GraphiteFriendlyString);
+                        StatsdHistogramConfiguration statsdHistogram = new StatsdHistogramConfiguration(metric, bigValues_BigDecimal_Immutable, 
+                                bigValues_String_Immutable, bigValues_GraphiteFriendlyString_Immutable, isInfDetected);
+                        statsdHistogramConfigurations.add(statsdHistogram);
+                    }
+                }
+                catch (Exception e) {
+                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
         }

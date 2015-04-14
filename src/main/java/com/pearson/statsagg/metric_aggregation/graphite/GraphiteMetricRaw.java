@@ -172,6 +172,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         }
     }
     
+    public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
+        return parseGraphiteMetricsRaw(unparsedMetrics, null, metricReceivedTimestampInMilliseconds);
+    }
+    
     public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
