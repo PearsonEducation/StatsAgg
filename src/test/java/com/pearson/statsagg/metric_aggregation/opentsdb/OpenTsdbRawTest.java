@@ -33,17 +33,6 @@ public class OpenTsdbRawTest {
     @After
     public void tearDown() {
     }
-
-//    @Test
-//    /**
-//     * Test of getMetricFromMetricKey method, of class OpenTsdbMetricRaw.
-//     */
-//    public void testCreateAndGetMetricFromMetricKey() {
-//        String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
-//        OpenTsdbMetricRaw parsedMetric = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric, "", 1366998400999L);
-//        
-//        String getMetricFromMetricKey("tcollector.reader.lines_collected tag1=meow tag2=mix");
-//    }
     
     /**
      * Test of parseOpenTsdbMetricRaw method, of class OpenTsdbMetricRaw.

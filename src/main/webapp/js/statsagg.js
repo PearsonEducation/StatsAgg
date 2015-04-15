@@ -9,10 +9,11 @@ function confirmAction(formName, confirmString) {
 }
 
 // Code from http://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
-function getUrlParameters() {
-    var qd = {};
-    location.search.substr(1).split("&").forEach(function(item) {var k = item.split("=")[0], v = decodeURIComponent(item.split("=")[1]); (k in qd) ? qd[k].push(v) : qd[k] = [v,]})
-    return qd;
+function getParameterByName(name) {
+    name = name.replace(/[\[]/, "\\[").replace(/[\]]/, "\\]");
+    var regex = new RegExp("[\\?&]" + name + "=([^&#]*)"),
+        results = regex.exec(location.search);
+    return results === null ? "" : decodeURIComponent(results[1].replace(/\+/g, " "));
 }
 
 function generateAlertPreviewLink(warningLevel) {
@@ -418,7 +419,10 @@ $(document).ready(function () {
                     "visible": false
                 }
             ]});
-
+        
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if (tableSearchParameter !== null) alertsTable.search(tableSearchParameter).draw();
+        
         yadcf_init_AlertsTable(alertsTable);
 
         var colvis = new $.fn.dataTable.ColVis(alertsTable, {"align": "right", "iOverlayFade": 200});
@@ -432,11 +436,6 @@ $(document).ready(function () {
                 yadcf_init_AlertsTable(alertsTable);
             }
         });
-        
-        var urlParameters = getUrlParameters();
-        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
-            alertsTable.search(urlParameters["TableSearch"][0]).draw();
-        }
     }
 });
 
@@ -470,6 +469,9 @@ $(document).ready(function () {
             "iCookieDuration": 2592000 // 30 days
         });
         
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if (tableSearchParameter !== null) alertSuspensionsTable.search(tableSearchParameter).draw();
+        
         yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
 
         var colvis = new $.fn.dataTable.ColVis(alertSuspensionsTable, {"align": "right", "iOverlayFade": 200});
@@ -483,11 +485,6 @@ $(document).ready(function () {
                 yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
             }
         });
-        
-        var urlParameters = getUrlParameters();
-        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
-            alertSuspensionsTable.search(urlParameters["TableSearch"][0]).draw();
-        }
     }
 });
 
@@ -514,6 +511,9 @@ $(document).ready(function () {
             "stateSave": true,
             "iCookieDuration": 2592000 // 30 days
         });
+
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if (tableSearchParameter !== null) metricGroupsTable.search(tableSearchParameter).draw();
         
         yadcf_init_MetricGroupsTable(metricGroupsTable);
 
@@ -528,11 +528,6 @@ $(document).ready(function () {
                 yadcf_init_MetricGroupsTable(metricGroupsTable);
             }
         });
-        
-        var urlParameters = getUrlParameters();
-        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
-            metricGroupsTable.search(urlParameters["TableSearch"][0]).draw();
-        }
     }
 });
 
@@ -558,6 +553,9 @@ $(document).ready(function () {
             "stateSave": true,
             "iCookieDuration": 2592000 // 30 days
         });
+       
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if (tableSearchParameter !== null) notificationGroupsTable.search(tableSearchParameter).draw();
         
         yadcf_init_NotificationGroupsTable(notificationGroupsTable);
 
@@ -572,11 +570,6 @@ $(document).ready(function () {
                 yadcf_init_NotificationGroupsTable(notificationGroupsTable);
             }
         });
-        
-        var urlParameters = getUrlParameters();
-        if ((urlParameters["TableSearch"] !== undefined) && (urlParameters["TableSearch"][0] !== undefined) && (urlParameters["TableSearch"][0] !== 'undefined')) {
-            notificationGroupsTable.search(urlParameters["TableSearch"][0]).draw();
-        }
     }
 });
 
