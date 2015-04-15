@@ -7,6 +7,8 @@ import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -138,46 +140,56 @@ public class AlertMetrics extends HttpServlet {
         StringBuilder json = new StringBuilder();
         
         json.append("[{");
-        json.append("\"AlertName\":\"").append(alert.getName()).append("\",");
-        json.append("\"AlertId\":").append(alert.getId()).append(",");
+        json.append("\"Alert_Name\":\"").append(alert.getName()).append("\",");
+        json.append("\"Alert_Id\":").append(alert.getId()).append(",");
         json.append("\"Metric_Group_Name\":\"").append(metricGroup.getName()).append("\",");
         json.append("\"Metric_Group_Id\":").append(alert.getMetricGroupId()).append(",");
         
-        json.append("\"Triggered_Caution_Metrics\":[");
         
-        int i = 1;
+        json.append("\"Triggered_Caution_Metrics\":[");
         Set<String> cautionTriggeredMetricKeys = GlobalVariables.activeCautionAlertMetricValues.keySet();
         if (cautionTriggeredMetricKeys != null) {
+            List<String> cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
+            
             for (String metricKey : cautionTriggeredMetricKeys) {
                 String suffix = ("-" + alert.getId());
-                if (metricKey.endsWith(suffix)) {
-                    json.append("\"").append(StringUtils.removeEnd(metricKey,suffix)).append("\"");
-                    if (i < cautionTriggeredMetricKeys.size()) json.append(",");
-                }
+                if (metricKey.endsWith(suffix)) cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
+            }
+            
+            int i = 1;
+            for (String metricKey : cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
+                json.append("\"").append(metricKey).append("\"");
+                if (i < cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
                 i++;
             }
         }
         json.append("],");
+        
         
         json.append("\"Triggered_Danger_Metrics\":[");
-        i = 1;
         Set<String> dangerTriggeredMetricKeys = GlobalVariables.activeDangerAlertMetricValues.keySet();
         if (dangerTriggeredMetricKeys != null) {
+            List<String> dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
+            
             for (String metricKey : dangerTriggeredMetricKeys) {
                 String suffix = ("-" + alert.getId());
-                if (metricKey.endsWith(suffix)) {
-                    json.append("\"").append(StringUtils.removeEnd(metricKey,suffix)).append("\"");
-                    if (i < dangerTriggeredMetricKeys.size()) json.append(",");
-                }
+                if (metricKey.endsWith(suffix)) dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
+            }
+            
+            int i = 1;
+            for (String metricKey : dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
+                json.append("\"").append(metricKey).append("\"");
+                if (i < dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
                 i++;
             }
         }
         json.append("],");
         
+        
         json.append("\"Metric_Group_Metrics\":[");
-        i = 1;
         Set<String> metricGroupMetricKeys = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(alert.getMetricGroupId());
         if (metricGroupMetricKeys != null) {
+            int i = 1;
             for (String metricKey : metricGroupMetricKeys) {
                 json.append("\"").append(metricKey).append("\"");
                 if (i < metricGroupMetricKeys.size()) json.append(",");
