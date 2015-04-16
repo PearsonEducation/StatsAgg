@@ -421,7 +421,7 @@ $(document).ready(function () {
             ]});
         
         var tableSearchParameter = getParameterByName("TableSearch");
-        if (tableSearchParameter !== null) alertsTable.search(tableSearchParameter).draw();
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertsTable.search(tableSearchParameter.trim()).draw();
         
         yadcf_init_AlertsTable(alertsTable);
 
@@ -470,7 +470,7 @@ $(document).ready(function () {
         });
         
         var tableSearchParameter = getParameterByName("TableSearch");
-        if (tableSearchParameter !== null) alertSuspensionsTable.search(tableSearchParameter).draw();
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertSuspensionsTable.search(tableSearchParameter.trim()).draw();
         
         yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
 
@@ -513,7 +513,7 @@ $(document).ready(function () {
         });
 
         var tableSearchParameter = getParameterByName("TableSearch");
-        if (tableSearchParameter !== null) metricGroupsTable.search(tableSearchParameter).draw();
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) metricGroupsTable.search(tableSearchParameter.trim()).draw();
         
         yadcf_init_MetricGroupsTable(metricGroupsTable);
 
@@ -555,7 +555,7 @@ $(document).ready(function () {
         });
        
         var tableSearchParameter = getParameterByName("TableSearch");
-        if (tableSearchParameter !== null) notificationGroupsTable.search(tableSearchParameter).draw();
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) notificationGroupsTable.search(tableSearchParameter.trim()).draw();
         
         yadcf_init_NotificationGroupsTable(notificationGroupsTable);
 
