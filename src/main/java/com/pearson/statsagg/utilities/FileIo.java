@@ -619,7 +619,7 @@ public class FileIo {
         try {
             reader = new BufferedReader(new FileReader(file));
             
-            StringBuilder fileContents = new StringBuilder("");
+            StringBuilder fileContents = new StringBuilder();
             
             String currentLine = reader.readLine();
             while (currentLine != null) {

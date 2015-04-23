@@ -21,8 +21,12 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupsLogic.class.getName());
     
+    public static final Byte NEW = 1;
+    public static final Byte ALTER = 2;
+    public static final Byte REMOVE = 3;
+    
     public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> regexs, TreeSet<String> tags) {
-            return alterRecordInDatabase(metricGroup, regexs, tags, null);
+        return alterRecordInDatabase(metricGroup, regexs, tags, null);
     }
     
     public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> regexs, TreeSet<String> tags, String oldName) {
@@ -87,9 +91,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     metricGroupsDao.close();
 
                     if (didCommitSucceed) {
-                        if (newMetricGroupFromDb.getId() != null) {
-                            GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), "Alter");
-                        }
+                        if ((newMetricGroupFromDb.getId() != null) && isNewMetricGroup) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), NEW);
+                        else if ((newMetricGroupFromDb.getId() != null) && !isNewMetricGroup) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), ALTER);
 
                         lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
 
@@ -223,10 +226,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                         String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                         logger.warn(cleanReturnString);
                     }
-                    else {
-                        if (metricGroupFromDb.getId() != null) {
-                            GlobalVariables.metricGroupChanges.put(metricGroupFromDb.getId(), "Remove");
-                        }  
+                    else if (metricGroupFromDb.getId() != null) {
+                        GlobalVariables.metricGroupChanges.put(metricGroupFromDb.getId(), REMOVE);
                     }
 
                     lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;

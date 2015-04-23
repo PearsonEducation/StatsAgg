@@ -60,7 +60,7 @@ public class MetricLastSeenSql {
             return null;
         }
         
-        StringBuilder upsert = new StringBuilder("");
+        StringBuilder upsert = new StringBuilder();
         
         upsert.append("INSERT INTO METRIC_LAST_SEEN(METRIC_KEY_SHA1, METRIC_KEY, LAST_MODIFIED) VALUES");
         

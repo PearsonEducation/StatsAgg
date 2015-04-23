@@ -79,7 +79,7 @@ public class AlertPreview extends HttpServlet {
         String alertBody = getExampleEmailAlert(request.getParameter("WarningLevel"), alert, request.getParameter("MetricGroupName"));        
         
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");

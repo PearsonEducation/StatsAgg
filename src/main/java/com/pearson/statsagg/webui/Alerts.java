@@ -224,12 +224,12 @@ public class Alerts extends HttpServlet {
     
     private String buildAlertsHtml() {
         
-        StringBuilder html = new StringBuilder("");
+        StringBuilder html = new StringBuilder();
 
         StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
         String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-        StringBuilder htmlBodyStringBuilder = new StringBuilder("");
+        StringBuilder htmlBodyStringBuilder = new StringBuilder();
         htmlBodyStringBuilder.append(
             "<div id=\"page-content-wrapper\">\n" +
             "<!-- Keep all page content within the page-content inset div! -->\n" +
@@ -274,11 +274,29 @@ public class Alerts extends HttpServlet {
         for (Alert alert : alerts) {
 
             String rowAlertStatusContext = "";
-            if ((GlobalVariables.pendingCautionAlertsByAlertId != null) && GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) rowAlertStatusContext = "class=\"info\"";
-            else if ((GlobalVariables.pendingDangerAlertsByAlertId != null) && GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) rowAlertStatusContext = "class=\"info\"";
-            else if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && GlobalVariables.alertSuspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) rowAlertStatusContext = "class=\"info\"";
-            else if (alert.isCautionAlertActive() && !alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"warning\"";
-            else if (alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
+            boolean isRowStatusInfo = false;
+            
+            synchronized(GlobalVariables.pendingCautionAlertsByAlertId) {
+                if (GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
+                    rowAlertStatusContext = "class=\"info\"";
+                    isRowStatusInfo = true;
+                }
+            }
+            synchronized(GlobalVariables.pendingDangerAlertsByAlertId) {
+                if (GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
+                    rowAlertStatusContext = "class=\"info\"";
+                    isRowStatusInfo = true;
+                }
+            }
+            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
+                if (GlobalVariables.alertSuspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
+                    rowAlertStatusContext = "class=\"info\"";
+                    isRowStatusInfo = true;
+                }
+            }
+            
+            if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
+            else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
             
             String alertDetails = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
             
@@ -288,7 +306,7 @@ public class Alerts extends HttpServlet {
             if ((metricGroup == null) || (metricGroup.getName() == null)) metricGroupNameAndLink = "N/A";
             else metricGroupNameAndLink = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             
-            StringBuilder tagsCsv = new StringBuilder("");
+            StringBuilder tagsCsv = new StringBuilder();
             if ((metricGroup != null) && (metricGroup.getId() != null) && (tagsByMetricGroupId != null)) {
                 List<MetricGroupTag> metricGroupTags = tagsByMetricGroupId.get(metricGroup.getId());
                 
@@ -325,8 +343,10 @@ public class Alerts extends HttpServlet {
             if ((alert.isEnabled() != null) && alert.isEnabled()) isAlertEnabled = "Yes";
     
             String isSuspended = "No";
-            if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) {
-                if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
+                if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) {
+                    if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+                }
             }
             String isSuspendedLink = "<a href=\"AlertAlertSuspensionAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
             

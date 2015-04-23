@@ -77,7 +77,7 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
         String alert_AlertSuspensionAssociations = getAlert_AlertSuspensionAssociations(name);
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -123,12 +123,15 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
         Alert alert = alertsDao.getAlertByName(alertName);
         if (alert == null) return "<b>Alert not found</b>";
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         
         outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
 
-        Set<Integer> alertSuspensionIds = GlobalVariables.alertSuspensionIdAssociationsByAlertId.get(alert.getId());
-
+        Set<Integer> alertSuspensionIds;
+        synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
+            alertSuspensionIds = GlobalVariables.alertSuspensionIdAssociationsByAlertId.get(alert.getId());
+        }
+        
         if (alertSuspensionIds == null) {
             outputString.append("<b>Total Associations</b> = ").append("0");
             return outputString.toString();
@@ -154,7 +157,7 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
 
             boolean isAlertSuspensionActive = AlertSuspension.isAlertSuspensionActive(alertSuspension);
 
-            StringBuilder status = new StringBuilder("");
+            StringBuilder status = new StringBuilder();
             if (isAlertSuspensionActive) status.append("(active");
             else status.append("(inactive");
             if ((alertSuspension.isSuspendNotificationOnly() != null) && alertSuspension.isSuspendNotificationOnly()) status.append(", suspend notification only");

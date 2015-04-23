@@ -73,7 +73,7 @@ public class CreateMetricGroup extends HttpServlet {
         PrintWriter out = null;
     
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -118,7 +118,7 @@ public class CreateMetricGroup extends HttpServlet {
             
             response.setContentType("text/html");     
             
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "MetricGroups", MetricGroups.PAGE_NAME);
@@ -142,7 +142,7 @@ public class CreateMetricGroup extends HttpServlet {
     
     private String buildCreateMetricGroupHtml(MetricGroup metricGroup) {
 
-        StringBuilder htmlBody = new StringBuilder("");
+        StringBuilder htmlBody = new StringBuilder();
 
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +

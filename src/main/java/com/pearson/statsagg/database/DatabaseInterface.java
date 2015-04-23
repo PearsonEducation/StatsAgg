@@ -599,7 +599,7 @@ public class DatabaseInterface {
             return null;
         }
         
-        StringBuilder string = new StringBuilder("");
+        StringBuilder string = new StringBuilder();
         
         BufferedReader bufferedReader = null;
         

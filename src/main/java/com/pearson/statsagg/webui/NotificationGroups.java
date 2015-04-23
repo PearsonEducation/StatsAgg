@@ -179,7 +179,7 @@ public class NotificationGroups extends HttpServlet {
         StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
         String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-        StringBuilder htmlBodyStringBuilder = new StringBuilder("");
+        StringBuilder htmlBodyStringBuilder = new StringBuilder();
         htmlBodyStringBuilder.append(
             "<div id=\"page-content-wrapper\">\n" + 
             "<!-- Keep all page content within the page-content inset div! -->\n" +

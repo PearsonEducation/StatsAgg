@@ -20,7 +20,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     public static final byte SET_TYPE = 4;
     public static final byte UNDEFINED_TYPE = 5;
     
-    private Long hashKey_ = null;
+    private long hashKey_ = -1;
 
     private final String bucket_;
     private final BigDecimal metricValue_;
@@ -71,16 +71,16 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
         return stringBuilder.toString();
     }
         
-    public Long getHashKey() {
+    public long getHashKey() {
         return this.hashKey_;
     }
     
     @Override
-    public Long getMetricHashKey() {
+    public long getMetricHashKey() {
         return getHashKey();
     }
     
-    public void setHashKey(Long hashKey) {
+    public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
 
@@ -111,6 +111,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
         return metricTimestampInMilliseconds_;
     }
     
+    @Override
     public int getMetricTimestampInSeconds() {
         return createAndGetMetricTimestampInSeconds();
     }

@@ -99,7 +99,7 @@ public class Lookup extends HttpServlet {
         AlertsDao alertsDao = new AlertsDao();
         List<String> alertNames = alertsDao.getAlertNames(alertNamesQuery, 10);
         
-        StringBuilder json = new StringBuilder("");
+        StringBuilder json = new StringBuilder();
         
         json.append("[");
         
@@ -130,7 +130,7 @@ public class Lookup extends HttpServlet {
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         List<String> metricGroupsNames = metricGroupsDao.getMetricGroupNames(metricGroupNamesQuery, 10);
         
-        StringBuilder json = new StringBuilder("");
+        StringBuilder json = new StringBuilder();
         
         json.append("[");
         
@@ -161,7 +161,7 @@ public class Lookup extends HttpServlet {
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         List<String> notificationGroupsNames = notificationGroupsDao.getNotificationGroupNames(notificationGroupNamesQuery, 10);
         
-        StringBuilder json = new StringBuilder("");
+        StringBuilder json = new StringBuilder();
         
         json.append("[");
         

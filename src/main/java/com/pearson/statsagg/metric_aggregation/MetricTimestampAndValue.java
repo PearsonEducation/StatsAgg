@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation;
 
+import com.pearson.statsagg.utilities.MathUtilities;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -18,6 +19,8 @@ public class MetricTimestampAndValue {
     private final BigDecimal metricValue_;
     private final long metricReceivedHashKey_;
         
+    private boolean useFastHashCode_ = true;
+    
     public MetricTimestampAndValue(long timestamp, BigDecimal metricValue, long metricReceivedHashKey) {
         this.timestamp_ = timestamp;
         this.metricValue_ = metricValue;
@@ -43,9 +46,19 @@ public class MetricTimestampAndValue {
     
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(71, 109)
-                .append(metricReceivedHashKey_)
-                .toHashCode();
+        if (useFastHashCode_) {
+            return new HashCodeBuilder(71, 109)
+                    .append(metricReceivedHashKey_)
+                    .toHashCode();
+        }
+        else {
+            return new HashCodeBuilder(71, 109)
+                    .append(timestamp_)
+                    .append(metricValue_)
+                    .append(metricReceivedHashKey_)
+                    .append(useFastHashCode_)
+                    .toHashCode();
+        }
     }
     
     @Override
@@ -57,10 +70,13 @@ public class MetricTimestampAndValue {
         
         MetricTimestampAndValue metricTimestampAndValue = (MetricTimestampAndValue) obj;
 
+        boolean areMetricValuesNumericallyEqual = MathUtilities.areBigDecimalsNumericallyEqual(metricValue_, metricTimestampAndValue.getMetricValue());
+
         return new EqualsBuilder()
                 .append(timestamp_, metricTimestampAndValue.getTimestamp())
-                .append(metricValue_, metricTimestampAndValue.getMetricValue())
+                .append(areMetricValuesNumericallyEqual, true)
                 .append(metricReceivedHashKey_, metricTimestampAndValue.getMetricReceivedHashKey())
+                .append(useFastHashCode_, metricTimestampAndValue.useFastHashCode())
                 .isEquals();
     }
    
@@ -74,6 +90,14 @@ public class MetricTimestampAndValue {
 
     public long getMetricReceivedHashKey() {
         return metricReceivedHashKey_;
+    }
+
+    public boolean useFastHashCode() {
+        return useFastHashCode_;
+    }
+
+    public void setUseFastHashCode(boolean useFastHashCode) {
+        this.useFastHashCode_ = useFastHashCode;
     }
 
 }

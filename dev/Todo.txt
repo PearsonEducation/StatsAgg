@@ -1,7 +1,6 @@
 StatsAgg 1.2
  * Retest 'resend previous value' for all formats
  * Document example config comparison for statsd histogram 
- * Unit test output format conversions
 
 Short/Medium term
  * More intelligent alert & metric-group alterations. Don't clear/reset if only modifying name/description/etc.

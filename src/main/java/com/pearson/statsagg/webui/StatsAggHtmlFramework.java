@@ -23,7 +23,7 @@ public class StatsAggHtmlFramework {
     
     public String createHtmlHeader(String title, String additionalHtmlToInjectIntoHeader) {
         
-        StringBuilder header = new StringBuilder("");
+        StringBuilder header = new StringBuilder();
         
         header.append("<head>\n");
         
@@ -62,7 +62,7 @@ public class StatsAggHtmlFramework {
     
     public String createHtmlBody(String additionalHtmlToInjectIntoBody) {
         
-        StringBuilder body = new StringBuilder("");
+        StringBuilder body = new StringBuilder();
         
         body.append("<body>\n");
 
@@ -139,7 +139,7 @@ public class StatsAggHtmlFramework {
     
     public String buildHtmlBodyForPostResult(String pageName, String innerHtmlContentBody, String returnLinkLocation, String returnLinkDescription) {
         
-        StringBuilder htmlBody = new StringBuilder("");
+        StringBuilder htmlBody = new StringBuilder();
         
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
@@ -172,7 +172,7 @@ public class StatsAggHtmlFramework {
             return null;
         }
         
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
         String encodedFormId = "F_"  + DigestUtils.md5Hex(plaintextFormId);
         
@@ -249,7 +249,7 @@ public class StatsAggHtmlFramework {
         
         String htmlEscapedString = StringEscapeUtils.escapeHtml(unencodedString);
         
-        StringBuilder htmlEscapedString_StringBuilder = new StringBuilder("");
+        StringBuilder htmlEscapedString_StringBuilder = new StringBuilder();
         
         for (int i = 0; i < htmlEscapedString.length(); i++) {
             if ((i > 0) && (htmlEscapedString.charAt(i - 1) == ' ') && (htmlEscapedString.charAt(i) == ' ')) {

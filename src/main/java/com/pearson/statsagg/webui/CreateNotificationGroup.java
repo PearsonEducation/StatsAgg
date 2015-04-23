@@ -66,7 +66,7 @@ public class CreateNotificationGroup extends HttpServlet {
         PrintWriter out = null;
     
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -111,7 +111,7 @@ public class CreateNotificationGroup extends HttpServlet {
             
             response.setContentType("text/html");     
             
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "NotificationGroups", NotificationGroups.PAGE_NAME);
@@ -135,7 +135,7 @@ public class CreateNotificationGroup extends HttpServlet {
     
     private String buildCreateNotificationGroupHtml(NotificationGroup notificationGroup) {
 
-        StringBuilder htmlBody = new StringBuilder("");
+        StringBuilder htmlBody = new StringBuilder();
 
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +

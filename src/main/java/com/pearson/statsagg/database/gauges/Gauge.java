@@ -3,6 +3,7 @@ package com.pearson.statsagg.database.gauges;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import com.pearson.statsagg.database.DatabaseObject;
+import com.pearson.statsagg.utilities.MathUtilities;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +31,7 @@ public class Gauge extends DatabaseObject<Gauge> {
     
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append("bucket_sha1=").append(bucketSha1_).append(", bucket=").append(bucket_).append(", metricValue=")
                 .append(metricValue_).append(", lastModified=").append(lastModified_.getTime());
@@ -45,18 +46,12 @@ public class Gauge extends DatabaseObject<Gauge> {
         if (gauge == this) return true;
         if (gauge.getClass() != getClass()) return false;
         
-        boolean isMetricValueEqual = false;
-        if ((metricValue_ != null) && (gauge.getMetricValue() != null)) {
-            isMetricValueEqual = metricValue_.compareTo(gauge.getMetricValue()) == 0;
-        }
-        else if (metricValue_ == null) {
-            isMetricValueEqual = gauge.getMetricValue() == null;
-        }
-        
+        boolean areMetricValuesNumericallyEqual = MathUtilities.areBigDecimalsNumericallyEqual(metricValue_, gauge.getMetricValue());
+
         return new EqualsBuilder()
                 .append(bucketSha1_, gauge.getBucketSha1())
                 .append(bucket_, gauge.getBucket())
-                .append(isMetricValueEqual, true)
+                .append(areMetricValuesNumericallyEqual, true)
                 .append(lastModified_, gauge.getLastModified())
                 .isEquals();
     }

@@ -1093,7 +1093,7 @@ public class AlertThread implements Runnable {
             currentMetricKeyCount++;
         }
         
-        StringBuilder activeMetricKeys = new StringBuilder("");
+        StringBuilder activeMetricKeys = new StringBuilder();
         
         int outputMetricKeyCount = 0;
         for (String metricKey : metricKeys) {

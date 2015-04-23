@@ -78,9 +78,10 @@ public class MetricRecentValues extends HttpServlet {
         PrintWriter out = null;
     
         String metricKey = request.getParameter("MetricKey");
+        if ((metricKey != null) && !metricKey.isEmpty()) metricKey = metricKey.trim();
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");

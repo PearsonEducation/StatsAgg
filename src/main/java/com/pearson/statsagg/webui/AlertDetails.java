@@ -75,7 +75,7 @@ public class AlertDetails extends HttpServlet {
         String alertDetails = getAlertDetailsString(alertName);
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -123,7 +123,7 @@ public class AlertDetails extends HttpServlet {
             return "<div class=\"col-md-4\"><b>Alert not found</b></div>";
         }
         else {
-            StringBuilder outputString = new StringBuilder("");
+            StringBuilder outputString = new StringBuilder();
 
             NotificationGroup cautionNotificationGroup = null, dangerNotificationGroup = null;
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
@@ -194,22 +194,27 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<br>");
             
             boolean isAlertSuspended = false;
-            outputString.append("<b>Is alert suspended?</b> = ");
-            if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
-                    GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
-                outputString.append("Yes <br>");
-                isAlertSuspended = true;
-            }
-            else outputString.append("No <br>");
-            
-            outputString.append("<b>Is alert suspended, notification only?</b> = ");
-            if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
-                Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
-                
-                if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
+            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
+                outputString.append("<b>Is alert suspended?</b> = ");
+
+                if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
+                        GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
+                    outputString.append("Yes <br>");
+                    isAlertSuspended = true;
+                }
                 else outputString.append("No <br>");
             }
-            else outputString.append("N/A <br>");
+            
+            synchronized(GlobalVariables.alertSuspensionLevelsByAlertId) {
+                outputString.append("<b>Is alert suspended, notification only?</b> = ");
+                if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
+                    Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
+
+                    if (com.pearson.statsagg.alerts.AlertSuspensions.SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
+                    else outputString.append("No <br>");
+                }
+                else outputString.append("N/A <br>");
+            }
             
             outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
             outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
@@ -286,11 +291,13 @@ public class AlertDetails extends HttpServlet {
             if (alert.getCautionAlertLastSentTimestamp() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionAlertLastSentTimestamp(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
             else outputString.append("N/A <br>");
             
-            outputString.append("<b>Is caution alert status pending? (caused by application restart) </b> = ");
-            if ((alert.getId() != null) && (GlobalVariables.pendingCautionAlertsByAlertId != null) && GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
-                outputString.append("Yes <br>");  
+            synchronized(GlobalVariables.pendingCautionAlertsByAlertId) {
+                outputString.append("<b>Is caution alert status pending? (caused by application restart) </b> = ");
+                if ((alert.getId() != null) && (GlobalVariables.pendingCautionAlertsByAlertId != null) && GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
+                    outputString.append("Yes <br>");  
+                }
+                else outputString.append("No <br>");  
             }
-            else outputString.append("No <br>");  
             
             if ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) outputString.append("</del>");
 
@@ -369,11 +376,13 @@ public class AlertDetails extends HttpServlet {
             if (alert.getDangerAlertLastSentTimestamp() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerAlertLastSentTimestamp(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
             else outputString.append("N/A <br>");
             
-            outputString.append("<b>Is danger alert status pending? (caused by application restart) </b> = ");
-            if ((alert.getId() != null) && (GlobalVariables.pendingDangerAlertsByAlertId != null) && GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
-                outputString.append("Yes <br>");  
+            synchronized(GlobalVariables.pendingDangerAlertsByAlertId) {
+                outputString.append("<b>Is danger alert status pending? (caused by application restart) </b> = ");
+                if ((alert.getId() != null) && (GlobalVariables.pendingDangerAlertsByAlertId != null) && GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
+                    outputString.append("Yes <br>");  
+                }
+                else outputString.append("No <br>");  
             }
-            else outputString.append("No <br>");  
             
             if ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) outputString.append("</del>");
             

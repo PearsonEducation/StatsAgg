@@ -40,7 +40,7 @@ public class StringUtilities {
             return null;
         }
         
-        StringBuilder mergedRegexStringBuilder = new StringBuilder("");
+        StringBuilder mergedRegexStringBuilder = new StringBuilder();
         int regexCount = regexes.size();
 
         mergedRegexStringBuilder.append("(");

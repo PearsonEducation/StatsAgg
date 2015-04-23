@@ -2,7 +2,11 @@ package com.pearson.statsagg.metric_aggregation.opentsdb;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -32,6 +36,34 @@ public class OpenTsdbRawTest {
     
     @After
     public void tearDown() {
+    }
+
+    /**
+     * Test of getOpenTsdbFormatString method, of class OpenTsdbMetricRaw.
+     */
+    @Test
+    public void testGetGraphiteFormatString() {
+        String unparsedMetric1 = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
+        OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, "", 1366998400999L);
+        assertEquals("tcollector.reader.lines_collected 1203.3 1424566500", parsedMetric1.getGraphiteFormatString());     
+        
+        String unparsedMetric2 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
+        OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, "", 1366998400999L);
+        assertEquals("tcollector.reader.lines_collected 12 1424566500", parsedMetric2.getGraphiteFormatString());  
+    }
+    
+    /**
+     * Test of getOpenTsdbFormatString method, of class OpenTsdbMetricRaw.
+     */
+    @Test
+    public void testGetOpenTsdbFormatString() {
+        String unparsedMetric1 = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
+        OpenTsdbMetricRaw parsedMetric1 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric1, "", 1366998400999L);
+        assertEquals("tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix", parsedMetric1.getOpenTsdbFormatString());     
+        
+        String unparsedMetric2 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
+        OpenTsdbMetricRaw parsedMetric2 = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric2, "", 1366998400999L);
+        assertEquals("tcollector.reader.lines_collected 1424566500123 12 tag1=meow tag2=mix", parsedMetric2.getOpenTsdbFormatString());  
     }
     
     /**

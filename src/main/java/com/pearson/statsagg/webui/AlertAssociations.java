@@ -110,7 +110,7 @@ public class AlertAssociations extends HttpServlet {
         }
         
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -212,7 +212,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>Alert not found</b>";
         }
         else {
-            StringBuilder outputString = new StringBuilder("");
+            StringBuilder outputString = new StringBuilder();
 
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
@@ -255,7 +255,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>Alert not found</b>";
         }
         else {
-            StringBuilder outputString = new StringBuilder("");
+            StringBuilder outputString = new StringBuilder();
 
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
@@ -278,9 +278,9 @@ public class AlertAssociations extends HttpServlet {
             return "";
         }
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         
-        List<String> activeCautionAlertMetricKeys = null;
+        List<String> activeCautionAlertMetricKeys;
         TreeSet<String> activeCautionAlertMetricKeysSorted = new TreeSet<>();
         synchronized(GlobalVariables.activeCautionAlertMetricKeysByAlertId) {
             activeCautionAlertMetricKeys = GlobalVariables.activeCautionAlertMetricKeysByAlertId.get(alert.getId());
@@ -290,7 +290,7 @@ public class AlertAssociations extends HttpServlet {
             }
         }
 
-        Map<String,BigDecimal> activeCautionAlertMetricValuesLocal = null;
+        Map<String,BigDecimal> activeCautionAlertMetricValuesLocal;
         synchronized(GlobalVariables.activeCautionAlertMetricValues) {
             activeCautionAlertMetricValuesLocal = new HashMap<>(GlobalVariables.activeCautionAlertMetricValues);
         }
@@ -355,7 +355,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>Alert not found</b>";
         }
         else {
-            StringBuilder outputString = new StringBuilder("");
+            StringBuilder outputString = new StringBuilder();
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Danger Acknowledged</b> = ");
@@ -377,9 +377,9 @@ public class AlertAssociations extends HttpServlet {
             return "";
         }
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         
-        List<String> activeDangerAlertMetricKeys = null;
+        List<String> activeDangerAlertMetricKeys;
         TreeSet<String> activeDangerAlertMetricKeysSorted = new TreeSet<>();
         synchronized(GlobalVariables.activeDangerAlertMetricKeysByAlertId) {
             activeDangerAlertMetricKeys = GlobalVariables.activeDangerAlertMetricKeysByAlertId.get(alert.getId());
@@ -389,7 +389,7 @@ public class AlertAssociations extends HttpServlet {
             }
         }
 
-        Map<String,BigDecimal> activeDangerAlertMetricValuesLocal = null;
+        Map<String,BigDecimal> activeDangerAlertMetricValuesLocal;
         synchronized(GlobalVariables.activeDangerAlertMetricValues) {
             activeDangerAlertMetricValuesLocal = new HashMap<>(GlobalVariables.activeDangerAlertMetricValues);
         }

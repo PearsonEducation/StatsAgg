@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
 import com.pearson.statsagg.database.DatabaseObject;
+import com.pearson.statsagg.utilities.MathUtilities;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -204,21 +205,8 @@ public class Alert extends DatabaseObject<Alert> {
         if (alert == this) return true;
         if (alert.getClass() != getClass()) return false;
         
-        boolean isCautionThresholdValueEqual = false;
-        if ((cautionThreshold_ != null) && (alert.getCautionThreshold() != null)) {
-            isCautionThresholdValueEqual = cautionThreshold_.compareTo(alert.getCautionThreshold()) == 0;
-        }
-        else if (cautionThreshold_ == null) {
-            isCautionThresholdValueEqual = alert.getCautionThreshold() == null;
-        }
-        
-        boolean isDangerThresholdValueEqual = false;
-        if ((dangerThreshold_ != null) && (alert.getDangerThreshold() != null)) {
-            isDangerThresholdValueEqual = dangerThreshold_.compareTo(alert.getDangerThreshold()) == 0;
-        }
-        else if (dangerThreshold_ == null) {
-            isDangerThresholdValueEqual = alert.getDangerThreshold() == null;
-        }
+        boolean isCautionThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(cautionThreshold_, alert.getCautionThreshold());
+        boolean isDangerThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(dangerThreshold_, alert.getDangerThreshold());
         
         return new EqualsBuilder()
                 .append(id_, alert.getId())

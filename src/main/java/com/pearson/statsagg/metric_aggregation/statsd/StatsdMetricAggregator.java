@@ -816,7 +816,7 @@ public class StatsdMetricAggregator {
     private static String generatePrefix(Byte metricTypeKey, boolean useLegacyNameSpacing) {
                 
         if (metricTypeKey == null) {
-            StringBuilder prefix = new StringBuilder("");
+            StringBuilder prefix = new StringBuilder();
             if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
             if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
             if (metricTypeKey == null) return prefix.toString();
@@ -827,7 +827,7 @@ public class StatsdMetricAggregator {
         else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugeMetricPrefix_ != null)) return gaugeMetricPrefix_;
         else if ((metricTypeKey == StatsdMetricRaw.SET_TYPE) && (setMetricPrefix_ != null)) return setMetricPrefix_;
 
-        StringBuilder prefix = new StringBuilder("");
+        StringBuilder prefix = new StringBuilder();
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
         if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled() && !useLegacyNameSpacing) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
         if (useLegacyNameSpacing) prefix.append("stats").append(".");

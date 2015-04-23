@@ -1,11 +1,17 @@
 package com.pearson.statsagg.utilities;
 
 import java.io.BufferedInputStream;
+import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipParameters;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,21 +22,29 @@ public class Compression {
     
     private static final Logger logger = LoggerFactory.getLogger(Compression.class.getName());
     
-    public static String decompressDeflateToString(InputStream compressedData, String charset) {
+    public static final Map<String,Charset> charsetCache = new ConcurrentHashMap<>();
+    
+    public static String decompressDeflateToString(InputStream compressedData, String charsetString) {
         
-        if (compressedData == null) {
+        if ((compressedData == null) || (charsetString == null)) {
             return null;
         } 
         
         Charset charsetToUse;
         
         try {
-            charsetToUse = Charset.availableCharsets().get(charset);
-            if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
+            charsetToUse = charsetCache.get(charsetString);
+            
+            if (charsetToUse == null) {
+                charsetToUse = Charset.availableCharsets().get(charsetString);
+                if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
+                if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             charsetToUse = Charset.defaultCharset();
+            if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
         }
         
         byte[] bytes = decompressDeflateToByteArray(compressedData);
@@ -100,21 +114,91 @@ public class Compression {
         }
     }
     
-    public static String decompressGzipToString(InputStream compressedData, String charset) {
+    public static byte[] compressStringToGzip(String inputString, GzipParameters gzipParameters) {
         
-        if (compressedData == null) {
+        if ((inputString == null) || inputString.isEmpty() || (gzipParameters == null)) {
+            return null;
+        }
+        
+        InputStream inputStream = null;
+        BufferedInputStream bufferedInputStream = null;
+        ByteArrayOutputStream byteArrayOutputStream = null;
+        GzipCompressorOutputStream gzipCompressorOutputStream = null;
+            
+        try {
+            inputStream = new ByteArrayInputStream(inputString.getBytes(StandardCharsets.UTF_8));
+            bufferedInputStream = new BufferedInputStream(inputStream);
+            byteArrayOutputStream = new ByteArrayOutputStream();
+            gzipCompressorOutputStream = new GzipCompressorOutputStream(byteArrayOutputStream, gzipParameters);
+
+            byte[] buffer = new byte[65536];
+            
+            int n = 0;
+            while (-1 != (n = bufferedInputStream.read(buffer))) gzipCompressorOutputStream.write(buffer, 0, n);
+            
+            gzipCompressorOutputStream.finish();
+            return byteArrayOutputStream.toByteArray();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            try {
+                if (gzipCompressorOutputStream != null) {
+                    gzipCompressorOutputStream.close();
+                    gzipCompressorOutputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (byteArrayOutputStream != null) {
+                    byteArrayOutputStream.close();
+                    byteArrayOutputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (bufferedInputStream != null) {
+                    bufferedInputStream.close();
+                    bufferedInputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (inputStream != null) {
+                    inputStream.close();
+                    inputStream = null;
+                }
+            }
+            catch (Exception e){}
+        }
+    }
+    
+    public static String decompressGzipToString(InputStream compressedData, String charsetString) {
+        
+        if ((compressedData == null) || (charsetString == null)) {
             return null;
         } 
         
         Charset charsetToUse;
         
         try {
-            charsetToUse = Charset.availableCharsets().get(charset);
-            if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
+            charsetToUse = charsetCache.get(charsetString);
+            
+            if (charsetToUse == null) {
+                charsetToUse = Charset.availableCharsets().get(charsetString);
+                if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
+                if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             charsetToUse = Charset.defaultCharset();
+            if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
         }
         
         byte[] bytes = decompressGzipToByteArray(compressedData);
@@ -148,6 +232,7 @@ public class Compression {
             gzipCompressorInputStream = new GzipCompressorInputStream(bufferedInputStream);
             byteArrayOutputStream = new ByteArrayOutputStream();
             final byte[] buffer = new byte[65536];
+            
             int n = 0;
             while (-1 != (n = gzipCompressorInputStream.read(buffer))) byteArrayOutputStream.write(buffer, 0, n);
 

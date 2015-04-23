@@ -137,13 +137,11 @@ public class CleanupThread implements Runnable {
             return;
         }
         
-        synchronized(GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup) {
-            Set<Integer> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet();
+        Set<Integer> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet();
 
-            for (Integer metricGroupId : matchingMetricKeysAssociatedWithMetricGroup) {
-                Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-                matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
-            }
+        for (Integer metricGroupId : matchingMetricKeysAssociatedWithMetricGroup) {
+            Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+            if (matchingMetricKeyAssociationWithMetricGroup != null) matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
         }
         
         cleanupActiveAvailabilityAlerts(metricKey);
@@ -162,44 +160,49 @@ public class CleanupThread implements Runnable {
         }
         
         // caution + danger
-        GlobalVariables.activeAvailabilityAlerts.remove(metricKey);
-        
+        synchronized(GlobalVariables.activeAvailabilityAlerts) {
+            GlobalVariables.activeAvailabilityAlerts.remove(metricKey);
+        }
         
         // caution
-        List<Integer> alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts = new ArrayList<>();
-        
-        for (Integer alertId : GlobalVariables.activeCautionAvailabilityAlerts.keySet()) {
-            Set<String> activeCautionAvailabilityMetricKeys = GlobalVariables.activeCautionAvailabilityAlerts.get(alertId);
+        synchronized(GlobalVariables.activeCautionAvailabilityAlerts) {
+            List<Integer> alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts = new ArrayList<>();
             
-            if (activeCautionAvailabilityMetricKeys != null) {
-                activeCautionAvailabilityMetricKeys.remove(metricKey);
-                if (activeCautionAvailabilityMetricKeys.isEmpty()) {
-                    alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts.add(alertId);
+            for (Integer alertId : GlobalVariables.activeCautionAvailabilityAlerts.keySet()) {
+                Set<String> activeCautionAvailabilityMetricKeys = GlobalVariables.activeCautionAvailabilityAlerts.get(alertId);
+
+                if (activeCautionAvailabilityMetricKeys != null) {
+                    activeCautionAvailabilityMetricKeys.remove(metricKey);
+                    if (activeCautionAvailabilityMetricKeys.isEmpty()) {
+                        alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts.add(alertId);
+                    }
                 }
+            }
+            
+            for (Integer alertId : alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts) {
+                GlobalVariables.activeCautionAvailabilityAlerts.remove(alertId);
             }
         }
         
-        for (Integer alertId : alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts) {
-            GlobalVariables.activeCautionAvailabilityAlerts.remove(alertId);
-        }
-        
-        
+
         // danger
-        List<Integer> alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts = new ArrayList<>();
-        
-        for (Integer alertId : GlobalVariables.activeDangerAvailabilityAlerts.keySet()) {
-            Set<String> activeDangerAvailabilityMetricKeys = GlobalVariables.activeDangerAvailabilityAlerts.get(alertId);
+        synchronized(GlobalVariables.activeDangerAvailabilityAlerts) {
+            List<Integer> alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts = new ArrayList<>();
             
-            if (activeDangerAvailabilityMetricKeys != null) {
-                activeDangerAvailabilityMetricKeys.remove(metricKey);
-                if (activeDangerAvailabilityMetricKeys.isEmpty()) {
-                    alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts.add(alertId);
+            for (Integer alertId : GlobalVariables.activeDangerAvailabilityAlerts.keySet()) {
+                Set<String> activeDangerAvailabilityMetricKeys = GlobalVariables.activeDangerAvailabilityAlerts.get(alertId);
+
+                if (activeDangerAvailabilityMetricKeys != null) {
+                    activeDangerAvailabilityMetricKeys.remove(metricKey);
+                    if (activeDangerAvailabilityMetricKeys.isEmpty()) {
+                        alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts.add(alertId);
+                    }
                 }
             }
-        }
-        
-        for (Integer alertId : alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts) {
-            GlobalVariables.activeDangerAvailabilityAlerts.remove(alertId);
+
+            for (Integer alertId : alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts) {
+                GlobalVariables.activeDangerAvailabilityAlerts.remove(alertId);
+            }
         }
         
     }
@@ -210,7 +213,13 @@ public class CleanupThread implements Runnable {
             return false;
         }
         
-        return (GlobalVariables.activeAvailabilityAlerts != null) && GlobalVariables.activeAvailabilityAlerts.containsKey(metricKey);
+        boolean isMetricKeyTrackedByActiveAvailabilityAlert;
+        
+        synchronized(GlobalVariables.activeAvailabilityAlerts) {
+            isMetricKeyTrackedByActiveAvailabilityAlert = ((GlobalVariables.activeAvailabilityAlerts != null) && GlobalVariables.activeAvailabilityAlerts.containsKey(metricKey));
+        }
+        
+        return isMetricKeyTrackedByActiveAvailabilityAlert;
     }
     
     private String cleanupRecentMetricTimestampsAndValues(List<Alert> alerts) {

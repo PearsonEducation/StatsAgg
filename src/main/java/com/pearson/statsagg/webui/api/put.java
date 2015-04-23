@@ -140,7 +140,7 @@ public class put extends HttpServlet {
         }
         
         for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
-            Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
+            long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             openTsdbMetricRaw.setHashKey(hashKey);
             GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
@@ -152,13 +152,13 @@ public class put extends HttpServlet {
         }
         
         if (doesRequestSummary) {
-            StringBuilder summaryResponse = new StringBuilder("");
+            StringBuilder summaryResponse = new StringBuilder();
             summaryResponse.append("{\"failed\":").append(successCountAndFailCount.get(1)).append(",\"success\":").append(successCountAndFailCount.get(0)).append("}");
             return summaryResponse.toString();
         }
         
         if (doesRequestDetails) {
-            StringBuilder detailsResponse = new StringBuilder("");
+            StringBuilder detailsResponse = new StringBuilder();
             detailsResponse.append("{\"failed\":").append(successCountAndFailCount.get(1)).append(",\"success\":")
                     .append(successCountAndFailCount.get(0)).append(",\"errors\":[]").append("}");
             return detailsResponse.toString();

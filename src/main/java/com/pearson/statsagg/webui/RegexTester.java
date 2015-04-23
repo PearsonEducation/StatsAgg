@@ -70,7 +70,7 @@ public class RegexTester extends HttpServlet {
         PrintWriter out = null;
     
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -108,7 +108,7 @@ public class RegexTester extends HttpServlet {
             String parameter = request.getParameter("Regex");
             String regexMatchesHtml = getRegexMatchesHtml(parameter, 1000);
   
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -134,7 +134,7 @@ public class RegexTester extends HttpServlet {
     
     private String buildRegexTesterHtml(String regex, String regexMatches) {
 
-        StringBuilder htmlBody = new StringBuilder("");
+        StringBuilder htmlBody = new StringBuilder();
 
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
@@ -182,7 +182,7 @@ public class RegexTester extends HttpServlet {
         Pattern pattern = null;
         
         try {
-            pattern = Pattern.compile(regex);
+            pattern = Pattern.compile(regex.trim());
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

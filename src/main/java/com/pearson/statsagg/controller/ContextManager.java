@@ -367,7 +367,7 @@ public class ContextManager implements ServletContextListener {
     }
     
     public InputStream getEphemeralDatabaseConfiguration() {
-        StringBuilder defaultDatabase = new StringBuilder("");
+        StringBuilder defaultDatabase = new StringBuilder();
         defaultDatabase.append("db_type = derby_embedded\n");
         defaultDatabase.append("db_custom_jdbc = jdbc:derby:memory:statsagg_mem_db;create=true\n");
         defaultDatabase.append("derby.storage.pageCacheSize = 15000\n");

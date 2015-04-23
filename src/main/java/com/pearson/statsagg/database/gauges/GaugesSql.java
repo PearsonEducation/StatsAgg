@@ -67,7 +67,7 @@ public class GaugesSql {
             return null;
         }
         
-        StringBuilder upsert = new StringBuilder("");
+        StringBuilder upsert = new StringBuilder();
         
         upsert.append("INSERT INTO GAUGES(BUCKET_SHA1, BUCKET, METRIC_VALUE, LAST_MODIFIED) VALUES");
         

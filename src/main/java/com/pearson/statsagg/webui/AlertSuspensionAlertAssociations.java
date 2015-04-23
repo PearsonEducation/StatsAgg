@@ -77,7 +77,7 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
         String alertSuspensionAlertAssociations = getAlertSuspension_AlertAssociations(name);
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -127,7 +127,7 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
 
         outputString.append("<b>Alert Suspension Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
 
-        Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId = null;
+        Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId;
         synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
             alertIdAssociationsByAlertSuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsByAlertSuspensionId(GlobalVariables.alertSuspensionIdAssociationsByAlertId);
         }

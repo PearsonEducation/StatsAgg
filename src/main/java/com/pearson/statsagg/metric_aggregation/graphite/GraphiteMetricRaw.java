@@ -21,7 +21,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     
     private static final Logger logger = LoggerFactory.getLogger(GraphiteMetricRaw.class.getName());
     
-    private Long hashKey_ = null;
+    private long hashKey_ = -1;
     
     private final String metricPath_;
     private final BigDecimal metricValue_;
@@ -55,9 +55,9 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricValue_.stripTrailingZeros().toPlainString();
     }
 
-    public long createAndGetMetricTimestampInSeconds() {
-        if (isMetricTimestampInSeconds_) return metricTimestamp_;
-        else return (long) (metricTimestamp_ / 1000);
+    public int createAndGetMetricTimestampInSeconds() {
+        if (isMetricTimestampInSeconds_) return (int) metricTimestamp_;
+        else return (int) (metricTimestamp_ / 1000);
     }
     
     public long createAndGetMetricTimestampInMilliseconds() {
@@ -262,16 +262,16 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return mostRecentGraphiteMetricsByMetricPath;
     }
 
-    public Long getHashKey() {
+    public long getHashKey() {
         return this.hashKey_;
     }
     
     @Override
-    public Long getMetricHashKey() {
+    public long getMetricHashKey() {
         return getHashKey();
     }
     
-    public void setHashKey(Long hashKey) {
+    public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
 
@@ -302,7 +302,8 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return metricTimestamp_;
     }
    
-    public long getMetricTimestampInSeconds() {
+    @Override
+    public int getMetricTimestampInSeconds() {
         return createAndGetMetricTimestampInSeconds();
     }
     

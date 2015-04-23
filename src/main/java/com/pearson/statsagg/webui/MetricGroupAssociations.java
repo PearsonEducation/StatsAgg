@@ -71,7 +71,7 @@ public class MetricGroupAssociations extends HttpServlet {
         String metricGroupAssociations = getMetricGroupAssociations(name);
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -113,7 +113,7 @@ public class MetricGroupAssociations extends HttpServlet {
             return "";
         }
         
-        StringBuilder outputString = new StringBuilder("");
+        StringBuilder outputString = new StringBuilder();
         
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
@@ -127,9 +127,9 @@ public class MetricGroupAssociations extends HttpServlet {
                 outputString.append("<b>Total Metric Group Associations (over the last 24 hours)</b> = ").append("0");
             }
             else {
-                TreeSet<String> matchingMetricKeysAssociatedWithMetricGroupSorted = null;
+                TreeSet<String> matchingMetricKeysAssociatedWithMetricGroupSorted;
                 synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
-                    matchingMetricKeysAssociatedWithMetricGroupSorted = new TreeSet<>(GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId()));
+                    matchingMetricKeysAssociatedWithMetricGroupSorted = new TreeSet<>(matchingMetricKeysAssociatedWithMetricGroup);
                 }
                 
                 int associationCount = matchingMetricKeysAssociatedWithMetricGroupSorted.size();

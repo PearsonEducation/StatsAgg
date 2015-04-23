@@ -27,7 +27,7 @@ public class MetricLastSeen extends DatabaseObject<MetricLastSeen> {
     
     @Override
     public String toString() {
-        StringBuilder stringBuilder = new StringBuilder("");
+        StringBuilder stringBuilder = new StringBuilder();
         
         stringBuilder.append("metricKey_sha1=").append(metricKeySha1_).append(", metricKey=").append(metricKey_).append(", lastModified=").append(lastModified_.getTime());
 

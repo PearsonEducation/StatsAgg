@@ -22,7 +22,7 @@ public final class StatsdMetricRaw {
     public static final byte SET_TYPE = 4;
     public static final byte UNDEFINED_TYPE = 5;
     
-    private Long hashKey_ = null;
+    private long hashKey_ = -1;
 
     private final String bucket_;
     private final BigDecimal metricValue_;
@@ -243,11 +243,11 @@ public final class StatsdMetricRaw {
         
     };
     
-    public Long getHashKey() {
+    public long getHashKey() {
         return this.hashKey_;
     }
     
-    public void setHashKey(Long hashKey) {
+    public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
     

@@ -441,7 +441,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
             return newLineDelimitedTags;
         }
         
-        StringBuilder tagStringBuilder = new StringBuilder("");
+        StringBuilder tagStringBuilder = new StringBuilder();
 
         List<String> tags = AlertSuspension.getMetricGroupTagStringsFromNewlineDelimitedString(newLineDelimitedTags);
         if ((tags != null) && !tags.isEmpty()) {

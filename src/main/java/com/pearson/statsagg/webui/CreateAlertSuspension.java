@@ -71,7 +71,7 @@ public class CreateAlertSuspension extends HttpServlet {
         PrintWriter out = null;
     
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -116,7 +116,7 @@ public class CreateAlertSuspension extends HttpServlet {
             
             response.setContentType("text/html");     
             
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "AlertSuspensions", AlertSuspensions.PAGE_NAME);
@@ -140,7 +140,7 @@ public class CreateAlertSuspension extends HttpServlet {
     
     private String buildCreateAlertSuspensionHtml(AlertSuspension alertSuspension) {
 
-        StringBuilder htmlBody = new StringBuilder("");
+        StringBuilder htmlBody = new StringBuilder();
 
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +

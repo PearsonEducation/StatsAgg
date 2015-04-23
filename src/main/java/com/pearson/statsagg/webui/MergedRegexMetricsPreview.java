@@ -79,7 +79,7 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         String regexMatchesHtml = getRegexMatchesHtml(mergedRegex, 1000);
         
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");

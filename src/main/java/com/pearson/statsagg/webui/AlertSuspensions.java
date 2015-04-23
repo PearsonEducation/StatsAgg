@@ -195,12 +195,12 @@ public class AlertSuspensions extends HttpServlet {
     
     private String buildAlertSuspensionsHtml() {
         
-        StringBuilder html = new StringBuilder("");
+        StringBuilder html = new StringBuilder();
 
         StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
         String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-        StringBuilder htmlBodyStringBuilder = new StringBuilder("");
+        StringBuilder htmlBodyStringBuilder = new StringBuilder();
         htmlBodyStringBuilder.append(
             "<div id=\"page-content-wrapper\">\n" +
             "<!-- Keep all page content within the page-content inset div! -->\n" +
@@ -240,7 +240,7 @@ public class AlertSuspensions extends HttpServlet {
                     StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
             
             String suspendBy;
-            StringBuilder suspendByDetails = new StringBuilder("");
+            StringBuilder suspendByDetails = new StringBuilder();
             
             if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
                 suspendBy = "Alert Name";
@@ -277,7 +277,11 @@ public class AlertSuspensions extends HttpServlet {
                 suspendBy = "?";
             }
             
-            Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsByAlertSuspensionId(GlobalVariables.alertSuspensionIdAssociationsByAlertId);
+            Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId;
+            synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
+                alertIdAssociationsByAlertSuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsByAlertSuspensionId(GlobalVariables.alertSuspensionIdAssociationsByAlertId);
+            }
+            
             Set<Integer> alertIdAssociations = alertIdAssociationsByAlertSuspensionId.get(alertSuspension.getId());
             int alertSuspensionAssociationCount;
             if (alertIdAssociations == null) alertSuspensionAssociationCount = 0;

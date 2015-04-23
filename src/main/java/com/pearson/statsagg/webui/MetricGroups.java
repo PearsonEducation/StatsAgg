@@ -185,12 +185,12 @@ public class MetricGroups extends HttpServlet {
     
     private String buildMetricGroupsHtml() {
         
-        StringBuilder html = new StringBuilder("");
+        StringBuilder html = new StringBuilder();
 
         StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
         String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
         
-        StringBuilder htmlBodyStringBuilder = new StringBuilder("");
+        StringBuilder htmlBodyStringBuilder = new StringBuilder();
         htmlBodyStringBuilder.append(
             "<div id=\"page-content-wrapper\">\n" +
             "<!-- Keep all page content within the page-content inset div! -->\n" +
@@ -237,7 +237,7 @@ public class MetricGroups extends HttpServlet {
             if (metricGroupRegexs == null) regexCount = 0;
             else regexCount = metricGroupRegexs.size();
             
-            StringBuilder tagsCsv = new StringBuilder("");
+            StringBuilder tagsCsv = new StringBuilder();
             if (tagsByMetricGroupId != null) {
                 List<MetricGroupTag> metricGroupTags = tagsByMetricGroupId.get(metricGroup.getId());
                 

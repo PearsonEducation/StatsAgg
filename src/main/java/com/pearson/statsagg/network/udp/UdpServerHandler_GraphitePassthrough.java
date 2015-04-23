@@ -28,7 +28,7 @@ public class UdpServerHandler_GraphitePassthrough extends SimpleChannelInboundHa
                 GlobalVariables.graphitePassthroughPrefix, currentTimestampInMilliseconds);
             
         for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
-            Long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
+            long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             graphiteMetricRaw.setHashKey(hashKey);
             GlobalVariables.graphitePassthroughMetricsRaw.put(graphiteMetricRaw.getHashKey(), graphiteMetricRaw);
             GlobalVariables.incomingMetricsCount.incrementAndGet();

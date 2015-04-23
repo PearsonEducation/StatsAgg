@@ -24,7 +24,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdbMetricRaw.class.getName());
     
-    private Long hashKey_ = null;
+    private long hashKey_ = -1;
     
     private final long metricTimestamp_;
     private final BigDecimal metricValue_;
@@ -87,7 +87,17 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         if (metricLength_ >= metricKey_.length()) return metricKey_;
             
         return metricKey_.substring(0, metricLength_);
-     }
+    }
+    
+    public int createAndGetMetricTimestampInSeconds() {
+        if (!isTimestampInMilliseconds_) return (int) metricTimestamp_;
+        else return (int) (metricTimestamp_ / 1000);
+    }
+    
+    public long createAndGetMetricTimestampInMilliseconds() {
+        if (isTimestampInMilliseconds_) return metricTimestamp_;
+        else return (metricTimestamp_ * 1000);
+    }
     
     private List<OpenTsdbTag> getMetricTagsFromMetricKey() {
         if (metricKey_ == null) return new ArrayList<>();
@@ -112,7 +122,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     public String getGraphiteFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(getMetric()).append(" ").append(getMetricValueString()).append(" ").append(metricTimestamp_);
+        stringBuilder.append(getMetric()).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
         
         return stringBuilder.toString();
     }
@@ -234,12 +244,6 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
-    }
-    
-    public static final long createAndGetMetricTimestampInMilliseconds(long metricTimestamp, boolean isTimestampInMilliseconds) {
-        if (isTimestampInMilliseconds && (metricTimestamp > -1)) return metricTimestamp;
-        else if (metricTimestamp < 0) return metricTimestamp;
-        else return (metricTimestamp * 1000);
     }
     
     public static ArrayList getSortedUnparsedTags(List<OpenTsdbTag> openTsdbTags) {
@@ -421,16 +425,16 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return mostRecentOpenTsdbMetricsByMetricKey;
     }
 
-    public Long getHashKey() {
+    public long getHashKey() {
         return this.hashKey_;
     }
     
     @Override
-    public Long getMetricHashKey() {
+    public long getMetricHashKey() {
         return getHashKey();
     }
     
-    public void setHashKey(Long hashKey) {
+    public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
     
@@ -452,8 +456,13 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     }
     
     @Override
+    public int getMetricTimestampInSeconds() {
+        return createAndGetMetricTimestampInSeconds();
+    }
+    
+    @Override
     public long getMetricTimestampInMilliseconds() {
-        return createAndGetMetricTimestampInMilliseconds(metricTimestamp_, isTimestampInMilliseconds_);
+        return createAndGetMetricTimestampInMilliseconds();
     }
     
     public BigDecimal getMetricValue() {

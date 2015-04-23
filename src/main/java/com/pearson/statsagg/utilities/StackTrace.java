@@ -30,7 +30,7 @@ public class StackTrace {
     public static String getStringFromStackTrace(StackTraceElement[] stackTraceElements) {
         try {
             
-            StringBuilder stackTrace = new StringBuilder("");
+            StringBuilder stackTrace = new StringBuilder();
             
             for (StackTraceElement stackTraceElement : stackTraceElements) {
                 stackTrace.append(stackTraceElement).append(System.lineSeparator());

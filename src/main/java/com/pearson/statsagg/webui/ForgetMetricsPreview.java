@@ -64,10 +64,11 @@ public class ForgetMetricsPreview extends HttpServlet {
         PrintWriter out = null;
         
         String parameter = request.getParameter("Regex");
+        if (parameter != null && !parameter.isEmpty()) parameter = parameter.trim();
         String regexMatchesHtml = getRegexMatchesHtml(parameter, 1000);
         
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");

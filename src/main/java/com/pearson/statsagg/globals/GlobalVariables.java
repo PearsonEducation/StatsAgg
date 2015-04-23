@@ -12,7 +12,6 @@ import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -79,8 +78,8 @@ public class GlobalVariables {
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
     
-    // k=MetricGroupId, v="Remove","Alter" 
-    public final static ConcurrentHashMap<Integer,String> metricGroupChanges = new ConcurrentHashMap<>();
+    // k=MetricGroupId, v="codes for "New, "Remove", "Alter" 
+    public final static ConcurrentHashMap<Integer,Byte> metricGroupChanges = new ConcurrentHashMap<>();
             
     // k=MetricKey, v="The most timestamp that this metric was received by this program"
     public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(); 

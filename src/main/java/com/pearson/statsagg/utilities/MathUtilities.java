@@ -1,8 +1,6 @@
 package com.pearson.statsagg.utilities;
 
-import static com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator.STATSD_MATH_CONTEXT;
 import java.math.BigDecimal;
-import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -20,6 +18,20 @@ public class MathUtilities {
     private static final Logger logger = LoggerFactory.getLogger(MathUtilities.class.getName());
     
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
+    
+    public static boolean areBigDecimalsNumericallyEqual(BigDecimal bigDecimal1, BigDecimal bigDecimal2) {
+        
+        boolean isEqual = false;
+        
+        if ((bigDecimal1 != null) && (bigDecimal2 != null)) {
+            isEqual = (bigDecimal1.compareTo(bigDecimal2) == 0);
+        }
+        else if (bigDecimal1 == null) {
+            isEqual = (bigDecimal2 == null);
+        }
+        
+        return isEqual;
+    }
     
     public static Long computeMedianOfLongs(List<Long> numbers) {
         

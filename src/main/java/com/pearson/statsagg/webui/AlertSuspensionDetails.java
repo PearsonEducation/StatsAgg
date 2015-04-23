@@ -72,7 +72,7 @@ public class AlertSuspensionDetails extends HttpServlet {
         String alertSuspensionDetails = getAlertSuspensionDetailsString(alertSuspensionName);
                 
         try {  
-            StringBuilder htmlBuilder = new StringBuilder("");
+            StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
