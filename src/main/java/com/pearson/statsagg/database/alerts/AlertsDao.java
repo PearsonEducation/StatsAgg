@@ -71,9 +71,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(),
+                alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
-                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet()
+                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), 
+                alert.getDangerFirstActiveAt()
         );
     }
     
@@ -88,9 +90,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
                 alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
                 alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(),
+                alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
                 alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
                 alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), 
+                alert.getDangerFirstActiveAt(), 
                 alert.getId());
     }
 
@@ -182,6 +186,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             String cautionActiveAlertsSet = resultSet.getString("CAUTION_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) cautionActiveAlertsSet = null;
 
+            Timestamp cautionFirstActiveAt = resultSet.getTimestamp("CAUTION_FIRST_ACTIVE_AT");
+            if (resultSet.wasNull()) cautionFirstActiveAt = null;
+            
             Integer dangerNotificationGroupId = resultSet.getInt("DANGER_NOTIFICATION_GROUP_ID");
             if (resultSet.wasNull()) dangerNotificationGroupId = null;
             
@@ -218,12 +225,17 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             String dangerActiveAlertsSet = resultSet.getString("DANGER_ACTIVE_ALERTS_SET");
             if (resultSet.wasNull()) dangerActiveAlertsSet = null;
 
+            Timestamp dangerFirstActiveAt = resultSet.getTimestamp("DANGER_FIRST_ACTIVE_AT");
+            if (resultSet.wasNull()) dangerFirstActiveAt = null;
+    
             Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled,
                     alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
                     cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
                     cautionStopTrackingAfter, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet,
+                    cautionFirstActiveAt,
                     dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
-                    dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet);
+                    dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet,
+                    dangerFirstActiveAt);
             
             return alert;
         }

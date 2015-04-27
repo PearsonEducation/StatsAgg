@@ -13,6 +13,7 @@ import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.sql.Timestamp;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -950,10 +951,12 @@ public class CreateAlert extends HttpServlet {
             
         if (!didEncounterError) {
             alert.setIsCautionAlertActive(false);
+            alert.setCautionFirstActiveAt(null);
             alert.setIsCautionAcknowledged(null);
             alert.setCautionAlertLastSentTimestamp(null);
             alert.setCautionActiveAlertsSet(null);
             alert.setIsDangerAlertActive(false);
+            alert.setDangerFirstActiveAt(null);
             alert.setIsDangerAcknowledged(null);
             alert.setDangerAlertLastSentTimestamp(null);
             alert.setDangerActiveAlertsSet(null);

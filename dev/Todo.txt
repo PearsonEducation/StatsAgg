@@ -5,12 +5,13 @@ StatsAgg 1.3
  * More intelligent alert & metric-group alterations. Don't clear/reset if only modifying name/description/etc.
  * Convert 'Alert Suspension Details' page into panel-based UI
  * Link to 'Triggered' alerts in 'Alert Details'
- * Multi-thread StatsD aggregation routine
+ * 'Alert active since'
  * Advanced options
    * Maximum concurrently running output-threads
    * Output-thread timeout
    
 Short/Medium term
+ * Multi-thread StatsD aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
  * Incoming metric rate limits
  * View application config in WebUI

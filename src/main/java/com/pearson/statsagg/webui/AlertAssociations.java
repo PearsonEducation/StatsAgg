@@ -13,6 +13,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -222,10 +223,20 @@ public class AlertAssociations extends HttpServlet {
             else if (!alert.isCautionAcknowledged()) outputString.append("No");    
             outputString.append("<br>");
             
+            outputString.append("<b>Caution First Triggered At</b> = ");
+            if (alert.getCautionFirstActiveAt() == null) outputString.append("N/A");
+            else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
+            outputString.append("<br>");
+            
             outputString.append("<b>Danger Acknowledged</b> = ");
             if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
             else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
             else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
+            outputString.append("<b>Danger First Triggered At</b> = ");
+            if (alert.getDangerFirstActiveAt() == null) outputString.append("N/A");
+            else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
             outputString.append("<hr>");
@@ -263,6 +274,11 @@ public class AlertAssociations extends HttpServlet {
             if (alert.isCautionAcknowledged() == null) outputString.append("N/A");
             else if (alert.isCautionAcknowledged()) outputString.append("Yes");   
             else if (!alert.isCautionAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
+            outputString.append("<b>Caution First Triggered At</b> = ");
+            if (alert.getCautionFirstActiveAt() == null) outputString.append("N/A");
+            else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
             String body = getCautionAlertAssociations_Body(alert);
@@ -362,6 +378,11 @@ public class AlertAssociations extends HttpServlet {
             if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
             else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
             else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            outputString.append("<br>");
+            
+            outputString.append("<b>Danger First Triggered At</b> = ");
+            if (alert.getDangerFirstActiveAt() == null) outputString.append("N/A");
+            else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
             String body = getDangerAlertAssociations_Body(alert);

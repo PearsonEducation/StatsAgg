@@ -154,10 +154,12 @@ public class Alerts extends HttpServlet {
 
             if (!isEnabled) {
                 alert.setIsCautionAlertActive(false);
+                alert.setCautionFirstActiveAt(null);
                 alert.setIsCautionAcknowledged(null);
                 alert.setCautionAlertLastSentTimestamp(null);
                 alert.setCautionActiveAlertsSet(null);
                 alert.setIsDangerAlertActive(false);
+                alert.setDangerFirstActiveAt(null);
                 alert.setIsDangerAcknowledged(null);
                 alert.setDangerAlertLastSentTimestamp(null);
                 alert.setDangerActiveAlertsSet(null);
@@ -195,6 +197,7 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setName(clonedAlertName);
                 clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
                 clonedAlert.setIsCautionAlertActive(false);
+                clonedAlert.setCautionFirstActiveAt(null);
                 clonedAlert.setIsCautionAcknowledged(null);
                 clonedAlert.setCautionAlertLastSentTimestamp(null);
                 clonedAlert.setCautionActiveAlertsSet(null);
@@ -202,7 +205,8 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setIsDangerAcknowledged(null);
                 clonedAlert.setDangerAlertLastSentTimestamp(null);
                 clonedAlert.setDangerActiveAlertsSet(null);
-
+                clonedAlert.setDangerFirstActiveAt(null);
+                
                 AlertsLogic alertsLogic = new AlertsLogic();
                 alertsLogic.alterRecordInDatabase(clonedAlert);
             }

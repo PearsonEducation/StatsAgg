@@ -872,6 +872,7 @@ public class AlertThread implements Runnable {
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
                 (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
             alert.setIsCautionAlertActive(false);
+            alert.setCautionFirstActiveAt(null);
             alert.setCautionAlertLastSentTimestamp(null);
             alert.setCautionActiveAlertsSet(null);
             doUpdateAlertInDb = true;
@@ -879,6 +880,7 @@ public class AlertThread implements Runnable {
         // not active -> active
         else if ((((alert.isCautionAlertActive() != null) && !alert.isCautionAlertActive()) || (alert.isCautionAlertActive() == null)) && isCautionAlertActive) {
             alert.setIsCautionAlertActive(true);
+            alert.setCautionFirstActiveAt(new Timestamp(currentTimeInMs));
             alert.setIsCautionAcknowledged(false);
             alert.setCautionAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
             
@@ -903,6 +905,7 @@ public class AlertThread implements Runnable {
             }
             
             positiveAlertReasons_Caution_ByAlertId_.remove(alert.getId());
+            alert.setCautionFirstActiveAt(null);
             alert.setIsCautionAcknowledged(null);
             alert.setCautionActiveAlertsSet(null);
             alert.setCautionAlertLastSentTimestamp(null);
@@ -972,6 +975,7 @@ public class AlertThread implements Runnable {
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
                 (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
             alert.setIsDangerAlertActive(false);
+            alert.setDangerFirstActiveAt(null);
             alert.setDangerAlertLastSentTimestamp(null);
             alert.setDangerActiveAlertsSet(null);
             doUpdateAlertInDb = true;
@@ -979,6 +983,7 @@ public class AlertThread implements Runnable {
         // not active -> active
         else if ((((alert.isDangerAlertActive() != null) && !alert.isDangerAlertActive()) || (alert.isDangerAlertActive() == null)) && isDangerAlertActive) {
             alert.setIsDangerAlertActive(true);
+            alert.setDangerFirstActiveAt(new Timestamp(currentTimeInMs));
             alert.setIsDangerAcknowledged(false);
             alert.setDangerAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
             
@@ -1003,6 +1008,7 @@ public class AlertThread implements Runnable {
             }
             
             positiveAlertReasons_Danger_ByAlertId_.remove(alert.getId());
+            alert.setDangerFirstActiveAt(null);
             alert.setIsDangerAcknowledged(null);
             alert.setDangerActiveAlertsSet(null);
             alert.setDangerAlertLastSentTimestamp(null);

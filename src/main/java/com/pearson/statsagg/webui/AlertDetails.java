@@ -281,6 +281,10 @@ public class AlertDetails extends HttpServlet {
             if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "Yes";
             outputString.append("<b>Caution alert active?</b> = ").append(isCautionAlertActive).append("<br>");
             
+            outputString.append("<b>Caution alert initially triggered at</b> = ");
+            if (alert.getCautionFirstActiveAt() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Caution acknowledged?</b> = ");
             String isCautionAcknowledged = "No";
             if ((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) isCautionAcknowledged = "Yes";
@@ -365,6 +369,10 @@ public class AlertDetails extends HttpServlet {
             String isDangerAlertActive = "No";
             if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "Yes";
             outputString.append("<b>Danger alert active?</b> = ").append(isDangerAlertActive).append("<br>");
+            
+            outputString.append("<b>Danger alert initially triggered at</b> = ");
+            if (alert.getDangerFirstActiveAt() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
+            else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger acknowledged?</b> = ");
             String isDangerAcknowledged = "No";
