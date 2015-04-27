@@ -241,18 +241,18 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
             if (alertSuspension.isRecurThursday() == null) return false;
             if (alertSuspension.isRecurFriday() == null) return false;
             if (alertSuspension.isRecurSaturday() == null) return false;
+        
+            // can't suspend for more than 24hrs if alert is recurring
+            if (alertSuspension.getDuration() > 1440) return false; 
+            if (alertSuspension.getDuration() <= 0) return false; 
         }
         
         // start dates/times can't be null
         if (alertSuspension.getStartDate() == null) return false;
         if (alertSuspension.getStartTime() == null) return false;
         if (alertSuspension.getDuration() == null) return false;
-        
-        // can't suspend for more than 24hrs
-        if (alertSuspension.getDuration() > 1440) return false; 
-        if (alertSuspension.getDuration() <= 0) return false; 
-        
-        // a one-time alert have a 'delete at' date that is in the past
+
+        // a one-time alert can't have a 'delete at' date that is in the past
         if (alertSuspension.isOneTime() && alertSuspension.getDeleteAtTimestamp() == null) return false;
         else if (alertSuspension.isOneTime() && alertSuspension.getDeleteAtTimestamp() != null) {
             if (System.currentTimeMillis() >= alertSuspension.getDeleteAtTimestamp().getTime()) {
@@ -297,8 +297,55 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         return isDateAndTimeInSuspensionWindow;
     }
 
+    // specifiedDateAndTime will usually refer to 'current date/time'
     public static boolean isDateAndTimeInSuspensionWindow(AlertSuspension alertSuspension, Calendar specifiedDateAndTime) {
 
+        if ((alertSuspension == null) || (alertSuspension.getStartTime() == null) || (alertSuspension.getStartDate() == null) || 
+                (alertSuspension.getDuration() == null) || (specifiedDateAndTime == null)) {
+            return false;
+        }
+
+        long alertSuspensionDuration_Milliseconds = 60000 * (long) alertSuspension.getDuration();
+        int suspensionStartTime_HourOfDay = alertSuspension.getStartTime().getHours();
+        int suspensionStartTime_Minute = alertSuspension.getStartTime().getMinutes();
+        int suspensionStartTime_Second = alertSuspension.getStartTime().getSeconds();
+        int suspensionStartTime_Millisecond = (int) (alertSuspension.getStartTime().getTime() % 1000);
+
+        // gets a calendar with alertSuspension's date & time. used for checking if specifiedDateAndTime is before the start date/time. 
+        Calendar suspensionStartDateAndTime = DateAndTime.getCalendarWithSameDateAtDifferentTime(alertSuspension.getStartDate(), suspensionStartTime_HourOfDay, 
+                    suspensionStartTime_Minute, suspensionStartTime_Second, suspensionStartTime_Millisecond);
+        
+        if (alertSuspension.isOneTime()) { // handles the 'one time' use-case
+            return isDateAndTimeInSuspensionWindow_OneTime(alertSuspension, suspensionStartDateAndTime, specifiedDateAndTime, alertSuspensionDuration_Milliseconds);
+        }
+        else { // handles the 'recurring' use-case
+            return isDateAndTimeInSuspensionWindow_Recurring(alertSuspension, suspensionStartDateAndTime, specifiedDateAndTime, alertSuspensionDuration_Milliseconds);
+        }
+    }
+    
+    private static boolean isDateAndTimeInSuspensionWindow_OneTime(AlertSuspension alertSuspension, Calendar suspensionStartDateAndTime, 
+            Calendar specifiedDateAndTime, long alertSuspensionDuration_Milliseconds) {
+        
+        if ((alertSuspension == null) || (alertSuspension.getStartTime() == null) || (alertSuspension.getStartDate() == null) || 
+                (alertSuspension.getDuration() == null) || (specifiedDateAndTime == null)) {
+            return false;
+        }
+        
+        long suspensionStartDateAndTime_Milliseconds = suspensionStartDateAndTime.getTimeInMillis();
+        long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();
+        long suspensionStartDateAndTime_PlusDuration_Milliseconds = alertSuspensionDuration_Milliseconds + suspensionStartDateAndTime_Milliseconds;
+        
+        if ((specifiedDateAndTime_Milliseconds >= suspensionStartDateAndTime_Milliseconds) && 
+                (specifiedDateAndTime_Milliseconds < suspensionStartDateAndTime_PlusDuration_Milliseconds)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    private static boolean isDateAndTimeInSuspensionWindow_Recurring(AlertSuspension alertSuspension, Calendar suspensionStartDateAndTime, 
+            Calendar specifiedDateAndTime, long alertSuspensionDuration_Milliseconds) {
+        
         /* Note -- this method may seem to have a contrived implementation, but the majority of the coding choices for this method were made to  
         achieve maximum performance. A cleaner, Calendar-only, model was originally used, but it performed 2x slower, so it was replaced with this structure. */
         
@@ -306,21 +353,11 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
                 (alertSuspension.getDuration() == null) || (specifiedDateAndTime == null)) {
             return false;
         }
-
-        long alertSuspensionDuration_Milliseconds = 60000 * (long) alertSuspension.getDuration();
-        long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();
-        int suspensionStartTime_HourOfDay = alertSuspension.getStartTime().getHours();
-        int suspensionStartTime_Minute = alertSuspension.getStartTime().getMinutes();
-        int suspensionStartTime_Second = alertSuspension.getStartTime().getSeconds();
-        int suspensionStartTime_Millisecond = (int) (alertSuspension.getStartTime().getTime() % 1000);
         
+        long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();        
         Date specifiedDateAndTime_Date = new Date(specifiedDateAndTime_Milliseconds);
         Date specifiedDateAndTime_MinusDuration = new Date(specifiedDateAndTime_Milliseconds - alertSuspensionDuration_Milliseconds);
-
-        // gets a calendar with alertSuspension's date & time. used for checking if specifiedDateAndTime is before the start date/time. 
-        Calendar suspensionStartDateAndTime = DateAndTime.getCalendarWithSameDateAtDifferentTime(alertSuspension.getStartDate(), suspensionStartTime_HourOfDay, 
-                    suspensionStartTime_Minute, suspensionStartTime_Second, suspensionStartTime_Millisecond);
-
+        
         /* covers the cicumstance of specifiedDateAndTime being in an active alert suspension time window, and the time window started the day before specifiedDateAndTime */
         if (specifiedDateAndTime_Date.getDate() != specifiedDateAndTime_MinusDuration.getDate()) {
             // gets a calendar with a date of "one day before specifiedDateAndTime's date" & alertSuspension's start-time
@@ -349,8 +386,8 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         /* covers the cicumstance of dealing with an alert suspension that doesn't involve an alert suspension time window that started the day before specifiedDateAndTime */
 
         // gets a calendar with specifiedDateAndTime's date & alertSuspension's start-time
-        Calendar startTime_SpecifiedDay = DateAndTime.getCalendarWithSameDateAtDifferentTime((Calendar) specifiedDateAndTime.clone(), suspensionStartTime_HourOfDay, 
-					suspensionStartTime_Minute, suspensionStartTime_Second, suspensionStartTime_Millisecond);
+        Calendar startTime_SpecifiedDay = DateAndTime.getCalendarWithSameDateAtDifferentTime((Calendar) specifiedDateAndTime.clone(), suspensionStartDateAndTime.get(Calendar.HOUR_OF_DAY), 
+                    suspensionStartDateAndTime.get(Calendar.MINUTE), suspensionStartDateAndTime.get(Calendar.SECOND), suspensionStartDateAndTime.get(Calendar.MILLISECOND));
         long startTime_SpecifiedDay_Milliseconds = startTime_SpecifiedDay.getTimeInMillis();
         
         // specifiedDateAndTime's start date & time is before alertSuspension's start date & time
@@ -368,7 +405,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         else {
             return false;
         }
-
+        
     }
     
     public static boolean isAlertSuspensionAllowed_DayOfWeek(AlertSuspension alertSuspension, Calendar specifiedDateAndTime) {

@@ -139,7 +139,7 @@ public class AlertSuspensionTest {
      */
     @Test
     public void testIsDateAndTimeInSuspensionWindow() {
-        // seed calendar = 2014-07-15, 23:00:00.000
+        // seed calendar = 2014-07-18, 23:00:00.000
         Calendar seedCalendar = Calendar.getInstance();
         seedCalendar.set(Calendar.YEAR, 2014);
         seedCalendar.set(Calendar.MONTH, Calendar.JULY);
@@ -271,7 +271,7 @@ public class AlertSuspensionTest {
     }
     
     private void testIsDateAndTimeInSuspensionWindow_DateInWindow_TimeInWindow_MultiDay_NotInYesterdaysWindow() {
-        // seed calendar = 2014-07-15, 23:00:00.000
+        // seed calendar = 2014-07-17, 23:00:00.000
         Calendar seedCalendar = Calendar.getInstance();
         seedCalendar.set(Calendar.YEAR, 2014);
         seedCalendar.set(Calendar.MONTH, Calendar.JULY);
@@ -290,11 +290,14 @@ public class AlertSuspensionTest {
         checkDateAndTime.setTimeInMillis(seedCalendar.getTimeInMillis());
         checkDateAndTime.add(Calendar.DATE, 40);
         checkDateAndTime = DateAndTime.getCalendarWithSameDateAtDifferentTime(checkDateAndTime, 18, 00, 00, 000);
+        
+        System.out.println(seedCalendar.getTimeInMillis() + "   " + checkDateAndTime.getTimeInMillis());
+        
         assertTrue(AlertSuspension.isDateAndTimeInSuspensionWindow(alertSuspension, checkDateAndTime));
     }
     
     private void testIsDateAndTimeInSuspensionWindow_DateInWindow_TimeInWindow_MultiDay_RecentStartDate() {
-        // seed calendar = 2014-07-15, 23:00:00.000
+        // seed calendar = 2014-07-17, 02:00:00.000
         Calendar seedCalendar = Calendar.getInstance();
         seedCalendar.set(Calendar.YEAR, 2014);
         seedCalendar.set(Calendar.MONTH, Calendar.JULY);

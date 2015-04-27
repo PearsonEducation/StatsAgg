@@ -89,6 +89,7 @@ Detailed installation instructions can be found in the [StatsAgg user manual](./
 * [Java Metrics](https://dropwizard.github.io/metrics)
 * [CollectD](https://collectd.org/)
 * [tcollector](https://github.com/OpenTSDB/tcollector/)
+* [scollector](https://github.com/bosun-monitor/bosun/tree/master/cmd/scollector)
 * StatsPoller -- a Pearson-developed metrics collection agent for servers (to be released sometime in 2015).
 * Anything that can output in Graphite, StatsD, or OpenTSDB format
 
@@ -101,7 +102,7 @@ Detailed information about StatsAgg's metric format support, including examples,
 
 ## Technology
 * StatsAgg is a Java 1.7 based webapp. It compiles into a war file, and is intended to be deployed into Apache Tomcat 7+.
-* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby Embedded, or MySQL 5.6+.
+* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby Embedded or MySQL 5.6+.
 * StatsAgg can run on almost any modern OS. Windows, Linux, etc.
 
 <br>
@@ -110,7 +111,6 @@ Detailed information about StatsAgg's metric format support, including examples,
 * StatsAgg only supports running in a single-server configuration. 
     * While this is a limitation, a lot of time/energy was put into tuning StatsAgg's performance. For *most* implementations, a single StatsAgg server should be adequate. 
 * A few StatsD features that are in the main StatsD program are missing in StatsAgg. Missing features include...
-    * histograms on timers (will be included in a future build).
     * configuring StatsAgg to be a 'repeater' (you can use the official StatsD program to do this, and forward to StatsAgg).
     * configuring StatsAgg to be in a 'proxy cluster' configuration (you can use the official StatsD program to do this, and forward to StatsAgg). 
     * outputting frequently sent metric-keys to log files.

@@ -1,21 +1,24 @@
-StatsAgg 1.2
- * Retest 'resend previous value' for all formats
- * Document example config comparison for statsd histogram 
-
-Short/Medium term
- * More intelligent alert & metric-group alterations. Don't clear/reset if only modifying name/description/etc.
- * Apply column-sort to WebUI tables via parameter in URI
- * View application config in WebUI
+StatsAgg 1.3
+ * Making saving StatsD gauges to the database optional
  * Last received metric in WebUI
- * Alert associations in Metric Groups table
+ * Alert associations in WebUI Metric Groups table
+ * More intelligent alert & metric-group alterations. Don't clear/reset if only modifying name/description/etc.
  * Convert 'Alert Suspension Details' page into panel-based UI
+ * Link to 'Triggered' alerts in 'Alert Details'
+ * Multi-thread StatsD aggregation routine
+ * Advanced options
+   * Maximum concurrently running output-threads
+   * Output-thread timeout
+   
+Short/Medium term
+ * Apply column-sort to WebUI tables via parameter in URI
+ * Incoming metric rate limits
+ * View application config in WebUI
  * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
  * StatsD forwarder
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Advanced options
    * New application config option -- limit metric results # in WebUI
-   * Maximum concurrently running output-threads
-   * Output-thread timeout
    * Cleanup metrics after... (currently hardcoded to 24hrs)
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet w/ a WebUI component

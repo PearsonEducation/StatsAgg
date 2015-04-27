@@ -1,15 +1,19 @@
-StatsAgg 1.2  - released 2015-xx-xx
+StatsAgg 1.3  - released 2015-xx-xx
+
+
+StatsAgg 1.2  - released 2015-04-27
  * Performance & memory utilization improvements -- most noticeable under high load scenarios
- * Added a new OpenTSDB HTTP listener. By default, it will listen on "http://statsagg-hostname:4243"
+ * Added a new OpenTSDB HTTP listener. By default, it will listen on "http://statsagg-hostname.com:4243"
      This listener operates outside of the Tomcat container & does not have an application context. 
      This is now the recommended way to get metrics into OpenTSDB via HTTP. The Tomcat listener (same port/context as the WebUI) is still supported, but not recommended.
- * Added support for OpenTSDB compression on metric-sending
+ * Added support for reading OpenTSDB metrics that were sent with gzip compression 
  * Added support for StatsD histograms
  * Added Support for sample-rates on StatsD timers
  * Tweaks to many WebUI pages
    * Friendly messages when page input parameters aren't valid.
    * Applied formatting to the list of email addresses in 'Notification Groups' & 'Notification Group Details'
  * WebUI -- Added support for doing a search on a table based off a uri parameter. Allows immediate filtering of the table on page load. Applies to all tables.
+ * 'One time' alert suspensions are now allowed to suspend an alert indefinitely. Previously they were limited to 24 hours.
  * Minor OpenTSDB 'send previous value' improvements
  * Lowered the thread priority of alert-routine threads
  * Minor security improvements

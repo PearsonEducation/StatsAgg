@@ -575,8 +575,9 @@ public class CreateAlertSuspension extends HttpServlet {
             }
             
             parameter = request.getParameter("Duration");
-            if ((parameter != null) && !parameter.isEmpty()) {
-                Integer intValue = Integer.parseInt(parameter.trim());
+            if (parameter != null) {
+                String durationStringTrimmed = parameter.trim();
+                Integer intValue = Integer.parseInt(durationStringTrimmed);
                 alertSuspension.setDuration(intValue);
             }
             
