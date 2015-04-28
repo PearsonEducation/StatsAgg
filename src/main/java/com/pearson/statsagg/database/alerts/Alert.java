@@ -256,6 +256,102 @@ public class Alert extends DatabaseObject<Alert> {
                 .isEquals();
     }
     
+    /*
+    If the caution criteria 'core' fields in 'this' alert are same as the comparison alert, then return true. 
+    Caution criteria 'core' fields are considered to be any field that would be worth resetting an alert's status if the field changed.
+    For example, the triggered status of an alert is no longer valid if the danger-operator changes. This makes threshold a 'core' criteria field.
+    */
+    public boolean isCautionCriteriaEqual(Alert alert) {
+       
+        if (alert == null) return false;
+        if (alert == this) return true;
+        if (alert.getClass() != getClass()) return false;
+        
+        boolean isCautionThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(cautionThreshold_, alert.getCautionThreshold());
+        
+        return new EqualsBuilder()
+                .append(id_, alert.getId())
+                .append(metricGroupId_, alert.getMetricGroupId())
+                .append(isEnabled_, alert.isEnabled())
+                .append(isCautionEnabled_, alert.isCautionEnabled())
+                .append(alertType_, alert.getAlertType())
+                .append(cautionOperator_, alert.getCautionOperator())
+                .append(cautionCombination_, alert.getCautionCombination())
+                .append(cautionCombinationCount_, alert.getCautionCombinationCount())
+                .append(isCautionThresholdValueEqual, true)
+                .append(cautionWindowDuration_, alert.getCautionWindowDuration())
+                .append(cautionStopTrackingAfter_, alert.getCautionStopTrackingAfter())
+                .append(cautionMinimumSampleCount_, alert.getCautionMinimumSampleCount())
+                .isEquals();
+    }
+    
+    /*
+    If the danger criteria 'core' fields in 'this' alert are same as the comparison alert, then return true. 
+    Danger criteria 'core' fields are considered to be any field that would be worth resetting an alert's status if the field changed.
+    For example, the triggered status of an alert is no longer valid if the danger-operator changes. This makes threshold a 'core' criteria field.
+    */
+    public boolean isDangerCriteriaEqual(Alert alert) {
+       
+        if (alert == null) return false;
+        if (alert == this) return true;
+        if (alert.getClass() != getClass()) return false;
+        
+        boolean isDangerThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(dangerThreshold_, alert.getDangerThreshold());
+        
+        return new EqualsBuilder()
+                .append(id_, alert.getId())
+                .append(metricGroupId_, alert.getMetricGroupId())
+                .append(isEnabled_, alert.isEnabled())
+                .append(isDangerEnabled_, alert.isDangerEnabled())
+                .append(alertType_, alert.getAlertType())
+                .append(dangerOperator_, alert.getDangerOperator())
+                .append(dangerCombination_, alert.getDangerCombination())
+                .append(dangerCombinationCount_, alert.getDangerCombinationCount())
+                .append(isDangerThresholdValueEqual, true)
+                .append(dangerWindowDuration_, alert.getDangerWindowDuration())
+                .append(dangerStopTrackingAfter_, alert.getDangerStopTrackingAfter())
+                .append(dangerMinimumSampleCount_, alert.getDangerMinimumSampleCount())
+                .isEquals();
+    }
+    
+    /*
+    Copies all caution 'metadata' fields from 'this' alert into the alert passed via the method parameter.
+    'Metadata' fields are fields are not visable/settable directly via user-input
+    */
+    public Alert copyCautionMetadataFields(Alert alertToModify) {
+        
+        if (alertToModify == null) {
+            return null;
+        }
+        
+        alertToModify.setIsCautionAlertActive(isCautionAlertActive_);       
+        alertToModify.setCautionAlertLastSentTimestamp(getCautionAlertLastSentTimestamp()); 
+        alertToModify.setIsCautionAcknowledged(isCautionAcknowledged_); 
+        alertToModify.setCautionActiveAlertsSet(cautionActiveAlertsSet_); 
+        alertToModify.setCautionFirstActiveAt(getCautionFirstActiveAt()); 
+
+        return alertToModify;
+    }
+    
+    /*
+    Copies all danger 'metadata' fields from 'this' alert into the alert passed via the method parameter.
+    'Metadata' fields are fields are not visable/settable directly via user-input
+    */
+    public Alert copyDangerMetadataFields(Alert alertToModify) {
+        
+        if (alertToModify == null) {
+            return null;
+        }
+
+        alertToModify.setIsDangerAlertActive(isDangerAlertActive_);       
+        alertToModify.setDangerAlertLastSentTimestamp(getDangerAlertLastSentTimestamp()); 
+        alertToModify.setIsDangerAcknowledged(isDangerAcknowledged_); 
+        alertToModify.setDangerActiveAlertsSet(dangerActiveAlertsSet_); 
+        alertToModify.setDangerFirstActiveAt(getDangerFirstActiveAt()); 
+
+        return alertToModify;
+    }
+    
     public Long getLongestWindowDuration() {
         
         if ((cautionWindowDuration_ == null) && (dangerWindowDuration_ == null)) return null;

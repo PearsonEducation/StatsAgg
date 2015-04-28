@@ -196,6 +196,7 @@ public class Alerts extends HttpServlet {
 
                 clonedAlert.setName(clonedAlertName);
                 clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
+                clonedAlert.setIsEnabled(false);
                 clonedAlert.setIsCautionAlertActive(false);
                 clonedAlert.setCautionFirstActiveAt(null);
                 clonedAlert.setIsCautionAcknowledged(null);

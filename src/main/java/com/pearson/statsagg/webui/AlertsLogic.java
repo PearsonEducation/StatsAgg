@@ -41,6 +41,23 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                 
                 if (alertFromDb != null) {
                     alert.setId(alertFromDb.getId());
+                    
+                    if (alert.isCautionCriteriaEqual(alertFromDb)) {
+                        alertFromDb.copyCautionMetadataFields(alert);
+                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
+                    }
+                    else {
+                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
+                    }
+                    
+                    if (alert.isDangerCriteriaEqual(alertFromDb)) {
+                        alertFromDb.copyDangerMetadataFields(alert);
+                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
+                    }
+                    else {
+                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is modifying danger alert criteria fields. Danger triggered status will not be preserved.");
+                    }
+
                     isNewAlert = false;
                 }
                 else {

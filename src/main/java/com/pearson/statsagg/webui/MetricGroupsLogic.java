@@ -9,6 +9,9 @@ import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -80,10 +83,25 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 return returnString;
             }
             else if (metricGroupUpsertSuccess && (newMetricGroupFromDb != null)) {
-                boolean isAllMetricGroupRegexsUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true;
+                boolean isAllMetricGroupRegexsUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true, isMetricGroupAssociationRoutineRequired = true;
                 
-                // add conditional logic to only update when necessary
-                isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), regexs, newMetricGroupFromDb);
+                // update regexes, if necessary
+                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(metricGroupsDao.getDatabaseInterface());
+                List<MetricGroupRegex> metricGroupRegexsFromDb = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(newMetricGroupFromDb.getId());
+                Set<String> metricGroupRegexsFromDb_Set = new HashSet<>();
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexsFromDb) metricGroupRegexsFromDb_Set.add(metricGroupRegex.getPattern());
+                boolean areSetsEqual = areRegexSetContentsEqual(regexs, metricGroupRegexsFromDb_Set);
+
+                if (areSetsEqual) {
+                    logger.info("Alter metric group: Metric group \"" + newMetricGroupFromDb.getName() + "\" regular expression set is unchanged. This metric group will retain all metric-key associations.");
+                    isMetricGroupAssociationRoutineRequired = false;
+                }
+                else {
+                    logger.info("Alter metric group: Metric group \"" + newMetricGroupFromDb.getName() + "\" regular expression set is changed. This metric group will go through the metric-key association routine.");
+                    isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), regexs, newMetricGroupFromDb);
+                }
+
+                // update tags
                 isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
 
                 if (isAllMetricGroupRegexsUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
@@ -92,7 +110,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
 
                     if (didCommitSucceed) {
                         if ((newMetricGroupFromDb.getId() != null) && isNewMetricGroup) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), NEW);
-                        else if ((newMetricGroupFromDb.getId() != null) && !isNewMetricGroup) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), ALTER);
+                        else if ((newMetricGroupFromDb.getId() != null) && !isNewMetricGroup && isMetricGroupAssociationRoutineRequired) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), ALTER);
 
                         lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
 
@@ -148,6 +166,22 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             }
         }
         
+    }
+    
+    public static boolean areRegexSetContentsEqual(Set<String> regexSet1, Set<String> regexSet2) {
+        
+        if ((regexSet1 == null) && (regexSet2 != null)) return false;
+        if ((regexSet1 != null) && (regexSet2 == null)) return false;
+        if ((regexSet1 == null) && (regexSet2 == null)) return true;
+        if ((regexSet1 != null) && (regexSet2 != null) && (regexSet1.size() != regexSet2.size())) return false;
+        
+        if ((regexSet1 != null) && (regexSet2 != null)) {
+            for (String regex : regexSet1) {
+                if (!regexSet2.contains(regex)) return false;
+            }
+        }
+
+        return true;
     }
     
     private static boolean alterRecordInDatabase_UpsertRegex(DatabaseInterface databaseInterface, TreeSet<String> regexs, MetricGroup newMetricGroupFromDb) {

@@ -1,5 +1,10 @@
 StatsAgg 1.3  - released 2015-xx-xx
-
+ * Added new properties to an alert -- 'first triggered at' timestamp for caution & danger
+ * Altering a property of an alert that doesn't affect caution/danger trigger status will no longer reset the trigger status
+   * In other words, you can change alert fields like 'description' and 'alert on positive' without losing your caution/danger triggered statuses
+ * Altering a 'metric group' will not force the metric-group to go through the association routine unless one or more of the regular expressions have changed
+   * In other words, you can change 'metric group' fields like 'description' and 'tags' without losing your metric-key associations
+ * Cloned alerts now default to being disabled.
 
 StatsAgg 1.2  - released 2015-04-27
  * Performance & memory utilization improvements -- most noticeable under high load scenarios
@@ -8,7 +13,7 @@ StatsAgg 1.2  - released 2015-04-27
      This is now the recommended way to get metrics into OpenTSDB via HTTP. The Tomcat listener (same port/context as the WebUI) is still supported, but not recommended.
  * Added support for reading OpenTSDB metrics that were sent with gzip compression 
  * Added support for StatsD histograms
- * Added Support for sample-rates on StatsD timers
+ * Added support for sample-rates on StatsD timers
  * Tweaks to many WebUI pages
    * Friendly messages when page input parameters aren't valid.
    * Applied formatting to the list of email addresses in 'Notification Groups' & 'Notification Group Details'
