@@ -201,7 +201,7 @@ public class MetricGroups extends HttpServlet {
             "     <a href=\"CreateMetricGroup\" class=\"btn btn-primary\">Create New Metric Group <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>" +    
             "  </div> " +
-            "  <table id=\"MetricGroupsTable\" style=\"font-size:12px;\" class=\"table table-bordered table-hover \">\n" +
+            "  <table id=\"MetricGroupsTable\" style=\"font-size:12px; display:none\" class=\"table table-bordered table-hover \">\n" +
             "    <thead>\n" +
             "      <tr>\n" +
             "        <th>Metric Group Name</th>\n" +

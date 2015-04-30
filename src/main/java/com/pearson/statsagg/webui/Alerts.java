@@ -245,7 +245,7 @@ public class Alerts extends HttpServlet {
             "     <a href=\"CreateAlert\" class=\"btn btn-primary\">Create New Alert <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>\n" + 
             "  </div>\n" +   
-            "  <table id=\"AlertsTable\" style=\"font-size:12px;\" class=\"table table-bordered table-hover\">\n" +
+            "  <table id=\"AlertsTable\" style=\"font-size:12px; display:none\" class=\"table table-bordered table-hover\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
             "         <th>Alert name</th>\n" +

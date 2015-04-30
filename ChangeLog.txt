@@ -5,6 +5,8 @@ StatsAgg 1.3  - released 2015-xx-xx
  * Altering a 'metric group' will not force the metric-group to go through the association routine unless one or more of the regular expressions have changed
    * In other words, you can change 'metric group' fields like 'description' and 'tags' without losing your metric-key associations
  * Cloned alerts now default to being disabled.
+ * In the WebUI, large tables will not be displayed until the 'datatables' javascript library is fully initialized.
+
 
 StatsAgg 1.2  - released 2015-04-27
  * Performance & memory utilization improvements -- most noticeable under high load scenarios

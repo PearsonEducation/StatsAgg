@@ -388,9 +388,9 @@ $("input[type=radio]").change(function () {
 
 // Setup for the table found on the 'Alerts' page
 $(document).ready(function () {
-    var doesTableExist = document.getElementById('AlertsTable');
+    var table = document.getElementById('AlertsTable');
 
-    if (doesTableExist !== null) {
+    if (table !== null) {
         var alertsTable = $('#AlertsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
@@ -436,6 +436,8 @@ $(document).ready(function () {
                 yadcf_init_AlertsTable(alertsTable);
             }
         });
+        
+        table.style.display = null;
     }
 });
 
@@ -458,9 +460,9 @@ function yadcf_init_AlertsTable(alertsTable) {
         
 // Setup for the table found on the 'Alerts' page
 $(document).ready(function () {
-    var doesTableExist = document.getElementById('AlertSuspensionsTable');
+    var table = document.getElementById('AlertSuspensionsTable');
 
-    if (doesTableExist !== null) {
+    if (table !== null) {
         var alertSuspensionsTable = $('#AlertSuspensionsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
@@ -485,6 +487,8 @@ $(document).ready(function () {
                 yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
             }
         });
+        
+        table.style.display = null;
     }
 });
 
@@ -501,9 +505,9 @@ function yadcf_init_AlertSuspensionsTable(alertSuspensionsTable) {
 
 // Setup for the table found on the 'MetricGroups' page
 $(document).ready(function () {
-    var doesTableExist = document.getElementById('MetricGroupsTable');
+    var table = document.getElementById('MetricGroupsTable');
 
-    if (doesTableExist !== null) {
+    if (table !== null) {
         var metricGroupsTable = $('#MetricGroupsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
@@ -528,6 +532,8 @@ $(document).ready(function () {
                 yadcf_init_MetricGroupsTable(metricGroupsTable);
             }
         });
+        
+        table.style.display = null;
     }
 });
 
@@ -543,9 +549,9 @@ function yadcf_init_MetricGroupsTable(metricGroupsTable) {
 
 // Setup for the table found on the 'NotificationGroups' page
 $(document).ready(function () {
-    var doesTableExist = document.getElementById('NotificationGroupsTable');
+    var table = document.getElementById('NotificationGroupsTable');
 
-    if (doesTableExist !== null) {
+    if (table !== null) {
         var notificationGroupsTable = $('#NotificationGroupsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
@@ -570,6 +576,8 @@ $(document).ready(function () {
                 yadcf_init_NotificationGroupsTable(notificationGroupsTable);
             }
         });
+        
+        table.style.display = null;
     }
 });
 

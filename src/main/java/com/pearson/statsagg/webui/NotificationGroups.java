@@ -190,7 +190,7 @@ public class NotificationGroups extends HttpServlet {
             "     <a href=\"CreateNotificationGroup\" class=\"btn btn-primary\">Create New Notification Group <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>" +   
             "  </div>" +    
-            "  <table id=\"NotificationGroupsTable\" style=\"font-size:12px;\" class=\"table table-bordered table-hover \">\n" +
+            "  <table id=\"NotificationGroupsTable\" style=\"font-size:12px; display:none\" class=\"table table-bordered table-hover \">\n" +
             "    <thead>\n" +
             "      <tr>\n" +
             "        <th>Notification Group Name</th>\n" +
@@ -213,7 +213,7 @@ public class NotificationGroups extends HttpServlet {
             String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
             if ((emailAddresses != null) && (emailAddresses.length != 0)) {
                 for (int i = 0; i < emailAddresses.length; i++) {
-                    String trimmedEmailAddress = emailAddresses[0].trim();
+                    String trimmedEmailAddress = emailAddresses[i].trim();
                     emailAddressesOutput.append(trimmedEmailAddress);
                     if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");
                 }

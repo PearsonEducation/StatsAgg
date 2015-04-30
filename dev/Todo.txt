@@ -1,5 +1,7 @@
 StatsAgg 1.3
  * Making saving StatsD gauges to the database optional
+ * Instantly run alert-routine after changing alert
+ * Instantly run metric-association routine after changing metric group
  * Last received metric in WebUI
  * Alert associations in WebUI Metric Groups table
  * Convert 'Alert Suspension Details' page into panel-based UI

@@ -211,7 +211,7 @@ public class AlertSuspensions extends HttpServlet {
             "     <a href=\"CreateAlertSuspension\" class=\"btn btn-primary\">Create New Alert Suspension <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>\n" + 
             "  </div>\n" +   
-            "  <table id=\"AlertSuspensionsTable\" style=\"font-size:12px;\" class=\"table table-bordered table-hover\">\n" +
+            "  <table id=\"AlertSuspensionsTable\" style=\"font-size:12px; display:none\" class=\"table table-bordered table-hover\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
             "         <th>Alert Suspension Name</th>\n" +
