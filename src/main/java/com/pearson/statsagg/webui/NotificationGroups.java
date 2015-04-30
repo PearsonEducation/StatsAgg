@@ -213,7 +213,7 @@ public class NotificationGroups extends HttpServlet {
             String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
             if ((emailAddresses != null) && (emailAddresses.length != 0)) {
                 for (int i = 0; i < emailAddresses.length; i++) {
-                    String trimmedEmailAddress = emailAddresses[0].trim();
+                    String trimmedEmailAddress = emailAddresses[i].trim();
                     emailAddressesOutput.append(trimmedEmailAddress);
                     if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");;
                 }
