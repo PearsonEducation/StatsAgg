@@ -12,8 +12,8 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.sql.Timestamp;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -700,6 +700,10 @@ public class CreateAlert extends HttpServlet {
         if ((alert != null) && (alert.getName() != null)) {
             AlertsLogic alertsLogic = new AlertsLogic();
             returnString = alertsLogic.alterRecordInDatabase(alert, oldName);
+            
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            }
         }
         else {
             returnString = "Failed to add alert. Reason=\"Field validation failed.\"";

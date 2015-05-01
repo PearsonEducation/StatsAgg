@@ -14,6 +14,7 @@ import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -245,10 +246,14 @@ public class CreateMetricGroup extends HttpServlet {
         TreeSet<String> regexs = getMetricGroupRegexsFromMetricGroupParameters(request);
         TreeSet<String> tags = getMetricGroupTagsFromMetricGroupParameters(request);
         
-        // insert/update/delete records in the database
+        // insert/update records in the database
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
             MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
             returnString = metricGroupsLogic.alterRecordInDatabase(metricGroup, regexs, tags, oldName);
+            
+            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
+                GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+            }
         }
         else {
             returnString = "Failed to add metric group. Reason=\"Field validation failed.\"";

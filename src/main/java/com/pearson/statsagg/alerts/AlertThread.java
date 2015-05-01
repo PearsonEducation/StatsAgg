@@ -57,6 +57,8 @@ public class AlertThread implements Runnable {
     private static final ConcurrentHashMap<Integer,Map<String,String>> positiveAlertReasons_Danger_ByAlertId_ = new ConcurrentHashMap<>();
     
     protected final Long threadStartTimestampInMilliseconds_;
+    protected final boolean runMetricAssociationRoutine_;
+    protected final boolean runAlertRoutine_;
     protected final String threadId_;
     protected final String statsAggLocation_;
     
@@ -77,8 +79,11 @@ public class AlertThread implements Runnable {
     
     private AlertSuspensions alertSuspensions_ = null;
     
-    public AlertThread(Long threadStartTimestampInMilliseconds) {
+    public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
         this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
+        this.runMetricAssociationRoutine_ = runMetricAssociationRoutine;
+        this.runAlertRoutine_ = runAlertRoutine;
+
         this.threadId_ = "A-" + threadStartTimestampInMilliseconds_.toString();
         this.statsAggLocation_ = ApplicationConfiguration.getAlertStatsAggLocation();
     }
@@ -92,9 +97,9 @@ public class AlertThread implements Runnable {
             return;
         }
         
-        // if the alert routine is enabled, run the metric association routine
+        // run the metric association routine
         long metricAssociationTimeElasped = 0;
-        if (ApplicationConfiguration.isAlertRoutineEnabled()) {
+        if (ApplicationConfiguration.isAlertRoutineEnabled() && runMetricAssociationRoutine_) {
             long metricAssociationStartTime = System.currentTimeMillis();
             MetricAssociation.associateMetricKeysWithMetricGroups(threadId_);
             metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
@@ -113,8 +118,8 @@ public class AlertThread implements Runnable {
             alertSuspensions_.runAlertSuspensionRoutine();
             alertSuspensionRoutineTimeElapsed = System.currentTimeMillis() - alertSuspensionRoutineStartTime; 
             
-            // if the alert routine is enabled, run the alerting routine
-            if (ApplicationConfiguration.isAlertRoutineEnabled()) {
+            // run the alerting routine
+            if (ApplicationConfiguration.isAlertRoutineEnabled() && runAlertRoutine_) {
                 long alertRoutineStartTime = System.currentTimeMillis();
                 runAlertRoutine(alerts);
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 

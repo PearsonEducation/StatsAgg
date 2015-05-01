@@ -37,7 +37,7 @@ public class AlertThreadTest {
     
     @BeforeClass
     public static void setUpClass() {
-        alertThread_ = new AlertThread(System.currentTimeMillis());
+        alertThread_ = new AlertThread(System.currentTimeMillis(), true, true);
         
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 100, new BigDecimal("69.9"), hashKeyGen_.incrementAndGet())); 
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 200, new BigDecimal("71"), hashKeyGen_.incrementAndGet()));
@@ -233,7 +233,7 @@ public class AlertThreadTest {
     @Test
     public void testIsAlertActive_Availability() {
         
-        AlertThread alertThread = new AlertThread(Long.valueOf(950));
+        AlertThread alertThread = new AlertThread(Long.valueOf(950), true, true);
         BigDecimal result;
         
         result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(800), Alert.TYPE_AVAILABILITY, 100L);
@@ -256,7 +256,7 @@ public class AlertThreadTest {
     @Test
     public void testIsAlertActive_Threshold() {
 
-        AlertThread alertThread = new AlertThread(Long.valueOf(950));
+        AlertThread alertThread = new AlertThread(Long.valueOf(950), true, true);
         BigDecimal result;
         
         // test operators

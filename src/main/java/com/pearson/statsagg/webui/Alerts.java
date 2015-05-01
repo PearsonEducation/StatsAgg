@@ -167,6 +167,10 @@ public class Alerts extends HttpServlet {
 
             AlertsLogic alertsLogic = new AlertsLogic();
             alertsLogic.alterRecordInDatabase(alert, alertName);
+            
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            }
         }
     }
     
@@ -210,6 +214,10 @@ public class Alerts extends HttpServlet {
                 
                 AlertsLogic alertsLogic = new AlertsLogic();
                 alertsLogic.alterRecordInDatabase(clonedAlert);
+                
+                if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                    if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+                }
             }
         }
         catch (Exception e) {
@@ -225,6 +233,10 @@ public class Alerts extends HttpServlet {
         
         AlertsLogic alertsLogic = new AlertsLogic();
         alertsLogic.deleteRecordInDatabase(alertName);
+        
+	if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
+            if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+        }
     }
     
     private String buildAlertsHtml() {

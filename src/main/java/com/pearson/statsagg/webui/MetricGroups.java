@@ -166,6 +166,10 @@ public class MetricGroups extends HttpServlet {
 
                 MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
                 metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupRegexs, allMetricGroupTags);
+                
+                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
+                    GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+                }
             }
         }
         catch (Exception e) {
@@ -181,6 +185,10 @@ public class MetricGroups extends HttpServlet {
         
         MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
         metricGroupsLogic.deleteRecordInDatabase(metricGroupName);
+        
+        if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
+            if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+        }
     }
     
     private String buildMetricGroupsHtml() {

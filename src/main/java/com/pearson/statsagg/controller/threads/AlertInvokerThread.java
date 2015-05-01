@@ -25,7 +25,7 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
         synchronized (lockObject_) {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
-                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds));
+                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds, true, true));
                 alertThread.setPriority(3);
                 threadExecutor_.execute(alertThread);
 
@@ -41,6 +41,12 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
         }
         
         isShutdown_ = true;
+    }
+    
+    public void runAlertThread(boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
+        Thread alertThread = new Thread(new AlertThread(System.currentTimeMillis(), runMetricAssociationRoutine, runAlertRoutine));
+        alertThread.setPriority(3);
+        if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(alertThread);
     }
     
     @Override

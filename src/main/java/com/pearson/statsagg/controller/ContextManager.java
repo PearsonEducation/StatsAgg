@@ -190,6 +190,7 @@ public class ContextManager implements ServletContextListener {
         alertInvokerThread_ = new AlertInvokerThread();
         Thread alertInvokerThread = new Thread(alertInvokerThread_);
         alertInvokerThread.start();
+        GlobalVariables.alertInvokerThread = alertInvokerThread_;
         
         cleanupInvokerThread_ = new CleanupInvokerThread();
         Thread cleanupInvokerThread = new Thread(cleanupInvokerThread_);

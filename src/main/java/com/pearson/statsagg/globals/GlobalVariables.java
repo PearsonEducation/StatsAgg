@@ -1,5 +1,6 @@
 package com.pearson.statsagg.globals;
 
+import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -24,6 +25,9 @@ public class GlobalVariables {
     public static String graphiteAggregatedPrefix = "";
     public static String graphitePassthroughPrefix = "";
     public static String openTsdbPrefix = "";
+    
+    // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
+    public static AlertInvokerThread alertInvokerThread = null;
     
     // A flag indicating whether statsagg has finished going through its initialization routine. This will only be true if it has gone through the initialization routine successfully.
     public static AtomicBoolean isApplicationInitializeSuccess = new AtomicBoolean(false);
