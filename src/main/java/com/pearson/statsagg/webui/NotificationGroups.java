@@ -315,7 +315,7 @@ public class NotificationGroups extends HttpServlet {
         alertMetricValues.put("emailtest.metric4-99999", new BigDecimal(104));
         
         EmailThread emailThread = new EmailThread(testAlert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
-                false, ApplicationConfiguration.getAlertStatsAggLocation());
+                false, false, ApplicationConfiguration.getAlertStatsAggLocation());
         emailThread.buildAlertEmail(3, metricGroup);
         
         List<String> emailsAddresses = EmailThread.getToEmailsAddressesForAlert(notificationGroup.getId());

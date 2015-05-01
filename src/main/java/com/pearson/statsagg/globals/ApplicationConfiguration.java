@@ -83,6 +83,7 @@ public class ApplicationConfiguration {
     private static StatsdNthPercentiles statsdNthPercentiles_ = null;
     private static List<StatsdHistogramConfiguration> statsdHistogramConfigurations_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
+    private static boolean statsdPersistGauges_ = false;
     
     private static boolean alertRoutineEnabled_ = false;
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
@@ -193,6 +194,7 @@ public class ApplicationConfiguration {
             statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.getString("statsd_nth_percentiles", "90"));
             statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.getString("statsd_histograms", null));
             statsdUseLegacyNameSpacing_ = applicationConfiguration_.getBoolean("statsd_use_legacy_name_spacing", false);
+            statsdPersistGauges_ = applicationConfiguration_.getBoolean("statsd_persist_gauges", true);
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.getBoolean("alert_routine_enabled", true);
@@ -594,6 +596,10 @@ public class ApplicationConfiguration {
 
     public static boolean isStatsdUseLegacyNameSpacing() {
         return statsdUseLegacyNameSpacing_;
+    }
+    
+    public static boolean isStatsdPersistGauges() {
+        return statsdPersistGauges_;
     }
 
     public static boolean isAlertRoutineEnabled() {

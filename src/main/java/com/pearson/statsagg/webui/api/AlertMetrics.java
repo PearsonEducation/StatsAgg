@@ -14,6 +14,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -140,9 +141,9 @@ public class AlertMetrics extends HttpServlet {
         StringBuilder json = new StringBuilder();
         
         json.append("[{");
-        json.append("\"Alert_Name\":\"").append(alert.getName()).append("\",");
+        json.append("\"Alert_Name\":\"").append(StringEscapeUtils.escapeJson(alert.getName())).append("\",");
         json.append("\"Alert_Id\":").append(alert.getId()).append(",");
-        json.append("\"Metric_Group_Name\":\"").append(metricGroup.getName()).append("\",");
+        json.append("\"Metric_Group_Name\":\"").append(StringEscapeUtils.escapeJson(metricGroup.getName())).append("\",");
         json.append("\"Metric_Group_Id\":").append(alert.getMetricGroupId()).append(",");
         
         
@@ -158,7 +159,7 @@ public class AlertMetrics extends HttpServlet {
 
         int i = 1;
         for (String metricKey : cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
-            json.append("\"").append(metricKey).append("\"");
+            json.append("\"").append(StringEscapeUtils.escapeJson(metricKey)).append("\"");
             if (i < cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
             i++;
         }
@@ -178,7 +179,7 @@ public class AlertMetrics extends HttpServlet {
 
         i = 1;
         for (String metricKey : dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
-            json.append("\"").append(metricKey).append("\"");
+            json.append("\"").append(StringEscapeUtils.escapeJson(metricKey)).append("\"");
             if (i < dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
             i++;
         }
@@ -192,7 +193,7 @@ public class AlertMetrics extends HttpServlet {
             synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
                 i = 1;
                 for (String metricKey : matchingMetricKeysAssociatedWithMetricGroup) {
-                    json.append("\"").append(metricKey).append("\"");
+                    json.append("\"").append(StringEscapeUtils.escapeJson(metricKey)).append("\"");
                     if (i < matchingMetricKeysAssociatedWithMetricGroup.size()) json.append(",");
                     i++;
                 }

@@ -15,7 +15,9 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
@@ -308,11 +310,18 @@ public class AlertPreview extends HttpServlet {
        
         if (metricGroupName == null) metricGroupName = "";
 
+        Calendar currentCalendar = Calendar.getInstance();
+        currentCalendar.add(Calendar.HOUR, -50);
+        currentCalendar.add(Calendar.MINUTE, -25);
+        currentCalendar.add(Calendar.SECOND, -31);
+        
         alert.setId(99999);
         alert.setMetricGroupId(77777);
         alert.setCautionNotificationGroupId(77777);
         alert.setDangerNotificationGroupId(77777);
-        
+        alert.setCautionFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
+        alert.setDangerFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
+
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
         if (metricGroup != null) metricGroup = new MetricGroup(88888, metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription());
@@ -330,7 +339,7 @@ public class AlertPreview extends HttpServlet {
             
             if (isAlertValidAndEnabled) {
                 EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
-                        false, ApplicationConfiguration.getAlertStatsAggLocation());
+                        false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();
             }
@@ -344,7 +353,7 @@ public class AlertPreview extends HttpServlet {
             
             if (isAlertValidAndEnabled) {
                 EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
-                        false, ApplicationConfiguration.getAlertStatsAggLocation());
+                        false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();
             }

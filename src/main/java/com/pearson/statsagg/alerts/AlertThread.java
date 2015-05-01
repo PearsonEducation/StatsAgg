@@ -891,7 +891,7 @@ public class AlertThread implements Runnable {
             
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, statsAggLocation_);
+                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, false, statsAggLocation_);
                 SendEmailThreadPoolManager.executeThread(emailThread);
             }
 
@@ -904,7 +904,7 @@ public class AlertThread implements Runnable {
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, statsAggLocation_);
+                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, false, statsAggLocation_);
                     SendEmailThreadPoolManager.executeThread(emailThread);
                 }
             }
@@ -924,7 +924,7 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, statsAggLocation_);
+                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
                         SendEmailThreadPoolManager.executeThread(emailThread);
                     }
                     
@@ -994,7 +994,7 @@ public class AlertThread implements Runnable {
             
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, statsAggLocation_);
+                EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, false, statsAggLocation_);
                 SendEmailThreadPoolManager.executeThread(emailThread);
             }
             
@@ -1007,7 +1007,7 @@ public class AlertThread implements Runnable {
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, statsAggLocation_);
+                    EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, false, statsAggLocation_);
                     SendEmailThreadPoolManager.executeThread(emailThread);
                 }
             }
@@ -1027,7 +1027,7 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, statsAggLocation_);
+                        EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);
                         SendEmailThreadPoolManager.executeThread(emailThread);
                     }
                     

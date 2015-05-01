@@ -590,7 +590,7 @@ public class ContextManager implements ServletContextListener {
     private static long readGaugesFromDatabaseAndAddToGlobalVariables() {
         GaugesDao gaugeDao = new GaugesDao(false);
         
-        if (!ApplicationConfiguration.isStatsdGaugeSendPreviousValue()) {
+        if (!ApplicationConfiguration.isStatsdGaugeSendPreviousValue() || !ApplicationConfiguration.isStatsdPersistGauges()) {
             gaugeDao.truncateTable();
             gaugeDao.close();
             return 0;

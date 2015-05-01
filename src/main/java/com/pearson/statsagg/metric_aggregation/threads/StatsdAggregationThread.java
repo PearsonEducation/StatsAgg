@@ -233,12 +233,14 @@ public class StatsdAggregationThread implements Runnable {
             }
         }
         
-        GaugesDao gaugesDao = new GaugesDao(false);
-        boolean upsertSucess = gaugesDao.batchUpsert(gaugesToPutInDatabase);
-        gaugesDao.close();
-        
-        if (!upsertSucess) {
-            logger.error("Failed upserting gauges in database.");
+        if (ApplicationConfiguration.isStatsdPersistGauges()) {
+            GaugesDao gaugesDao = new GaugesDao(false);
+            boolean upsertSucess = gaugesDao.batchUpsert(gaugesToPutInDatabase);
+            gaugesDao.close();
+            
+            if (!upsertSucess) {
+                logger.error("Failed upserting gauges in database.");
+            }
         }
     }
     
