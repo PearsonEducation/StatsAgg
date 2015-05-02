@@ -699,7 +699,7 @@ public class CreateAlert extends HttpServlet {
         // insert/update/delete records in the database
         if ((alert != null) && (alert.getName() != null)) {
             AlertsLogic alertsLogic = new AlertsLogic();
-            returnString = alertsLogic.alterRecordInDatabase(alert, oldName);
+            returnString = alertsLogic.alterRecordInDatabase(alert, oldName, false);
             
             if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
                 if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);

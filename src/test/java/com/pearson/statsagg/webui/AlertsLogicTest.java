@@ -123,7 +123,7 @@ public class AlertsLogicTest {
         alert1FromDb.setDescription("alert junit 1_2");
         result = alertsLogic_.alterRecordInDatabase(alert1FromDb);
         assertTrue(result.contains("Failed"));
-        result = alertsLogic_.alterRecordInDatabase(alert1FromDb, alert1FromDb.getName());
+        result = alertsLogic_.alterRecordInDatabase(alert1FromDb, alert1FromDb.getName(), false);
         assertTrue(result.contains("Success"));
         alertsDao = new AlertsDao();
         Alert alert2FromDb = alertsDao.getAlertByName("alert junit 1");
@@ -143,7 +143,7 @@ public class AlertsLogicTest {
         assertTrue(alertFromDbOriginalName.getName().contains("alert junit 1"));
         Alert alertFromDbNewName = Alert.copy(alertFromDbOriginalName);
         alertFromDbNewName.setName("alert junit 1_1");
-        result = alertsLogic_.alterRecordInDatabase(alertFromDbNewName, alertFromDbOriginalName.getName());
+        result = alertsLogic_.alterRecordInDatabase(alertFromDbNewName, alertFromDbOriginalName.getName(), false);
         assertTrue(result.contains("Successful"));
         Alert alertFromDbNewNameVerify = alertsDao.getAlertByName(alertFromDbNewName.getName()); //pt2
         assertFalse(alertFromDbNewNameVerify.getName().equals(alertFromDbOriginalName.getName()));
@@ -153,7 +153,7 @@ public class AlertsLogicTest {
         assertEquals(alertFromDbOriginalName_NoResult, null);
         Alert alertFromDbOriginalName_Reset = Alert.copy(alertFromDbOriginalName); // pt4
         alertFromDbOriginalName_Reset.setName(alertFromDbOriginalName.getName());  
-        result = alertsLogic_.alterRecordInDatabase(alertFromDbOriginalName_Reset, alertFromDbOriginalName.getName());
+        result = alertsLogic_.alterRecordInDatabase(alertFromDbOriginalName_Reset, alertFromDbOriginalName.getName(), false);
         assertTrue(result.contains("Successful"));
         alertsDao.close();
         

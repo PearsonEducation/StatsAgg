@@ -315,7 +315,7 @@ public class Alert extends DatabaseObject<Alert> {
     }
     
     /*
-    Copies all caution 'metadata' fields from 'this' alert into the alert passed via the method parameter.
+    Copies all caution 'metadata' fields from 'this' alert into 'alertToModify'.
     'Metadata' fields are fields are not visable/settable directly via user-input
     */
     public Alert copyCautionMetadataFields(Alert alertToModify) {
@@ -326,7 +326,6 @@ public class Alert extends DatabaseObject<Alert> {
         
         alertToModify.setIsCautionAlertActive(isCautionAlertActive_);       
         alertToModify.setCautionAlertLastSentTimestamp(getCautionAlertLastSentTimestamp()); 
-        alertToModify.setIsCautionAcknowledged(isCautionAcknowledged_); 
         alertToModify.setCautionActiveAlertsSet(cautionActiveAlertsSet_); 
         alertToModify.setCautionFirstActiveAt(getCautionFirstActiveAt()); 
 
@@ -334,8 +333,8 @@ public class Alert extends DatabaseObject<Alert> {
     }
     
     /*
-    Copies all danger 'metadata' fields from 'this' alert into the alert passed via the method parameter.
-    'Metadata' fields are fields are not visable/settable directly via user-input
+    Copies all danger 'metadata' fields from 'this' alert into 'alertToModify'.
+    'Metadata' fields are fields do not have a direct effect on the criteria of the alert, and aren't set via the user-interface
     */
     public Alert copyDangerMetadataFields(Alert alertToModify) {
         
@@ -345,7 +344,6 @@ public class Alert extends DatabaseObject<Alert> {
 
         alertToModify.setIsDangerAlertActive(isDangerAlertActive_);       
         alertToModify.setDangerAlertLastSentTimestamp(getDangerAlertLastSentTimestamp()); 
-        alertToModify.setIsDangerAcknowledged(isDangerAcknowledged_); 
         alertToModify.setDangerActiveAlertsSet(dangerActiveAlertsSet_); 
         alertToModify.setDangerFirstActiveAt(getDangerFirstActiveAt()); 
 

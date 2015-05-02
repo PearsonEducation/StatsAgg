@@ -166,7 +166,7 @@ public class Alerts extends HttpServlet {
             }
 
             AlertsLogic alertsLogic = new AlertsLogic();
-            alertsLogic.alterRecordInDatabase(alert, alertName);
+            alertsLogic.alterRecordInDatabase(alert, alertName, false);
             
             if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
                 if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);

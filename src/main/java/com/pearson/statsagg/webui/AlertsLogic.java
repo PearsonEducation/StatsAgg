@@ -16,10 +16,10 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
     private static final Logger logger = LoggerFactory.getLogger(AlertsLogic.class.getName());
 
     public String alterRecordInDatabase(Alert alert) {
-        return alterRecordInDatabase(alert, null);
+        return alterRecordInDatabase(alert, null, false);
     }
     
-    public String alterRecordInDatabase(Alert alert, String oldName) {
+    public String alterRecordInDatabase(Alert alert, String oldName, boolean isAcknowledgementChange) {
         
         if ((alert == null) || (alert.getName() == null)) {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -27,6 +27,8 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             logger.warn(returnString);
             return returnString;
         }
+        
+        Alert alertToUpsert = Alert.copy(alert);
         
         String returnString;
 
@@ -40,65 +42,67 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                 alertFromDb = alertsDao.getAlertByName(oldName);
                 
                 if (alertFromDb != null) {
-                    alert.setId(alertFromDb.getId());
-                    
-                    if (alert.isCautionCriteriaEqual(alertFromDb)) {
-                        alertFromDb.copyCautionMetadataFields(alert);
-                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
-                    }
-                    else {
-                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
-                    }
-                    
-                    if (alert.isDangerCriteriaEqual(alertFromDb)) {
-                        alertFromDb.copyDangerMetadataFields(alert);
-                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
-                    }
-                    else {
-                        logger.info("Alter alert: Alert \"" + alert.getName() + "\" is modifying danger alert criteria fields. Danger triggered status will not be preserved.");
-                    }
-
                     isNewAlert = false;
+                    alertToUpsert.setId(alertFromDb.getId());
+                    
+                    if (alertToUpsert.isCautionCriteriaEqual(alertFromDb)) {
+                        alertFromDb.copyCautionMetadataFields(alertToUpsert);
+                        if (!isAcknowledgementChange) alertToUpsert.setIsCautionAcknowledged(alertFromDb.isCautionAcknowledged());
+                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
+                    }
+                    else {
+                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
+                    }
+                    
+                    if (alertToUpsert.isDangerCriteriaEqual(alertFromDb)) {
+                        alertFromDb.copyDangerMetadataFields(alertToUpsert);
+                        if (!isAcknowledgementChange) alertToUpsert.setIsDangerAcknowledged(alertFromDb.isDangerAcknowledged());
+
+                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
+                    }
+                    else {
+                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying danger alert criteria fields. Danger triggered status will not be preserved.");
+                    }
                 }
                 else {
                     isNewAlert = true;
                 }
             }
             else {
-                alertFromDb = alertsDao.getAlertByName(alert.getName());
+                alertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
                 if (alertFromDb != null) isOverwriteExistingAttempt = true;
             }
             
             boolean isUpsertSuccess = false;
             Alert newAlertFromDb = null;
             if (!isOverwriteExistingAttempt) {
-                isUpsertSuccess = alertsDao.upsert(alert);
-                newAlertFromDb = alertsDao.getAlertByName(alert.getName());
+                isUpsertSuccess = alertsDao.upsert(alertToUpsert);
+                newAlertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
             }
             
             alertsDao.close();
             
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-                returnString = "Failed to create alert. An alert the with same name already exists. AlertName=\"" + alert.getName() + "\".";
+                returnString = "Failed to create alert. An alert the with same name already exists. AlertName=\"" + alertToUpsert.getName() + "\".";
                 String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
             else if (isUpsertSuccess && isNewAlert && (newAlertFromDb != null)) {
                 lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
-                returnString = "Successful alert creation. AlertName=\"" + alert.getName() + "\".";
+                returnString = "Successful alert creation. AlertName=\"" + alertToUpsert.getName() + "\".";
                 String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
             else if (isUpsertSuccess && (newAlertFromDb != null)) {
                 lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
-                returnString = "Successful alert alteration. AlertName=\"" + alert.getName() + "\".";
+                returnString = "Successful alert alteration. AlertName=\"" + alertToUpsert.getName() + "\".";
                 String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
             else {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-                returnString = "Failed to alter alert. " + "AlertName=\"" + alert.getName() + "\".";
+                returnString = "Failed to alter alert. " + "AlertName=\"" + alertToUpsert.getName() + "\".";
                 String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
@@ -163,7 +167,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         if ((alert != null) && (alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
             alert.setIsCautionAcknowledged(isCautionAcknowledged);
             AlertsLogic alertsLogic = new AlertsLogic();
-            return alertsLogic.alterRecordInDatabase(alert, alertName);
+            return alertsLogic.alterRecordInDatabase(alert, alertName, true);
         }
         
         return null;
@@ -181,7 +185,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         if ((alert != null) && (alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
             alert.setIsDangerAcknowledged(isDangerAcknowledged);
             AlertsLogic alertsLogic = new AlertsLogic();
-            return alertsLogic.alterRecordInDatabase(alert, alertName);
+            return alertsLogic.alterRecordInDatabase(alert, alertName, true);
         }
         
         return null;
@@ -210,7 +214,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             
             if (doAlertAlert) {
                 AlertsLogic alertsLogic = new AlertsLogic();
-                return alertsLogic.alterRecordInDatabase(alert, alertName);
+                return alertsLogic.alterRecordInDatabase(alert, alertName, true);
             }
         }
         
