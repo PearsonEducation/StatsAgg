@@ -109,7 +109,9 @@ public class GraphiteMetricAggregator {
            return new ArrayList<>(); 
         }
 
-        BigDecimal sumMetricValue = BigDecimal.ZERO;
+        List<BigDecimal> metricValues = new ArrayList<>();
+        
+        BigDecimal sumMetricValues = BigDecimal.ZERO;
         BigDecimal minimumMetricValue = null;
         BigDecimal maximumMetricValue = null;
         long sumReceivedTimestamp = 0, sumMetricTimestamp = 0;
@@ -119,8 +121,9 @@ public class GraphiteMetricAggregator {
 
             try {
                 BigDecimal metricValue = graphiteMetricRaw.getMetricValue();
-
-                sumMetricValue = sumMetricValue.add(metricValue);
+                metricValues.add(metricValue);
+                
+                sumMetricValues = sumMetricValues.add(metricValue);
                 sumMetricTimestamp += graphiteMetricRaw.getMetricTimestampInMilliseconds();
                 sumReceivedTimestamp += graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds();
                 
@@ -148,10 +151,11 @@ public class GraphiteMetricAggregator {
             List<GraphiteMetricRaw> graphiteMetricsAggregated = new ArrayList<>();
             
             String metricPath = graphiteMetricsRaw.get(0).getMetricPath();
-            BigDecimal responsesPerInterval = new BigDecimal(metricCounter);
-            BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValue.divide(responsesPerInterval, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
+            BigDecimal metricCount = new BigDecimal(metricCounter);
+            BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValues.divide(metricCount, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
             maximumMetricValue = (maximumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(maximumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
+            BigDecimal medianMetricValue = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, GRAPHITE_MATH_CONTEXT, true), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             long averagedMetricTimestamp = Math.round((double) sumMetricTimestamp / (double) metricCounter);
             long averagedMetricReceivedTimestamp = Math.round((double) sumReceivedTimestamp / (double) metricCounter);
             
@@ -159,20 +163,47 @@ public class GraphiteMetricAggregator {
             if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = "";
             else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
             
-            GraphiteMetricRaw graphiteMetricAverageAggregated = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator 
-                    + "Avg", averageMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricAverageAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-            graphiteMetricsAggregated.add(graphiteMetricAverageAggregated);
+            if (averageMetricValue != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Avg", 
+                        averageMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
             
-            GraphiteMetricRaw graphiteMetricMaximumAggregated = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator 
-                    + "Max", maximumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricMaximumAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-            graphiteMetricsAggregated.add(graphiteMetricMaximumAggregated);
-
-            GraphiteMetricRaw graphiteMetricMinimumAggregated = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator 
-                    + "Min", minimumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-            graphiteMetricMinimumAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-            graphiteMetricsAggregated.add(graphiteMetricMinimumAggregated);
+            if (metricCount != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Count", 
+                        metricCount, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
+            
+            if (maximumMetricValue != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Max", 
+                        maximumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
+            
+            if (medianMetricValue != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Median", 
+                        medianMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
+            
+            if (minimumMetricValue != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Min", 
+                        minimumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
+            
+            if (sumMetricValues != null) {
+                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Sum", 
+                        sumMetricValues, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetricRaw);
+            }
             
             return graphiteMetricsAggregated;
         }

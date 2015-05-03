@@ -19,12 +19,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroupAssociations", urlPatterns = {"/MetricGroupAssociations"})
-public class MetricGroupAssociations extends HttpServlet {
+@WebServlet(name = "MetricGroupMetricKeyAssociations", urlPatterns = {"/MetricGroupMetricKeyAssociations"})
+public class MetricGroupMetricKeyAssociations extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroupAssociations.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupMetricKeyAssociations.class.getName());
     
-    public static final String PAGE_NAME = "Metric Group Associations";
+    public static final String PAGE_NAME = "Metric Group - Metric Key Associations";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -68,7 +68,7 @@ public class MetricGroupAssociations extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
-        String metricGroupAssociations = getMetricGroupAssociations(name);
+        String metricGroupMetricKeyAssociations = getMetricGroupMetricKeyAssociations(name);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -84,7 +84,7 @@ public class MetricGroupAssociations extends HttpServlet {
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div> " +
             "    <div class=\"statsagg_force_word_wrap\">" +
-            metricGroupAssociations +
+            metricGroupMetricKeyAssociations +
             "    </div>\n" +
             "  </div>\n" +
             "</div>\n");
@@ -107,7 +107,7 @@ public class MetricGroupAssociations extends HttpServlet {
         
     }
 
-    private String getMetricGroupAssociations(String metricGroupName) {
+    private String getMetricGroupMetricKeyAssociations(String metricGroupName) {
         
         if (metricGroupName == null) {
             return "";
@@ -124,7 +124,7 @@ public class MetricGroupAssociations extends HttpServlet {
             Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
             
             if (matchingMetricKeysAssociatedWithMetricGroup == null) {
-                outputString.append("<b>Total Metric Group Associations (over the last 24 hours)</b> = ").append("0");
+                outputString.append("<b>Total Metric Group - Metric Key Associations (over the last 24 hours)</b> = ").append("0");
             }
             else {
                 TreeSet<String> matchingMetricKeysAssociatedWithMetricGroupSorted;
@@ -133,10 +133,10 @@ public class MetricGroupAssociations extends HttpServlet {
                 }
                 
                 int associationCount = matchingMetricKeysAssociatedWithMetricGroupSorted.size();
-                outputString.append("<b>Total Metric Group Associations (over the last 24 hours)</b> = ").append(associationCount).append("<br><br>");
+                outputString.append("<b>Total Metric Group - Metric Key Associations (over the last 24 hours)</b> = ").append(associationCount).append("<br><br>");
                 
                 if (associationCount > 0) {
-                    outputString.append("<b>Metric Group Associations (over the last 24 hours)...</b>").append("<br>");
+                    outputString.append("<b>Metric Group - Metric Key Associations (over the last 24 hours)...</b>").append("<br>");
                     
                     int associationOutputCounter = 0;
                     outputString.append("<ul>");

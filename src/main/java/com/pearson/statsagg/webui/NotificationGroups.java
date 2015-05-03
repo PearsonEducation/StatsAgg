@@ -20,7 +20,6 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.concurrent.ConcurrentHashMap;

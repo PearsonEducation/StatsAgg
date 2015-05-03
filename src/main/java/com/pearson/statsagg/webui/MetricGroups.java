@@ -259,11 +259,11 @@ public class MetricGroups extends HttpServlet {
             }
             
             Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
-            int matchingMetricKeysAssociatedWithMetricGroup_Size = 0;
-            if (matchingMetricKeysAssociatedWithMetricGroup != null) matchingMetricKeysAssociatedWithMetricGroup_Size = matchingMetricKeysAssociatedWithMetricGroup.size();
-            String metricAssociationsLink = "<a href=\"MetricGroupAssociations?Name=" + 
+            int matchingMetricKeysAssociatedWithMetricGroup_Count = 0;
+            if (matchingMetricKeysAssociatedWithMetricGroup != null) matchingMetricKeysAssociatedWithMetricGroup_Count = matchingMetricKeysAssociatedWithMetricGroup.size();
+            String metricAssociationsLink = "<a href=\"MetricGroupMetricKeyAssociations?Name=" + 
                     StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithMetricGroup_Size)) + "</a>";
+                    StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithMetricGroup_Count)) + "</a>";
 
             String alter = "<a href=\"CreateMetricGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">alter</a>";
             

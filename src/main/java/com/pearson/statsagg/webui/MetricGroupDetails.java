@@ -161,9 +161,14 @@ public class MetricGroupDetails extends HttpServlet {
             }
             
             outputString.append("<br>");
-            outputString.append("<b>Metric Group Associations</b> = ");            
-            String metricAssociationsLink = "<a href=\"MetricGroupAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
-            outputString.append(metricAssociationsLink);  
+            outputString.append("<b>Metric Key Associations</b> = ");            
+            String metricGroup_MetricKeyAssociations_Link = "<a href=\"MetricGroupMetricKeyAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            outputString.append(metricGroup_MetricKeyAssociations_Link);  
+            
+            outputString.append("<br>");
+            outputString.append("<b>Alert Associations</b> = ");            
+            String metricGroup_AlertAssociations_Link = "<a href=\"MetricGroupAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            outputString.append(metricGroup_AlertAssociations_Link);  
             
             return outputString.toString();
         }

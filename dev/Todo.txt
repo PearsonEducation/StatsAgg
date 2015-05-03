@@ -1,31 +1,29 @@
 StatsAgg 1.3
- * Test -- saving StatsD gauges to the database optional
  * Last received metric in WebUI
  * Graphite Aggregation -- add 'responses per interval'
- * Alert associations in WebUI Metric Groups table
- * Convert 'Alert Suspension Details' page into panel-based UI
+   * Unit tests
+ * Availability alerts -- forgot metrics resulted in "new datapoints detected"
  * Link to 'Triggered' alerts in 'Alert Details'
- * Advanced options
-   * Maximum concurrently running output-threads
-   * Output-thread timeout
-   
+
 Short/Medium term
  * Multi-thread StatsD aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
  * Incoming metric rate limits
- * View application config in WebUI
- * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
  * StatsD forwarder
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Advanced options
+   * Maximum concurrently running output-threads
+   * Output-thread timeout
    * New application config option -- limit metric results # in WebUI
    * Cleanup metrics after... (currently hardcoded to 24hrs)
  * Debug mode for "details" pages (include additional details)
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Stop resending metric after X time of no updates
  * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
- 
+ * View application config in WebUI
+
 Long-term / Wishlist / Brainstorming
+ * History/events log w/ UI component
  * Alert escalation notification-group in Alerts
  * APIs to create alerts / metric-groups / etc
  * Mobile versions of essential WebUI pages
@@ -41,11 +39,13 @@ Long-term / Wishlist / Brainstorming
  * Migrate connection pool to HikariCP
  * Support output via OpenTSDB HTTP/JSON
    * Mitigated by telnet output being fully functional.
- * Events log w/ UI component
  * Server-side WebUI tables?
    * Will likely lose functionality
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?
  * Alert by individual metric?
+ * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
+   * Exact formatting of OpenTSDB output would be difficult to replicate.
+   * Little pay-off for the effort involved.
  * Convert to a regular Java app & use embedded Tomcat for the WebUI
    * Simplifies installation, but removes all the nice stuff we get from Tomcat.
    * Would need to be a separate git repo

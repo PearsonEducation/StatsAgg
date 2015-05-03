@@ -338,6 +338,48 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
     }
     
+    public List<String> getAlertsAssociatedWithMetricGroupId(Integer metricGroupId) {
+        
+        try {
+
+            if (metricGroupId == null) {
+                return null;
+            }
+            
+            if (!isConnectionValid()) {
+                return null;
+            }
+
+            databaseInterface_.createPreparedStatement(AlertsSql.Select_AlertNamesAssociatedWithMetricGroupId, 1000);
+            databaseInterface_.addPreparedStatementParameters(metricGroupId);
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                return null;
+            }
+            
+            List<String> alertNames = new ArrayList<>();
+
+            ResultSet resultSet = databaseInterface_.getResults();
+            
+            while (resultSet.next()) {
+                String alertName = resultSet.getString("NAME");
+                if (resultSet.wasNull()) alertName = null;
+                if (alertName != null) alertNames.add(alertName);
+            }
+            
+            return alertNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
+        
+    }
+    
     public Set<Integer> getDistinctMetricGroupIds() {
         
         try {
