@@ -240,6 +240,10 @@ public class MetricAssociation {
             return;
         }
         
+        if ((GlobalVariables.immediateCleanupMetrics != null) && !GlobalVariables.immediateCleanupMetrics.isEmpty() && GlobalVariables.immediateCleanupMetrics.containsKey(metricKey)) {
+            return;
+        }
+        
         try {
             String regex = GlobalVariables.mergedRegexsForMetricGroups.get(metricGroupId);
             if (regex == null) return;
@@ -274,14 +278,18 @@ public class MetricAssociation {
      Task 2: For every metric group, determine if this metric key is associated with it. 
              If the association is true, then the association is cached in "GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup".
      */
-    private static boolean associateMetricKeyWithMetricGroups(String metricKey, List<Integer> metricGroupIds) {
+    private static void associateMetricKeyWithMetricGroups(String metricKey, List<Integer> metricGroupIds) {
 
         if ((metricKey == null) || (metricGroupIds == null)) {
-            return false;
+            return;
         }
 
+        if ((GlobalVariables.immediateCleanupMetrics != null) && !GlobalVariables.immediateCleanupMetrics.isEmpty() && GlobalVariables.immediateCleanupMetrics.containsKey(metricKey)) {
+            return;
+        }
+        
         Boolean isMetricKeyAssociatedWithAnyMetricGroup = GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.get(metricKey);
-        if (isMetricKeyAssociatedWithAnyMetricGroup != null) return isMetricKeyAssociatedWithAnyMetricGroup;
+        if (isMetricKeyAssociatedWithAnyMetricGroup != null) return;
         isMetricKeyAssociatedWithAnyMetricGroup = false;
 
         for (Integer metricGroupId : metricGroupIds) {
@@ -314,8 +322,6 @@ public class MetricAssociation {
         }
 
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.put(metricKey, isMetricKeyAssociatedWithAnyMetricGroup);
-
-        return isMetricKeyAssociatedWithAnyMetricGroup;
     }
 
     protected static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {

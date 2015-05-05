@@ -187,7 +187,7 @@ public class MetricGroups extends HttpServlet {
         metricGroupsLogic.deleteRecordInDatabase(metricGroupName);
         
         if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
-            if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+            GlobalVariables.alertInvokerThread.runAlertThread(true, false);
         }
     }
     

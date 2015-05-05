@@ -6,14 +6,13 @@ import java.util.Set;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.utilities.MathUtilities;
-import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import org.apache.commons.lang3.builder.HashCodeBuilder;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -126,93 +125,26 @@ public class Common {
         return didDoAnyUpdates;
     }
     
-    public static void forgetGenericMetrics(ConcurrentHashMap<String,String> forgetGenericMetrics, 
-            ConcurrentHashMap<String,String> forgetGenericMetricsRegexs,
-            ConcurrentHashMap<String,? extends GenericMetricFormat> genericMetricsMostRecentValue,
-            ConcurrentHashMap<String,String> immediateCleanupMetrics) {
-
-        HashSet<String> metricKeysToForget = new HashSet<>();
+    public static void removeMetricKeysFromGraphiteMetricsList(List<GraphiteMetricRaw> graphiteMetricRaws, Set<String> metricKeysToRemove) {
         
-        // gets a list of complete metric keys to forget
-        if (forgetGenericMetrics != null) {         
-            Set<String> forgetMetrics = new HashSet<>(forgetGenericMetrics.keySet());
-            
-            for (String metricPath : forgetMetrics) {
-                metricKeysToForget.add(metricPath);
-                forgetGenericMetrics.remove(metricPath);
-            }
-        }
-        
-        // gets a list of metric keys to forget by matching against regexs
-        if (forgetGenericMetricsRegexs != null) {      
-            Set<String> forgetGenericMetricsKeyRegexs_Keys = new HashSet<>(forgetGenericMetricsRegexs.keySet());
-            
-            for (String metricKeyRegex : forgetGenericMetricsKeyRegexs_Keys) {
-                Set<String> regexMetricKeysToForget = Common.forgetGenericMetrics_IdentifyMetricPathsViaRegex(metricKeyRegex, genericMetricsMostRecentValue);
-                
-                if (regexMetricKeysToForget != null) {
-                    metricKeysToForget.addAll(regexMetricKeysToForget);
-                }
-                
-                forgetGenericMetricsRegexs.remove(metricKeyRegex);
-            }
-        }
-        
-        // 'forgets' the metrics
-        if (!metricKeysToForget.isEmpty()) {
-            forgetGenericMetrics_Forget(metricKeysToForget, genericMetricsMostRecentValue, immediateCleanupMetrics);
-        }
-        
-    }
-    
-    public static Set<String> forgetGenericMetrics_IdentifyMetricPathsViaRegex(String regex, ConcurrentHashMap<String,? extends GenericMetricFormat> metricsMostRecentValue) {
-        
-        if ((regex == null) || regex.isEmpty() || (metricsMostRecentValue == null)) {
-            return new HashSet<>();
-        }
-        
-        Set<String> metricKeysToForget = new HashSet<>();
-        
-        try {
-            Pattern pattern = null;
-
-            try {
-                pattern = Pattern.compile(regex);
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-        
-            if (pattern != null) {
-                for (GenericMetricFormat genericMetric : metricsMostRecentValue.values()) {
-                    Matcher matcher = pattern.matcher(genericMetric.getMetricKey());
-
-                    if (matcher.matches()) {
-                        metricKeysToForget.add(genericMetric.getMetricKey());
-                    }
-                }
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        return metricKeysToForget;
-    }
-    
-    public static void forgetGenericMetrics_Forget(Set<String> metricKeysToForget, 
-            ConcurrentHashMap<String,? extends GenericMetricFormat> metricsMostRecentValue,
-            ConcurrentHashMap<String,String> immediateCleanupMetrics) {
-        
-        if ((metricKeysToForget == null) || metricKeysToForget.isEmpty() || (metricsMostRecentValue == null)) {
+        if ((graphiteMetricRaws == null) || graphiteMetricRaws.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
             return;
         }
-            
-        for (String metricKeyToForget : metricKeysToForget) {
-            immediateCleanupMetrics.put(metricKeyToForget, metricKeyToForget);
-            metricsMostRecentValue.remove(metricKeyToForget);
+        
+        Map<String, GraphiteMetricRaw> metricsMap = new HashMap<>();
+        
+        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricRaws) {
+            String metricKey = graphiteMetricRaw.getMetricKey();
+            if (metricKey != null) metricsMap.put(metricKey, graphiteMetricRaw);
+        }
+                
+        for (String metricKeyToRemove : metricKeysToRemove) {
+            Object metric = metricsMap.get(metricKeyToRemove);
+            if (metric != null) metricsMap.remove(metricKeyToRemove);
         }
         
+        graphiteMetricRaws.clear();
+        graphiteMetricRaws.addAll(metricsMap.values());
     }
     
 }

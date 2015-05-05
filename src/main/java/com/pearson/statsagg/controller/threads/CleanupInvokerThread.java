@@ -54,6 +54,11 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
         isShutdown_ = true;
     }
     
+    public void runCleanupThread() {
+        Thread cleanupThread = new Thread(new CleanupThread(System.currentTimeMillis()));
+        if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(cleanupThread);
+    }
+    
     @Override
     public int getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;

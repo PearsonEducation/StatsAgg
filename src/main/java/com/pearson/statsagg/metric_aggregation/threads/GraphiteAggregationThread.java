@@ -10,6 +10,8 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -52,9 +54,15 @@ public class GraphiteAggregationThread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeGraphiteAggregationThreadStartGetMetricsTimestamps);
             activeGraphiteAggregationThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
             
-            // get metrics for aggregation
+            // returns a list of metric-keys that need to be disregarded by this routine.
+            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
+            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
+            
+            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
             long createMetricsTimeStart = System.currentTimeMillis();
             List<GraphiteMetricRaw> graphiteMetricsRaw = getCurrentGraphiteAggregatorMetricsAndRemoveMetricsFromGlobal();
+            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsRaw, metricKeysToForget);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
             
             // aggregate graphite metrics
@@ -69,8 +77,8 @@ public class GraphiteAggregationThread implements Runnable {
             
             // merge current aggregated values with the previous aggregated window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricRaw> graphiteMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(graphiteMetricsAggregated, 
-                    GlobalVariables.graphiteAggregatedMetricsMostRecentValue);
+            List<GraphiteMetricRaw> graphiteMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(graphiteMetricsAggregated, GlobalVariables.graphiteAggregatedMetricsMostRecentValue);
+            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsAggregatedMerged, metricKeysToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
             
             // updates the global lists that track the last time a metric was received. 
@@ -82,15 +90,11 @@ public class GraphiteAggregationThread implements Runnable {
             else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(graphiteMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
+            // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
             Common.updateAlertMetricRecentValues(graphiteMetricsAggregatedMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
-            
-            // 'forget' metrics
-            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
-            Common.forgetGenericMetrics(GlobalVariables.forgetGraphiteAggregatedMetrics, GlobalVariables.forgetGraphiteAggregatedMetricsRegexs, GlobalVariables.graphiteAggregatedMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
-            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
-            
+
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
@@ -104,9 +108,7 @@ public class GraphiteAggregationThread implements Runnable {
             // total time for this thread took to aggregate the graphite metrics
             long timeAggregationTimeElasped = System.currentTimeMillis() - timeAggregationTimeStart - waitInMsCounter;
             String aggregationRate = "0";
-            if (timeAggregationTimeElasped > 0) {
-                aggregationRate = Long.toString(graphiteMetricsRaw.size() / timeAggregationTimeElasped * 1000);
-            }
+            if (timeAggregationTimeElasped > 0) aggregationRate = Long.toString(graphiteMetricsRaw.size() / timeAggregationTimeElasped * 1000);
                     
             String aggregationStatistics = "ThreadId=" + threadId_
                     + ", AggTotalTime=" + timeAggregationTimeElasped 

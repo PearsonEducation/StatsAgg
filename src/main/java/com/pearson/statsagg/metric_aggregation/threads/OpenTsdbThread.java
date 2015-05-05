@@ -9,6 +9,8 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,9 +53,15 @@ public class OpenTsdbThread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeOpenTsdbThreadStartGetMetricsTimestamps);
             activeOpenTsdbThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
             
-            // get metrics for aggregation
+            // returns a list of metric-keys that need to be disregarded by this routine.
+            long forgetOpenTsdbMetricsTimeStart = System.currentTimeMillis();
+            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            long forgetOpenTsdbMetricsTimeElasped = System.currentTimeMillis() - forgetOpenTsdbMetricsTimeStart;  
+            
+            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
             long createMetricsTimeStart = System.currentTimeMillis();
             List<OpenTsdbMetricRaw> openTsdbMetricsRaw = getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal();
+            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetricsRaw, metricKeysToForget);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
                     
             // update the global lists of the opentsdb's most recent values
@@ -64,6 +72,7 @@ public class OpenTsdbThread implements Runnable {
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
             List<OpenTsdbMetricRaw> openTsdbMetricsRawMerged = mergePreviousValuesWithCurrentValues(openTsdbMetricsRaw, GlobalVariables.openTsdbMetricsMostRecentValue);
+            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetricsRawMerged, metricKeysToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
             // updates the global lists that track the last time a metric was received. 
@@ -79,11 +88,6 @@ public class OpenTsdbThread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
             Common.updateAlertMetricRecentValues(openTsdbMetricsRawMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
-
-            // 'forget' metrics
-            long forgetOpenTsdbMetricsTimeStart = System.currentTimeMillis();
-            Common.forgetGenericMetrics(GlobalVariables.forgetOpenTsdbMetrics, GlobalVariables.forgetOpenTsdbMetricsRegexs, GlobalVariables.openTsdbMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
-            long forgetOpenTsdbMetricsTimeElasped = System.currentTimeMillis() - forgetOpenTsdbMetricsTimeStart;  
             
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
@@ -98,9 +102,7 @@ public class OpenTsdbThread implements Runnable {
             // total time for this thread took to get & send the graphite metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
-            if (threadTimeElasped > 0) {
-                rate = Long.toString(openTsdbMetricsRaw.size() / threadTimeElasped * 1000);
-            }
+            if (threadTimeElasped > 0) rate = Long.toString(openTsdbMetricsRaw.size() / threadTimeElasped * 1000);
             
             String aggregationStatistics = "ThreadId=" + threadId_
                     + ", AggTotalTime=" + threadTimeElasped 
@@ -230,5 +232,27 @@ public class OpenTsdbThread implements Runnable {
         
         return openTsdbMetricsRawMerged;
     }
-
+    
+    public static void removeMetricKeysFromOpenTsdbMetricsList(List<OpenTsdbMetricRaw> openTsdbMetricRaws, Set<String> metricKeysToRemove) {
+        
+        if ((openTsdbMetricRaws == null) || openTsdbMetricRaws.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
+            return;
+        }
+        
+        Map<String,OpenTsdbMetricRaw> metricsMap = new HashMap<>();
+        
+        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricRaws) {
+            String metricKey = openTsdbMetricRaw.getMetricKey();
+            if (metricKey != null) metricsMap.put(metricKey, openTsdbMetricRaw);
+        }
+                
+        for (String metricKeyToRemove : metricKeysToRemove) {
+            Object metric = metricsMap.get(metricKeyToRemove);
+            if (metric != null) metricsMap.remove(metricKeyToRemove);
+        }
+        
+        openTsdbMetricRaws.clear();
+        openTsdbMetricRaws.addAll(metricsMap.values());
+    }
+    
 }

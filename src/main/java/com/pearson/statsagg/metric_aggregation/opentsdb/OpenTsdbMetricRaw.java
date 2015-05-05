@@ -32,7 +32,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private long metricReceivedTimestampInMilliseconds_ = -1;
     
     private String metricKey_ = null;
-    private final int metricLength_;  // metric refers to the 'metic name' (aka, metric path)
+    private final int metricLength_;  // 'metric' refers to the OpenTSDB 'metric name' 
 
     public OpenTsdbMetricRaw(String metric, long metricTimestamp, BigDecimal metricValue, List<OpenTsdbTag> tags, 
             boolean isTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds) {

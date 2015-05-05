@@ -9,6 +9,8 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -50,10 +52,16 @@ public class GraphitePassthroughThread implements Runnable {
             // wait until this is the youngest active thread
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeGraphitePassthroughThreadStartGetMetricsTimestamps);
             activeGraphitePassthroughThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
+
+            // returns a list of metric-keys that need to be disregarded by this routine.
+            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
+            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
-            // get metrics for aggregation
+            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
             long createMetricsTimeStart = System.currentTimeMillis();
             List<GraphiteMetricRaw> graphiteMetricsRaw = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
+            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsRaw, metricKeysToForget);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
             
             // update the global lists of the graphite passthrough's most recent values
@@ -63,8 +71,8 @@ public class GraphitePassthroughThread implements Runnable {
             
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<GraphiteMetricRaw> graphiteMetricsRawMerged = mergePreviousValuesWithCurrentValues(graphiteMetricsRaw, 
-                    GlobalVariables.graphitePassthroughMetricsMostRecentValue);
+            List<GraphiteMetricRaw> graphiteMetricsRawMerged = mergePreviousValuesWithCurrentValues(graphiteMetricsRaw, GlobalVariables.graphitePassthroughMetricsMostRecentValue);
+            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsRawMerged, metricKeysToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
             // updates the global lists that track the last time a metric was received. 
@@ -81,11 +89,6 @@ public class GraphitePassthroughThread implements Runnable {
             Common.updateAlertMetricRecentValues(graphiteMetricsRawMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
 
-            // 'forget' metrics
-            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
-            Common.forgetGenericMetrics(GlobalVariables.forgetGraphitePassthroughMetrics, GlobalVariables.forgetGraphitePassthroughMetricsRegexs, GlobalVariables.graphitePassthroughMetricsMostRecentValue, GlobalVariables.immediateCleanupMetrics);
-            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
-            
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsRawMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
@@ -99,9 +102,7 @@ public class GraphitePassthroughThread implements Runnable {
             // total time for this thread took to get & send the graphite metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
-            if (threadTimeElasped > 0) {
-                rate = Long.toString(graphiteMetricsRaw.size() / threadTimeElasped * 1000);
-            }
+            if (threadTimeElasped > 0) rate = Long.toString(graphiteMetricsRaw.size() / threadTimeElasped * 1000);
             
             String aggregationStatistics = "ThreadId=" + threadId_
                     + ", AggTotalTime=" + threadTimeElasped 
@@ -220,5 +221,5 @@ public class GraphitePassthroughThread implements Runnable {
         
         return graphiteMetricsRawMerged;
     }
-
+    
 }

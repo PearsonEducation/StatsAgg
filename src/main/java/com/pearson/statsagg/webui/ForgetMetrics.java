@@ -5,7 +5,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
@@ -169,12 +168,7 @@ public class ForgetMetrics extends HttpServlet {
 
         getForgetMetricsParameters(request);
 
-        int alertRoutineInterval = ApplicationConfiguration.getAlertRoutineInterval();
-        int flushTimeAgg = ApplicationConfiguration.getFlushTimeAgg();
-        int forgetByMaxTimeSeconds = (alertRoutineInterval + flushTimeAgg) / 1000;
-        if (forgetByMaxTimeSeconds == 0) forgetByMaxTimeSeconds = 1;
-        
-        String returnString = "The specified metrics will be forgotten by StatsAgg within the next " + forgetByMaxTimeSeconds + " seconds.";
+        String returnString = "The specified metrics will be forgotten shortly.";
         
         return returnString;
     }
@@ -191,25 +185,19 @@ public class ForgetMetrics extends HttpServlet {
             parameter = request.getParameter("ForgetMetric");
             if ((parameter != null) && !parameter.isEmpty()) {
                 String trimmedParameter = parameter.trim();
-                GlobalVariables.forgetMetrics.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetStatsdMetrics.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetGraphiteAggregatedMetrics.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetGraphitePassthroughMetrics.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetOpenTsdbMetrics.put(trimmedParameter, trimmedParameter);
+                GlobalVariables.immediateCleanupMetrics.put(trimmedParameter, trimmedParameter);
 
-                String cleanMetric = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
-                logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetric + "\"");
+                String cleanMetricKey = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
+                logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetricKey + "\"");
             }
             
             parameter = request.getParameter("ForgetMetricRegex");
             if ((parameter != null) && !parameter.isEmpty()) {
                 String trimmedParameter = parameter.trim();
-                GlobalVariables.forgetMetricsRegexs.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetStatsdMetricsRegexs.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetGraphiteAggregatedMetricsRegexs.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetGraphitePassthroughMetricsRegexs.put(trimmedParameter, trimmedParameter);
-                GlobalVariables.forgetOpenTsdbMetricsRegexs.put(trimmedParameter, trimmedParameter);
-
+                Thread forgetMetrics_RegexThread = new Thread(new ForgetMetrics_RegexThread(trimmedParameter));
+                forgetMetrics_RegexThread.setPriority(Thread.MIN_PRIORITY);
+                forgetMetrics_RegexThread.start();
+                
                 String cleanRegex = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "Rexex=\"" + cleanRegex + "\"");
             }

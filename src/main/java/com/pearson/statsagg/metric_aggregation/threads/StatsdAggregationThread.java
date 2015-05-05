@@ -16,7 +16,6 @@ import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregator;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import java.math.BigDecimal;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -68,6 +67,11 @@ public class StatsdAggregationThread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeStatsdAggregationThreadStartGetMetricsTimestamps);
             activeStatsdAggregationThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
             
+            // returns a list of buckets that need to be disregarded by this routine.
+            long forgetStatsdMetricsTimeStart = System.currentTimeMillis();
+            Set<String> bucketsToForget = new HashSet<>(GlobalVariables.immediateCleanupMetrics.keySet());
+            long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
+            
             // get metrics for aggregation
             long createMetricsTimeStart = System.currentTimeMillis();
             List<StatsdMetricRaw> statsdMetricsRaw = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal();
@@ -75,17 +79,19 @@ public class StatsdAggregationThread implements Runnable {
             List<StatsdMetricRaw> statsdMetricsRawNotGauges = StatsdMetricAggregator.getStatsdMetricsRawExcludeMetricTypeKey(statsdMetricsRaw, StatsdMetricRaw.GAUGE_TYPE);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
             
-            // aggregate everything except gauges
+            // aggregate everything except gauges, then remove any aggregated metrics that need to be 'forgotten'
             long aggregateNotGaugeTimeStart = System.currentTimeMillis();
             List<StatsdMetricAggregated> statsdMetricsAggregatedNotGauges = StatsdMetricAggregator.aggregateStatsdMetrics(statsdMetricsRawNotGauges);
+            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedNotGauges, bucketsToForget);
             long aggregateNotGaugeTimeElasped = System.currentTimeMillis() - aggregateNotGaugeTimeStart; 
             
             // wait until this is the youngest active thread
             waitInMsCounter += Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeStatsdAggregationThreadStartTimestamps);
             
-           // aggregate gauges
+           // aggregate gauges, then remove any aggregated metrics that need to be 'forgotten'
             long aggregateGaugeTimeStart = System.currentTimeMillis();
             List<StatsdMetricAggregated> statsdMetricsAggregatedGauges = StatsdMetricAggregator.aggregateStatsdMetrics(statsdMetricsRawGauges);
+            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedGauges, bucketsToForget);
             long aggregateGaugeTimeElasped = System.currentTimeMillis() - aggregateGaugeTimeStart; 
             
             // merge aggregated non-aggregatedGauge & aggregateGauge metrics
@@ -106,8 +112,8 @@ public class StatsdAggregationThread implements Runnable {
             
             // merge current aggregated values with the previous aggregated window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<StatsdMetricAggregated> statsdMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(statsdMetricsAggregated, 
-                    GlobalVariables.statsdMetricsAggregatedMostRecentValue);
+            List<StatsdMetricAggregated> statsdMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(statsdMetricsAggregated, GlobalVariables.statsdMetricsAggregatedMostRecentValue);
+            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedMerged, bucketsToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
 
             // updates the global lists that track the last time a metric was received. 
@@ -120,11 +126,6 @@ public class StatsdAggregationThread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
             Common.updateAlertMetricRecentValues(statsdMetricsAggregatedMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart;                 
-                    
-            // 'forget' metrics
-            long forgetStatsdMetricsTimeStart = System.currentTimeMillis();
-            forgetStatsdMetrics();
-            long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
 
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
@@ -325,78 +326,26 @@ public class StatsdAggregationThread implements Runnable {
         return statsdMetricsAggregatedMerged;
     }
     
-    private void forgetStatsdMetrics() {
-
-        HashSet<String> bucketsToForget = new HashSet<>();
+    public static void removeBucketsFromStatsdMetricsList(List<StatsdMetricAggregated> statsdMetricsAggregated, Set<String> bucketsToRemove) {
         
-        // gets a list of complete buckets to forget
-        if (GlobalVariables.forgetStatsdMetrics != null) { 
-            Set<String> forgetStatsdMetrics = new HashSet<>(GlobalVariables.forgetStatsdMetrics.keySet());
-            
-            for (String bucket : forgetStatsdMetrics) {
-                bucketsToForget.add(bucket);
-                GlobalVariables.forgetStatsdMetrics.remove(bucket);
-            }
-        }
-        
-        // gets a list of buckets to forget by matching against regexs
-        if (GlobalVariables.forgetStatsdMetricsRegexs != null) {     
-            Set<String> forgetStatsdMetricsRegexs = new HashSet<>(GlobalVariables.forgetStatsdMetricsRegexs.keySet());
-            
-            for (String bucketRegex : forgetStatsdMetricsRegexs) {
-                Set<String> regexBucketsToForget = Common.forgetGenericMetrics_IdentifyMetricPathsViaRegex(bucketRegex, GlobalVariables.statsdMetricsAggregatedMostRecentValue);
-                
-                if (regexBucketsToForget != null) {
-                    bucketsToForget.addAll(regexBucketsToForget);
-                }
-                
-                GlobalVariables.forgetStatsdMetricsRegexs.remove(bucketRegex);
-            }
-        }
-
-        // 'forgets' the statsd metrics
-        if (!bucketsToForget.isEmpty()) {
-            GaugesDao gaugesDao = new GaugesDao(false);
-            forgetStatsdMetrics_Forget(bucketsToForget, gaugesDao);
-            gaugesDao.close();
-        }
-        
-    }
-
-    private void forgetStatsdMetrics_Forget(Set<String> bucketsToForget, GaugesDao gaugesDao) {
-        
-        if ((bucketsToForget == null) || bucketsToForget.isEmpty() || (GlobalVariables.statsdMetricsAggregatedMostRecentValue == null)) {
+        if ((statsdMetricsAggregated == null) || statsdMetricsAggregated.isEmpty() || (bucketsToRemove == null) || bucketsToRemove.isEmpty()) {
             return;
         }
-            
-        for (String bucketToForget : bucketsToForget) {
-            GlobalVariables.immediateCleanupMetrics.put(bucketToForget, bucketToForget);            
-            StatsdMetricAggregated statsdMetricAggregated = GlobalVariables.statsdMetricsAggregatedMostRecentValue.get(bucketToForget);
-            
-            if ((statsdMetricAggregated != null) && (statsdMetricAggregated.getMetricTypeKey() == StatsdMetricAggregated.GAUGE_TYPE)) {
-                if (gaugesDao != null) {
-                    Gauge gauge = GlobalVariables.statsdGaugeCache.get(bucketToForget);
-                    String bucketSha1;
-                    if (gauge == null) bucketSha1 = DigestUtils.sha1Hex(bucketToForget);
-                    else bucketSha1 = gauge.getBucketSha1();
-                    
-                    boolean deleteSuccess = false;
-                    if (bucketSha1 != null) deleteSuccess = gaugesDao.delete(bucketSha1);
-
-                    if ((bucketSha1 != null) && deleteSuccess) {
-                        GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
-                        GlobalVariables.statsdGaugeCache.remove(bucketToForget);
-                    }  
-                    else {
-                        String cleanBucketToForget = StatsAggHtmlFramework.removeNewlinesFromString(bucketToForget);
-                        logger.error("Failed deleting gauge from the database. Gauge=\"" + cleanBucketToForget + "\"");
-                    }
-                }
-            }
-            else {
-                GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(bucketToForget);
-            }
+        
+        Map<String, StatsdMetricAggregated> metricsMap = new HashMap<>();
+        
+        for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
+            String metricKey = statsdMetricAggregated.getMetricKey();
+            if (metricKey != null) metricsMap.put(metricKey, statsdMetricAggregated);
         }
+                
+        for (String metricKeyToRemove : bucketsToRemove) {
+            Object metric = metricsMap.get(metricKeyToRemove);
+            if (metric != null) metricsMap.remove(metricKeyToRemove);
+        }
+        
+        statsdMetricsAggregated.clear();
+        statsdMetricsAggregated.addAll(metricsMap.values());
     }
     
 }

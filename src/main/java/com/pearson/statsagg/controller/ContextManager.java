@@ -195,6 +195,7 @@ public class ContextManager implements ServletContextListener {
         cleanupInvokerThread_ = new CleanupInvokerThread();
         Thread cleanupInvokerThread = new Thread(cleanupInvokerThread_);
         cleanupInvokerThread.start();
+        GlobalVariables.cleanupInvokerThread = cleanupInvokerThread_;
         
         internalStatsInvokerThread_ = new InternalStatsInvokerThread();
         Thread internalStatsInvokerThread = new Thread(internalStatsInvokerThread_);

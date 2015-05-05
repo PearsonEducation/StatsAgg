@@ -1,6 +1,7 @@
 package com.pearson.statsagg.globals;
 
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
+import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -28,6 +29,9 @@ public class GlobalVariables {
     
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;
+    
+    // the 'invoker' thread for the cleanup routine. this is global so that the webui can trigger the cleanup-routine.
+    public static CleanupInvokerThread cleanupInvokerThread = null;
     
     // A flag indicating whether statsagg has finished going through its initialization routine. This will only be true if it has gone through the initialization routine successfully.
     public static AtomicBoolean isApplicationInitializeSuccess = new AtomicBoolean(false);
@@ -65,20 +69,6 @@ public class GlobalVariables {
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>();
     
-    // k=MetricKey, v=MetricKey (k=v. Both are a strings that specify the metric key of a metric to 'forget'.
-    public final static ConcurrentHashMap<String,String> forgetMetrics = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetStatsdMetrics = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetGraphiteAggregatedMetrics = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetGraphitePassthroughMetrics = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetOpenTsdbMetrics = new ConcurrentHashMap<>();
-
-    // k=MetricKeyRegex, v=MetricKeyRegex (k=v. Both are a regexs that specify a pattern that should be matched against known metrics (for 'forgetting').
-    public final static ConcurrentHashMap<String,String> forgetMetricsRegexs = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetStatsdMetricsRegexs = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetGraphiteAggregatedMetricsRegexs = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetGraphitePassthroughMetricsRegexs = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,String> forgetOpenTsdbMetricsRegexs = new ConcurrentHashMap<>();
-
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
     

@@ -169,7 +169,7 @@ public class Alerts extends HttpServlet {
             alertsLogic.alterRecordInDatabase(alert, alertName, false);
             
             if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
-                if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+                GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
     }
@@ -216,7 +216,7 @@ public class Alerts extends HttpServlet {
                 alertsLogic.alterRecordInDatabase(clonedAlert);
                 
                 if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
-                    if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+                    GlobalVariables.alertInvokerThread.runAlertThread(false, true);
                 }
             }
         }
@@ -235,7 +235,7 @@ public class Alerts extends HttpServlet {
         alertsLogic.deleteRecordInDatabase(alertName);
         
 	if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
-            if (GlobalVariables.alertInvokerThread != null) GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            GlobalVariables.alertInvokerThread.runAlertThread(false, true);
         }
     }
     
