@@ -10,8 +10,8 @@ import java.util.regex.Pattern;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
 import java.util.List;
@@ -56,15 +56,15 @@ public class GlobalVariables {
 
     // k="Value assigned at raw metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="Raw metric object"
     public final static ConcurrentHashMap<Long,StatsdMetricRaw> statsdMetricsRaw = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphiteAggregatorMetricsRaw = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<Long,GraphiteMetricRaw> graphitePassthroughMetricsRaw = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<Long,OpenTsdbMetricRaw> openTsdbMetricsRaw = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,GraphiteMetric> graphiteAggregatorMetrics = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,GraphiteMetric> graphitePassthroughMetrics = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();
     
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,GraphiteMetricRaw> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,OpenTsdbMetricRaw> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>();
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>();

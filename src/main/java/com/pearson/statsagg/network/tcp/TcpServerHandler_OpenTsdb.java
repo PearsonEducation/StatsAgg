@@ -6,7 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
+import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -27,18 +27,18 @@ public class TcpServerHandler_OpenTsdb extends SimpleChannelInboundHandler<Strin
             else if ((message != null) && (message.length() > 4) && message.startsWith("put ")){
                 long currentTimestampInMilliseconds = System.currentTimeMillis();
 
-                List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(message.substring(4), 
+                List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbMetrics(message.substring(4), 
                         GlobalVariables.openTsdbPrefix, currentTimestampInMilliseconds);
 
-                for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
+                for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
                     long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-                    openTsdbMetricRaw.setHashKey(hashKey);
-                    GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
+                    openTsdbMetric.setHashKey(hashKey);
+                    GlobalVariables.openTsdbMetrics.put(openTsdbMetric.getHashKey(), openTsdbMetric);
                     GlobalVariables.incomingMetricsCount.incrementAndGet();
                 }
 
                 if (ApplicationConfiguration.isDebugModeEnabled()) {
-                    logger.info("TCP_OpenTsdb_Received_Metrics=" + openTsdbMetricsRaw.size());
+                    logger.info("TCP_OpenTsdb_Received_Metrics=" + openTsdbMetrics.size());
                     logger.info("TCP_OpenTsdb_String=\"" + message + "\"");
                 }
             }

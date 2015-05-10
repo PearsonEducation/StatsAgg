@@ -2,14 +2,13 @@ package com.pearson.statsagg.globals;
 
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
-import com.pearson.statsagg.webui.HttpLink;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
+import com.pearson.statsagg.webui.HttpLink;
 import java.io.InputStream;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +23,7 @@ public class ApplicationConfiguration {
 
     private static boolean isUsingDefaultSettings_ = false;
     private static boolean isInitializeSuccess_ = false; 
-    private static PropertiesConfiguration applicationConfiguration_ = null;
+    private static PropertiesConfigurationWrapper applicationConfiguration_ = null;
     
     private static int flushTimeAgg_ = VALUE_NOT_SET_CODE;
     private static boolean debugModeEnabled_ = false;
@@ -113,14 +112,12 @@ public class ApplicationConfiguration {
         }
         
         isUsingDefaultSettings_ = isUsingDefaultSettings;
-        PropertiesConfigurationWrapper propertiesConfigurationWrapper = new PropertiesConfigurationWrapper(configurationInputStream);
+        applicationConfiguration_ = new PropertiesConfigurationWrapper(configurationInputStream);
         
-        if (!propertiesConfigurationWrapper.isValid()) {
+        if ((applicationConfiguration_ == null) || !applicationConfiguration_.isValid()) {
             return false;
         }
         
-        applicationConfiguration_ = propertiesConfigurationWrapper.getPropertiesConfiguration();
-
         isInitializeSuccess_ = setApplicationConfigurationValues();
         return isInitializeSuccess_;
     }
@@ -128,8 +125,8 @@ public class ApplicationConfiguration {
     private static boolean setApplicationConfigurationValues() {
         
         try {
-            flushTimeAgg_ = applicationConfiguration_.getInteger("flush_time_agg", 10000);
-            debugModeEnabled_ = applicationConfiguration_.getBoolean("debug_mode_enabled", false);
+            flushTimeAgg_ = applicationConfiguration_.safeGetInteger("flush_time_agg", 10000);
+            debugModeEnabled_ = applicationConfiguration_.safeGetBoolean("debug_mode_enabled", false);
             
             // graphite configuration
             graphiteOutputModules_.addAll(readGraphiteOutputModules());
@@ -141,80 +138,80 @@ public class ApplicationConfiguration {
             openTsdbHttpOutputModules_.addAll(readOpenTsdbHttpOutputModules());
             
             // listener config
-            statsdTcpListenerEnabled_ = applicationConfiguration_.getBoolean("statsd_tcp_listener_enabled", true);
-            statsdTcpListenerPort_ = applicationConfiguration_.getInt("statsd_tcp_listener_port", 8125);
-            statsdUdpListenerEnabled_ = applicationConfiguration_.getBoolean("statsd_udp_listener_enabled", true);
-            statsdUdpListenerPort_ = applicationConfiguration_.getInt("statsd_udp_listener_port", 8125);
-            graphiteAggregatorTcpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_tcp_listener_enabled", true);
-            graphiteAggregatorTcpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_tcp_listener_port", 22003);
-            graphiteAggregatorUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_udp_listener_enabled", true);
-            graphiteAggregatorUdpListenerPort_ = applicationConfiguration_.getInt("graphite_aggregator_udp_listener_port", 22003);
-            graphitePassthroughTcpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_tcp_listener_enabled", true);
-            graphitePassthroughTcpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_tcp_listener_port", 2003);
-            graphitePassthroughUdpListenerEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_udp_listener_enabled", true);
-            graphitePassthroughUdpListenerPort_ = applicationConfiguration_.getInt("graphite_passthrough_udp_listener_port", 2003);
-            openTsdbTcpTelnetListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_tcp_telnet_listener_enabled", true);
-            openTsdbTcpTelnetListenerPort_ = applicationConfiguration_.getInt("opentsdb_tcp_telnet_listener_port", 4242);
-            openTsdbHttpListenerEnabled_ = applicationConfiguration_.getBoolean("opentsdb_http_listener_enabled", true);
-            openTsdbHttpListenerPort_ = applicationConfiguration_.getInt("opentsdb_http_listener_port", 4243);
+            statsdTcpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_tcp_listener_enabled", true);
+            statsdTcpListenerPort_ = applicationConfiguration_.safeGetInt("statsd_tcp_listener_port", 8125);
+            statsdUdpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_udp_listener_enabled", true);
+            statsdUdpListenerPort_ = applicationConfiguration_.safeGetInt("statsd_udp_listener_port", 8125);
+            graphiteAggregatorTcpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_tcp_listener_enabled", true);
+            graphiteAggregatorTcpListenerPort_ = applicationConfiguration_.safeGetInt("graphite_aggregator_tcp_listener_port", 22003);
+            graphiteAggregatorUdpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_udp_listener_enabled", true);
+            graphiteAggregatorUdpListenerPort_ = applicationConfiguration_.safeGetInt("graphite_aggregator_udp_listener_port", 22003);
+            graphitePassthroughTcpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_tcp_listener_enabled", true);
+            graphitePassthroughTcpListenerPort_ = applicationConfiguration_.safeGetInt("graphite_passthrough_tcp_listener_port", 2003);
+            graphitePassthroughUdpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_udp_listener_enabled", true);
+            graphitePassthroughUdpListenerPort_ = applicationConfiguration_.safeGetInt("graphite_passthrough_udp_listener_port", 2003);
+            openTsdbTcpTelnetListenerEnabled_ = applicationConfiguration_.safeGetBoolean("opentsdb_tcp_telnet_listener_enabled", true);
+            openTsdbTcpTelnetListenerPort_ = applicationConfiguration_.safeGetInt("opentsdb_tcp_telnet_listener_port", 4242);
+            openTsdbHttpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("opentsdb_http_listener_enabled", true);
+            openTsdbHttpListenerPort_ = applicationConfiguration_.safeGetInt("opentsdb_http_listener_port", 4243);
             
             // metric naming config
-            globalMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("global_metric_name_prefix_enabled", false);
-            globalMetricNamePrefixValue_ = applicationConfiguration_.getString("global_metric_name_prefix_value", "statsagg");
-            globalAggregatedMetricsSeparatorString_= applicationConfiguration_.getString("global_aggregated_metrics_separator_string", "."); 
-            statsdMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_metric_name_prefix_enabled", false);
-            statsdMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_metric_name_prefix_value", "stats");
-            statsdMetricNameSuffixEnabled_ = applicationConfiguration_.getBoolean("statsd_metric_name_suffix_enabled", false);
-            statsdMetricNameSuffixValue_ = applicationConfiguration_.getString("statsd_metric_name_suffix_value", "");
-            statsdCounterMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_counter_metric_name_prefix_enabled", false);
-            statsdCounterMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_counter_metric_name_prefix_value", "counters");
-            statsdGaugeMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_gauge_metric_name_prefix_enabled", false);
-            statsdGaugeMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_gauge_metric_name_prefix_value", "gauges");
-            statsdTimerMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_timer_metric_name_prefix_enabled", false);
-            statsdTimerMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_timer_metric_name_prefix_value", "timers");
-            statsdSetMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("statsd_set_metric_name_prefix_enabled", false);
-            statsdSetMetricNamePrefixValue_ = applicationConfiguration_.getString("statsd_set_metric_name_prefix_value", "sets");
-            graphiteAggregatorMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_aggregator_metric_name_prefix_enabled", false);
-            graphiteAggregatorMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_aggregator_metric_name_prefix_value", "graphite-agg");
-            graphitePassthroughMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("graphite_passthrough_metric_name_prefix_enabled", false);
-            graphitePassthroughMetricNamePrefixValue_ = applicationConfiguration_.getString("graphite_passthrough_metric_name_prefix_value", "graphite");
-            openTsdbMetricNamePrefixEnabled_ = applicationConfiguration_.getBoolean("opentsdb_metric_name_prefix_enabled", false);
-            openTsdbMetricNamePrefixValue_ = applicationConfiguration_.getString("opentsdb_metric_name_prefix_value", "opentsdb");
+            globalMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("global_metric_name_prefix_enabled", false);
+            globalMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("global_metric_name_prefix_value", "statsagg");
+            globalAggregatedMetricsSeparatorString_= applicationConfiguration_.safeGetString("global_aggregated_metrics_separator_string", "."); 
+            statsdMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_metric_name_prefix_enabled", false);
+            statsdMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_metric_name_prefix_value", "stats");
+            statsdMetricNameSuffixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_metric_name_suffix_enabled", false);
+            statsdMetricNameSuffixValue_ = applicationConfiguration_.safeGetString("statsd_metric_name_suffix_value", "");
+            statsdCounterMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_counter_metric_name_prefix_enabled", false);
+            statsdCounterMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_counter_metric_name_prefix_value", "counters");
+            statsdGaugeMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_gauge_metric_name_prefix_enabled", false);
+            statsdGaugeMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_gauge_metric_name_prefix_value", "gauges");
+            statsdTimerMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_timer_metric_name_prefix_enabled", false);
+            statsdTimerMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_timer_metric_name_prefix_value", "timers");
+            statsdSetMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_set_metric_name_prefix_enabled", false);
+            statsdSetMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_set_metric_name_prefix_value", "sets");
+            graphiteAggregatorMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_metric_name_prefix_enabled", false);
+            graphiteAggregatorMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("graphite_aggregator_metric_name_prefix_value", "graphite-agg");
+            graphitePassthroughMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_metric_name_prefix_enabled", false);
+            graphitePassthroughMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("graphite_passthrough_metric_name_prefix_value", "graphite");
+            openTsdbMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("opentsdb_metric_name_prefix_enabled", false);
+            openTsdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("opentsdb_metric_name_prefix_value", "opentsdb");
             
             // send previous data config
-            statsdCounterSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_counter_send_0_on_inactive", true);
-            statsdTimerSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_timer_send_0_on_inactive", true);
-            statsdGaugeSendPreviousValue_ = applicationConfiguration_.getBoolean("statsd_gauge_send_previous_value", true);
-            statsdSetSendZeroOnInactive_ = applicationConfiguration_.getBoolean("statsd_set_send_0_on_inactive", true);
-            graphiteAggregatorSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_aggregator_send_previous_value", false);
-            graphitePassthroughSendPreviousValue_ = applicationConfiguration_.getBoolean("graphite_passthrough_send_previous_value", false);
-            openTsdbSendPreviousValue_ = applicationConfiguration_.getBoolean("opentsdb_send_previous_value", false);
+            statsdCounterSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_counter_send_0_on_inactive", true);
+            statsdTimerSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_timer_send_0_on_inactive", true);
+            statsdGaugeSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("statsd_gauge_send_previous_value", true);
+            statsdSetSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_set_send_0_on_inactive", true);
+            graphiteAggregatorSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_send_previous_value", false);
+            graphitePassthroughSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_send_previous_value", false);
+            openTsdbSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("opentsdb_send_previous_value", false);
             
             // statsd specific variables
-            statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.getString("statsd_nth_percentiles", "90"));
-            statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.getString("statsd_histograms", null));
-            statsdUseLegacyNameSpacing_ = applicationConfiguration_.getBoolean("statsd_use_legacy_name_spacing", false);
-            statsdPersistGauges_ = applicationConfiguration_.getBoolean("statsd_persist_gauges", true);
+            statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.safeGetString("statsd_nth_percentiles", "90"));
+            statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.safeGetString("statsd_histograms", null));
+            statsdUseLegacyNameSpacing_ = applicationConfiguration_.safeGetBoolean("statsd_use_legacy_name_spacing", false);
+            statsdPersistGauges_ = applicationConfiguration_.safeGetBoolean("statsd_persist_gauges", true);
             
             // alerting variables
-            alertRoutineEnabled_ = applicationConfiguration_.getBoolean("alert_routine_enabled", true);
-            alertRoutineInterval_ = applicationConfiguration_.getInteger("alert_routine_interval", 5000);
-            alertSendEmailEnabled_ = applicationConfiguration_.getBoolean("alert_send_email_enabled", false);
-            alertMaxMetricsInEmail_ = applicationConfiguration_.getInteger("alert_max_metrics_in_email", 100);
-            alertOutputAlertStatusToGraphite_ = applicationConfiguration_.getBoolean("alert_output_alert_status_to_graphite", true);
-            alertOutputAlertStatusToGraphiteMetricPrefix_ = applicationConfiguration_.getString("alert_output_alert_status_to_graphite_metric_prefix", "StatsAgg-Alerts");
-            alertStatsAggLocation_ = applicationConfiguration_.getString("alert_statsagg_location", "");
-            alertWaitTimeAfterRestart_ = applicationConfiguration_.getInteger("alert_wait_time_after_restart", 120000);
+            alertRoutineEnabled_ = applicationConfiguration_.safeGetBoolean("alert_routine_enabled", true);
+            alertRoutineInterval_ = applicationConfiguration_.safeGetInteger("alert_routine_interval", 5000);
+            alertSendEmailEnabled_ = applicationConfiguration_.safeGetBoolean("alert_send_email_enabled", false);
+            alertMaxMetricsInEmail_ = applicationConfiguration_.safeGetInteger("alert_max_metrics_in_email", 100);
+            alertOutputAlertStatusToGraphite_ = applicationConfiguration_.safeGetBoolean("alert_output_alert_status_to_graphite", true);
+            alertOutputAlertStatusToGraphiteMetricPrefix_ = applicationConfiguration_.safeGetString("alert_output_alert_status_to_graphite_metric_prefix", "StatsAgg-Alerts");
+            alertStatsAggLocation_ = applicationConfiguration_.safeGetString("alert_statsagg_location", "");
+            alertWaitTimeAfterRestart_ = applicationConfiguration_.safeGetInteger("alert_wait_time_after_restart", 120000);
                     
-            alertSmtpHost_ = applicationConfiguration_.getString("alert_smtp_host", "127.0.0.1");
-            alertSmtpPort_ = applicationConfiguration_.getInteger("alert_smtp_port", 25);
-            alertSmtpConnectionTimeout_ = applicationConfiguration_.getInteger("alert_smtp_connection_timeout", 15000);
-            alertSmtpUsername_ = applicationConfiguration_.getString("alert_smtp_username", "");
-            alertSmtpPassword_ = applicationConfiguration_.getString("alert_smtp_password", "");
-            alertSmtpUseSslTls_ = applicationConfiguration_.getBoolean("alert_smtp_use_ssl_tls", false);
-            alertSmtpUseStartTls_ = applicationConfiguration_.getBoolean("alert_smtp_use_starttls", false);
-            alertSmtpFromAddress_ = applicationConfiguration_.getString("alert_smtp_from_address", "noreply@noreply.com");
-            alertSmtpFromName_ = applicationConfiguration_.getString("alert_smtp_from_name", "StatsAgg");
+            alertSmtpHost_ = applicationConfiguration_.safeGetString("alert_smtp_host", "127.0.0.1");
+            alertSmtpPort_ = applicationConfiguration_.safeGetInteger("alert_smtp_port", 25);
+            alertSmtpConnectionTimeout_ = applicationConfiguration_.safeGetInteger("alert_smtp_connection_timeout", 15000);
+            alertSmtpUsername_ = applicationConfiguration_.safeGetString("alert_smtp_username", "");
+            alertSmtpPassword_ = applicationConfiguration_.safeGetString("alert_smtp_password", "");
+            alertSmtpUseSslTls_ = applicationConfiguration_.safeGetBoolean("alert_smtp_use_ssl_tls", false);
+            alertSmtpUseStartTls_ = applicationConfiguration_.safeGetBoolean("alert_smtp_use_starttls", false);
+            alertSmtpFromAddress_ = applicationConfiguration_.safeGetString("alert_smtp_from_address", "noreply@noreply.com");
+            alertSmtpFromName_ = applicationConfiguration_.safeGetString("alert_smtp_from_name", "StatsAgg");
             
             // website custominzation variables
             customActionUrls_.addAll(readCustomActionUrls());
@@ -233,7 +230,7 @@ public class ApplicationConfiguration {
         
         for (int i = 0; i < 1000; i++) {
             String graphiteOutputModuleKey = "graphite_output_module_" + (i + 1);
-            String graphiteOutputModuleValue = applicationConfiguration_.getString(graphiteOutputModuleKey, null);
+            String graphiteOutputModuleValue = applicationConfiguration_.safeGetString(graphiteOutputModuleKey, null);
             
             if (graphiteOutputModuleValue == null) continue;
             
@@ -271,7 +268,7 @@ public class ApplicationConfiguration {
         
         for (int i = 0; i < 1000; i++) {
             String openTsdbTelnetOutputModuleKey = "opentsdb_telnet_output_module_" + (i + 1);
-            String openTsdbTelnetOutputModuleValue = applicationConfiguration_.getString(openTsdbTelnetOutputModuleKey, null);
+            String openTsdbTelnetOutputModuleValue = applicationConfiguration_.safeGetString(openTsdbTelnetOutputModuleKey, null);
             
             if (openTsdbTelnetOutputModuleValue == null) continue;
             
@@ -307,7 +304,7 @@ public class ApplicationConfiguration {
         
         for (int i = 0; i < 1000; i++) {
             String openTsdbHttpOutputModuleKey = "opentsdb_http_output_module_" + (i + 1);
-            String openTsdbHttpOutputModuleValue = applicationConfiguration_.getString(openTsdbHttpOutputModuleKey, null);
+            String openTsdbHttpOutputModuleValue = applicationConfiguration_.safeGetString(openTsdbHttpOutputModuleKey, null);
             
             if (openTsdbHttpOutputModuleValue == null) continue;
             
@@ -349,7 +346,7 @@ public class ApplicationConfiguration {
         
         for (int i = 0; i < 1000; i++) {
             String customActionUrlKey = "custom_action_url_" + (i + 1);
-            String customActionUrlValue = applicationConfiguration_.getString(customActionUrlKey, null);
+            String customActionUrlValue = applicationConfiguration_.safeGetString(customActionUrlKey, null);
             
             if (customActionUrlValue == null) continue;
             
@@ -382,8 +379,8 @@ public class ApplicationConfiguration {
     public static boolean isUsingDefaultSettings() {
         return isUsingDefaultSettings_;
     }
-    
-    public static PropertiesConfiguration getApplicationConfiguration() {
+
+    public static PropertiesConfigurationWrapper getApplicationConfiguration() {
         return applicationConfiguration_;
     }
 

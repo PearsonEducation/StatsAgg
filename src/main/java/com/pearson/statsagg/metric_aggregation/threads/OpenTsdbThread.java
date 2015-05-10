@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
+import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashSet;
 import java.util.Set;
@@ -60,65 +60,65 @@ public class OpenTsdbThread implements Runnable {
             
             // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
             long createMetricsTimeStart = System.currentTimeMillis();
-            List<OpenTsdbMetricRaw> openTsdbMetricsRaw = getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal();
-            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetricsRaw, metricKeysToForget);
+            List<OpenTsdbMetric> openTsdbMetrics = getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal();
+            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetrics, metricKeysToForget);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
                     
             // update the global lists of the opentsdb's most recent values
             long updateMostRecentDataValueForMetricsTimeStart = System.currentTimeMillis();
-            updateMetricMostRecentValues(openTsdbMetricsRaw);
+            updateMetricMostRecentValues(openTsdbMetrics);
             long updateMostRecentDataValueForMetricsTimeElasped = System.currentTimeMillis() - updateMostRecentDataValueForMetricsTimeStart; 
             
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<OpenTsdbMetricRaw> openTsdbMetricsRawMerged = mergePreviousValuesWithCurrentValues(openTsdbMetricsRaw, GlobalVariables.openTsdbMetricsMostRecentValue);
-            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetricsRawMerged, metricKeysToForget);
+            List<OpenTsdbMetric> openTsdbMetricsMerged = mergePreviousValuesWithCurrentValues(openTsdbMetrics, GlobalVariables.openTsdbMetricsMostRecentValue);
+            removeMetricKeysFromOpenTsdbMetricsList(openTsdbMetricsMerged, metricKeysToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
             if (ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-                Common.updateMetricLastSeenTimestamps_MostRecentNew(openTsdbMetricsRaw);
-                Common.updateMetricLastSeenTimestamps_UpdateOnResend(openTsdbMetricsRawMerged);
+                Common.updateMetricLastSeenTimestamps_MostRecentNew(openTsdbMetrics);
+                Common.updateMetricLastSeenTimestamps_UpdateOnResend(openTsdbMetricsMerged);
             }
-            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(openTsdbMetricsRawMerged);
+            else Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(openTsdbMetricsMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
-            Common.updateAlertMetricRecentValues(openTsdbMetricsRawMerged);
+            Common.updateAlertMetricRecentValues(openTsdbMetricsMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
             
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(openTsdbMetricsRawMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(openTsdbMetricsMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
             }
             
             // send to opentsdb via telnet
             if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) {
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(openTsdbMetricsRawMerged, threadId_);
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(openTsdbMetricsMerged, threadId_);
             }
             
             // total time for this thread took to get & send the graphite metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
-            if (threadTimeElasped > 0) rate = Long.toString(openTsdbMetricsRaw.size() / threadTimeElasped * 1000);
+            if (threadTimeElasped > 0) rate = Long.toString(openTsdbMetrics.size() / threadTimeElasped * 1000);
             
             String aggregationStatistics = "ThreadId=" + threadId_
                     + ", AggTotalTime=" + threadTimeElasped 
-                    + ", RawMetricCount=" + openTsdbMetricsRaw.size() 
-                    + ", RawMetricRatePerSec=" + (openTsdbMetricsRaw.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", RawMetricCount=" + openTsdbMetrics.size() 
+                    + ", RawMetricRatePerSec=" + (openTsdbMetrics.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
                     + ", MetricsProcessedPerSec=" + rate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped
                     + ", UpdateRecentValuesTime=" + updateMostRecentDataValueForMetricsTimeElasped 
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped
-                    + ", NewAndOldMetricCount=" + openTsdbMetricsRawMerged.size() 
+                    + ", NewAndOldMetricCount=" + openTsdbMetricsMerged.size() 
                     + ", ForgetMetricsTime=" + forgetOpenTsdbMetricsTimeElasped
                     ;
             
-            if (openTsdbMetricsRawMerged.isEmpty()) {
+            if (openTsdbMetricsMerged.isEmpty()) {
                 logger.debug(aggregationStatistics);
             }
             else {
@@ -126,8 +126,8 @@ public class OpenTsdbThread implements Runnable {
             }
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
-                    logger.info("OpenTsdb metric= " + openTsdbMetricRaw.toString());
+                for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
+                    logger.info("OpenTsdb metric= " + openTsdbMetric.toString());
                 }
             }
         }
@@ -137,113 +137,113 @@ public class OpenTsdbThread implements Runnable {
         
     }
     
-    private List<OpenTsdbMetricRaw> getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal() {
+    private List<OpenTsdbMetric> getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal() {
 
-        if (GlobalVariables.openTsdbMetricsRaw == null) {
+        if (GlobalVariables.openTsdbMetrics == null) {
             return new ArrayList();
         }
 
         // gets opentsdb metrics for this thread 
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList(GlobalVariables.openTsdbMetricsRaw.size());
+        List<OpenTsdbMetric> openTsdbMetrics = new ArrayList(GlobalVariables.openTsdbMetrics.size());
         
-        for (OpenTsdbMetricRaw openTsdbMetricRaw : GlobalVariables.openTsdbMetricsRaw.values()) {
-            if (openTsdbMetricRaw.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
-                openTsdbMetricsRaw.add(openTsdbMetricRaw);
+        for (OpenTsdbMetric openTsdbMetric : GlobalVariables.openTsdbMetrics.values()) {
+            if (openTsdbMetric.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
+                openTsdbMetrics.add(openTsdbMetric);
             }
         }
         
         // removes metrics from the global opentsdb metrics map (since they are being operated on by this thread)
-        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
-            GlobalVariables.openTsdbMetricsRaw.remove(openTsdbMetricRaw.getHashKey());
+        for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
+            GlobalVariables.openTsdbMetrics.remove(openTsdbMetric.getHashKey());
         }
 
-        return openTsdbMetricsRaw;
+        return openTsdbMetrics;
     }
     
-    private void updateMetricMostRecentValues(List<OpenTsdbMetricRaw> openTsdbMetricsRaw) {
+    private void updateMetricMostRecentValues(List<OpenTsdbMetric> openTsdbMetrics) {
 
         if (GlobalVariables.openTsdbMetricsMostRecentValue != null) {
             long timestampInMilliseconds = System.currentTimeMillis();
             int timestampInSeconds;
             
-            for (OpenTsdbMetricRaw openTsdbMetricRaw : GlobalVariables.openTsdbMetricsMostRecentValue.values()) {
-                OpenTsdbMetricRaw updatedOpenTsdbMetricRaw;
+            for (OpenTsdbMetric openTsdbMetric : GlobalVariables.openTsdbMetricsMostRecentValue.values()) {
+                OpenTsdbMetric updatedOpenTsdbMetric;
                 
-                if (!openTsdbMetricRaw.isTimestampInMilliseconds()) {
+                if (!openTsdbMetric.isTimestampInMilliseconds()) {
                     timestampInSeconds = (int) (timestampInMilliseconds / 1000);
                     
-                    updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(timestampInSeconds, openTsdbMetricRaw.getMetricValue(), 
-                            openTsdbMetricRaw.isTimestampInMilliseconds(), timestampInMilliseconds, openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw.getMetricLength());
+                    updatedOpenTsdbMetric = new OpenTsdbMetric(timestampInSeconds, openTsdbMetric.getMetricValue(), 
+                            openTsdbMetric.isTimestampInMilliseconds(), timestampInMilliseconds, openTsdbMetric.getMetricKey(), openTsdbMetric.getMetricLength());
                 }
                 else {                    
-                    updatedOpenTsdbMetricRaw = new OpenTsdbMetricRaw(timestampInMilliseconds, openTsdbMetricRaw.getMetricValue(),
-                            openTsdbMetricRaw.isTimestampInMilliseconds(), timestampInMilliseconds, openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw.getMetricLength());
+                    updatedOpenTsdbMetric = new OpenTsdbMetric(timestampInMilliseconds, openTsdbMetric.getMetricValue(),
+                            openTsdbMetric.isTimestampInMilliseconds(), timestampInMilliseconds, openTsdbMetric.getMetricKey(), openTsdbMetric.getMetricLength());
                 }
 
-                updatedOpenTsdbMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                updatedOpenTsdbMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
-                GlobalVariables.openTsdbMetricsMostRecentValue.put(updatedOpenTsdbMetricRaw.getMetricKey(), updatedOpenTsdbMetricRaw);
+                GlobalVariables.openTsdbMetricsMostRecentValue.put(updatedOpenTsdbMetric.getMetricKey(), updatedOpenTsdbMetric);
             }
         }
 
-        if ((openTsdbMetricsRaw == null) || openTsdbMetricsRaw.isEmpty()) {
+        if ((openTsdbMetrics == null) || openTsdbMetrics.isEmpty()) {
             return;
         }
         
         if ((GlobalVariables.openTsdbMetricsMostRecentValue != null) && ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-            Map<String,OpenTsdbMetricRaw> mostRecentOpenTsdbMetricsByMetricPath = OpenTsdbMetricRaw.getMostRecentOpenTsdbMetricRawByMetricKey(openTsdbMetricsRaw);
+            Map<String,OpenTsdbMetric> mostRecentOpenTsdbMetricsByMetricPath = OpenTsdbMetric.getMostRecentOpenTsdbMetricByMetricKey(openTsdbMetrics);
             
-            for (OpenTsdbMetricRaw openTsdbMetricRaw : mostRecentOpenTsdbMetricsByMetricPath.values()) {
-                GlobalVariables.openTsdbMetricsMostRecentValue.put(openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw);
+            for (OpenTsdbMetric openTsdbMetric : mostRecentOpenTsdbMetricsByMetricPath.values()) {
+                GlobalVariables.openTsdbMetricsMostRecentValue.put(openTsdbMetric.getMetricKey(), openTsdbMetric);
             }
         }
             
     }    
     
-    private List<OpenTsdbMetricRaw> mergePreviousValuesWithCurrentValues(List<OpenTsdbMetricRaw> openTsdbMetricsRawNew, 
-            Map<String,OpenTsdbMetricRaw> openTsdbMetricsRawOld) {
+    private List<OpenTsdbMetric> mergePreviousValuesWithCurrentValues(List<OpenTsdbMetric> openTsdbMetricsNew, 
+            Map<String,OpenTsdbMetric> openTsdbMetricsOld) {
         
-        if ((openTsdbMetricsRawNew == null) && (openTsdbMetricsRawOld == null)) {
+        if ((openTsdbMetricsNew == null) && (openTsdbMetricsOld == null)) {
             return new ArrayList<>();
         }
-        else if ((openTsdbMetricsRawNew == null) && (openTsdbMetricsRawOld != null)) {
-            return new ArrayList<>(openTsdbMetricsRawOld.values());
+        else if ((openTsdbMetricsNew == null) && (openTsdbMetricsOld != null)) {
+            return new ArrayList<>(openTsdbMetricsOld.values());
         }
-        else if ((openTsdbMetricsRawNew != null) && (openTsdbMetricsRawOld == null)) {
-            return openTsdbMetricsRawNew;
+        else if ((openTsdbMetricsNew != null) && (openTsdbMetricsOld == null)) {
+            return openTsdbMetricsNew;
         }
         else if (!ApplicationConfiguration.isOpenTsdbSendPreviousValue()) {
-            return openTsdbMetricsRawNew;
+            return openTsdbMetricsNew;
         }
         
-        List<OpenTsdbMetricRaw> openTsdbMetricsRawMerged = new ArrayList<>(openTsdbMetricsRawNew);
-        Map<String,OpenTsdbMetricRaw> openTsdbMetricsRawOldLocal = new HashMap<>(openTsdbMetricsRawOld);
+        List<OpenTsdbMetric> openTsdbMetricsMerged = new ArrayList<>(openTsdbMetricsNew);
+        Map<String,OpenTsdbMetric> openTsdbMetricsOldLocal = new HashMap<>(openTsdbMetricsOld);
         
-        for (OpenTsdbMetricRaw openTsdbMetricAggregatedNew : openTsdbMetricsRawNew) {
+        for (OpenTsdbMetric openTsdbMetricAggregatedNew : openTsdbMetricsNew) {
             try {
-                openTsdbMetricsRawOldLocal.remove(openTsdbMetricAggregatedNew.getMetricKey());
+                openTsdbMetricsOldLocal.remove(openTsdbMetricAggregatedNew.getMetricKey());
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             } 
         }
         
-        openTsdbMetricsRawMerged.addAll(openTsdbMetricsRawOldLocal.values());
+        openTsdbMetricsMerged.addAll(openTsdbMetricsOldLocal.values());
         
-        return openTsdbMetricsRawMerged;
+        return openTsdbMetricsMerged;
     }
     
-    public static void removeMetricKeysFromOpenTsdbMetricsList(List<OpenTsdbMetricRaw> openTsdbMetricRaws, Set<String> metricKeysToRemove) {
+    public static void removeMetricKeysFromOpenTsdbMetricsList(List<OpenTsdbMetric> openTsdbMetrics, Set<String> metricKeysToRemove) {
         
-        if ((openTsdbMetricRaws == null) || openTsdbMetricRaws.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
+        if ((openTsdbMetrics == null) || openTsdbMetrics.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
             return;
         }
         
-        Map<String,OpenTsdbMetricRaw> metricsMap = new HashMap<>();
+        Map<String,OpenTsdbMetric> metricsMap = new HashMap<>();
         
-        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricRaws) {
-            String metricKey = openTsdbMetricRaw.getMetricKey();
-            if (metricKey != null) metricsMap.put(metricKey, openTsdbMetricRaw);
+        for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
+            String metricKey = openTsdbMetric.getMetricKey();
+            if (metricKey != null) metricsMap.put(metricKey, openTsdbMetric);
         }
                 
         for (String metricKeyToRemove : metricKeysToRemove) {
@@ -251,8 +251,8 @@ public class OpenTsdbThread implements Runnable {
             if (metric != null) metricsMap.remove(metricKeyToRemove);
         }
         
-        openTsdbMetricRaws.clear();
-        openTsdbMetricRaws.addAll(metricsMap.values());
+        openTsdbMetrics.clear();
+        openTsdbMetrics.addAll(metricsMap.values());
     }
     
 }

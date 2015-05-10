@@ -293,7 +293,7 @@ public class ContextManager implements ServletContextListener {
         }
         
         boolean isApplicationConfigSuccess = ApplicationConfiguration.initialize(applicationConfigurationInputStream, isUsingDefaultSettings);
-        if ((ApplicationConfiguration.getApplicationConfiguration() == null) || !isApplicationConfigSuccess) {
+        if ((ApplicationConfiguration.getApplicationConfiguration() == null) || (ApplicationConfiguration.getApplicationConfiguration().getPropertiesConfiguration() == null) || !isApplicationConfigSuccess) {
             return false;
         }
         

@@ -27,15 +27,15 @@ public class GraphiteMetricAggregator {
     public static final RoundingMode GRAPHITE_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext GRAPHITE_MATH_CONTEXT = new MathContext(GRAPHITE_PRECISION, GRAPHITE_ROUNDING_MODE);
     
-    public static List<GraphiteMetricRaw> aggregateGraphiteMetrics(List<GraphiteMetricRaw> graphiteMetricsRaw) {
+    public static List<GraphiteMetric> aggregateGraphiteMetrics(List<GraphiteMetric> graphiteMetrics) {
         
-        if ((graphiteMetricsRaw == null) || graphiteMetricsRaw.isEmpty()) {
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        Map<String,List<GraphiteMetricRaw>> graphiteMetricsRawByMetricPath = divideGraphiteMetricsRawByMetricPath(graphiteMetricsRaw);
+        Map<String,List<GraphiteMetric>> graphiteMetricsByMetricPath = divideGraphiteMetricsByMetricPath(graphiteMetrics);
         
-        List<GraphiteMetricRaw> graphiteMetricsAggregated = aggregateByMetricPath(graphiteMetricsRawByMetricPath);
+        List<GraphiteMetric> graphiteMetricsAggregated = aggregateByMetricPath(graphiteMetricsByMetricPath);
         
         return graphiteMetricsAggregated;
     }
@@ -43,50 +43,50 @@ public class GraphiteMetricAggregator {
     /*
      * The input metrics are assumed to be unsorted & unprocessed
      */
-    public static Map<String,List<GraphiteMetricRaw>> divideGraphiteMetricsRawByMetricPath(List<GraphiteMetricRaw> graphiteMetricsRaw) {
+    public static Map<String,List<GraphiteMetric>> divideGraphiteMetricsByMetricPath(List<GraphiteMetric> graphiteMetrics) {
         
-        if (graphiteMetricsRaw == null) {
+        if (graphiteMetrics == null) {
             return new HashMap<>();
         }
 
-        Map<String,List<GraphiteMetricRaw>> graphiteMetricsRawByMetricPath = new HashMap<>(graphiteMetricsRaw.size());
+        Map<String,List<GraphiteMetric>> graphiteMetricsByMetricPath = new HashMap<>(graphiteMetrics.size());
         
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
 
-            String metricPath = graphiteMetricRaw.getMetricPath();
-            List<GraphiteMetricRaw> graphiteMetricRawByMetricPath = graphiteMetricsRawByMetricPath.get(metricPath);
+            String metricPath = graphiteMetric.getMetricPath();
+            List<GraphiteMetric> graphiteMetricByMetricPath = graphiteMetricsByMetricPath.get(metricPath);
             
-            if (graphiteMetricRawByMetricPath != null) {
-                graphiteMetricRawByMetricPath.add(graphiteMetricRaw);
+            if (graphiteMetricByMetricPath != null) {
+                graphiteMetricByMetricPath.add(graphiteMetric);
             }
             else {
-                graphiteMetricRawByMetricPath = new ArrayList<>();
-                graphiteMetricRawByMetricPath.add(graphiteMetricRaw);
-                graphiteMetricsRawByMetricPath.put(metricPath, graphiteMetricRawByMetricPath);
+                graphiteMetricByMetricPath = new ArrayList<>();
+                graphiteMetricByMetricPath.add(graphiteMetric);
+                graphiteMetricsByMetricPath.put(metricPath, graphiteMetricByMetricPath);
             }
             
         }
         
-        return graphiteMetricsRawByMetricPath;
+        return graphiteMetricsByMetricPath;
     }
     
     /* 
      * This method assumes that all of the input graphite metrics are already separated by metric path.
      * The key of the HashMap is the assumed to be the metric path.
      */
-    public static List<GraphiteMetricRaw> aggregateByMetricPath(Map<String,List<GraphiteMetricRaw>> graphiteMetricsRawByMetricPath) {
+    public static List<GraphiteMetric> aggregateByMetricPath(Map<String,List<GraphiteMetric>> graphiteMetricsByMetricPath) {
         
-        if ((graphiteMetricsRawByMetricPath == null) || graphiteMetricsRawByMetricPath.isEmpty()) {
+        if ((graphiteMetricsByMetricPath == null) || graphiteMetricsByMetricPath.isEmpty()) {
             return new ArrayList<>();
         }
 
-        List<GraphiteMetricRaw> graphiteMetricsAggregated = new ArrayList<>();
-        Set<String> metricPathSet = graphiteMetricsRawByMetricPath.keySet();
+        List<GraphiteMetric> graphiteMetricsAggregated = new ArrayList<>();
+        Set<String> metricPathSet = graphiteMetricsByMetricPath.keySet();
         
         for (String metricPath : metricPathSet) {
             try {
-                List<GraphiteMetricRaw> graphiteMetricsRaw = graphiteMetricsRawByMetricPath.get(metricPath);
-                List<GraphiteMetricRaw> multipleGraphiteMetricsAggregated = aggregate(graphiteMetricsRaw);
+                List<GraphiteMetric> graphiteMetrics = graphiteMetricsByMetricPath.get(metricPath);
+                List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics);
             
                 if ((multipleGraphiteMetricsAggregated != null) && !multipleGraphiteMetricsAggregated.isEmpty()) {
                     graphiteMetricsAggregated.addAll(multipleGraphiteMetricsAggregated);
@@ -103,9 +103,9 @@ public class GraphiteMetricAggregator {
     /* 
      * This method assumes that all of the input graphite metrics share the same metric path
      */
-    public static List<GraphiteMetricRaw> aggregate(List<GraphiteMetricRaw> graphiteMetricsRaw) {
+    public static List<GraphiteMetric> aggregate(List<GraphiteMetric> graphiteMetrics) {
         
-        if ((graphiteMetricsRaw == null) || graphiteMetricsRaw.isEmpty()) {
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty()) {
            return new ArrayList<>(); 
         }
 
@@ -117,15 +117,15 @@ public class GraphiteMetricAggregator {
         long sumReceivedTimestamp = 0, sumMetricTimestamp = 0;
         int metricCounter = 0;
         
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
 
             try {
-                BigDecimal metricValue = graphiteMetricRaw.getMetricValue();
+                BigDecimal metricValue = graphiteMetric.getMetricValue();
                 metricValues.add(metricValue);
                 
                 sumMetricValues = sumMetricValues.add(metricValue);
-                sumMetricTimestamp += graphiteMetricRaw.getMetricTimestampInMilliseconds();
-                sumReceivedTimestamp += graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds();
+                sumMetricTimestamp += graphiteMetric.getMetricTimestampInMilliseconds();
+                sumReceivedTimestamp += graphiteMetric.getMetricReceivedTimestampInMilliseconds();
                 
                 if (metricCounter == 0) {
                     maximumMetricValue = metricValue;
@@ -148,9 +148,9 @@ public class GraphiteMetricAggregator {
         }
         
         if (metricCounter > 0) {
-            List<GraphiteMetricRaw> graphiteMetricsAggregated = new ArrayList<>();
+            List<GraphiteMetric> graphiteMetricsAggregated = new ArrayList<>();
             
-            String metricPath = graphiteMetricsRaw.get(0).getMetricPath();
+            String metricPath = graphiteMetrics.get(0).getMetricPath();
             BigDecimal metricCount = new BigDecimal(metricCounter);
             BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValues.divide(metricCount, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
@@ -164,45 +164,45 @@ public class GraphiteMetricAggregator {
             else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
             
             if (averageMetricValue != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Avg", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Avg", 
                         averageMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             if (metricCount != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Count", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Count", 
                         metricCount, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             if (maximumMetricValue != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Max", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Max", 
                         maximumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             if (medianMetricValue != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Median", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Median", 
                         medianMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             if (minimumMetricValue != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Min", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Min", 
                         minimumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             if (sumMetricValues != null) {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath + aggregatedMetricsSeparator + "Sum", 
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Sum", 
                         sumMetricValues, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
-                graphiteMetricRaw.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
-                graphiteMetricsAggregated.add(graphiteMetricRaw);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
             }
             
             return graphiteMetricsAggregated;

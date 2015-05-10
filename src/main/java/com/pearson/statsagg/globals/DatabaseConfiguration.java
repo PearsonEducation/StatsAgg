@@ -6,7 +6,6 @@ import java.io.File;
 import java.io.InputStream;
 import java.util.Iterator;
 import java.util.Properties;
-import org.apache.commons.configuration.PropertiesConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,7 +24,7 @@ public class DatabaseConfiguration {
     public static final int POSTGRES = 4;
     
     private static boolean isInitializeSuccess_ = false;
-    private static PropertiesConfiguration databaseConfiguration_ = null;
+    private static PropertiesConfigurationWrapper databaseConfiguration_ = null;
     
     private static int cpMaxConnections_ = VALUE_NOT_SET_CODE;
     private static int cpAcquireRetryAttempts_ = VALUE_NOT_SET_CODE;
@@ -54,13 +53,11 @@ public class DatabaseConfiguration {
             return false;
         }
         
-        PropertiesConfigurationWrapper propertiesConfigurationWrapper = new PropertiesConfigurationWrapper(filePathAndFilename);
+        databaseConfiguration_ = new PropertiesConfigurationWrapper(filePathAndFilename);
         
-        if ((propertiesConfigurationWrapper == null) || !propertiesConfigurationWrapper.isValid()) {
+        if ((databaseConfiguration_ == null) || !databaseConfiguration_.isValid()) {
             return false;
         }
-
-        databaseConfiguration_ = propertiesConfigurationWrapper.getPropertiesConfiguration();
 
         isInitializeSuccess_ = setDatabaseConfigurationValues();
         
@@ -75,14 +72,12 @@ public class DatabaseConfiguration {
             return false;
         }
         
-        PropertiesConfigurationWrapper propertiesConfigurationWrapper = new PropertiesConfigurationWrapper(configurationInputStream);
+        databaseConfiguration_ = new PropertiesConfigurationWrapper(configurationInputStream);
         
-        if ((propertiesConfigurationWrapper == null) || !propertiesConfigurationWrapper.isValid()) {
+        if ((databaseConfiguration_ == null) || !databaseConfiguration_.isValid()) {
             return false;
         }
-
-        databaseConfiguration_ = propertiesConfigurationWrapper.getPropertiesConfiguration();
-
+        
         isInitializeSuccess_ = setDatabaseConfigurationValues();
         
         jdbcConnectionString_ = createJdbcString();
@@ -94,7 +89,7 @@ public class DatabaseConfiguration {
         
         try {
             // determine database type
-            typeString_ = databaseConfiguration_.getString("db_type", "");
+            typeString_ = databaseConfiguration_.safeGetString("db_type", "");
             
             if (typeString_ != null) {
                 if (typeString_.equalsIgnoreCase("derby_network")) type_ = DERBY_NETWORK;
@@ -104,49 +99,49 @@ public class DatabaseConfiguration {
             }
             
             // load db_localpath first so it can be used by other variables
-            databaseLocalPath_ = databaseConfiguration_.getString("db_localpath", "");
-            databaseName_ = databaseConfiguration_.getString("db_name", "");
+            databaseLocalPath_ = databaseConfiguration_.safeGetString("db_localpath", "");
+            databaseName_ = databaseConfiguration_.safeGetString("db_name", "");
             
             // Variable substitution
-            Iterator<String> keys = databaseConfiguration_.getKeys();
+            Iterator<String> keys = databaseConfiguration_.getPropertiesConfiguration().getKeys();
             while (keys.hasNext()) {
                 String databasePropertyKey = keys.next();
                 
-                String databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
+                String databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 databasePropertyValue = databasePropertyValue.replace("${db_localpath}", databaseLocalPath_);
-                databaseConfiguration_.setProperty(databasePropertyKey, databasePropertyValue);
+                databaseConfiguration_.getPropertiesConfiguration().setProperty(databasePropertyKey, databasePropertyValue);
                 
-                databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
+                databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 databasePropertyValue = databasePropertyValue.replace("${db_name}", databaseName_);
-                databaseConfiguration_.setProperty(databasePropertyKey, databasePropertyValue);
+                databaseConfiguration_.getPropertiesConfiguration().setProperty(databasePropertyKey, databasePropertyValue);
                 
-                databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
+                databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 databasePropertyValue = databasePropertyValue.replace("${file.separator}", File.separator);
-                databaseConfiguration_.setProperty(databasePropertyKey, databasePropertyValue);
+                databaseConfiguration_.getPropertiesConfiguration().setProperty(databasePropertyKey, databasePropertyValue);
             }
             
             // Connection pool
-            cpMaxConnections_ = databaseConfiguration_.getInt("cp_max_connections", 25);
-            cpAcquireRetryAttempts_ = databaseConfiguration_.getInt("cp_acquire_retry_attempts", 3);
-            cpAcquireRetryDelay_ = databaseConfiguration_.getInt("cp_acquire_retry_delay", 250);
-            cpConnectionTimeout_ = databaseConfiguration_.getInt("cp_connection_timeout", 5000);
-            cpEnableStatistics_ = databaseConfiguration_.getBoolean("cp_enable_statistics", false);
-            cpDefaultAutoCommit_ = databaseConfiguration_.getBoolean("cp_default_auto_commit", false);  
-            connectionValidityCheckTimeout_ = databaseConfiguration_.getInteger("connection_validity_check_timeout", 5);  
+            cpMaxConnections_ = databaseConfiguration_.safeGetInt("cp_max_connections", 25);
+            cpAcquireRetryAttempts_ = databaseConfiguration_.safeGetInt("cp_acquire_retry_attempts", 3);
+            cpAcquireRetryDelay_ = databaseConfiguration_.safeGetInt("cp_acquire_retry_delay", 250);
+            cpConnectionTimeout_ = databaseConfiguration_.safeGetInt("cp_connection_timeout", 5000);
+            cpEnableStatistics_ = databaseConfiguration_.safeGetBoolean("cp_enable_statistics", false);
+            cpDefaultAutoCommit_ = databaseConfiguration_.safeGetBoolean("cp_default_auto_commit", false);  
+            connectionValidityCheckTimeout_ = databaseConfiguration_.safeGetInteger("connection_validity_check_timeout", 5);  
 
             // Standard
-            hostname_ = databaseConfiguration_.getString("db_hostname", "");
-            port_ = databaseConfiguration_.getString("db_port", "");
-            username_ = databaseConfiguration_.getString("db_username", "");
-            password_ = databaseConfiguration_.getString("db_password", "");
-            attributes_ = databaseConfiguration_.getString("db_attributes", "");
-            customJdbc_ = databaseConfiguration_.getString("db_custom_jdbc", null);
+            hostname_ = databaseConfiguration_.safeGetString("db_hostname", "");
+            port_ = databaseConfiguration_.safeGetString("db_port", "");
+            username_ = databaseConfiguration_.safeGetString("db_username", "");
+            password_ = databaseConfiguration_.safeGetString("db_password", "");
+            attributes_ = databaseConfiguration_.safeGetString("db_attributes", "");
+            customJdbc_ = databaseConfiguration_.safeGetString("db_custom_jdbc", null);
 
             // Derby specific
-            keys = databaseConfiguration_.getKeys("derby");
+            keys = databaseConfiguration_.getPropertiesConfiguration().getKeys("derby");
             while (keys.hasNext()) {
                 String databasePropertyKey = keys.next();
-                String databasePropertyValue = databaseConfiguration_.getString(databasePropertyKey, null);
+                String databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 Properties systemProperties = System.getProperties();
                 systemProperties.put(databasePropertyKey, databasePropertyValue);
             }
@@ -159,7 +154,7 @@ public class DatabaseConfiguration {
         }
     
     }
- 
+    
     private static String createJdbcString() {
         
         if (!isInitializeSuccess_) {

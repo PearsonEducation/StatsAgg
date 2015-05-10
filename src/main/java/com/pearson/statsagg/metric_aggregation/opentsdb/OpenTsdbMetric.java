@@ -20,9 +20,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
+public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
-    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbMetricRaw.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbMetric.class.getName());
     
     private long hashKey_ = -1;
     
@@ -34,7 +34,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private String metricKey_ = null;
     private final int metricLength_;  // 'metric' refers to the OpenTSDB 'metric name' 
 
-    public OpenTsdbMetricRaw(String metric, long metricTimestamp, BigDecimal metricValue, List<OpenTsdbTag> tags, 
+    public OpenTsdbMetric(String metric, long metricTimestamp, BigDecimal metricValue, List<OpenTsdbTag> tags, 
             boolean isTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds) {
         this.metricTimestamp_ = metricTimestamp;
         this.metricValue_ = metricValue;
@@ -47,7 +47,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         else this.metricLength_ = -1;
     }
 
-    public OpenTsdbMetricRaw(long metricTimestamp, BigDecimal metricValue, boolean isTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds, 
+    public OpenTsdbMetric(long metricTimestamp, BigDecimal metricValue, boolean isTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds, 
             String metricKey, int metricLength) {
         this.metricTimestamp_ = metricTimestamp;
         this.metricValue_ = metricValue;
@@ -145,29 +145,29 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return stringBuilder.toString();
     }
     
-    public static String getOpenTsdbJson(List<OpenTsdbMetricRaw> openTsdbMetricRaws) {
+    public static String getOpenTsdbJson(List<OpenTsdbMetric> openTsdbMetrics) {
         
-        if (openTsdbMetricRaws == null) return null;
+        if (openTsdbMetrics == null) return null;
 
         StringBuilder openTsdbJson = new StringBuilder();
         
         openTsdbJson.append("[");
         
-        for (int i = 0; i < openTsdbMetricRaws.size(); i++) {
-            OpenTsdbMetricRaw openTsdbMetricRaw = openTsdbMetricRaws.get(i);
-            String metric = openTsdbMetricRaw.getMetric();
-            List<OpenTsdbTag> openTsdbTags = openTsdbMetricRaw.getMetricTagsFromMetricKey();
+        for (int i = 0; i < openTsdbMetrics.size(); i++) {
+            OpenTsdbMetric openTsdbMetric = openTsdbMetrics.get(i);
+            String metric = openTsdbMetric.getMetric();
+            List<OpenTsdbTag> openTsdbTags = openTsdbMetric.getMetricTagsFromMetricKey();
              
             if ((metric == null) || metric.isEmpty()) continue;
-            if (openTsdbMetricRaw.getMetricTimestamp() == -1) continue;
-            if ((openTsdbMetricRaw.getMetricValue() == null)) continue; 
+            if (openTsdbMetric.getMetricTimestamp() == -1) continue;
+            if ((openTsdbMetric.getMetricValue() == null)) continue; 
             if ((openTsdbTags == null) || openTsdbTags.isEmpty()) continue;
 
             openTsdbJson.append("{");
             
             openTsdbJson.append("\"metric\":\"").append(metric).append("\",");
-            openTsdbJson.append("\"timestamp\":").append(openTsdbMetricRaw.getMetricTimestamp()).append(",");
-            openTsdbJson.append("\"value\":").append(openTsdbMetricRaw.getMetricValueString()).append(",");
+            openTsdbJson.append("\"timestamp\":").append(openTsdbMetric.getMetricTimestamp()).append(",");
+            openTsdbJson.append("\"value\":").append(openTsdbMetric.getMetricValueString()).append(",");
             
             openTsdbJson.append("\"tags\":{");
             
@@ -181,7 +181,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             
             openTsdbJson.append("}");
             
-            if ((i + 1) != openTsdbMetricRaws.size()) openTsdbJson.append(",");
+            if ((i + 1) != openTsdbMetrics.size()) openTsdbJson.append(",");
         }
         
         openTsdbJson.append("]");
@@ -189,7 +189,7 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return openTsdbJson.toString();
     }
     
-    public static OpenTsdbMetricRaw parseOpenTsdbMetricRaw(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    public static OpenTsdbMetric parseOpenTsdbMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {
             return null;
@@ -233,10 +233,10 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 return null;
             }
             else {
-                OpenTsdbMetricRaw openTsdbRaw = new OpenTsdbMetricRaw(metric, metricTimestamp, metricValueBigDecimal, openTsdbTags, 
+                OpenTsdbMetric openTsdbMetric = new OpenTsdbMetric(metric, metricTimestamp, metricValueBigDecimal, openTsdbTags, 
                         isTimestampInMilliseconds, metricReceivedTimestampInMilliseconds); 
                 
-                if ((openTsdbRaw.getMetricKey() != null) && (openTsdbRaw.getMetricTimestampInMilliseconds() > -1)) return openTsdbRaw;
+                if ((openTsdbMetric.getMetricKey() != null) && (openTsdbMetric.getMetricTimestampInMilliseconds() > -1)) return openTsdbMetric;
                 else return null;
             }
         }
@@ -266,12 +266,12 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return sortedUnparsedTags;
     }
     
-    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
+    public static List<OpenTsdbMetric> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
         return parseOpenTsdbJson(inputJson, metricPrefix, metricsReceivedTimestampInMilliseconds, new ArrayList<Integer>());
     }
     
     /* successCountAndFailCount is modified by this method. index-0 will have the successfully parsed metric count, and index-1 will have the metrics with errors count */
-    public static List<OpenTsdbMetricRaw> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds, List<Integer> successCountAndFailCount) {
+    public static List<OpenTsdbMetric> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds, List<Integer> successCountAndFailCount) {
 
         if ((inputJson == null) || inputJson.isEmpty()) {
             return new ArrayList<>();
@@ -329,26 +329,26 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             }
         }
 
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricsRaw(openTsdbMetricsString.toString(), 
+        List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbMetrics(openTsdbMetricsString.toString(), 
                 metricPrefix, metricsReceivedTimestampInMilliseconds);
         
-        successMetricCount = openTsdbMetricsRaw.size();
+        successMetricCount = openTsdbMetrics.size();
         errorMetricCount = totalMetricCount - successMetricCount;
         if (successCountAndFailCount == null) successCountAndFailCount = new ArrayList<>();
         if (!successCountAndFailCount.isEmpty()) successCountAndFailCount.clear();
         successCountAndFailCount.add(successMetricCount);
         successCountAndFailCount.add(errorMetricCount);
 
-        return openTsdbMetricsRaw;
+        return openTsdbMetrics;
     }
     
-    public static List<OpenTsdbMetricRaw> parseOpenTsdbMetricsRaw(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    public static List<OpenTsdbMetric> parseOpenTsdbMetrics(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = new ArrayList();
+        List<OpenTsdbMetric> openTsdbMetrics = new ArrayList();
             
         try {
             int currentIndex = 0;
@@ -368,8 +368,8 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 }
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
-                    OpenTsdbMetricRaw openTsdbMetricRaw = OpenTsdbMetricRaw.parseOpenTsdbMetricRaw(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
-                    if (openTsdbMetricRaw != null) openTsdbMetricsRaw.add(openTsdbMetricRaw);
+                    OpenTsdbMetric openTsdbMetric = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
+                    if (openTsdbMetric != null) openTsdbMetrics.add(openTsdbMetric);
                 }
             }
         }
@@ -377,44 +377,44 @@ public class OpenTsdbMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
-        return openTsdbMetricsRaw;
+        return openTsdbMetrics;
     }
     
     /*
-    For every unique metric key, get the OpenTsdbMetricRaw with the most recent 'metric timestamp'. 
+    For every unique metric key, get the OpenTsdbMetric with the most recent 'metric timestamp'. 
     
-    In the event that multiple OpenTsdbMetricRaws share the same 'metric key' and 'metric timestamp', 
+    In the event that multiple OpenTsdbMetrics share the same 'metric key' and 'metric timestamp', 
     then 'metric received timestamp' is used as a tiebreaker. 
     
-    In the event that multiple OpenTsdbMetricRaws also share the same 'metric received timestamp', 
-    then this method will return the first OpenTsdbMetricRaw that it scanned that met these criteria
+    In the event that multiple OpenTsdbMetrics also share the same 'metric received timestamp', 
+    then this method will return the first OpenTsdbMetric that it scanned that met these criteria
     */
-    public static Map<String,OpenTsdbMetricRaw> getMostRecentOpenTsdbMetricRawByMetricKey(List<OpenTsdbMetricRaw> openTsdbMetricsRaw) {
+    public static Map<String,OpenTsdbMetric> getMostRecentOpenTsdbMetricByMetricKey(List<OpenTsdbMetric> openTsdbMetrics) {
         
-        if (openTsdbMetricsRaw == null || openTsdbMetricsRaw.isEmpty()) {
+        if (openTsdbMetrics == null || openTsdbMetrics.isEmpty()) {
             return new HashMap<>();
         }
 
-        Map<String, OpenTsdbMetricRaw> mostRecentOpenTsdbMetricsByMetricKey = new HashMap<>();
+        Map<String, OpenTsdbMetric> mostRecentOpenTsdbMetricsByMetricKey = new HashMap<>();
 
-        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
+        for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
             try {
-                boolean doesAlreadyContainMetricKey = mostRecentOpenTsdbMetricsByMetricKey.containsKey(openTsdbMetricRaw.getMetricKey());
+                boolean doesAlreadyContainMetricKey = mostRecentOpenTsdbMetricsByMetricKey.containsKey(openTsdbMetric.getMetricKey());
 
                 if (doesAlreadyContainMetricKey) {
-                    OpenTsdbMetricRaw currentMostRecentOpenTsdbMetricRaw = mostRecentOpenTsdbMetricsByMetricKey.get(openTsdbMetricRaw.getMetricKey());
+                    OpenTsdbMetric currentMostRecentOpenTsdbMetric = mostRecentOpenTsdbMetricsByMetricKey.get(openTsdbMetric.getMetricKey());
 
-                    if (openTsdbMetricRaw.getMetricTimestampInMilliseconds() > currentMostRecentOpenTsdbMetricRaw.getMetricTimestampInMilliseconds()) {
-                        mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw);
+                    if (openTsdbMetric.getMetricTimestampInMilliseconds() > currentMostRecentOpenTsdbMetric.getMetricTimestampInMilliseconds()) {
+                        mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetric.getMetricKey(), openTsdbMetric);
                     }
-                    else if (openTsdbMetricRaw.getMetricTimestampInMilliseconds() == currentMostRecentOpenTsdbMetricRaw.getMetricTimestampInMilliseconds()) {
-                        if (openTsdbMetricRaw.getMetricReceivedTimestampInMilliseconds() > currentMostRecentOpenTsdbMetricRaw.getMetricReceivedTimestampInMilliseconds()) {
-                            mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw);
+                    else if (openTsdbMetric.getMetricTimestampInMilliseconds() == currentMostRecentOpenTsdbMetric.getMetricTimestampInMilliseconds()) {
+                        if (openTsdbMetric.getMetricReceivedTimestampInMilliseconds() > currentMostRecentOpenTsdbMetric.getMetricReceivedTimestampInMilliseconds()) {
+                            mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetric.getMetricKey(), openTsdbMetric);
                         }
                     }
                 }
                 else {
-                    mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetricRaw.getMetricKey(), openTsdbMetricRaw);
+                    mostRecentOpenTsdbMetricsByMetricKey.put(openTsdbMetric.getMetricKey(), openTsdbMetric);
                 }
             }
             catch (Exception e) {

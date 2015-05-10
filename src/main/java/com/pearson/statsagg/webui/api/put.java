@@ -3,7 +3,7 @@ package com.pearson.statsagg.webui.api;
 import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetricRaw;
+import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.utilities.Compression;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
@@ -131,7 +131,7 @@ public class put extends HttpServlet {
         
         List<Integer> successCountAndFailCount = new ArrayList<>();
         
-        List<OpenTsdbMetricRaw> openTsdbMetricsRaw = OpenTsdbMetricRaw.parseOpenTsdbJson(inputJson, metricPrefix, 
+        List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbJson(inputJson, metricPrefix, 
                 metricsReceivedTimestampInMilliseconds, successCountAndFailCount);
         
         if (successCountAndFailCount.isEmpty()) {
@@ -139,15 +139,15 @@ public class put extends HttpServlet {
             successCountAndFailCount.add(0);
         }
         
-        for (OpenTsdbMetricRaw openTsdbMetricRaw : openTsdbMetricsRaw) {
+        for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-            openTsdbMetricRaw.setHashKey(hashKey);
-            GlobalVariables.openTsdbMetricsRaw.put(openTsdbMetricRaw.getHashKey(), openTsdbMetricRaw);
+            openTsdbMetric.setHashKey(hashKey);
+            GlobalVariables.openTsdbMetrics.put(openTsdbMetric.getHashKey(), openTsdbMetric);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
         }
         
         if (ApplicationConfiguration.isDebugModeEnabled()) {
-            logger.info("HTTP_TCP_OpenTsdb_Received_Metrics=" + openTsdbMetricsRaw.size());
+            logger.info("HTTP_TCP_OpenTsdb_Received_Metrics=" + openTsdbMetrics.size());
             logger.info("HTTP_TCP_OpenTsdb_String=\"" + inputJson + "\"");
         }
         

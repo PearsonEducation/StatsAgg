@@ -7,7 +7,7 @@ import io.netty.util.CharsetUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,18 +24,18 @@ public class UdpServerHandler_GraphiteAggregator extends SimpleChannelInboundHan
         
         long currentTimestampInMilliseconds = System.currentTimeMillis();
         
-        List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(udpContentString, 
+        List<GraphiteMetric> graphiteMetrics = GraphiteMetric.parseGraphiteMetrics(udpContentString, 
                 GlobalVariables.graphiteAggregatedPrefix, currentTimestampInMilliseconds);
 
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-            graphiteMetricRaw.setHashKey(hashKey);
-            GlobalVariables.graphiteAggregatorMetricsRaw.put(graphiteMetricRaw.getHashKey(), graphiteMetricRaw);
+            graphiteMetric.setHashKey(hashKey);
+            GlobalVariables.graphiteAggregatorMetrics.put(graphiteMetric.getHashKey(), graphiteMetric);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
         }
          
         if (ApplicationConfiguration.isDebugModeEnabled()) {
-            logger.info("UDP_Graphite_Aggregator_Received_Metrics=" + graphiteMetricsRaw.size());
+            logger.info("UDP_Graphite_Aggregator_Received_Metrics=" + graphiteMetrics.size());
             logger.info("UDP_Graphite_Aggregator_String=\"" + udpContentString + "\"");
         }
     }

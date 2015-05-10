@@ -6,7 +6,7 @@ import java.util.Set;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.Threads;
 import java.util.ArrayList;
@@ -125,17 +125,17 @@ public class Common {
         return didDoAnyUpdates;
     }
     
-    public static void removeMetricKeysFromGraphiteMetricsList(List<GraphiteMetricRaw> graphiteMetricRaws, Set<String> metricKeysToRemove) {
+    public static void removeMetricKeysFromGraphiteMetricsList(List<GraphiteMetric> graphiteMetrics, Set<String> metricKeysToRemove) {
         
-        if ((graphiteMetricRaws == null) || graphiteMetricRaws.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
             return;
         }
         
-        Map<String, GraphiteMetricRaw> metricsMap = new HashMap<>();
+        Map<String, GraphiteMetric> metricsMap = new HashMap<>();
         
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricRaws) {
-            String metricKey = graphiteMetricRaw.getMetricKey();
-            if (metricKey != null) metricsMap.put(metricKey, graphiteMetricRaw);
+        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
+            String metricKey = graphiteMetric.getMetricKey();
+            if (metricKey != null) metricsMap.put(metricKey, graphiteMetric);
         }
                 
         for (String metricKeyToRemove : metricKeysToRemove) {
@@ -143,8 +143,8 @@ public class Common {
             if (metric != null) metricsMap.remove(metricKeyToRemove);
         }
         
-        graphiteMetricRaws.clear();
-        graphiteMetricRaws.addAll(metricsMap.values());
+        graphiteMetrics.clear();
+        graphiteMetrics.addAll(metricsMap.values());
     }
     
 }

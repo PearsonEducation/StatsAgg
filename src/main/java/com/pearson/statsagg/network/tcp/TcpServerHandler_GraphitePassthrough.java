@@ -6,7 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,18 +22,18 @@ public class TcpServerHandler_GraphitePassthrough extends SimpleChannelInboundHa
         try {
             long currentTimestampInMilliseconds = System.currentTimeMillis();
             
-            List<GraphiteMetricRaw> graphiteMetricsRaw = GraphiteMetricRaw.parseGraphiteMetricsRaw(message, 
+            List<GraphiteMetric> graphiteMetrics = GraphiteMetric.parseGraphiteMetrics(message, 
                     GlobalVariables.graphitePassthroughPrefix, currentTimestampInMilliseconds);
             
-            for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+            for (GraphiteMetric graphiteMetric : graphiteMetrics) {
                 long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-                graphiteMetricRaw.setHashKey(hashKey);
-                GlobalVariables.graphitePassthroughMetricsRaw.put(graphiteMetricRaw.getHashKey(), graphiteMetricRaw);
+                graphiteMetric.setHashKey(hashKey);
+                GlobalVariables.graphitePassthroughMetrics.put(graphiteMetric.getHashKey(), graphiteMetric);
                 GlobalVariables.incomingMetricsCount.incrementAndGet();
             }
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                logger.info("TCP_Graphite_Passthrough_Received_Metrics=" + graphiteMetricsRaw.size());
+                logger.info("TCP_Graphite_Passthrough_Received_Metrics=" + graphiteMetrics.size());
                 logger.info("TCP_Graphite_Passthrough_String=\"" + message + "\"");
             }
         }

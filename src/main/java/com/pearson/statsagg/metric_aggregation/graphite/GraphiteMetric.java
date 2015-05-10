@@ -17,9 +17,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
+public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
-    private static final Logger logger = LoggerFactory.getLogger(GraphiteMetricRaw.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(GraphiteMetric.class.getName());
     
     private long hashKey_ = -1;
     
@@ -31,7 +31,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     private final boolean isMetricTimestampInSeconds_;
     
     // metricTimestamp is assumed to be in seconds
-    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds) {
+    public GraphiteMetric(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
@@ -41,7 +41,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
     }
     
     // metricTimestamp is assumed to be in milliseconds
-    public GraphiteMetricRaw(String metricPath, BigDecimal metricValue, long metricTimestamp, long metricReceivedTimestampInMilliseconds) {
+    public GraphiteMetric(String metricPath, BigDecimal metricValue, long metricTimestamp, long metricReceivedTimestampInMilliseconds) {
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
@@ -82,21 +82,21 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         if (obj == this) return true;
         if (obj.getClass() != getClass()) return false;
         
-        GraphiteMetricRaw graphiteMetricRaw = (GraphiteMetricRaw) obj;
+        GraphiteMetric graphiteMetric = (GraphiteMetric) obj;
         
         boolean isMetricValueEqual = false;
-        if ((metricValue_ != null) && (graphiteMetricRaw.getMetricValue() != null)) {
-            isMetricValueEqual = metricValue_.compareTo(graphiteMetricRaw.getMetricValue()) == 0;
+        if ((metricValue_ != null) && (graphiteMetric.getMetricValue() != null)) {
+            isMetricValueEqual = metricValue_.compareTo(graphiteMetric.getMetricValue()) == 0;
         }
         else if (metricValue_ == null) {
-            isMetricValueEqual = graphiteMetricRaw.getMetricValue() == null;
+            isMetricValueEqual = graphiteMetric.getMetricValue() == null;
         }
         
         return new EqualsBuilder()
-                .append(metricPath_, graphiteMetricRaw.getMetricPath())
+                .append(metricPath_, graphiteMetric.getMetricPath())
                 .append(isMetricValueEqual, true)
-                .append(metricTimestamp_, graphiteMetricRaw.getMetricTimestamp())
-                .append(metricReceivedTimestampInMilliseconds_, graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds())
+                .append(metricTimestamp_, graphiteMetric.getMetricTimestamp())
+                .append(metricReceivedTimestampInMilliseconds_, graphiteMetric.getMetricReceivedTimestampInMilliseconds())
                 .append(isMetricTimestampInSeconds_, isMetricTimestampInSeconds())
                 .isEquals();
     }
@@ -131,7 +131,7 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         return stringBuilder.toString();
     }
     
-    public static GraphiteMetricRaw parseGraphiteMetricRaw(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    public static GraphiteMetric parseGraphiteMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {
             return null;
@@ -162,8 +162,8 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 return null;
             }
             else {
-                GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(metricPath, metricValueBigDecimal, metricTimestamp, metricReceivedTimestampInMilliseconds); 
-                return graphiteMetricRaw;
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath, metricValueBigDecimal, metricTimestamp, metricReceivedTimestampInMilliseconds); 
+                return graphiteMetric;
             }
         }
         catch (Exception e) {
@@ -172,17 +172,17 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
         }
     }
     
-    public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
-        return parseGraphiteMetricsRaw(unparsedMetrics, null, metricReceivedTimestampInMilliseconds);
+    public static List<GraphiteMetric> parseGraphiteMetrics(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
+        return parseGraphiteMetrics(unparsedMetrics, null, metricReceivedTimestampInMilliseconds);
     }
     
-    public static List<GraphiteMetricRaw> parseGraphiteMetricsRaw(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    public static List<GraphiteMetric> parseGraphiteMetrics(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        List<GraphiteMetricRaw> graphiteMetricsRaw = new ArrayList();
+        List<GraphiteMetric> graphiteMetrics = new ArrayList();
             
         try {
             int currentIndex = 0;
@@ -202,10 +202,10 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
                 }
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
-                    GraphiteMetricRaw graphiteMetricRaw = GraphiteMetricRaw.parseGraphiteMetricRaw(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
+                    GraphiteMetric graphiteMetric = GraphiteMetric.parseGraphiteMetric(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
 
-                    if (graphiteMetricRaw != null) {
-                        graphiteMetricsRaw.add(graphiteMetricRaw);
+                    if (graphiteMetric != null) {
+                        graphiteMetrics.add(graphiteMetric);
                     }
                 }
             }
@@ -214,44 +214,44 @@ public class GraphiteMetricRaw implements GraphiteMetricFormat, OpenTsdbMetricFo
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
-        return graphiteMetricsRaw;
+        return graphiteMetrics;
     }
     
     /*
-    For every unique metric path, get the GraphiteMetricRaw with the most recent 'metric timestamp'. 
+    For every unique metric path, get the GraphiteMetric with the most recent 'metric timestamp'. 
     
-    In the event that multiple GraphiteMetricRaws share the same 'metric path' and 'metric timestamp', 
+    In the event that multiple GraphiteMetrics share the same 'metric path' and 'metric timestamp', 
     then 'metric received timestamp' is used as a tiebreaker. 
     
-    In the event that multiple GraphiteMetricRaws also share the same 'metric received timestamp', 
-    then this method will return the first GraphiteMetricRaw that it scanned that met these criteria
+    In the event that multiple GraphiteMetrics also share the same 'metric received timestamp', 
+    then this method will return the first GraphiteMetric that it scanned that met these criteria
     */
-    public static Map<String,GraphiteMetricRaw> getMostRecentGraphiteMetricRawByMetricPath(List<GraphiteMetricRaw> graphiteMetricsRaw) {
+    public static Map<String,GraphiteMetric> getMostRecentGraphiteMetricByMetricPath(List<GraphiteMetric> graphiteMetrics) {
         
-        if (graphiteMetricsRaw == null || graphiteMetricsRaw.isEmpty()) {
+        if (graphiteMetrics == null || graphiteMetrics.isEmpty()) {
             return new HashMap<>();
         }
         
-        Map<String,GraphiteMetricRaw> mostRecentGraphiteMetricsByMetricPath = new HashMap<>();
+        Map<String,GraphiteMetric> mostRecentGraphiteMetricsByMetricPath = new HashMap<>();
         
-        for (GraphiteMetricRaw graphiteMetricRaw : graphiteMetricsRaw) {
+        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
             try {
-                boolean doesAlreadyContainMetricPath = mostRecentGraphiteMetricsByMetricPath.containsKey(graphiteMetricRaw.getMetricPath());
+                boolean doesAlreadyContainMetricPath = mostRecentGraphiteMetricsByMetricPath.containsKey(graphiteMetric.getMetricPath());
 
                 if (doesAlreadyContainMetricPath) {
-                    GraphiteMetricRaw currentMostRecentGraphiteMetricRaw = mostRecentGraphiteMetricsByMetricPath.get(graphiteMetricRaw.getMetricPath());
+                    GraphiteMetric currentMostRecentGraphiteMetric = mostRecentGraphiteMetricsByMetricPath.get(graphiteMetric.getMetricPath());
 
-                    if (graphiteMetricRaw.getMetricTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricTimestampInMilliseconds()) {
-                        mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
+                    if (graphiteMetric.getMetricTimestampInMilliseconds() > currentMostRecentGraphiteMetric.getMetricTimestampInMilliseconds()) {
+                        mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
                     }
-                    else if (graphiteMetricRaw.getMetricTimestampInMilliseconds() == currentMostRecentGraphiteMetricRaw.getMetricTimestampInMilliseconds()) {
-                        if (graphiteMetricRaw.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetricRaw.getMetricReceivedTimestampInMilliseconds()) {
-                            mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
+                    else if (graphiteMetric.getMetricTimestampInMilliseconds() == currentMostRecentGraphiteMetric.getMetricTimestampInMilliseconds()) {
+                        if (graphiteMetric.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetric.getMetricReceivedTimestampInMilliseconds()) {
+                            mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
                         }
                     }
                 }
                 else {
-                    mostRecentGraphiteMetricsByMetricPath.put(graphiteMetricRaw.getMetricPath(), graphiteMetricRaw);
+                    mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
                 }
             }
             catch (Exception e) {

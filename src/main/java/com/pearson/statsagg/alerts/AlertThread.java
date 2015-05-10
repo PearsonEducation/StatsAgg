@@ -20,7 +20,7 @@ import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetricRaw;
+import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -126,7 +126,7 @@ public class AlertThread implements Runnable {
                 
                 if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
                     // generate messages for graphite
-                    List<GraphiteMetricRaw> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
+                    List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
                     
                     // send to graphite
                     SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
@@ -1617,7 +1617,7 @@ public class AlertThread implements Runnable {
         return null;
     }
 
-    public List<GraphiteMetricRaw> generateAlertStatusMetricsForGraphite(List<Alert> alerts) {
+    public List<GraphiteMetric> generateAlertStatusMetricsForGraphite(List<Alert> alerts) {
         
         if ((alerts == null) || alerts.isEmpty()) {
             return new ArrayList<>();
@@ -1625,7 +1625,7 @@ public class AlertThread implements Runnable {
         
         long timestamp = System.currentTimeMillis();
 
-        List<GraphiteMetricRaw> alertStatusGraphiteMetrics = new ArrayList<>();
+        List<GraphiteMetric> alertStatusGraphiteMetrics = new ArrayList<>();
         Set<String> alertStatusGraphiteMetricNames = new HashSet<>();
 
         for (Alert alert : alerts) {
@@ -1659,8 +1659,8 @@ public class AlertThread implements Runnable {
             
             String graphiteFormattedAlertName_Final = graphiteFormattedAlertName.toString();
             alertStatusGraphiteMetricNames.add(graphiteFormattedAlertName_Final);
-            GraphiteMetricRaw graphiteMetricRaw = new GraphiteMetricRaw(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
-            alertStatusGraphiteMetrics.add(graphiteMetricRaw);
+            GraphiteMetric graphiteMetric = new GraphiteMetric(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
+            alertStatusGraphiteMetrics.add(graphiteMetric);
         }
         
         return alertStatusGraphiteMetrics;
