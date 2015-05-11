@@ -10,7 +10,11 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -142,10 +146,17 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
                     outputString.append("<ul>");
 
                     for (String metricKey : matchingMetricKeysAssociatedWithMetricGroupSorted) {
+                        List<MetricTimestampAndValue> metricTimestampsAndValues = getSortedMetricTimestampsAndValues(metricKey);
+                        BigDecimal mostRecentValue = null;
+                        if ((metricTimestampsAndValues != null) && !metricTimestampsAndValues.isEmpty()) mostRecentValue = metricTimestampsAndValues.get(metricTimestampsAndValues.size() - 1).getMetricValue();
+                        
                         if (associationOutputCounter < 1000)  {
                             outputString.append("<li>");
+                            
                             outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
                             outputString.append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</a>");
+                            if (mostRecentValue != null) outputString.append(" = ").append(mostRecentValue.stripTrailingZeros().toPlainString()).append(" (most recent value)");
+                            
                             outputString.append("</li>");
                         }
                         else {
@@ -169,4 +180,27 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
         return outputString.toString();
     }
 
+    private List<MetricTimestampAndValue> getSortedMetricTimestampsAndValues(String metricKey) {
+        
+        if (metricKey == null) {
+            return new ArrayList<>();
+        }
+        
+        List<MetricTimestampAndValue> metricTimestampsAndValuesLocal = new ArrayList<>();
+
+        synchronized(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
+            Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+
+            if (metricTimestampsAndValues != null) {
+                synchronized(metricTimestampsAndValues) {
+                    metricTimestampsAndValuesLocal = new ArrayList<>(metricTimestampsAndValues);
+                }
+            }
+        }
+
+        java.util.Collections.sort(metricTimestampsAndValuesLocal, MetricTimestampAndValue.COMPARE_BY_TIMESTAMP);
+
+        return metricTimestampsAndValuesLocal;
+    }
+    
 }

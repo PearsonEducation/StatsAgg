@@ -125,7 +125,7 @@ public class NotificationGroups extends HttpServlet {
             removeNotificationGroup(name);
         }
         
-        processGetRequest(request, response);
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "NotificationGroups");
     }
     
     private void cloneNotificationGroup(String notificationGroupName) {

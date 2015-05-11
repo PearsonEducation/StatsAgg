@@ -119,7 +119,7 @@ public class AlertSuspensions extends HttpServlet {
             removeAlertSuspension(name);
         }
         
-        processGetRequest(request, response);
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertSuspensions");
     }
         
     private void changeAlertSuspensionEnabled(String alertSuspensionName, Boolean isEnabled) {

@@ -6,9 +6,14 @@ import java.util.Set;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.io.PrintWriter;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -283,6 +288,33 @@ public class StatsAggHtmlFramework {
         
         String cleanedString = inputString.replace('\n', newlineReplacementCharacter).replace('\r', newlineReplacementCharacter);
         return cleanedString;
+    }
+    
+    public static void redirectAndGet(HttpServletResponse response, int httpStatusCode, String redirectToPath) {
+        
+        if (response == null) {
+            return;
+        }
+        
+        if (redirectToPath == null) redirectToPath = "";
+        
+        PrintWriter out = null;
+                
+        try {
+            response.setStatus(httpStatusCode);
+            response.setHeader("Location", redirectToPath);
+            out = response.getWriter();
+            out.println("");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }
+        
     }
     
 }

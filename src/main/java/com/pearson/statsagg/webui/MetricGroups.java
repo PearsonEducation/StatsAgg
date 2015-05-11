@@ -117,7 +117,7 @@ public class MetricGroups extends HttpServlet {
             removeMetricGroup(name);
         }
         
-        processGetRequest(request, response);
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "MetricGroups");
     }
 
     private void cloneMetricGroup(String metricGroupName) {

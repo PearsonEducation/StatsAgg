@@ -137,9 +137,9 @@ public class Alerts extends HttpServlet {
             }
         }
         
-        processGetRequest(request, response);
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "Alerts");
     }
-        
+
     private void changeAlertEnabled(String alertName, Boolean isEnabled) {
         
         if ((alertName == null) || (isEnabled == null)) {
