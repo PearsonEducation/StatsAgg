@@ -2,6 +2,7 @@ StatsAgg 1.3
  * Availability alerts -- forget metrics resulted in "new datapoints detected"
  * Link to 'Triggered' alerts in 'Alert Details'
  * Document "metric recent values" page
+ * Forget metric in 'AlertAssociations' (availability alerts only)
  
 Short/Medium term
  * Multi-thread StatsD aggregation routine

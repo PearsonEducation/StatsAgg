@@ -216,6 +216,8 @@ public class AlertDetails extends HttpServlet {
                 else outputString.append("N/A <br>");
             }
             
+            outputString.append("<b>View Triggered Metrics</b> = ").append("<a href=\"AlertAssociations?Name=").append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("&Level=" + "Triggered" + "\">Triggered Metrics</a>");
+            
             outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
             outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
                         
@@ -276,7 +278,7 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Is the caution criteria valid?</b> = ").append(isCautionAlertCriteriaValid).append("<br>");
             
             String isCautionAlertActive = "No";
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "Yes";
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
             outputString.append("<b>Caution alert active?</b> = ").append(isCautionAlertActive).append("<br>");
             
             outputString.append("<b>Caution alert initially triggered at</b> = ");
@@ -363,9 +365,9 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Is the danger criteria valid?</b> = ").append(isDangerAlertCriteriaValid).append("<br>");
             
             String isDangerAlertActive = "No";
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "Yes";
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
             outputString.append("<b>Danger alert active?</b> = ").append(isDangerAlertActive).append("<br>");
-            
+
             outputString.append("<b>Danger alert initially triggered at</b> = ");
             if (alert.getDangerFirstActiveAt() != null) outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a")).append("<br>");
             else outputString.append("N/A <br>");
