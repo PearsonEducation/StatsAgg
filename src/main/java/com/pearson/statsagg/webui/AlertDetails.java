@@ -237,41 +237,39 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()))) outputString.append("<del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
+                outputString.append("<b>Caution stop tracking after...</b> = ");
+                if (alert.getCautionStopTrackingAfter() != null) {
+                    BigDecimal cautionStopTrackingAfterMs = new BigDecimal(alert.getCautionStopTrackingAfter());
+                    BigDecimal cautionStopTrackingAfterSeconds = cautionStopTrackingAfterMs.divide(new BigDecimal(1000));
+                    outputString.append(cautionStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                }
+                else outputString.append("N/A <br>");
+            }          
             
-            outputString.append("<b>Caution stop tracking after...</b> = ");
-            if (alert.getCautionStopTrackingAfter() != null) {
-                BigDecimal cautionStopTrackingAfterMs = new BigDecimal(alert.getCautionStopTrackingAfter());
-                BigDecimal cautionStopTrackingAfterSeconds = cautionStopTrackingAfterMs.divide(new BigDecimal(1000));
-                outputString.append(cautionStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
+                outputString.append("<b>Caution minimum sample count</b> = ");
+                if (alert.getCautionMinimumSampleCount() != null) outputString.append(alert.getCautionMinimumSampleCount()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Caution operator</b> = ");
+                if (alert.getCautionOperatorString(true, true) != null) outputString.append("'").append(alert.getCautionOperatorString(true, true)).append("'<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Caution combination</b> = ");
+                if (alert.getCautionCombinationString() != null) outputString.append(alert.getCautionCombinationString()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Caution combination count</b> = ");
+                if (alert.getCautionCombinationCount() != null) outputString.append(alert.getCautionCombinationCount()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Caution threshold</b> = ");
+                if (alert.getCautionThreshold() != null) outputString.append(alert.getCautionThreshold().stripTrailingZeros().toPlainString()).append("<br>");
+                else outputString.append("N/A <br>");
             }
-            else outputString.append("N/A <br>");
             
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled())) outputString.append("</del>");
-          
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled())) outputString.append("<del>");
-            
-            outputString.append("<b>Caution minimum sample count</b> = ");
-            if (alert.getCautionMinimumSampleCount() != null) outputString.append(alert.getCautionMinimumSampleCount()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Caution operator</b> = ");
-            if (alert.getCautionOperatorString(true, true) != null) outputString.append("'").append(alert.getCautionOperatorString(true, true)).append("'<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Caution combination</b> = ");
-            if (alert.getCautionCombinationString() != null) outputString.append(alert.getCautionCombinationString()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Caution combination count</b> = ");
-            if (alert.getCautionCombinationCount() != null) outputString.append(alert.getCautionCombinationCount()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Caution threshold</b> = ");
-            if (alert.getCautionThreshold() != null) outputString.append(alert.getCautionThreshold().stripTrailingZeros().toPlainString()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD && ((alert.isCautionEnabled() != null) && alert.isCautionEnabled()))) outputString.append("</del>");
+            outputString.append("<br>");
             
             String isCautionAlertCriteriaValid = "No";
             if (alert.isCautionAlertCriteriaValid()) isCautionAlertCriteriaValid = "Yes";
@@ -326,42 +324,40 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("<del>");
-            
-            outputString.append("<b>Danger stop tracking after...</b> = ");
-            if (alert.getDangerStopTrackingAfter() != null) {
-                BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
-                BigDecimal dangerStopTrackingAfterSeconds = dangerStopTrackingAfterMs.divide(new BigDecimal(1000));
-                outputString.append(dangerStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
+                outputString.append("<b>Danger stop tracking after...</b> = ");
+                if (alert.getDangerStopTrackingAfter() != null) {
+                    BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
+                    BigDecimal dangerStopTrackingAfterSeconds = dangerStopTrackingAfterMs.divide(new BigDecimal(1000));
+                    outputString.append(dangerStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                }
+                else outputString.append("N/A <br>");
             }
-            else outputString.append("N/A <br>");
             
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_AVAILABILITY) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("</del>");
+            if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
+                outputString.append("<b>Danger minimum sample count</b> = ");
+                if (alert.getDangerMinimumSampleCount() != null) outputString.append(alert.getDangerMinimumSampleCount()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Danger operator</b> = ");
+                if (alert.getDangerOperatorString(true, true) != null) outputString.append("'").append(alert.getDangerOperatorString(true, true)).append("'<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Danger combination</b> = ");
+                if (alert.getDangerCombinationString() != null) outputString.append(alert.getDangerCombinationString()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Danger combination count</b> = ");
+                if (alert.getDangerCombinationCount() != null) outputString.append(alert.getDangerCombinationCount()).append("<br>");
+                else outputString.append("N/A <br>");
+
+                outputString.append("<b>Danger threshold</b> = ");
+                if (alert.getDangerThreshold() != null) outputString.append(alert.getDangerThreshold().stripTrailingZeros().toPlainString()).append("<br>");
+                else outputString.append("N/A <br>");
+            }
             
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("<del>");
-            
-            outputString.append("<b>Danger minimum sample count</b> = ");
-            if (alert.getDangerMinimumSampleCount() != null) outputString.append(alert.getDangerMinimumSampleCount()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Danger operator</b> = ");
-            if (alert.getDangerOperatorString(true, true) != null) outputString.append("'").append(alert.getDangerOperatorString(true, true)).append("'<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Danger combination</b> = ");
-            if (alert.getDangerCombinationString() != null) outputString.append(alert.getDangerCombinationString()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Danger combination count</b> = ");
-            if (alert.getDangerCombinationCount() != null) outputString.append(alert.getDangerCombinationCount()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Danger threshold</b> = ");
-            if (alert.getDangerThreshold() != null) outputString.append(alert.getDangerThreshold().stripTrailingZeros().toPlainString()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            if ((alert.getAlertType() != null) && (alert.getAlertType() != Alert.TYPE_THRESHOLD) && ((alert.isDangerEnabled() != null) && alert.isDangerEnabled())) outputString.append("</del>");
-            
+            outputString.append("<br>");
+
             String isDangerAlertCriteriaValid = "No";
             if (alert.isDangerAlertCriteriaValid()) isDangerAlertCriteriaValid = "Yes";
             outputString.append("<b>Is the danger criteria valid?</b> = ").append(isDangerAlertCriteriaValid).append("<br>");
