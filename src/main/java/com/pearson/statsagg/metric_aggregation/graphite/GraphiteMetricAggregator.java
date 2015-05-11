@@ -155,12 +155,12 @@ public class GraphiteMetricAggregator {
             BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValues.divide(metricCount, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
             maximumMetricValue = (maximumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(maximumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
-            BigDecimal medianMetricValue = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, GRAPHITE_MATH_CONTEXT, true), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
+            BigDecimal medianMetricValue = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, GRAPHITE_MATH_CONTEXT, false), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             long averagedMetricTimestamp = Math.round((double) sumMetricTimestamp / (double) metricCounter);
             long averagedMetricReceivedTimestamp = Math.round((double) sumReceivedTimestamp / (double) metricCounter);
             
             String aggregatedMetricsSeparator;
-            if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = "";
+            if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = ".";
             else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
             
             if (averageMetricValue != null) {

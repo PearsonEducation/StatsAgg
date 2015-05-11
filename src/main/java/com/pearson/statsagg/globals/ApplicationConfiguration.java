@@ -158,7 +158,7 @@ public class ApplicationConfiguration {
             // metric naming config
             globalMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("global_metric_name_prefix_enabled", false);
             globalMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("global_metric_name_prefix_value", "statsagg");
-            globalAggregatedMetricsSeparatorString_= applicationConfiguration_.safeGetString("global_aggregated_metrics_separator_string", "."); 
+            globalAggregatedMetricsSeparatorString_ = applicationConfiguration_.safeGetString("global_aggregated_metrics_separator_string", "."); 
             statsdMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_metric_name_prefix_enabled", false);
             statsdMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("statsd_metric_name_prefix_value", "stats");
             statsdMetricNameSuffixEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_metric_name_suffix_enabled", false);

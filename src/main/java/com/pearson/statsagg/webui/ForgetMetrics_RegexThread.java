@@ -1,6 +1,5 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;

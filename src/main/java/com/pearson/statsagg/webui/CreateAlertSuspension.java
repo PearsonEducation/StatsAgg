@@ -145,7 +145,7 @@ public class CreateAlertSuspension extends HttpServlet {
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
-            "  <div class=\"page-content inset\" style=\"font-size:12px;\">\n" +
+            "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "    <div class=\"content-header\"> \n" +
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div> \n" +
@@ -432,9 +432,9 @@ public class CreateAlertSuspension extends HttpServlet {
         // end form & body content
         htmlBody.append(        
             "</div>" +
-            "<button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow\">Submit</button>\n" +
+            "<button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>\n" +
             "&nbsp;&nbsp;&nbsp;" +
-            "<a href=\"AlertSuspensions\" class=\"btn btn-default\" role=\"button\">Cancel</a>");
+            "<a href=\"AlertSuspensions\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>");
         
         htmlBody.append("</form></div></div>");
         

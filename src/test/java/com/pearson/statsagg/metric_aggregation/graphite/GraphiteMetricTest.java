@@ -148,14 +148,8 @@ public class GraphiteMetricTest {
         GraphiteMetric graphiteMetric7 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345.23"), 1382848112, 1382848222223L);
         GraphiteMetric graphiteMetric8 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345.23"), 1382848110, 1382848222224L);
         
-        input.add(graphiteMetric1);
-        input.add(graphiteMetric2);
-        input.add(graphiteMetric3);
-        input.add(graphiteMetric4);
-        input.add(graphiteMetric5);
-        input.add(graphiteMetric6);
-        input.add(graphiteMetric7);
-        input.add(graphiteMetric8);
+        input.add(graphiteMetric1); input.add(graphiteMetric2); input.add(graphiteMetric3); input.add(graphiteMetric4); 
+        input.add(graphiteMetric5); input.add(graphiteMetric6); input.add(graphiteMetric7); input.add(graphiteMetric8);
         
         Map<String, GraphiteMetric> result = GraphiteMetric.getMostRecentGraphiteMetricByMetricPath(input);
         

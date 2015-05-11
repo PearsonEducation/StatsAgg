@@ -120,7 +120,7 @@ public class AlertAssociations extends HttpServlet {
             htmlBodyBuilder.append(
                 "<div id=\"page-content-wrapper\">\n" +
                 "<!-- Keep all page content within the page-content inset div! -->\n" +
-                "  <div class=\"page-content inset\">\n" +
+                "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
                 "    <div class=\"content-header\"> \n" +
                 "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
                 "      <div class=\"pull-right \">\n");

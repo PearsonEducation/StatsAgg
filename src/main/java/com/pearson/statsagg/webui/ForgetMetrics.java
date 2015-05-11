@@ -131,7 +131,7 @@ public class ForgetMetrics extends HttpServlet {
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             " <!-- Keep all page content within the page-content inset div! -->\n" +
-            "   <div class=\"page-content inset\" style=\"font-size:12px;\" >\n" +
+            "   <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "     <div class=\"content-header\"> \n" +
             "       <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "     </div> " +
@@ -151,7 +151,7 @@ public class ForgetMetrics extends HttpServlet {
             "</div>\n");        
         
         htmlBody.append(
-            "  <button type=\"submit\" class=\"btn btn-default\">Submit</button>\n" +
+            "  <button type=\"submit\" class=\"btn btn-default statsagg_page_content_font\">Submit</button>\n" +
             "</form>\n"       +          
             "</div>\n" +
             "</div>\n");

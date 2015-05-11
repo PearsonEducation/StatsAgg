@@ -148,7 +148,7 @@ public class CreateMetricGroup extends HttpServlet {
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             "<!-- Keep all page content within the page-content inset div! -->\n" +
-            "<div class=\"page-content inset\" style=\"font-size:12px;\">\n" +
+            "<div class=\"page-content inset statsagg_page_content_font\">\n" +
             "  <div class=\"content-header\"> \n" +
             "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "  </div> " +
@@ -223,9 +223,9 @@ public class CreateMetricGroup extends HttpServlet {
         htmlBody.append("</textarea>\n</div>\n");
         
         htmlBody.append(
-            "      <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow\">Submit</button>" +
+            "      <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
-            "      <a href=\"MetricGroups\" class=\"btn btn-default\" role=\"button\">Cancel</a>" +
+            "      <a href=\"MetricGroups\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
             "    </form>\n"       +          
             "  </div>" +
             "</div>\n");

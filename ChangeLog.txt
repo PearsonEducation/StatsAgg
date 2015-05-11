@@ -17,6 +17,7 @@ StatsAgg 1.3  - released 2015-xx-xx
  * Significant re-factoring of the metric-cleanup routine. Should be faster & simpler.
  * In the WebUI, large tables will not be displayed until the 'datatables' javascript library is fully initialized.
  * Converted 'Alert Suspension Details' page into panel-based UI
+ * Standardized font size of WebUI page bodies at 12pt
 
 
 StatsAgg 1.2  - released 2015-04-27

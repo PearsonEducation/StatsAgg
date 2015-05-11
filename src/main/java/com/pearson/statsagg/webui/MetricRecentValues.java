@@ -91,7 +91,7 @@ public class MetricRecentValues extends HttpServlet {
             String htmlBody = statsAggHtmlFramework.createHtmlBody(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
-            "  <div class=\"page-content inset\">\n" +
+            "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "    <div class=\"content-header\"> \n" +
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div>" +   
@@ -129,7 +129,7 @@ public class MetricRecentValues extends HttpServlet {
         SimpleDateFormat dateAndTimeFormat = new SimpleDateFormat("yyyy-MM-dd  HH:mm:ss");
 
         List<MetricTimestampAndValue> metricTimestampsAndValuesLocal = new ArrayList<>();
-
+        
         synchronized(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
             Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
@@ -142,21 +142,26 @@ public class MetricRecentValues extends HttpServlet {
         
         java.util.Collections.sort(metricTimestampsAndValuesLocal, MetricTimestampAndValue.COMPARE_BY_TIMESTAMP);
 
-        outputString.append("<b>").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</b>").append("<br>").append("<br>");
-
+        outputString.append("<b>Metric Key</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("<br>");
+        
+        Long mostRecentTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+        if (mostRecentTimestamp != null) outputString.append("<b>Most recent received timestamp</b> = ").append(dateAndTimeFormat.format(mostRecentTimestamp)).append("<br><br>");
+        else outputString.append("<b>Most recent received timestamp</b> = ").append("N/A").append("<br><br>");
+        
         if (metricTimestampsAndValuesLocal.isEmpty()) {
             return outputString.toString() +
                     "No metric values found. This is usually the result of StatsAgg removing unneeded metric values from its memory.<br>" +
                     "For a metric value to persist in StatsAgg for more than a few seconds, it must be associated with a metric group that is associated with an alert.";
         }
         
+        outputString.append("<b>Metric values...</b>").append("<br>");
+        
         for (int i = (metricTimestampsAndValuesLocal.size() - 1); i >= 0; i--) {
-            
             MetricTimestampAndValue metricTimestampAndValue = metricTimestampsAndValuesLocal.get(i);
             
             if ((metricTimestampAndValue != null) && (metricTimestampAndValue.getTimestamp() != -1) && (metricTimestampAndValue.getMetricValue() != null)) {
                 String timestamp = dateAndTimeFormat.format(metricTimestampAndValue.getTimestamp());
-                outputString.append(timestamp).append(" : ").append(metricTimestampAndValue.getMetricValue().stripTrailingZeros().toPlainString()).append("<br>");
+                outputString.append(StatsAggHtmlFramework.htmlEncode("     ")).append(timestamp).append(" : ").append(metricTimestampAndValue.getMetricValue().stripTrailingZeros().toPlainString()).append("<br>");
             }
             
         }

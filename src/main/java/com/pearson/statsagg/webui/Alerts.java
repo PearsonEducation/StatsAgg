@@ -250,14 +250,14 @@ public class Alerts extends HttpServlet {
         htmlBodyStringBuilder.append(
             "<div id=\"page-content-wrapper\">\n" +
             "<!-- Keep all page content within the page-content inset div! -->\n" +
-            "<div class=\"page-content inset\">\n" +
+            "<div class=\"page-content inset statsagg_page_content_font\">\n" +
             "  <div class=\"content-header\"> \n" +
             "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    <div class=\"pull-right \">\n" +
-            "     <a href=\"CreateAlert\" class=\"btn btn-primary\">Create New Alert <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
+            "     <a href=\"CreateAlert\" class=\"btn btn-primary statsagg_page_content_font\">Create New Alert <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>\n" + 
             "  </div>\n" +   
-            "  <table id=\"AlertsTable\" style=\"font-size:12px; display:none\" class=\"table table-bordered table-hover\">\n" +
+            "  <table id=\"AlertsTable\" style=\"display:none\" class=\"table table-bordered table-hover\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
             "         <th>Alert name</th>\n" +

@@ -204,6 +204,10 @@ table.dataTable thead > tr > th {
     background-color: transparent;
 }
 
+.statsagg_page_content_font {
+    font-size: 12px;
+}
+
 .yadcf-filter {
     color: rgba(0, 0, 0, 0.42) !important;
     width: 100% !important;

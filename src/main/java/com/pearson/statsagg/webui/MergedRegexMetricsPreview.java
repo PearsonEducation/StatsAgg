@@ -88,7 +88,7 @@ public class MergedRegexMetricsPreview extends HttpServlet {
             "<body>" +
             "  <div id=\"page-content-wrapper\">\n" +
             "    <!-- Keep all page content within the page-content inset div! -->\n" +
-            "    <div class=\"page-content inset\">\n" +
+            "    <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "      <div class=\"statsagg_force_word_wrap\">" +
             regexMatchesHtml +
             "      </div>\n" +

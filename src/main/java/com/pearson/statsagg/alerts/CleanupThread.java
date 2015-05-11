@@ -184,7 +184,7 @@ public class CleanupThread implements Runnable {
         
         cleanupActiveAvailabilityAlerts(metricKey);
         
-        // removing values from statsdGaugeCache & remove gauges from the db is handled elsewhere
+        // removing values from statsdGaugeCache & remove gauges from the db is handled in the 'cleanupGauges' method
         
         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(metricKey);
         GlobalVariables.graphiteAggregatedMetricsMostRecentValue.remove(metricKey);

@@ -607,6 +607,8 @@ public class ContextManager implements ServletContextListener {
                 statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
                 GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
+                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(gauge.getBucket(), gauge.getLastModified().getTime());
+                GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.putIfAbsent(gauge.getBucket(), gauge.getLastModified().getTime());
                 GlobalVariables.statsdGaugeCache.putIfAbsent(gauge.getBucket(), gauge);
             }
             catch (Exception e) {
