@@ -70,7 +70,7 @@ public class OpenTsdbTest {
      * Test of parseOpenTsdbMetric method, of class OpenTsdbMetric.
      */
     @Test
-    public void testParseOpenTsdbRaw() {
+    public void testParseOpenTsdbMetric() {
         String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
         
         OpenTsdbMetric parsedMetric = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric, "", 1366998400999L);
@@ -107,7 +107,7 @@ public class OpenTsdbTest {
      * Test of parseOpenTsdbMetric method, of class OpenTsdbMetric.
      */
     @Test
-    public void testParseOpenTsdbRaw_DuplicatedTagKey() {
+    public void testParseOpenTsdb_DuplicatedTagKey() {
         String unparsedMetric = "tcollector.reader.lines_collected 1424566500 1203.3  tag=mix  tag=meow";
         OpenTsdbMetric parsedMetric = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric, "", 1366998400999L);
         assertEquals(parsedMetric, null);

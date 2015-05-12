@@ -18,7 +18,7 @@ public class OpenTsdbTag {
         this.tag_ = tag;
     }
 
-    public static ArrayList<OpenTsdbTag> parseRawTags(String unparsedTags) {
+    public static ArrayList<OpenTsdbTag> parseTags(String unparsedTags) {
         
         if ((unparsedTags == null) || unparsedTags.isEmpty()) {
             ArrayList<OpenTsdbTag> openTsdbTags = new ArrayList<>();
@@ -57,7 +57,7 @@ public class OpenTsdbTag {
         return openTsdbTags;
     }
     
-    public static ArrayList<OpenTsdbTag> parseRawTags(String unparsedOpenTsdbMetric, int startPosition) {
+    public static ArrayList<OpenTsdbTag> parseTags(String unparsedOpenTsdbMetric, int startPosition) {
         
         if ((unparsedOpenTsdbMetric == null) || unparsedOpenTsdbMetric.isEmpty()) {
             ArrayList<OpenTsdbTag> openTsdbTags = new ArrayList<>();

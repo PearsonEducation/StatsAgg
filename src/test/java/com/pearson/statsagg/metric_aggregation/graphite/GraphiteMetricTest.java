@@ -36,7 +36,7 @@ public class GraphiteMetricTest {
     public void setUp() {
         graphiteMetric1_ = new GraphiteMetric("test.metric.path", new BigDecimal("12345.1230"), 1382848111, 1382848222222L);
         graphiteMetric2_ = new GraphiteMetric("test.metric.path?><!@#$!", new BigDecimal("12345.000"), 123, 1234L);
-        graphiteMetric3_ = new GraphiteMetric("test.metric.path", new BigDecimal("12345.123"), 1382848111, 1382848222222L); // same as Raw1
+        graphiteMetric3_ = new GraphiteMetric("test.metric.path", new BigDecimal("12345.123"), 1382848111, 1382848222222L); // same as metric1
     }
     
     @After

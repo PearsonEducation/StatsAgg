@@ -6,7 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
+import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,17 +22,17 @@ public class TcpServerHandler_Statsd extends SimpleChannelInboundHandler<String>
         try {
             long currentTimestampInMilliseconds = System.currentTimeMillis();
             
-            List<StatsdMetricRaw> statsdMetricsRaw = StatsdMetricRaw.parseStatsdMetricsRaw(message, currentTimestampInMilliseconds);
+            List<StatsdMetric> statsdMetrics = StatsdMetric.parseStatsdMetrics(message, currentTimestampInMilliseconds);
             
-            for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
+            for (StatsdMetric statsdMetric : statsdMetrics) {
                 long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-                statsdMetricRaw.setHashKey(hashKey);
-                GlobalVariables.statsdMetricsRaw.put(statsdMetricRaw.getHashKey(), statsdMetricRaw);
+                statsdMetric.setHashKey(hashKey);
+                GlobalVariables.statsdMetrics.put(statsdMetric.getHashKey(), statsdMetric);
                 GlobalVariables.incomingMetricsCount.incrementAndGet();
             }
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                logger.info("TCP_Statsd_Received_Metrics=" + statsdMetricsRaw.size());
+                logger.info("TCP_Statsd_Received_Metrics=" + statsdMetrics.size());
                 logger.info("TCP_Statsd_String=\"" + message + "\"");
             }
         }

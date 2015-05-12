@@ -7,7 +7,7 @@ import io.netty.util.CharsetUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
+import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,17 +24,17 @@ public class UdpServerHandler_Statsd extends SimpleChannelInboundHandler<Datagra
         
         long currentTimestampInMilliseconds = System.currentTimeMillis();
         
-        List<StatsdMetricRaw> statsdMetricsRaw = StatsdMetricRaw.parseStatsdMetricsRaw(udpContentString, currentTimestampInMilliseconds); 
+        List<StatsdMetric> statsdMetrics = StatsdMetric.parseStatsdMetrics(udpContentString, currentTimestampInMilliseconds); 
 
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
+        for (StatsdMetric statsdMetric : statsdMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
-            statsdMetricRaw.setHashKey(hashKey);
-            GlobalVariables.statsdMetricsRaw.put(statsdMetricRaw.getHashKey(), statsdMetricRaw);
+            statsdMetric.setHashKey(hashKey);
+            GlobalVariables.statsdMetrics.put(statsdMetric.getHashKey(), statsdMetric);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
         }
         
         if (ApplicationConfiguration.isDebugModeEnabled()) {
-            logger.info("UDP_Statsd_Received_Metrics=" + statsdMetricsRaw.size());
+            logger.info("UDP_Statsd_Received_Metrics=" + statsdMetrics.size());
             logger.info("UDP_Statsd_String=\"" + udpContentString + "\"");
         }
     }

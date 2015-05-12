@@ -13,7 +13,7 @@ import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricRaw;
+import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -54,8 +54,8 @@ public class GlobalVariables {
     // Used to generate hash keys for incoming metrics
     public final static AtomicLong metricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
 
-    // k="Value assigned at raw metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="Raw metric object"
-    public final static ConcurrentHashMap<Long,StatsdMetricRaw> statsdMetricsRaw = new ConcurrentHashMap<>();
+    // k="Value assigned at metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="metric object"
+    public final static ConcurrentHashMap<Long,StatsdMetric> statsdMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphiteAggregatorMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphitePassthroughMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();

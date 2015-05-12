@@ -48,12 +48,12 @@ public class OpenTsdbTagTest {
     }
 
     /**
-     * Test of parseRawTags method, of class OpenTsdbTag.
+     * Test of parseTags method, of class OpenTsdbTag.
      */
     @Test
-    public void testParseRawTags_String_1() {
+    public void testParseTags_String_1() {
         String unparsedTags = "tag1=5 tag2=2asdf tag3";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(unparsedTags);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(unparsedTags);
 
         ArrayList<OpenTsdbTag> expResult = new ArrayList<>();
         expResult.add(new OpenTsdbTag("tag1=5")); 
@@ -70,12 +70,12 @@ public class OpenTsdbTagTest {
     }
 
     /**
-     * Test of parseRawTags method, of class OpenTsdbTag.
+     * Test of parseTags method, of class OpenTsdbTag.
      */
     @Test
-    public void testParseRawTags_String_2() {
+    public void testParseTags_String_2() {
         String unparsedTags = "tag1=5 tag2=2asdf";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(unparsedTags);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(unparsedTags);
 
         ArrayList<OpenTsdbTag> expResult = new ArrayList<>();
         expResult.add(new OpenTsdbTag("tag1=5")); 
@@ -92,12 +92,12 @@ public class OpenTsdbTagTest {
     }
     
     /**
-     * Test of parseRawTags method, of class OpenTsdbTag.
+     * Test of parseTags method, of class OpenTsdbTag.
      */
     @Test
-    public void testParseRawTags_String_int_1() {
+    public void testParseTags_String_int_1() {
         String metricKey = "asdfkjladsflkaslkdj : tag1=5 tag2=2asdf tag3";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(metricKey, 19);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(metricKey, 19);
 
         ArrayList<OpenTsdbTag> expResult = new ArrayList<>();
         expResult.add(new OpenTsdbTag("tag1=5")); 
@@ -114,12 +114,12 @@ public class OpenTsdbTagTest {
     }
     
     /**
-     * Test of parseRawTags method, of class OpenTsdbTag.
+     * Test of parseTags method, of class OpenTsdbTag.
      */
     @Test
-    public void testParseRawTags_String_int_2() {
+    public void testParseTags_String_int_2() {
         String metricKey = "asdfkjladsflkaslkdj : tag1=5 tag2=2asdf";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(metricKey, 19);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(metricKey, 19);
 
         ArrayList<OpenTsdbTag> expResult = new ArrayList<>();
         expResult.add(new OpenTsdbTag("tag1=5")); 
@@ -141,7 +141,7 @@ public class OpenTsdbTagTest {
     @Test
     public void testGetTagKey() {
         String unparsedTags = "tag1=5 tag2=2asdf tag3";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(unparsedTags);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(unparsedTags);
         
         assertTrue(result.get(0).getTagKey().equals("tag1"));
         assertTrue(result.get(1).getTagKey().equals("tag2"));
@@ -153,7 +153,7 @@ public class OpenTsdbTagTest {
     @Test
     public void testGetTagValue() {
         String unparsedTags = "tag1=5 tag2=2asdf tag3";
-        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseRawTags(unparsedTags);
+        ArrayList<OpenTsdbTag> result = OpenTsdbTag.parseTags(unparsedTags);
         
         assertTrue(result.get(0).getTagValue().equals("5"));
         assertTrue(result.get(1).getTagValue().equals("2asdf"));

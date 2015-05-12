@@ -104,7 +104,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         if (metricLength_ < 1) return new ArrayList<>();
         if ((metricLength_ + 3) >= metricKey_.length()) return new ArrayList<>();
         
-        List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseRawTags(metricKey_, metricLength_ + 2);
+        List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseTags(metricKey_, metricLength_ + 2);
         return openTsdbTags;
     }
     
@@ -222,7 +222,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 metricValueBigDecimal = new BigDecimal(metricValue);
             }
             
-            List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseRawTags(unparsedMetric, metricValueIndexRange);
+            List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseTags(unparsedMetric, metricValueIndexRange);
             
             if ((metric == null) || metric.isEmpty() || 
                     (metricValueBigDecimal == null) ||

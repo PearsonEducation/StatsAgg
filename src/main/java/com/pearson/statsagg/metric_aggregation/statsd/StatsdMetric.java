@@ -12,9 +12,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public final class StatsdMetricRaw {
+public final class StatsdMetric {
     
-    private static final Logger logger = LoggerFactory.getLogger(StatsdMetricRaw.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(StatsdMetric.class.getName());
    
     public static final byte COUNTER_TYPE = 1;
     public static final byte TIMER_TYPE = 2;
@@ -31,7 +31,7 @@ public final class StatsdMetricRaw {
     private final BigDecimal sampleRate_;
     private final long metricReceivedTimestampInMilliseconds_;
         
-    public StatsdMetricRaw(String bucket, BigDecimal metricValue, String metricType, boolean doesContainOperator, BigDecimal sampleRate, long metricReceivedTimestampInMilliseconds) {
+    public StatsdMetric(String bucket, BigDecimal metricValue, String metricType, boolean doesContainOperator, BigDecimal sampleRate, long metricReceivedTimestampInMilliseconds) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
         this.metricTypeKey_ = determineMetricTypeKey(metricType);
@@ -107,12 +107,12 @@ public final class StatsdMetricRaw {
         return stringBuilder.toString();
     }
     
-    public static StatsdMetricRaw parseStatsdMetricRaw(String unparsedMetric) {
+    public static StatsdMetric parseStatsdMetric(String unparsedMetric) {
         long currentTimestampInMilliseconds = System.currentTimeMillis();
-        return parseStatsdMetricRaw(unparsedMetric, currentTimestampInMilliseconds);
+        return StatsdMetric.parseStatsdMetric(unparsedMetric, currentTimestampInMilliseconds);
     }
     
-    public static StatsdMetricRaw parseStatsdMetricRaw(String unparsedMetric, long metricReceivedTimestampInMilliseconds) {
+    public static StatsdMetric parseStatsdMetric(String unparsedMetric, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {
             return null;
@@ -153,8 +153,8 @@ public final class StatsdMetricRaw {
                 return null;
             }
             else {
-                StatsdMetricRaw statsdMetricRaw = new StatsdMetricRaw(bucketValue, metricValue, metricType, doesContainOperator, sampleRate, metricReceivedTimestampInMilliseconds); 
-                return statsdMetricRaw;
+                StatsdMetric statsdMetric = new StatsdMetric(bucketValue, metricValue, metricType, doesContainOperator, sampleRate, metricReceivedTimestampInMilliseconds); 
+                return statsdMetric;
             }
         }
         catch (Exception e) {
@@ -163,18 +163,18 @@ public final class StatsdMetricRaw {
         }
     }
     
-    public static List<StatsdMetricRaw> parseStatsdMetricsRaw(String unparsedMetrics) {
+    public static List<StatsdMetric> parseStatsdMetrics(String unparsedMetrics) {
         long currentTimestampInMilliseconds = System.currentTimeMillis();
-        return parseStatsdMetricsRaw(unparsedMetrics, currentTimestampInMilliseconds);
+        return parseStatsdMetrics(unparsedMetrics, currentTimestampInMilliseconds);
     }
     
-    public static List<StatsdMetricRaw> parseStatsdMetricsRaw(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
+    public static List<StatsdMetric> parseStatsdMetrics(String unparsedMetrics, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        List<StatsdMetricRaw> statsdMetricsRaw = new ArrayList();
+        List<StatsdMetric> statsdMetrics = new ArrayList();
         
         try {
             int currentIndex = 0;
@@ -194,10 +194,10 @@ public final class StatsdMetricRaw {
                 }
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
-                    StatsdMetricRaw statsdMetricRaw = StatsdMetricRaw.parseStatsdMetricRaw(unparsedMetric.trim(), metricReceivedTimestampInMilliseconds);
+                    StatsdMetric statsdMetric = StatsdMetric.parseStatsdMetric(unparsedMetric.trim(), metricReceivedTimestampInMilliseconds);
 
-                    if (statsdMetricRaw != null) {
-                        statsdMetricsRaw.add(statsdMetricRaw);
+                    if (statsdMetric != null) {
+                        statsdMetrics.add(statsdMetric);
                     }
                 }
             }
@@ -206,17 +206,17 @@ public final class StatsdMetricRaw {
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
-        return statsdMetricsRaw;
+        return statsdMetrics;
     }
     
-    public final static Comparator<StatsdMetricRaw> COMPARE_BY_HASH_KEY = new Comparator<StatsdMetricRaw>() {
+    public final static Comparator<StatsdMetric> COMPARE_BY_HASH_KEY = new Comparator<StatsdMetric>() {
         
         @Override
-        public int compare(StatsdMetricRaw statsdMetricRaw1, StatsdMetricRaw statsdMetricRaw2) {
-            if (statsdMetricRaw1.getHashKey() > statsdMetricRaw2.getHashKey()) {
+        public int compare(StatsdMetric statsdMetric1, StatsdMetric statsdMetric2) {
+            if (statsdMetric1.getHashKey() > statsdMetric2.getHashKey()) {
                 return 1;
             }
-            else if (statsdMetricRaw1.getHashKey() < statsdMetricRaw2.getHashKey()) {
+            else if (statsdMetric1.getHashKey() < statsdMetric2.getHashKey()) {
                 return -1;
             }
             else {
@@ -226,14 +226,14 @@ public final class StatsdMetricRaw {
         
     };
 
-    public static Comparator<StatsdMetricRaw> COMPARE_BY_METRIC_TYPE_KEY = new Comparator<StatsdMetricRaw>() {
+    public static Comparator<StatsdMetric> COMPARE_BY_METRIC_TYPE_KEY = new Comparator<StatsdMetric>() {
         
         @Override
-        public int compare(StatsdMetricRaw statsdMetricRaw1, StatsdMetricRaw statsdMetricRaw2) {
-            if (statsdMetricRaw1.getMetricTypeKey() > statsdMetricRaw2.getMetricTypeKey()) {
+        public int compare(StatsdMetric statsdMetric1, StatsdMetric statsdMetric2) {
+            if (statsdMetric1.getMetricTypeKey() > statsdMetric2.getMetricTypeKey()) {
                 return 1;
             }
-            else if (statsdMetricRaw1.getMetricTypeKey() < statsdMetricRaw2.getMetricTypeKey()) {
+            else if (statsdMetric1.getMetricTypeKey() < statsdMetric2.getMetricTypeKey()) {
                 return -1;
             }
             else {

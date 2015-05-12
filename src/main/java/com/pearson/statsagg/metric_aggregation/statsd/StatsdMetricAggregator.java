@@ -39,19 +39,19 @@ public class StatsdMetricAggregator {
     private static String setMetricPrefix_ = null;
     private static String statsdSuffix_ = null;
 
-    public static List<StatsdMetricAggregated> aggregateStatsdMetrics(List<StatsdMetricRaw> statsdMetricsRaw) {
+    public static List<StatsdMetricAggregated> aggregateStatsdMetrics(List<StatsdMetric> statsdMetrics) {
         
-        if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
             return new ArrayList<>();
         }
 
-        Map<Byte,List<StatsdMetricRaw>> statsdMetricsRawByMetricTypeKey = divideStatsdMetricsRawByMetricTypeKey(statsdMetricsRaw);
-        List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>(statsdMetricsRaw.size());
+        Map<Byte,List<StatsdMetric>> statsdMetricsByMetricTypeKey = divideStatsdMetricsByMetricTypeKey(statsdMetrics);
+        List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>(statsdMetrics.size());
     
-        for (Byte metricTypeKey : statsdMetricsRawByMetricTypeKey.keySet()) {
-            Map<String,List<StatsdMetricRaw>> statsdMetricsRawByBucket = divideStatsdMetricsRawByBucket(statsdMetricsRawByMetricTypeKey.get(metricTypeKey));
+        for (Byte metricTypeKey : statsdMetricsByMetricTypeKey.keySet()) {
+            Map<String,List<StatsdMetric>> statsdMetricsByBucket = divideStatsdMetricsByBucket(statsdMetricsByMetricTypeKey.get(metricTypeKey));
             
-            List<StatsdMetricAggregated> statsdMetricsAggregatedByBucket = aggregateByBucketAndMetricTypeKey(statsdMetricsRawByBucket, ApplicationConfiguration.getStatsdHistogramConfigurations());
+            List<StatsdMetricAggregated> statsdMetricsAggregatedByBucket = aggregateByBucketAndMetricTypeKey(statsdMetricsByBucket, ApplicationConfiguration.getStatsdHistogramConfigurations());
 
             if ((statsdMetricsAggregatedByBucket != null) && !statsdMetricsAggregatedByBucket.isEmpty()) {
                 statsdMetricsAggregated.addAll(statsdMetricsAggregatedByBucket);
@@ -61,133 +61,133 @@ public class StatsdMetricAggregator {
         return statsdMetricsAggregated;
     }
     
-    public static List<StatsdMetricRaw> getStatsdMetricsRawByMetricType(List<StatsdMetricRaw> statsdMetricsRaw, String metricType) {
+    public static List<StatsdMetric> getStatsdMetricsByMetricType(List<StatsdMetric> statsdMetrics, String metricType) {
         
-        if (statsdMetricsRaw == null || statsdMetricsRaw.isEmpty()) {
+        if (statsdMetrics == null || statsdMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        List<StatsdMetricRaw> statsdMetricsRawByMetricType = new ArrayList<>(statsdMetricsRaw.size());
+        List<StatsdMetric> statsdMetricsByMetricType = new ArrayList<>(statsdMetrics.size());
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            if ((statsdMetricRaw != null) && statsdMetricRaw.getMetricType().equals(metricType)) {
-                statsdMetricsRawByMetricType.add(statsdMetricRaw);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            if ((statsdMetric != null) && statsdMetric.getMetricType().equals(metricType)) {
+                statsdMetricsByMetricType.add(statsdMetric);
             }
         }
         
-        return statsdMetricsRawByMetricType;
+        return statsdMetricsByMetricType;
     }
     
-    public static List<StatsdMetricRaw> getStatsdMetricsRawByMetricTypeKey(List<StatsdMetricRaw> statsdMetricsRaw, Byte metricTypeKey) {
+    public static List<StatsdMetric> getStatsdMetricsByMetricTypeKey(List<StatsdMetric> statsdMetrics, Byte metricTypeKey) {
         
-        if (statsdMetricsRaw == null || statsdMetricsRaw.isEmpty() || (metricTypeKey == null)) {
+        if (statsdMetrics == null || statsdMetrics.isEmpty() || (metricTypeKey == null)) {
             return new ArrayList<>();
         }
         
-        List<StatsdMetricRaw> statsdMetricsRawByMetricTypeKey = new ArrayList<>(statsdMetricsRaw.size());
+        List<StatsdMetric> statsdMetricsByMetricTypeKey = new ArrayList<>(statsdMetrics.size());
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            if ((statsdMetricRaw != null) && (statsdMetricRaw.getMetricTypeKey() == metricTypeKey)) {
-                statsdMetricsRawByMetricTypeKey.add(statsdMetricRaw);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            if ((statsdMetric != null) && (statsdMetric.getMetricTypeKey() == metricTypeKey)) {
+                statsdMetricsByMetricTypeKey.add(statsdMetric);
             }
         }
         
-        return statsdMetricsRawByMetricTypeKey;
+        return statsdMetricsByMetricTypeKey;
     }
     
-    public static List<StatsdMetricRaw> getStatsdMetricsRawExcludeMetricType(List<StatsdMetricRaw> statsdMetricsRaw, String metricType) {
+    public static List<StatsdMetric> getStatsdMetricsExcludeMetricType(List<StatsdMetric> statsdMetrics, String metricType) {
         
-        if (statsdMetricsRaw == null || statsdMetricsRaw.isEmpty()) {
+        if (statsdMetrics == null || statsdMetrics.isEmpty()) {
             return new ArrayList<>();
         }
         
-        List<StatsdMetricRaw> statsdMetricsRawByMetricType = new ArrayList<>(statsdMetricsRaw.size());
+        List<StatsdMetric> statsdMetricsByMetricType = new ArrayList<>(statsdMetrics.size());
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            if ((statsdMetricRaw != null) && !statsdMetricRaw.getMetricType().equals(metricType)) {
-                statsdMetricsRawByMetricType.add(statsdMetricRaw);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            if ((statsdMetric != null) && !statsdMetric.getMetricType().equals(metricType)) {
+                statsdMetricsByMetricType.add(statsdMetric);
             }
         }
         
-        return statsdMetricsRawByMetricType;
+        return statsdMetricsByMetricType;
     }
     
-    public static List<StatsdMetricRaw> getStatsdMetricsRawExcludeMetricTypeKey(List<StatsdMetricRaw> statsdMetricsRaw, Byte metricTypeKey) {
+    public static List<StatsdMetric> getStatsdMetricsExcludeMetricTypeKey(List<StatsdMetric> statsdMetrics, Byte metricTypeKey) {
         
-        if (statsdMetricsRaw == null || statsdMetricsRaw.isEmpty() || (metricTypeKey == null)) {
+        if (statsdMetrics == null || statsdMetrics.isEmpty() || (metricTypeKey == null)) {
             return new ArrayList<>();
         }
         
-        List<StatsdMetricRaw> statsdMetricsRawByMetricTypeKey = new ArrayList<>(statsdMetricsRaw.size());
+        List<StatsdMetric> statsdMetricsByMetricTypeKey = new ArrayList<>(statsdMetrics.size());
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            if ((statsdMetricRaw != null) && (statsdMetricRaw.getMetricTypeKey() != metricTypeKey)) {
-                statsdMetricsRawByMetricTypeKey.add(statsdMetricRaw);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            if ((statsdMetric != null) && (statsdMetric.getMetricTypeKey() != metricTypeKey)) {
+                statsdMetricsByMetricTypeKey.add(statsdMetric);
             }
         }
         
-        return statsdMetricsRawByMetricTypeKey;
+        return statsdMetricsByMetricTypeKey;
     }
     
-    public static Map<Byte,List<StatsdMetricRaw>> divideStatsdMetricsRawByMetricTypeKey(List<StatsdMetricRaw> statsdMetricsRaw) {
+    public static Map<Byte,List<StatsdMetric>> divideStatsdMetricsByMetricTypeKey(List<StatsdMetric> statsdMetrics) {
         
-        if (statsdMetricsRaw == null) {
+        if (statsdMetrics == null) {
             return new HashMap<>();
         }
         
-        Map<Byte,List<StatsdMetricRaw>> statsdMetricsRawByMetricType = new HashMap<>(statsdMetricsRaw.size() / 2);
+        Map<Byte,List<StatsdMetric>> statsdMetricsByMetricType = new HashMap<>(statsdMetrics.size() / 2);
 
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            Byte metricType = statsdMetricRaw.getMetricTypeKey();
-            List<StatsdMetricRaw> statsdMetricRawByMetricType = statsdMetricsRawByMetricType.get(metricType);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            Byte metricType = statsdMetric.getMetricTypeKey();
+            List<StatsdMetric> statsdMetricByMetricType = statsdMetricsByMetricType.get(metricType);
             
-            if (statsdMetricRawByMetricType != null) {
-                statsdMetricRawByMetricType.add(statsdMetricRaw);
+            if (statsdMetricByMetricType != null) {
+                statsdMetricByMetricType.add(statsdMetric);
             }
             else {
-                statsdMetricRawByMetricType = new ArrayList<>();
-                statsdMetricRawByMetricType.add(statsdMetricRaw);
-                statsdMetricsRawByMetricType.put(metricType, statsdMetricRawByMetricType);
+                statsdMetricByMetricType = new ArrayList<>();
+                statsdMetricByMetricType.add(statsdMetric);
+                statsdMetricsByMetricType.put(metricType, statsdMetricByMetricType);
             }
         }
         
-        return statsdMetricsRawByMetricType;
+        return statsdMetricsByMetricType;
     }
     
-    public static Map<String,List<StatsdMetricRaw>> divideStatsdMetricsRawByBucket(List<StatsdMetricRaw> statsdMetricsRaw) {
+    public static Map<String,List<StatsdMetric>> divideStatsdMetricsByBucket(List<StatsdMetric> statsdMetrics) {
         
-        if (statsdMetricsRaw == null) {
+        if (statsdMetrics == null) {
             return new HashMap<>();
         }
         
-        Map<String,List<StatsdMetricRaw>> statsdMetricsRawByBucket = new HashMap<>(statsdMetricsRaw.size());
+        Map<String,List<StatsdMetric>> statsdMetricsByBucket = new HashMap<>(statsdMetrics.size());
 
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
-            String bucket = statsdMetricRaw.getBucket();
-            List<StatsdMetricRaw> statsdMetricRawByBucket = statsdMetricsRawByBucket.get(bucket);
+        for (StatsdMetric statsdMetric : statsdMetrics) {
+            String bucket = statsdMetric.getBucket();
+            List<StatsdMetric> statsdMetricByBucket = statsdMetricsByBucket.get(bucket);
 
-            if (statsdMetricRawByBucket != null) {
-                statsdMetricRawByBucket.add(statsdMetricRaw);
+            if (statsdMetricByBucket != null) {
+                statsdMetricByBucket.add(statsdMetric);
             }
             else {
-                statsdMetricRawByBucket = new ArrayList<>();
-                statsdMetricRawByBucket.add(statsdMetricRaw);
-                statsdMetricsRawByBucket.put(bucket, statsdMetricRawByBucket);
+                statsdMetricByBucket = new ArrayList<>();
+                statsdMetricByBucket.add(statsdMetric);
+                statsdMetricsByBucket.put(bucket, statsdMetricByBucket);
             }
         }
         
-        return statsdMetricsRawByBucket;
+        return statsdMetricsByBucket;
     }
 
     /* 
      * This method assumes that all of the input statsd metrics are already separated by buck name & by metric type.
      * The key of the input Map is the assumed to be: bucketName
-     * The values of the input Map are assumed to be arraylists of StatsdMetricRaw objects that have been pre-sorted by metric type
+     * The values of the input Map are assumed to be arraylists of StatsdMetric objects that have been pre-sorted by metric type
      */
-    private static List<StatsdMetricAggregated> aggregateByBucketAndMetricTypeKey(Map<String,List<StatsdMetricRaw>> statsdMetricRawByBucketAndMetricType, 
+    private static List<StatsdMetricAggregated> aggregateByBucketAndMetricTypeKey(Map<String,List<StatsdMetric>> statsdMetricByBucketAndMetricType, 
             List<StatsdHistogramConfiguration> statsdHistogramConfigurations) {
         
-        if ((statsdMetricRawByBucketAndMetricType == null) || statsdMetricRawByBucketAndMetricType.isEmpty()) {
+        if ((statsdMetricByBucketAndMetricType == null) || statsdMetricByBucketAndMetricType.isEmpty()) {
             return new ArrayList<>();
         }
 
@@ -196,8 +196,8 @@ public class StatsdMetricAggregator {
         
         BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
         
-        for (String bucket : statsdMetricRawByBucketAndMetricType.keySet()) {
-            List<StatsdMetricRaw> statsdMetricsByBucket = statsdMetricRawByBucketAndMetricType.get(bucket);
+        for (String bucket : statsdMetricByBucketAndMetricType.keySet()) {
+            List<StatsdMetric> statsdMetricsByBucket = statsdMetricByBucketAndMetricType.get(bucket);
             
             if ((metricTypeKey == null) && (statsdMetricsByBucket != null) && !statsdMetricsByBucket.isEmpty()) {
                 metricTypeKey = statsdMetricsByBucket.get(0).getMetricTypeKey();
@@ -208,13 +208,13 @@ public class StatsdMetricAggregator {
                 
             if ((metricTypeKey != null) && (statsdMetricsByBucket != null) && !statsdMetricsByBucket.isEmpty()) {
                 
-                if (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) {
+                if (metricTypeKey == StatsdMetric.COUNTER_TYPE) {
                     multipleStatsdMetricsAggregated = aggregateCounter(statsdMetricsByBucket, 
                             aggregationWindowLengthInMs, 
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
                             ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
-                else if (metricTypeKey == StatsdMetricRaw.TIMER_TYPE) {
+                else if (metricTypeKey == StatsdMetric.TIMER_TYPE) {
                     multipleStatsdMetricsAggregated = aggregateTimer(statsdMetricsByBucket, 
                             aggregationWindowLengthInMs, 
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
@@ -222,8 +222,8 @@ public class StatsdMetricAggregator {
                             statsdHistogramConfigurations,
                             ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
-                else if (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) {
-                    String prefixedBucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE, ApplicationConfiguration.isStatsdUseLegacyNameSpacing()) + bucket + generateSeparatorAndSuffix();
+                else if (metricTypeKey == StatsdMetric.GAUGE_TYPE) {
+                    String prefixedBucketName = generatePrefix(StatsdMetric.GAUGE_TYPE, ApplicationConfiguration.isStatsdUseLegacyNameSpacing()) + bucket + generateSeparatorAndSuffix();
                     Map<String,Gauge> statsdGaugeCache = GlobalVariables.statsdGaugeCache;
                     Gauge gaugeFromCache = statsdGaugeCache.get(prefixedBucketName);
 
@@ -232,7 +232,7 @@ public class StatsdMetricAggregator {
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
                             ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
                 }
-                else if (metricTypeKey == StatsdMetricRaw.SET_TYPE) {
+                else if (metricTypeKey == StatsdMetric.SET_TYPE) {
                     singleStatsdMetricAggregated = aggregateSet(statsdMetricsByBucket, 
                             ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString(),
                             ApplicationConfiguration.isStatsdUseLegacyNameSpacing());
@@ -254,10 +254,10 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static List<StatsdMetricAggregated> aggregateCounter(List<StatsdMetricRaw> statsdMetricsRaw, BigDecimal aggregationWindowLengthInMs, 
+    public static List<StatsdMetricAggregated> aggregateCounter(List<StatsdMetric> statsdMetrics, BigDecimal aggregationWindowLengthInMs, 
             String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
-        if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
            return new ArrayList<>();
         }
         
@@ -267,15 +267,15 @@ public class StatsdMetricAggregator {
         long sumTimestamp = 0;
         int metricCounter = 0;
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
+        for (StatsdMetric statsdMetric : statsdMetrics) {
             
             try {
-                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
+                BigDecimal metricValue = statsdMetric.getMetricValue();
 
-                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
+                sumTimestamp += statsdMetric.getMetricReceivedTimestampInMilliseconds();
                 
-                if (statsdMetricRaw.getSampleRate() != null) {
-                    BigDecimal sampleRate = statsdMetricRaw.getSampleRate();
+                if (statsdMetric.getSampleRate() != null) {
+                    BigDecimal sampleRate = statsdMetric.getSampleRate();
                     BigDecimal sampleRateMultiplier;
                     
                     if (sampleRate.compareTo(BigDecimal.ZERO) == 1) {
@@ -284,8 +284,8 @@ public class StatsdMetricAggregator {
                     else {
                         sampleRateMultiplier = BigDecimal.ONE;
                         
-                        logger.warn("Invalid sample rate for counter=\"" + statsdMetricsRaw.get(0).getBucket() 
-                                + "\". Value=\"" + statsdMetricRaw.getSampleRate() 
+                        logger.warn("Invalid sample rate for counter=\"" + statsdMetrics.get(0).getBucket() 
+                                + "\". Value=\"" + statsdMetric.getSampleRate() 
                                 + "\". Defaulting to sample-rate of 1.0");
                     }
                     
@@ -298,8 +298,8 @@ public class StatsdMetricAggregator {
                 metricCounter++;
             }
             catch (Exception e) {
-                logger.error("Invalid data for counter=\"" + statsdMetricRaw.getBucket() 
-                                + "\". Value=\"" + statsdMetricRaw.getMetricValue() + "\"." + System.lineSeparator()
+                logger.error("Invalid data for counter=\"" + statsdMetric.getBucket() 
+                                + "\". Value=\"" + statsdMetric.getMetricValue() + "\"." + System.lineSeparator()
                                 + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
@@ -318,11 +318,11 @@ public class StatsdMetricAggregator {
             if (useLegacyNameSpacing) {
                 String prefix = "";
                 if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix = ApplicationConfiguration.getGlobalMetricNamePrefixValue() + aggregatedMetricsSeparator;
-                bucket_Count = prefix + "stats_counts" + aggregatedMetricsSeparator + statsdMetricsRaw.get(0).getBucket() + generateSeparatorAndSuffix();
+                bucket_Count = prefix + "stats_counts" + aggregatedMetricsSeparator + statsdMetrics.get(0).getBucket() + generateSeparatorAndSuffix();
             }
             else {
-                bucket_Count = generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + 
-                        statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
+                bucket_Count = generatePrefix(StatsdMetric.COUNTER_TYPE, useLegacyNameSpacing) + 
+                        statsdMetrics.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
             }
 
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucket_Count, count, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
@@ -330,8 +330,8 @@ public class StatsdMetricAggregator {
             statsdMetricsAggregated.add(statsdMetricAggregated);
             
             String bucket_Rate = useLegacyNameSpacing ? 
-                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + generateSeparatorAndSuffix() : 
-                    generatePrefix(StatsdMetricRaw.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "rate" + generateSeparatorAndSuffix();
+                    generatePrefix(StatsdMetric.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetrics.get(0).getBucket() + generateSeparatorAndSuffix() : 
+                    generatePrefix(StatsdMetric.COUNTER_TYPE, useLegacyNameSpacing) + statsdMetrics.get(0).getBucket() + aggregatedMetricsSeparator + "rate" + generateSeparatorAndSuffix();
             statsdMetricAggregated = new StatsdMetricAggregated(bucket_Rate, ratePs, averagedTimestamp, StatsdMetricAggregated.COUNTER_TYPE);
             statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             statsdMetricsAggregated.add(statsdMetricAggregated);
@@ -346,17 +346,17 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetricRaw> statsdMetricsRaw, BigDecimal aggregationWindowLengthInMs, 
+    public static List<StatsdMetricAggregated> aggregateTimer(List<StatsdMetric> statsdMetrics, BigDecimal aggregationWindowLengthInMs, 
             String aggregatedMetricsSeparator, StatsdNthPercentiles statsdNthPercentiles, List<StatsdHistogramConfiguration> statsdHistogramConfigurations, 
             boolean useLegacyNameSpacing) {
         
-        if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
            return new ArrayList<>(); 
         }
         
         if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
         
-        String bucket = statsdMetricsRaw.get(0).getBucket();
+        String bucket = statsdMetrics.get(0).getBucket();
         
         List<String> nthPercentageFractional_StatsdFormattedStrings = null;
         if (statsdNthPercentiles != null) nthPercentageFractional_StatsdFormattedStrings = statsdNthPercentiles.getNthPercentiles_CleanStrings_StatsdFormatted();
@@ -375,15 +375,15 @@ public class StatsdMetricAggregator {
         int metricCounter = 0, metricCounter_Values = 0;
         long sumTimestamp = 0;
 
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
+        for (StatsdMetric statsdMetric : statsdMetrics) {
             try {
-                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
+                BigDecimal metricValue = statsdMetric.getMetricValue();
                 metricValues.add(metricValue);
-                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();     
+                sumTimestamp += statsdMetric.getMetricReceivedTimestampInMilliseconds();     
                 metricCounter++;
                 
-                if (statsdMetricRaw.getSampleRate() != null) {                    
-                    BigDecimal sampleRate = statsdMetricRaw.getSampleRate();
+                if (statsdMetric.getSampleRate() != null) {                    
+                    BigDecimal sampleRate = statsdMetric.getSampleRate();
                     BigDecimal sampleRateMultiplier;
 
                     if (sampleRate.compareTo(BigDecimal.ZERO) == 1) {
@@ -392,8 +392,8 @@ public class StatsdMetricAggregator {
                     else {
                         sampleRateMultiplier = BigDecimal.ONE;
 
-                        logger.warn("Invalid sample rate for counter=\"" + statsdMetricsRaw.get(0).getBucket() 
-                                + "\". Value=\"" + statsdMetricRaw.getSampleRate() 
+                        logger.warn("Invalid sample rate for counter=\"" + statsdMetrics.get(0).getBucket() 
+                                + "\". Value=\"" + statsdMetric.getSampleRate() 
                                 + "\". Defaulting to sample-rate of 1.0");
                     }
 
@@ -404,8 +404,8 @@ public class StatsdMetricAggregator {
                 }
             }
             catch (Exception e) {
-                logger.error("Invalid data for timer=\"" + statsdMetricRaw.getBucket()
-                                + "\". Value=\"" + statsdMetricRaw.getMetricValue() + "\"." + System.lineSeparator()
+                logger.error("Invalid data for timer=\"" + statsdMetric.getBucket()
+                                + "\". Value=\"" + statsdMetric.getMetricValue() + "\"." + System.lineSeparator()
                                 + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }  
         }
@@ -523,7 +523,7 @@ public class StatsdMetricAggregator {
         if (metricCounter > 0) {
             List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>();
             
-            String bucketName = generatePrefix(StatsdMetricRaw.TIMER_TYPE, useLegacyNameSpacing) + bucket;
+            String bucketName = generatePrefix(StatsdMetric.TIMER_TYPE, useLegacyNameSpacing) + bucket;
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
 
             count = metricCounter_BigDecimal;
@@ -714,10 +714,10 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetricRaw> statsdMetricsRaw, Gauge gaugeInitial, 
+    public static StatsdMetricAggregated aggregateGauge(List<StatsdMetric> statsdMetrics, Gauge gaugeInitial, 
             String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
-        if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
            return null; 
         }
         
@@ -730,34 +730,34 @@ public class StatsdMetricAggregator {
         if (gaugeInitial == null) aggregatedMetricValue = BigDecimal.ZERO;
         else aggregatedMetricValue = gaugeInitial.getMetricValue();
 
-        List<StatsdMetricRaw> statsdMetricsRawLocal = new ArrayList<>(statsdMetricsRaw);
-        Collections.sort(statsdMetricsRawLocal, StatsdMetricRaw.COMPARE_BY_HASH_KEY);
+        List<StatsdMetric> statsdMetricsLocal = new ArrayList<>(statsdMetrics);
+        Collections.sort(statsdMetricsLocal, StatsdMetric.COMPARE_BY_HASH_KEY);
 
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRawLocal) {
+        for (StatsdMetric statsdMetric : statsdMetricsLocal) {
 
             try {
-                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
+                BigDecimal metricValue = statsdMetric.getMetricValue();
                 
-                if (statsdMetricRaw.doesContainOperator()) {
+                if (statsdMetric.doesContainOperator()) {
                     aggregatedMetricValue = aggregatedMetricValue.add(metricValue);
                 }
                 else {
                     aggregatedMetricValue = metricValue;
                 }
                 
-                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
+                sumTimestamp += statsdMetric.getMetricReceivedTimestampInMilliseconds();
                 metricCounter++;
             }
             catch (Exception e) {
-                logger.error("Invalid data for gauge=\"" + statsdMetricRaw.getBucket()
-                                + "\". Value=\"" + statsdMetricRaw.getMetricValue() + "\"." + System.lineSeparator()
+                logger.error("Invalid data for gauge=\"" + statsdMetric.getBucket()
+                                + "\". Value=\"" + statsdMetric.getMetricValue() + "\"." + System.lineSeparator()
                                 + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             
         }
         
         if (metricCounter > 0) {
-            String bucketName = generatePrefix(StatsdMetricRaw.GAUGE_TYPE, useLegacyNameSpacing) + statsdMetricsRawLocal.get(0).getBucket() + generateSeparatorAndSuffix();
+            String bucketName = generatePrefix(StatsdMetric.GAUGE_TYPE, useLegacyNameSpacing) + statsdMetricsLocal.get(0).getBucket() + generateSeparatorAndSuffix();
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             aggregatedMetricValue = MathUtilities.smartBigDecimalScaleChange(aggregatedMetricValue, STATSD_SCALE, STATSD_ROUNDING_MODE);
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, aggregatedMetricValue, averagedTimestamp, StatsdMetricAggregated.GAUGE_TYPE);
@@ -772,9 +772,9 @@ public class StatsdMetricAggregator {
     /* 
      * This method assumes that all of the input statsd metrics share the same bucket name
      */
-    public static StatsdMetricAggregated aggregateSet(List<StatsdMetricRaw> statsdMetricsRaw, String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
+    public static StatsdMetricAggregated aggregateSet(List<StatsdMetric> statsdMetrics, String aggregatedMetricsSeparator, boolean useLegacyNameSpacing) {
         
-        if ((statsdMetricsRaw == null) || statsdMetricsRaw.isEmpty()) {
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
             return null; 
         }
         
@@ -784,24 +784,24 @@ public class StatsdMetricAggregator {
         long sumTimestamp = 0;
         int metricCounter = 0;
         
-        for (StatsdMetricRaw statsdMetricRaw : statsdMetricsRaw) {
+        for (StatsdMetric statsdMetric : statsdMetrics) {
 
             try {
-                BigDecimal metricValue = statsdMetricRaw.getMetricValue();
+                BigDecimal metricValue = statsdMetric.getMetricValue();
                 String metricValueNormalized = metricValue.stripTrailingZeros().toPlainString();
                 metricSet.add(metricValueNormalized);
-                sumTimestamp += statsdMetricRaw.getMetricReceivedTimestampInMilliseconds();
+                sumTimestamp += statsdMetric.getMetricReceivedTimestampInMilliseconds();
                 metricCounter++;
             }
             catch (Exception e) {
-                logger.error("Invalid data for set =\"" + statsdMetricRaw.getBucket()
-                                + "\". Value=\"" + statsdMetricRaw.getMetricValue() + "\"." + System.lineSeparator()
+                logger.error("Invalid data for set =\"" + statsdMetric.getBucket()
+                                + "\". Value=\"" + statsdMetric.getMetricValue() + "\"." + System.lineSeparator()
                                 + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
         
         if (metricCounter > 0) {
-            String bucketName = generatePrefix(StatsdMetricRaw.SET_TYPE, useLegacyNameSpacing) + statsdMetricsRaw.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
+            String bucketName = generatePrefix(StatsdMetric.SET_TYPE, useLegacyNameSpacing) + statsdMetrics.get(0).getBucket() + aggregatedMetricsSeparator + "count" + generateSeparatorAndSuffix();
             long averagedTimestamp = Math.round((double) sumTimestamp / (double) metricCounter);
             BigDecimal uniqueMetricValueCount = new BigDecimal(metricSet.size());
             StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated(bucketName, uniqueMetricValueCount, averagedTimestamp, StatsdMetricAggregated.SET_TYPE);
@@ -821,33 +821,33 @@ public class StatsdMetricAggregator {
             if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
             if (metricTypeKey == null) return prefix.toString();
         }
-        else if ((metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && useLegacyNameSpacing && (counterMetricLegacyPrefix_ != null)) return counterMetricLegacyPrefix_;
-        else if ((metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && !useLegacyNameSpacing && (counterMetricPrefix_ != null)) return counterMetricPrefix_;
-        else if ((metricTypeKey == StatsdMetricRaw.TIMER_TYPE) && (timerMetricPrefix_ != null)) return timerMetricPrefix_;
-        else if ((metricTypeKey == StatsdMetricRaw.GAUGE_TYPE) && (gaugeMetricPrefix_ != null)) return gaugeMetricPrefix_;
-        else if ((metricTypeKey == StatsdMetricRaw.SET_TYPE) && (setMetricPrefix_ != null)) return setMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetric.COUNTER_TYPE) && useLegacyNameSpacing && (counterMetricLegacyPrefix_ != null)) return counterMetricLegacyPrefix_;
+        else if ((metricTypeKey == StatsdMetric.COUNTER_TYPE) && !useLegacyNameSpacing && (counterMetricPrefix_ != null)) return counterMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetric.TIMER_TYPE) && (timerMetricPrefix_ != null)) return timerMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetric.GAUGE_TYPE) && (gaugeMetricPrefix_ != null)) return gaugeMetricPrefix_;
+        else if ((metricTypeKey == StatsdMetric.SET_TYPE) && (setMetricPrefix_ != null)) return setMetricPrefix_;
 
         StringBuilder prefix = new StringBuilder();
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) prefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
         if (ApplicationConfiguration.isStatsdMetricNamePrefixEnabled() && !useLegacyNameSpacing) prefix.append(ApplicationConfiguration.getStatsdMetricNamePrefixValue()).append(".");
         if (useLegacyNameSpacing) prefix.append("stats").append(".");
         
-        if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && useLegacyNameSpacing) {
+        if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetric.COUNTER_TYPE) && useLegacyNameSpacing) {
             counterMetricLegacyPrefix_ = prefix.toString();
         }
-        else if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.COUNTER_TYPE) && !useLegacyNameSpacing) {
+        else if (ApplicationConfiguration.isStatsdCounterMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetric.COUNTER_TYPE) && !useLegacyNameSpacing) {
             prefix.append(ApplicationConfiguration.getStatsdCounterMetricNamePrefixValue()).append(".");
             counterMetricPrefix_ = prefix.toString();
         }
-        else if (ApplicationConfiguration.isStatsdTimerMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.TIMER_TYPE)) {
+        else if (ApplicationConfiguration.isStatsdTimerMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetric.TIMER_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdTimerMetricNamePrefixValue()).append(".");
             timerMetricPrefix_ = prefix.toString();
         } 
-        else if (ApplicationConfiguration.isStatsdGaugeMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.GAUGE_TYPE)) {
+        else if (ApplicationConfiguration.isStatsdGaugeMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetric.GAUGE_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdGaugeMetricNamePrefixValue()).append(".");
             gaugeMetricPrefix_ = prefix.toString();
         }
-        else if (ApplicationConfiguration.isStatsdSetMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetricRaw.SET_TYPE)) {
+        else if (ApplicationConfiguration.isStatsdSetMetricNamePrefixEnabled() && (metricTypeKey == StatsdMetric.SET_TYPE)) {
             prefix.append(ApplicationConfiguration.getStatsdSetMetricNamePrefixValue()).append(".");
             setMetricPrefix_ = prefix.toString();
         }
