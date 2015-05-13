@@ -14,6 +14,7 @@ import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -131,10 +132,12 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
                 outputString.append("<b>Total Metric Group - Metric Key Associations (over the last 24 hours)</b> = ").append("0");
             }
             else {
-                TreeSet<String> matchingMetricKeysAssociatedWithMetricGroupSorted;
+                List<String> matchingMetricKeysAssociatedWithMetricGroupSorted;
                 synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
-                    matchingMetricKeysAssociatedWithMetricGroupSorted = new TreeSet<>(matchingMetricKeysAssociatedWithMetricGroup);
+                    matchingMetricKeysAssociatedWithMetricGroupSorted = new ArrayList<>(matchingMetricKeysAssociatedWithMetricGroup);
                 }
+                
+                Collections.sort(matchingMetricKeysAssociatedWithMetricGroupSorted);
                 
                 int associationCount = matchingMetricKeysAssociatedWithMetricGroupSorted.size();
                 outputString.append("<b>Total Metric Group - Metric Key Associations (over the last 24 hours)</b> = ").append(associationCount).append("<br><br>");

@@ -1,7 +1,8 @@
 StatsAgg 1.3
- * Availability alerts -- forget metrics resulted in "new datapoints detected"
  * Document "metric recent values" page
+ * Document that availability alerts work off of 'metric last received'
  * Forget metric in 'AlertAssociations' (availability alerts only)
+ * Type-ahead font-size
  
 Short/Medium term
  * Multi-thread StatsD aggregation routine

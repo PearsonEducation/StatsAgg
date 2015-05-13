@@ -7,13 +7,10 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -149,7 +146,7 @@ public class StatsAggHtmlFramework {
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
-            "  <div class=\"page-content inset\">\n" +
+            "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "  <div class=\"content-header\"> \n" +
             "    <h2> " + pageName + " Results" + " </h2> \n" +
             "  </div> ");
@@ -184,9 +181,9 @@ public class StatsAggHtmlFramework {
         stringBuilder.append("<form action=\"").append(postEndpoint).append("\" method=\"POST\" style=\"display: inline; margin-right: -4px;\" id=\"")
                 .append(encodedFormId).append("\" name=\"").append(encodedFormId).append("\">");
 
-        for (int i = 0; i < postParameters.size(); i++) {
+        for (KeyValue postParameter : postParameters) {
             stringBuilder.append(" <input type=\"hidden\" ");
-            stringBuilder.append("name=\"").append(postParameters.get(i).getKey()).append("\" value=\"").append(postParameters.get(i).getValue());
+            stringBuilder.append("name=\"").append(postParameter.getKey()).append("\" value=\"").append(postParameter.getValue());
             stringBuilder.append("\"/> ");
         }
         

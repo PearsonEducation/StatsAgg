@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import static com.pearson.statsagg.alerts.AlertThread.getAvailabilityAlert_TimeSinceLastSeen;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -228,24 +229,24 @@ public class AlertThreadTest {
     }
     
     /**
-     * Test of isAlertActive_Availability method, of class AlertThread.
+     * Test of getAvailabilityAlert_TimeSinceLastSeen method, of class AlertThread.
      */
     @Test
-    public void testIsAlertActive_Availability() {
+    public void testGetAvailabilityAlert_TimeSinceLastSeen() {
         
         AlertThread alertThread = new AlertThread(Long.valueOf(950), true, true);
         BigDecimal result;
         
-        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(800), Alert.TYPE_AVAILABILITY, 100L);
+        result = AlertThread.getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, new Long(800), Alert.TYPE_AVAILABILITY, 100L);
         assertEquals(new BigDecimal("150"), result);
         
-        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(850), Alert.TYPE_AVAILABILITY, 100L);
+        result = AlertThread.getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, new Long(850), Alert.TYPE_AVAILABILITY, 100L);
         assertEquals(null, result);
         
-        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(950), Alert.TYPE_AVAILABILITY, 100L);
+        result = AlertThread.getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, new Long(950), Alert.TYPE_AVAILABILITY, 100L);
         assertEquals(null, result);
         
-        result = AlertThread.isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, new Long(1000), Alert.TYPE_AVAILABILITY, 100L);
+        result = AlertThread.getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, new Long(1000), Alert.TYPE_AVAILABILITY, 100L);
         assertEquals(null, result);
     }
     

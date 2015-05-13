@@ -307,7 +307,8 @@ public class EmailThread implements Runnable  {
             email.send();
             
             String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
-            logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"");
+            String cleanBody = StatsAggHtmlFramework.removeNewlinesFromString(emailBody, ' ');
+            logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"" + ", EmailBody=\"" + cleanBody + "\"");
         }
         catch (Exception e) {
             String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');

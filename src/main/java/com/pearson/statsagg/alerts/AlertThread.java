@@ -48,7 +48,7 @@ public class AlertThread implements Runnable {
     public static final int ALERT_PRECISION = 31;
     public static final RoundingMode ALERT_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext ALERT_MATH_CONTEXT = new MathContext(ALERT_PRECISION, ALERT_ROUNDING_MODE);
-    
+
     private static final AtomicBoolean isThreadCurrentlyRunning_ = new AtomicBoolean(false);
     private static final AtomicLong alertRoutineExecutionCounter_ = new AtomicLong(0);
     private static final Map<Integer, Alert> pendingCautionAlertsByAlertId_ = new HashMap<>();
@@ -483,22 +483,24 @@ public class AlertThread implements Runnable {
         synchronized(GlobalVariables.activeCautionAvailabilityAlerts) {
             GlobalVariables.activeCautionAvailabilityAlerts.clear();
             while (GlobalVariables.activeCautionAvailabilityAlerts.size() > 0) Threads.sleepMilliseconds(1);
-            GlobalVariables.activeCautionAvailabilityAlerts.putAll(activeCautionAvailabilityAlerts_);
-            while (GlobalVariables.activeCautionAvailabilityAlerts.size() != activeCautionAvailabilityAlerts_.size()) {
-                logger.warn("Message=\"activeCautionAvailabilityAlerts size mismatch\", Size=" + GlobalVariables.activeCautionAvailabilityAlerts.size() +
-                    ", Expected=" + activeCautionAvailabilityAlerts_.size());
-                Threads.sleepMilliseconds(10);
+            
+            if (activeCautionAvailabilityAlerts_ != null) {
+                for (Integer alertId : activeCautionAvailabilityAlerts_.keySet()) {
+                    Set<String> metricKeys = activeCautionAvailabilityAlerts_.get(alertId);
+                    if ((metricKeys != null) && !metricKeys.isEmpty()) GlobalVariables.activeCautionAvailabilityAlerts.put(alertId, metricKeys);
+                }
             }
         }
             
         synchronized(GlobalVariables.activeDangerAvailabilityAlerts) {
             GlobalVariables.activeDangerAvailabilityAlerts.clear();
             while (GlobalVariables.activeDangerAvailabilityAlerts.size() > 0) Threads.sleepMilliseconds(1);
-            GlobalVariables.activeDangerAvailabilityAlerts.putAll(activeDangerAvailabilityAlerts_);
-            while (GlobalVariables.activeDangerAvailabilityAlerts.size() != activeDangerAvailabilityAlerts_.size()) {
-                logger.warn("Message=\"activeDangerAvailabilityAlerts size mismatch\", Size=" + GlobalVariables.activeDangerAvailabilityAlerts.size() +
-                    ", Expected=" + activeDangerAvailabilityAlerts_.size());
-                Threads.sleepMilliseconds(10);
+            
+            if (activeDangerAvailabilityAlerts_ != null) {
+                for (Integer alertId : activeDangerAvailabilityAlerts_.keySet()) {
+                    Set<String> metricKeys = activeDangerAvailabilityAlerts_.get(alertId);
+                    if ((metricKeys != null) && !metricKeys.isEmpty()) GlobalVariables.activeDangerAvailabilityAlerts.put(alertId, metricKeys);
+                }
             }
         }
         
@@ -708,53 +710,50 @@ public class AlertThread implements Runnable {
             return;
         }
         
-        BigDecimal activeAlertValue = null;
+        BigDecimal availabilityAlert_TimeSinceLastSeen = null;
         
         if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
             Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
-            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionWindowDuration());
+            boolean isAvailabilityAlert_And_HitStopTrackingLimit = isAvailabilityAlert_And_HitStopTrackingLimit(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionStopTrackingAfter());
+            if (!isAvailabilityAlert_And_HitStopTrackingLimit) availabilityAlert_TimeSinceLastSeen = getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionWindowDuration());
             Set<String> activeCautionAvailabilityMetricKeys = alertThread.activeCautionAvailabilityAlerts_.get(alert.getId());
             
-            if ((metricKeyLastSeenTimestamp == null) && (activeAlertValue == null)) {
-                if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
-                
-                positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
-                Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
-                positiveAlertReasons.put(metricKey, "Inconclusive");
-            }
-            else if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
-                if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
-                
-                positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
-                Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
-                positiveAlertReasons.put(metricKey, "New data point(s) received");
-            }
-            else { // a recent metric value has not been detected -- so the availability alert is active
-                if ((alert.getCautionStopTrackingAfter() != null) && (alert.getCautionStopTrackingAfter() < activeAlertValue.longValue())) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
-                    if (activeCautionAvailabilityMetricKeys != null) activeCautionAvailabilityMetricKeys.remove(metricKey);
-                    activeAlertValue = null;
-                    
+            if (isAvailabilityAlert_And_HitStopTrackingLimit && (availabilityAlert_TimeSinceLastSeen == null)) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
+                if (activeCautionAvailabilityMetricKeys != null) {
+                    activeCautionAvailabilityMetricKeys.remove(metricKey);
+
                     positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
                 }
-                else if (activeCautionAvailabilityMetricKeys == null) { // the availability alert is active
+            }
+            else if (!isAvailabilityAlert_And_HitStopTrackingLimit && (availabilityAlert_TimeSinceLastSeen == null)) { // a recent metric value has been detected -- so the availability alert is not active
+                if (activeCautionAvailabilityMetricKeys != null) {
+                    activeCautionAvailabilityMetricKeys.remove(metricKey);
+                    
+                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
+                    positiveAlertReasons.put(metricKey, "New data point(s) received");
+                }
+            }
+            else { // a recent metric value has not been detected -- so the availability alert is active
+                if (activeCautionAvailabilityMetricKeys == null) { // the availability alert is active
                     Set<String> activeCautionAvailabilityMetricKeys_New = Collections.synchronizedSet(new HashSet<String>());
                     activeCautionAvailabilityMetricKeys_New.add(metricKey);
                     alertThread.activeCautionAvailabilityAlerts_.put(alert.getId(), activeCautionAvailabilityMetricKeys_New);                    
                 }
                 else {
-                    activeCautionAvailabilityMetricKeys.add(metricKey);
+                    activeCautionAvailabilityMetricKeys.add(metricKey); // the availability alert is active
                 } 
             }
         }
         else if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
-            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
+            availabilityAlert_TimeSinceLastSeen = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
                     alert.getCautionWindowDuration(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(), 
                     alert.getCautionThreshold(), alert.getCautionMinimumSampleCount());
         }
         
-        if (activeAlertValue != null) {
+        if (availabilityAlert_TimeSinceLastSeen != null) {
             List<String> activeCautionAlertMetricKeys = alertThread.activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
 
             if (activeCautionAlertMetricKeys == null) {
@@ -767,7 +766,7 @@ public class AlertThread implements Runnable {
                 activeCautionAlertMetricKeys.add(metricKey);
             }
             
-            alertThread.activeCautionAlertMetricValues_.put(metricKey + "-" + alert.getId(), activeAlertValue);
+            alertThread.activeCautionAlertMetricValues_.put(metricKey + "-" + alert.getId(), availabilityAlert_TimeSinceLastSeen);
             alertThread.activeCautionAlertMetricValues_Counter_.incrementAndGet();
         }
         
@@ -779,53 +778,50 @@ public class AlertThread implements Runnable {
             return;
         }
         
-        BigDecimal activeAlertValue = null;
+        BigDecimal availabilityAlert_TimeSinceLastSeen = null;
         
         if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
             Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
-            activeAlertValue = isAlertActive_Availability(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerWindowDuration());
+            boolean isAvailabilityAlert_And_HitStopTrackingLimit = isAvailabilityAlert_And_HitStopTrackingLimit(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerStopTrackingAfter());
+            if (!isAvailabilityAlert_And_HitStopTrackingLimit) availabilityAlert_TimeSinceLastSeen = getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerWindowDuration());
             Set<String> activeDangerAvailabilityMetricKeys = alertThread.activeDangerAvailabilityAlerts_.get(alert.getId());
             
-            if ((metricKeyLastSeenTimestamp == null) && (activeAlertValue == null)) {
-                if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
-                
-                positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
-                Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
-                positiveAlertReasons.put(metricKey, "Inconclusive");
-            }
-            else if (activeAlertValue == null) { // a recent metric value has been detected -- so the availability alert is not active
-                if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
-                
-                positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
-                Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
-                positiveAlertReasons.put(metricKey, "New data point(s) received");
-            }
-            else { // a recent metric value has not been detected -- so the availability alert is active
-                if ((alert.getDangerStopTrackingAfter() != null) && (alert.getDangerStopTrackingAfter() < activeAlertValue.longValue())) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
-                    if (activeDangerAvailabilityMetricKeys != null) activeDangerAvailabilityMetricKeys.remove(metricKey);
-                    activeAlertValue = null;
-                    
+            if (isAvailabilityAlert_And_HitStopTrackingLimit && (availabilityAlert_TimeSinceLastSeen == null)) { // enough time has passed that we 'stop tracking' the metric key. the availability alert to inactive for this metric key 
+                if (activeDangerAvailabilityMetricKeys != null) {
+                    activeDangerAvailabilityMetricKeys.remove(metricKey);
+
                     positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
                 }
-                else if (activeDangerAvailabilityMetricKeys == null) { // the availability alert is active
+            }
+            else if (!isAvailabilityAlert_And_HitStopTrackingLimit && (availabilityAlert_TimeSinceLastSeen == null)) { // a recent metric value has been detected -- so the availability alert is not active
+                if (activeDangerAvailabilityMetricKeys != null) {
+                    activeDangerAvailabilityMetricKeys.remove(metricKey);
+                    
+                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
+                    positiveAlertReasons.put(metricKey, "New data point(s) received");
+                }
+            }
+            else { // a recent metric value has not been detected -- so the availability alert is active
+                if (activeDangerAvailabilityMetricKeys == null) { // the availability alert is active
                     Set<String> activeDangerAvailabilityMetricKeys_New = Collections.synchronizedSet(new HashSet<String>());
                     activeDangerAvailabilityMetricKeys_New.add(metricKey);
                     alertThread.activeDangerAvailabilityAlerts_.put(alert.getId(), activeDangerAvailabilityMetricKeys_New);                    
                 }
                 else {
-                    activeDangerAvailabilityMetricKeys.add(metricKey);
+                    activeDangerAvailabilityMetricKeys.add(metricKey); // the availability alert is active
                 } 
             }
         }
         else if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) {
-            activeAlertValue = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
+            availabilityAlert_TimeSinceLastSeen = isAlertActive_Threshold(alertThread.threadStartTimestampInMilliseconds_, recentMetricTimestampsAndValues, alert.getAlertType(),
                     alert.getDangerWindowDuration(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(), 
                     alert.getDangerThreshold(), alert.getDangerMinimumSampleCount());
         }
         
-        if (activeAlertValue != null) {
+        if (availabilityAlert_TimeSinceLastSeen != null) {
             List<String> activeDangerAlertMetricKeys = alertThread.activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
 
             if (activeDangerAlertMetricKeys == null) {
@@ -838,7 +834,7 @@ public class AlertThread implements Runnable {
                 activeDangerAlertMetricKeys.add(metricKey);
             }
             
-            alertThread.activeDangerAlertMetricValues_.put(metricKey + "-" + alert.getId(), activeAlertValue);
+            alertThread.activeDangerAlertMetricValues_.put(metricKey + "-" + alert.getId(), availabilityAlert_TimeSinceLastSeen);
             alertThread.activeDangerAlertMetricValues_Counter_.incrementAndGet();
         }
         
@@ -1203,10 +1199,10 @@ public class AlertThread implements Runnable {
     }
 
     /*
-    If the alert is not active, then this method returns null.
-    If the alert is active, then this method returns the time elapsed (in milliseconds) since the metric-key was last seen 
+    If the availability alert is not active, then this method returns null.
+    If the availability alert is active, then this method returns the time elapsed (in milliseconds) since the metric-key was last seen.
     */
-    public static BigDecimal isAlertActive_Availability(long threadStartTimestampInMilliseconds, Long metricKeyLastSeenTimestamp, Integer alertType, Long windowDuration) {
+    public static BigDecimal getAvailabilityAlert_TimeSinceLastSeen(long threadStartTimestampInMilliseconds, Long metricKeyLastSeenTimestamp, Integer alertType, Long windowDuration) {
         
         if ((metricKeyLastSeenTimestamp == null) || (alertType == null) || (alertType != Alert.TYPE_AVAILABILITY) || (windowDuration == null)) {
             return null;
@@ -1221,6 +1217,16 @@ public class AlertThread implements Runnable {
         else {
             return null;
         }
+    }
+    
+    public static boolean isAvailabilityAlert_And_HitStopTrackingLimit(long threadStartTimestampInMilliseconds, Long metricKeyLastSeenTimestamp, Integer alertType, Long stopTrackingAfter) {
+        
+        if ((metricKeyLastSeenTimestamp == null) || (alertType == null) || (alertType != Alert.TYPE_AVAILABILITY) || (stopTrackingAfter == null)) {
+            return false;
+        }
+        
+        long timeElapsedSinceMetricKeyLastSeenTimestamp = threadStartTimestampInMilliseconds - metricKeyLastSeenTimestamp;
+        return stopTrackingAfter <= timeElapsedSinceMetricKeyLastSeenTimestamp;
     }
     
     /*
