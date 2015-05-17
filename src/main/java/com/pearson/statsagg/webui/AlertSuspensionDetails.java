@@ -127,6 +127,8 @@ public class AlertSuspensionDetails extends HttpServlet {
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
             
+            outputString.append("<b>ID</b> = ").append(alertSuspension.getId()).append("<br>");
+ 
             outputString.append("<b>Is Enabled?</b> = ");
             String isEnabled = "No";
             if ((alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) isEnabled = "Yes";

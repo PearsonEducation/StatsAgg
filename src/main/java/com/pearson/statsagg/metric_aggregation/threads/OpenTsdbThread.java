@@ -91,7 +91,7 @@ public class OpenTsdbThread implements Runnable {
             
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(openTsdbMetricsMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(openTsdbMetricsMerged, threadId_);
             }
             
             // send to opentsdb via telnet

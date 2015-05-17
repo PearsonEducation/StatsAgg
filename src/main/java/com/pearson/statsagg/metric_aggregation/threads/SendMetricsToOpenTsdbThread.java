@@ -32,10 +32,8 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
     private final int numSendRetries_;
     private final int maxMetricsPerMessage_;
     private final String threadId_;
-    private final int sendTimeWarningThreshold_;
     
-    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String openTsdbHost, int openTsdbPort, 
-            int numSendRetries, String threadId, int sendTimeWarningThreshold) {
+    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String openTsdbHost, int openTsdbPort, int numSendRetries, String threadId) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.openTsdbHost_ = openTsdbHost;
         this.openTsdbUrl_ = null;
@@ -43,11 +41,10 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = -1;
         this.threadId_ = threadId;
-        this.sendTimeWarningThreshold_ = sendTimeWarningThreshold;
     }
 
     public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, URL openTsdbUrl, 
-            int numSendRetries, int maxMetricsPerMessage, String threadId, int sendTimeWarningThreshold) {
+            int numSendRetries, int maxMetricsPerMessage, String threadId) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.openTsdbHost_ = null;
         this.openTsdbUrl_ = openTsdbUrl;
@@ -55,7 +52,6 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.threadId_ = threadId;
-        this.sendTimeWarningThreshold_ = sendTimeWarningThreshold;
     }
     
     @Override
@@ -82,12 +78,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                                 ", SendToOpenTsdbTelnetSuccess=" + isSendSuccess + ", SendToOpenTsdbTime=" + sendToOpenTsdbTimeElasped;                 
             }
                 
-            if (sendToOpenTsdbTimeElasped < sendTimeWarningThreshold_) {
-                logger.info(outputString);
-            }
-            else {
-                logger.warn(outputString);
-            }
+            logger.info(outputString);
         }
         
     }
@@ -206,7 +197,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                 if (!openTsdbTelnetOutputModule.isOutputEnabled()) continue;
                 
                 SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbTelnetOutputModule.getHost(), 
-                       openTsdbTelnetOutputModule.getPort(), openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId, (int) ApplicationConfiguration.getFlushTimeAgg());
+                       openTsdbTelnetOutputModule.getPort(), openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
                 
                 SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToTelnetOpenTsdbThread);
             }
@@ -229,8 +220,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
                 URL url = new URL(openTsdbHttpOutputModule.getUrl());
                 
                 SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, url, 
-                       openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(),
-                       threadId, ApplicationConfiguration.getFlushTimeAgg());
+                       openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                 
                 SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread);
             }

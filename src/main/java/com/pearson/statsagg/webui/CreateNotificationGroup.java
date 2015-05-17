@@ -225,7 +225,13 @@ public class CreateNotificationGroup extends HttpServlet {
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
             parameter = request.getParameter("EmailAddresses");
-            if (parameter != null) notificationGroup.setEmailAddresses(parameter.trim());
+            if (parameter != null) {
+                String trimmedParameter = parameter.trim();
+                String emailAddresses;
+                if (trimmedParameter.length() > 65535) emailAddresses = trimmedParameter.substring(0, 65534);
+                else emailAddresses = trimmedParameter;
+                notificationGroup.setEmailAddresses(emailAddresses);
+            }
             else notificationGroup.setEmailAddresses("");
         }
         catch (Exception e) {

@@ -124,6 +124,8 @@ public class NotificationGroupDetails extends HttpServlet {
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName())).append("<br>");
             
+            outputString.append("<b>ID</b> = ").append(notificationGroup.getId()).append("<br>");
+
             outputString.append("<b>Email addresses</b> = ");
             
             StringBuilder emailAddressesOutput = new StringBuilder();

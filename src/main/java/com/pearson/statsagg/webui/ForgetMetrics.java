@@ -189,6 +189,8 @@ public class ForgetMetrics extends HttpServlet {
 
                 String cleanMetricKey = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetricKey + "\"");
+                
+                if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
             }
             
             parameter = request.getParameter("ForgetMetricRegex");

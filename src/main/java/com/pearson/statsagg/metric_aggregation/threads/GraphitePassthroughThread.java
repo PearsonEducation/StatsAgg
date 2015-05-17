@@ -91,7 +91,7 @@ public class GraphitePassthroughThread implements Runnable {
 
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsMerged, threadId_);
             }
             
             // send to opentsdb via telnet

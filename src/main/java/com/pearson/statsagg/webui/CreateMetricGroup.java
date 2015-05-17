@@ -283,7 +283,13 @@ public class CreateMetricGroup extends HttpServlet {
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
             parameter = request.getParameter("Description");
-            if (parameter != null) metricGroup.setDescription(parameter.trim());
+            if (parameter != null) {
+                String trimmedParameter = parameter.trim();
+                String description;
+                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
+                else description = trimmedParameter;
+                metricGroup.setDescription(description);
+            }
             else metricGroup.setDescription("");
         }
         catch (Exception e) {

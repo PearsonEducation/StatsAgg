@@ -38,10 +38,8 @@ public class ForgetMetrics_RegexThread implements Runnable {
             GlobalVariables.immediateCleanupMetrics.put(metricKey, metricKey);
         }
                 
-	if (GlobalVariables.cleanupInvokerThread != null) {
-            GlobalVariables.cleanupInvokerThread.runCleanupThread();
-        }
-                
+        if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
+
         long timeElasped = System.currentTimeMillis() - startTimestamp;
         
         logger.info("Thread=ForgetMetrics_RegexThread, Regex=\"" + regex_ + "\", TimeElasped=" + timeElasped);

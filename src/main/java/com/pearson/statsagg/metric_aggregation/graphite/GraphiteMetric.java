@@ -9,6 +9,7 @@ import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
@@ -29,6 +30,16 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     private final long metricReceivedTimestampInMilliseconds_;
         
     private final boolean isMetricTimestampInSeconds_;
+    
+    // metricTimestamp is assumed to be in seconds
+    public GraphiteMetric(String metricPath, BigDecimal metricValue, int metricTimestamp) {
+        this.metricPath_ = metricPath;
+        this.metricValue_ = metricValue;
+        this.metricTimestamp_ = metricTimestamp;
+        this.metricReceivedTimestampInMilliseconds_ = metricTimestamp * 1000;
+        
+        this.isMetricTimestampInSeconds_ = true;
+    }
     
     // metricTimestamp is assumed to be in seconds
     public GraphiteMetric(String metricPath, BigDecimal metricValue, int metricTimestamp, long metricReceivedTimestampInMilliseconds) {
@@ -129,6 +140,34 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         stringBuilder.append(metricPath_).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
+    }
+    
+    // need to optimize
+    public static String getGraphiteFormattedMetricPath(String metricPath) {
+
+        if (metricPath == null) {
+            return null;
+        }
+
+        String formattedGraphiteMetricPath = metricPath;
+ 
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "%", "Pct");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, " ", "_");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "\"", "");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "/", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "\\", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "[", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "]", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "{", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "}", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "(", "|");
+        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, ")", "|");
+                
+        while (formattedGraphiteMetricPath.contains("..")) {
+            formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "..", ".");
+        }
+        
+        return formattedGraphiteMetricPath;
     }
     
     public static GraphiteMetric parseGraphiteMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {

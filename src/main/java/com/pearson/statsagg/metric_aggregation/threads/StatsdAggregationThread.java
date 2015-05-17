@@ -129,7 +129,7 @@ public class StatsdAggregationThread implements Runnable {
 
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_);
             }
             
             // send to opentsdb via telnet

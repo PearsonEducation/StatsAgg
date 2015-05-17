@@ -97,7 +97,7 @@ public class GraphiteAggregationThread implements Runnable {
 
             // send to graphite
             if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_, ApplicationConfiguration.getFlushTimeAgg());
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(graphiteMetricsAggregatedMerged, threadId_);
             }
             
             // send to opentsdb via telnet

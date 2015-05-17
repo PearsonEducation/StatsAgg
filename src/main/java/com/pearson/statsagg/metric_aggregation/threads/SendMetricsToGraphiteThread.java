@@ -24,17 +24,15 @@ public class SendMetricsToGraphiteThread implements Runnable {
     private final int numSendRetries_;
     private final int maxMetricsPerMessage_;
     private final String threadId_;
-    private final int sendTimeWarningThresholdInMs_;
     
     public SendMetricsToGraphiteThread(List<? extends GraphiteMetricFormat> graphiteMetrics, String graphiteHost, int graphitePort, 
-            int numSendRetries, int maxMetricsPerMessage, String threadId, int sendTimeWarningThresholdInMs) {
+            int numSendRetries, int maxMetricsPerMessage, String threadId) {
         this.graphiteMetrics = graphiteMetrics;
         this.graphiteHost_ = graphiteHost;
         this.graphitePort_ = graphitePort;
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.threadId_ = threadId;
-        this.sendTimeWarningThresholdInMs_ = sendTimeWarningThresholdInMs;
     }
 
     @Override
@@ -50,12 +48,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
             String outputString = "ThreadId=" + threadId_ + ", Destination=" + graphiteHost_ + ":" + graphitePort_ + 
                                 ", SendToGraphiteSuccess=" + isSendSuccess + ", SendToGraphiteTime=" + sendToGraphiteTimeElasped;
             
-            if (sendToGraphiteTimeElasped < sendTimeWarningThresholdInMs_) {
-                logger.info(outputString);
-            }
-            else {
-                logger.warn(outputString);
-            }
+            logger.info(outputString);
         }
         
     }
@@ -136,7 +129,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
         return isSendSuccess;
     }
     
-    public static void sendMetricsToGraphiteEndpoints(List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId, int sendTimeWarningThresholdInMs) {
+    public static void sendMetricsToGraphiteEndpoints(List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId) {
         
         if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (threadId == null) || threadId.isEmpty()) {
             return;
@@ -150,8 +143,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
                 if (!graphiteOutputModule.isOutputEnabled()) continue;
                 
                 SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, graphiteOutputModule.getHost(), 
-                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), 
-                        threadId, sendTimeWarningThresholdInMs);
+                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
                 
                 SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
             }
@@ -171,8 +163,7 @@ public class SendMetricsToGraphiteThread implements Runnable {
         try {
             SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, 
                     graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), 
-                    graphiteOutputModule.getMaxMetricsPerMessage(),
-                    threadId, ApplicationConfiguration.getFlushTimeAgg());
+                    graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
 
             SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
         }

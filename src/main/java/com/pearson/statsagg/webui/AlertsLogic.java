@@ -175,7 +175,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
     
     protected static String changeAlertDangerAcknowledge(String alertName, Boolean isDangerAcknowledged) {
         
-        if (alertName == null) {
+        if ((alertName == null) || (isDangerAcknowledged == null)) {
             return null;
         }
         
@@ -193,7 +193,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
     
     protected static String changeAlertAcknowledge(String alertName, Boolean isAcknowledged) {
         
-        if (alertName == null) {
+        if ((alertName == null) || (isAcknowledged == null)) {
             return null;
         }
         

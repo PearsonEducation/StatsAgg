@@ -134,6 +134,10 @@ public class MetricGroupDetails extends HttpServlet {
             if (metricGroup.getName() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
             else outputString.append("N/A <br>");
             
+            outputString.append("<b>ID</b> = ");
+            if (metricGroup.getName() != null) outputString.append(metricGroup.getId()).append("<br>");
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Description</b> = ");
             if (metricGroup.getDescription() != null) {
                 String encodedMetricGroupDescription = StatsAggHtmlFramework.htmlEncode(metricGroup.getDescription());

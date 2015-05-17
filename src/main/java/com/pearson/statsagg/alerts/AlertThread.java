@@ -22,6 +22,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
+import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
@@ -124,13 +125,14 @@ public class AlertThread implements Runnable {
                 runAlertRoutine(alerts);
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
                 
-                if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                    // generate messages for graphite
-                    List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
-                    
-                    // send to graphite
-                    SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_, ApplicationConfiguration.getFlushTimeAgg());
-                }
+                // generate messages for graphite
+                List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
+
+                // send to graphite
+                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_);
+                
+                // send to opentsdb
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(alertStatusMetricsForGraphite, threadId_);
             }
         }
 
@@ -1642,7 +1644,7 @@ public class AlertThread implements Runnable {
             StringBuilder graphiteFormattedAlertName = new StringBuilder();
             if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
             if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
-            graphiteFormattedAlertName.append(com.pearson.statsagg.metric_aggregation.graphite.Common.getGraphiteFormattedMetricPath(alert.getName()));
+            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteFormattedMetricPath(alert.getName()));
             graphiteFormattedAlertName.append("~~").append(alert.getId());
             
             if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {

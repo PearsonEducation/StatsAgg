@@ -267,4 +267,12 @@ input[type="search"] {
 
 .tt-dropdown-menu {
     border: 1px solid rgba(255, 0, 0, 0.44) !important;
+    font-size: 12px !important;
+}
+
+.tt-dropdown-menu .tt-suggestion {
+    padding-top: 1px !important;
+    padding-right: 0px !important;
+    padding-bottom: 1px !important;
+    padding-left: 6px !important;
 }

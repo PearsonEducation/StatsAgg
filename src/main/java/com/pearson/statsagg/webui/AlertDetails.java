@@ -140,6 +140,8 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
+            outputString.append("<b>ID</b> = ").append(alert.getId()).append("<br>");
+
             outputString.append("<b>Description</b> = ");
             if (alert.getDescription() != null) {
                 String encodedAlertDescription = StatsAggHtmlFramework.htmlEncode(alert.getDescription());

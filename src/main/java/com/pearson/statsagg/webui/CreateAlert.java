@@ -733,7 +733,13 @@ public class CreateAlert extends HttpServlet {
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
             
             parameter = request.getParameter("Description");
-            if (parameter != null) alert.setDescription(parameter.trim());
+            if (parameter != null) {
+                String trimmedParameter = parameter.trim();
+                String description;
+                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
+                else description = trimmedParameter;
+                alert.setDescription(description);
+            }
             else alert.setDescription("");
                 
             parameter = request.getParameter("MetricGroupName");

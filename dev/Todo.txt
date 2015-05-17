@@ -1,43 +1,40 @@
 StatsAgg 1.3
- * Document "metric recent values" page
- * Document that availability alerts work off of 'metric last received'
- * Forget metric in 'AlertAssociations' (availability alerts only)
- * Type-ahead font-size
+ * Update screenshots
+ * Final QA checks & documentation updates
  
 Short/Medium term
+ * Optimize Graphite metric formatter
+ * Native InfluxDB support
+ * Support output via OpenTSDB HTTP/JSON
+ * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine
+ * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
  * Apply column-sort to WebUI tables via parameter in URI
- * Incoming metric rate limits
- * StatsD forwarder
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
+ * Debug mode for "details" pages (include additional details)
  * Advanced options
    * Maximum concurrently running output-threads
+   * Incoming metric rate limits
    * Output-thread timeout
-   * New application config option -- limit metric results # in WebUI
    * Cleanup metrics after... (currently hardcoded to 24hrs)
- * Debug mode for "details" pages (include additional details)
- * Manual injection of metrics via a new servlet w/ a WebUI component
- * Stop resending metric after X time of no updates
- * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
- * View application config in WebUI
-
+   
 Long-term / Wishlist / Brainstorming
+ * StatsD forwarder
+ * View application config in WebUI
+   * Need to remove anything sensitive (smtp credentials, etc)
  * History/events log w/ UI component
  * Alert escalation notification-group in Alerts
  * APIs to create alerts / metric-groups / etc
+ * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
  * Mobile versions of essential WebUI pages
    * Make existing pages more mobile friendly?
  * Flot graphs on 'Recent Metric Values' page
    * Covered by Graphite/Grafana for visualization
- * Native InfluxDB support
-   * Mitigated by InfluxDB's Graphite listener
  * OpenTSDB SSL for HTTP interface
    * Migrated by using other software as a middle-man. Ex-- HAProxy, AWS ELB.
  * Support Graphite Pickle format
    * Barely used by anything. Python specific.
  * Migrate connection pool to HikariCP
- * Support output via OpenTSDB HTTP/JSON
-   * Mitigated by telnet output being fully functional.
  * Server-side WebUI tables?
    * Will likely lose functionality
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?

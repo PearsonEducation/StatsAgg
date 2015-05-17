@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeSet;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -14,9 +13,14 @@ import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.DateAndTime;
+import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
+import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +34,8 @@ public class AlertAssociations extends HttpServlet {
     
     public static final String PAGE_NAME = "Alert Associations";
     
+    private static final int MAX_METRIC_KEYS_TO_DISPLAY = 1000;
+
     /**
      * Handles the HTTP <code>GET</code> method.
      *
@@ -49,7 +55,7 @@ public class AlertAssociations extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processGetRequest(request, response);
+        processPostRequest(request, response);
     }
 
     /**
@@ -75,39 +81,19 @@ public class AlertAssociations extends HttpServlet {
         String level = request.getParameter("Level");
         String acknowledgeLevel = request.getParameter("AcknowledgeLevel");
         String acknowledgeChange = request.getParameter("AcknowledgeChange");
-        
+
+        // if a user clicked on the 'acknowledge' button, change the acknowledgement status in the database
+        acknowledgeAlert(name, acknowledgeChange, acknowledgeLevel);
+
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(name);  
-        
-        Boolean acknowledgeChange_Boolean = null;
-        try {acknowledgeChange_Boolean = Boolean.parseBoolean(acknowledgeChange);}
-        catch (Exception e){}
-        
-        if ((acknowledgeLevel != null) && (alert != null)) {            
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Caution") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
-                AlertsLogic.changeAlertCautionAcknowledge(name, acknowledgeChange_Boolean);
-            }     
-
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Danger") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
-                AlertsLogic.changeAlertDangerAcknowledge(name, acknowledgeChange_Boolean);
-            }    
-            
-            alertsDao = new AlertsDao();
-            alert = alertsDao.getAlertByName(name);  
-        }
         
         String alertAssociations = "";
         
         if (level != null) {
-            if (level.equalsIgnoreCase("Triggered")) {
-                alertAssociations = getTriggeredAlertAssociations(name);
-            }
-            else if (level.equalsIgnoreCase("Caution")) {
-                alertAssociations = getCautionAlertAssociations(name);
-            }
-            else if (level.equalsIgnoreCase("Danger")) {
-                alertAssociations = getDangerAlertAssociations(name);
-            }
+            if (level.equalsIgnoreCase("Triggered")) alertAssociations = getTriggeredAlertAssociations(name, level);
+            else if (level.equalsIgnoreCase("Caution")) alertAssociations = getCautionAlertAssociations(name, level);
+            else if (level.equalsIgnoreCase("Danger")) alertAssociations = getDangerAlertAssociations(name, level);
         }
         
         try {  
@@ -156,9 +142,70 @@ public class AlertAssociations extends HttpServlet {
         
     }
     
+    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        if ((request == null) || (response == null)) {
+            return;
+        }
+        
+        String name = request.getParameter("Name");
+        String level = request.getParameter("Level");
+        String forgetMetric = request.getParameter("ForgetMetric");
+
+        // if the user clicked on the X button to remove a metric, perform that action & reload the page
+        if ((forgetMetric != null) && !forgetMetric.isEmpty()) {
+            boolean forgetSuccess = forgetMetricAndReloadPage(forgetMetric, name, level, response);
+            if (!forgetSuccess) processGetRequest(request, response);
+        }
+        else processGetRequest(request, response);
+    }
+        
+    private boolean forgetMetricAndReloadPage(String metricToForget, String alertName, String level, HttpServletResponse response) {
+        
+        if ((metricToForget == null) || metricToForget.isEmpty() || (alertName == null) || (alertName.isEmpty()) || (level == null) || (level.isEmpty()) || (response == null)) {
+            return false;
+        }
+        
+        String trimmedMetricToForget = metricToForget.trim();
+        GlobalVariables.immediateCleanupMetrics.put(trimmedMetricToForget, trimmedMetricToForget);
+        String cleanMetricKey = StatsAggHtmlFramework.removeNewlinesFromString(trimmedMetricToForget);
+        logger.info("Action=AlertAssociations_ForgetMetric, " + "MetricKey=\"" + cleanMetricKey + "\"");
+        
+        if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
+
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "&" + "Level=" + level);
+        
+        return true;
+    }
+    
+    private void acknowledgeAlert(String alertName, String acknowledgeChange, String acknowledgeLevel) {
+        
+        if ((alertName == null) || (acknowledgeChange == null) || (acknowledgeLevel == null)) {
+            return;
+        }
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(alertName);  
+        if (alert == null) return;
+        
+        Boolean acknowledgeChange_Boolean = null;
+        try {
+            acknowledgeChange_Boolean = Boolean.parseBoolean(acknowledgeChange);
+        }
+        catch (Exception e){}
+        
+        if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Caution") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
+            AlertsLogic.changeAlertCautionAcknowledge(alertName, acknowledgeChange_Boolean);
+        }     
+
+        if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Danger") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
+            AlertsLogic.changeAlertDangerAcknowledge(alertName, acknowledgeChange_Boolean);
+        }    
+    }
+    
     private String getAcknowledgeButtonHtml(Alert alert, String level, String name) {
         
-        if (level == null || alert == null || name == null) {
+        if ((level == null) || (alert == null) || (name == null)) {
             return "";
         }
         
@@ -211,9 +258,9 @@ public class AlertAssociations extends HttpServlet {
         return htmlBodyBuilder.toString();
     }
 
-    private String getTriggeredAlertAssociations(String alertName) {
+    private String getTriggeredAlertAssociations(String alertName, String level) {
         
-        if (alertName == null) {
+        if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
         }
         
@@ -252,21 +299,21 @@ public class AlertAssociations extends HttpServlet {
             
             outputString.append("<hr>");
 
-            String cautionBody = getCautionAlertAssociations_Body(alert);
+            String cautionBody = getCautionAlertAssociations_Body(alert, level);
             outputString.append(cautionBody);
             
             outputString.append("<hr>");
             
-            String dangerBody = getDangerAlertAssociations_Body(alert);
+            String dangerBody = getDangerAlertAssociations_Body(alert, level);
             outputString.append(dangerBody);
             
             return outputString.toString();
         }
     }
     
-    private String getCautionAlertAssociations(String alertName) {
+    private String getCautionAlertAssociations(String alertName, String level) {
         
-        if (alertName == null) {
+        if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
         }
         
@@ -292,31 +339,50 @@ public class AlertAssociations extends HttpServlet {
             else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
-            String body = getCautionAlertAssociations_Body(alert);
+            String body = getCautionAlertAssociations_Body(alert, level);
             outputString.append(body);
             
             return outputString.toString();
         }
     }
     
-    private String getCautionAlertAssociations_Body(Alert alert) {
+    private String getCautionAlertAssociations_Body(Alert alert, String level) {
         
-        if ((alert == null) || (alert.getId() == null)) {
+        if ((alert == null) || (alert.getId() == null) || (level == null)) {
             return "";
         }
         
         StringBuilder outputString = new StringBuilder();
         
+        // make a local copy of the relevant 'active alerts' list
         List<String> activeCautionAlertMetricKeys;
-        TreeSet<String> activeCautionAlertMetricKeysSorted = new TreeSet<>();
+        HashSet<String> activeCautionAlertMetricKeysLocal = new HashSet<>();
         synchronized(GlobalVariables.activeCautionAlertMetricKeysByAlertId) {
             activeCautionAlertMetricKeys = GlobalVariables.activeCautionAlertMetricKeysByAlertId.get(alert.getId());
-
-            if (activeCautionAlertMetricKeys != null) {
-                activeCautionAlertMetricKeysSorted = new TreeSet<>(activeCautionAlertMetricKeys);
-            }
+            if (activeCautionAlertMetricKeys != null) activeCautionAlertMetricKeysLocal = new HashSet<>(activeCautionAlertMetricKeys);
         }
+        
+        // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
+        List<String> keysToRemove = new ArrayList<>();
+        for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysLocal) {
+            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeCautionAlertMetricKey)) keysToRemove.add(activeCautionAlertMetricKey);
+        }
+        activeCautionAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
+        activeCautionAlertMetricKeysLocal.removeAll(keysToRemove);
+        
+        // limit the number of metrics displayed
+        int i = 1;
+        List<String> activeCautionAlertMetricKeysSorted_Reduced = new ArrayList<>();
+        for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysLocal) {
+            activeCautionAlertMetricKeysSorted_Reduced.add(activeCautionAlertMetricKey);
+            i++;
+            if (i > MAX_METRIC_KEYS_TO_DISPLAY) break;
+        }
+        
+        // sort the metrics that are going to be displayed alphabetically
+        Collections.sort(activeCautionAlertMetricKeysSorted_Reduced);
 
+        // get a local copy of the metric values that are associated triggered metric-keys
         Map<String,BigDecimal> activeCautionAlertMetricValuesLocal;
         synchronized(GlobalVariables.activeCautionAlertMetricValues) {
             activeCautionAlertMetricValuesLocal = new HashMap<>(GlobalVariables.activeCautionAlertMetricValues);
@@ -326,38 +392,44 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Total Triggered Caution Metrics</b> = ").append("0");
         }
         else {
-            outputString.append("<b>Total Triggered Caution Metrics</b> = ").append(activeCautionAlertMetricKeysSorted.size()).append("<br><br>");
+            outputString.append("<b>Total Triggered Caution Metrics</b> = ").append(activeCautionAlertMetricKeysLocal.size()).append("<br><br>");
 
-            if (activeCautionAlertMetricKeysSorted.size() > 0) {
+            if (activeCautionAlertMetricKeysLocal.size() > 0) {
                 outputString.append("<b>Triggered Metrics...</b>").append("<br>");
 
                 int associationOutputCounter = 0;
                 outputString.append("<ul>");
 
-                for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysSorted) {
+                for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysSorted_Reduced) {
+                    String metricValueString = null;
 
-                    if (associationOutputCounter < 1000)  {
-                        String metricValueString = null;
-                        
-                        BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
-                        if (alertMetricValue != null) {
-                            metricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
-                        }
+                    BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
+                    if (alertMetricValue != null) metricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
 
-                        outputString.append("<li>");
-                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
-                        outputString.append(StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey)).append("</a>");
-                        outputString.append("&nbsp;=&nbsp;").append(metricValueString);
-                        outputString.append("</li>");
+                    String forgetMetric = "";
+
+                    if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
+                        List<KeyValue> keysAndValues = new ArrayList<>();
+                        keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeCautionAlertMetricKey)));
+                        keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                        keysAndValues.add(new KeyValue("Level", level));
+                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + activeCautionAlertMetricKey, "AlertAssociations", 
+                                "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
+                                "Are you sure you want to remove this metric? " +
+                                "This will completely erase the metric from StatsAgg. Other alerts may be affected.");
                     }
-                    else {
-                        break;
-                    }
+
+                    outputString.append("<li>");
+                    outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
+                    outputString.append(StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey)).append("</a>");
+                    outputString.append("&nbsp;=&nbsp;").append(metricValueString);
+                    if (!forgetMetric.isEmpty()) outputString.append("&nbsp;&nbsp;").append(forgetMetric);
+                    outputString.append("</li>");
 
                     associationOutputCounter++;
                 }
 
-                int numAssociationsNotOutputted = activeCautionAlertMetricKeysSorted.size() - associationOutputCounter;
+                int numAssociationsNotOutputted = activeCautionAlertMetricKeysLocal.size() - associationOutputCounter;
                 if (numAssociationsNotOutputted > 0) {
                     outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
                 }
@@ -365,13 +437,13 @@ public class AlertAssociations extends HttpServlet {
                 outputString.append("</ul>");
             }
         }
-
+        
         return outputString.toString();
     }
 
-    private String getDangerAlertAssociations(String alertName) {
+    private String getDangerAlertAssociations(String alertName, String level) {
         
-        if (alertName == null) {
+        if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
         }
         
@@ -396,31 +468,50 @@ public class AlertAssociations extends HttpServlet {
             else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
-            String body = getDangerAlertAssociations_Body(alert);
+            String body = getDangerAlertAssociations_Body(alert, level);
             outputString.append(body);
             
             return outputString.toString();
         }
     }
     
-    private String getDangerAlertAssociations_Body(Alert alert) {
+    private String getDangerAlertAssociations_Body(Alert alert, String level) {
         
-        if ((alert == null) || (alert.getId() == null)) {
+        if ((alert == null) || (alert.getId() == null) || (level == null)) {
             return "";
         }
         
         StringBuilder outputString = new StringBuilder();
         
+        // make a local copy of the relevant 'active alerts' list
         List<String> activeDangerAlertMetricKeys;
-        TreeSet<String> activeDangerAlertMetricKeysSorted = new TreeSet<>();
+        HashSet<String> activeDangerAlertMetricKeysLocal = new HashSet<>();
         synchronized(GlobalVariables.activeDangerAlertMetricKeysByAlertId) {
             activeDangerAlertMetricKeys = GlobalVariables.activeDangerAlertMetricKeysByAlertId.get(alert.getId());
-
-            if (activeDangerAlertMetricKeys != null) {
-                activeDangerAlertMetricKeysSorted = new TreeSet<>(activeDangerAlertMetricKeys);
-            }
+            if (activeDangerAlertMetricKeys != null) activeDangerAlertMetricKeysLocal = new HashSet<>(activeDangerAlertMetricKeys);
         }
+        
+        // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
+        List<String> keysToRemove = new ArrayList<>();
+        for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysLocal) {
+            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeDangerAlertMetricKey)) keysToRemove.add(activeDangerAlertMetricKey);
+        }
+        activeDangerAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
+        activeDangerAlertMetricKeysLocal.removeAll(keysToRemove);
+        
+        // limit the number of metrics displayed
+        int i = 1;
+        List<String> activeDangerAlertMetricKeysSorted_Reduced = new ArrayList<>();
+        for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysLocal) {
+            activeDangerAlertMetricKeysSorted_Reduced.add(activeDangerAlertMetricKey);
+            i++;
+            if (i > MAX_METRIC_KEYS_TO_DISPLAY) break;
+        }
+        
+        // sort the metrics that are going to be displayed alphabetically
+        Collections.sort(activeDangerAlertMetricKeysSorted_Reduced);
 
+        // get a local copy of the metric values that are associated triggered metric-keys
         Map<String,BigDecimal> activeDangerAlertMetricValuesLocal;
         synchronized(GlobalVariables.activeDangerAlertMetricValues) {
             activeDangerAlertMetricValuesLocal = new HashMap<>(GlobalVariables.activeDangerAlertMetricValues);
@@ -430,38 +521,44 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Total Triggered Danger Metrics</b> = ").append("0");
         }
         else {
-            outputString.append("<b>Total Triggered Danger Metrics</b> = ").append(activeDangerAlertMetricKeysSorted.size()).append("<br><br>");
+            outputString.append("<b>Total Triggered Danger Metrics</b> = ").append(activeDangerAlertMetricKeysLocal.size()).append("<br><br>");
 
-            if (activeDangerAlertMetricKeysSorted.size() > 0) {
+            if (activeDangerAlertMetricKeysLocal.size() > 0) {
                 outputString.append("<b>Triggered Metrics...</b>").append("<br>");
 
                 int associationOutputCounter = 0;
                 outputString.append("<ul>");
 
-                for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysSorted) {
+                for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysSorted_Reduced) {
+                    String metricValueString = null;
 
-                    if (associationOutputCounter < 1000)  {
-                        String metricValueString = null;
-                        
-                        BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
-                        if (alertMetricValue != null) {
-                            metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
-                        }
+                    BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
+                    if (alertMetricValue != null) metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
 
-                        outputString.append("<li>");
-                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
-                        outputString.append(StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey)).append("</a>");
-                        outputString.append("&nbsp;=&nbsp;").append(metricValueString);
-                        outputString.append("</li>");
+                    String forgetMetric = "";
+
+                    if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
+                        List<KeyValue> keysAndValues = new ArrayList<>();
+                        keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeDangerAlertMetricKey)));
+                        keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                        keysAndValues.add(new KeyValue("Level", level));
+                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + activeDangerAlertMetricKey, "AlertAssociations", 
+                                "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
+                                "Are you sure you want to remove this metric? " +
+                                "This will completely erase the metric from StatsAgg. Other alerts may be affected.");
                     }
-                    else {
-                        break;
-                    }
+
+                    outputString.append("<li>");
+                    outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
+                    outputString.append(StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey)).append("</a>");
+                    outputString.append("&nbsp;=&nbsp;").append(metricValueString);
+                    if (!forgetMetric.isEmpty()) outputString.append("&nbsp;&nbsp;").append(forgetMetric);
+                    outputString.append("</li>");
 
                     associationOutputCounter++;
                 }
 
-                int numAssociationsNotOutputted = activeDangerAlertMetricKeysSorted.size() - associationOutputCounter;
+                int numAssociationsNotOutputted = activeDangerAlertMetricKeysLocal.size() - associationOutputCounter;
                 if (numAssociationsNotOutputted > 0) {
                     outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
                 }
