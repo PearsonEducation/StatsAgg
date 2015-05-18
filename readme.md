@@ -11,22 +11,27 @@ StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally)
 
 ## What are StatsAgg's core features?
 
-* A complete re-implementation of StatsD
-    * TCP & UDP support (both can run concurrently).
-    * Support for all metric-types.
+* Receives and aggregates StatsD metrics
+    * StatsAgg contains a complete re-implementation of StatsD
+	* All metric-types are fully supported (and in some cases, enhanced)
+    * TCP & UDP support (both can run concurrently)
 * Receives (and optionally, aggregates) Graphite metrics
-    * TCP & UDP support (both can run concurrently).
-    * (optionally) Aggregates into minimum, average, maximum for the values of an individual metric-path (during an 'aggregation window').
+    * TCP & UDP support (both can run concurrently)
+    * Can aggregates into minimum, average, maximum, median, count, rate, and sum for the values of an individual metric-path (during an 'aggregation window').
+	* Aggregation works similarly to StatsD timer aggregation, but for Graphite metrics.
+* Receives OpenTSDB metrics
+    * Telnet & HTTP interfaces are supported
+	* Supports GZIP compression on HTTP interface 
 * Outputs metrics to metric storage platforms
     * Graphite (and Graphite compatible services, like InfluxDB)
-    * OpenTSDB
-    * Outputting to a storage engine is completely optional
+    * OpenTSDB (via telnet)
+    * Outputting to a storage engine is completely optional; you can send metrics into StatsAgg without having them forwarded to a metric storage solution. This also means that if you’re having issues with your metric storage solution, StatsAgg will still be available & capable of alerting off the metrics that it receives.
 * A robust alerting mechanism 
-    * Can alert off of any received/aggregated metric.
-    * Regular-expression based mechanism for tying metrics & alerts together.
-    * 'threshold' based alerting, or 'availability' based alerting.
-    * A flexible alert-suspension mechanism.
-    * Alerts notifications can be sent via email, or viewed in the StatsAgg website.
+    * Can alert off of any received/aggregated metric
+    * Regular-expression based mechanism for tying metrics & alerts together
+    * 'threshold' or 'availability' based alerting
+    * A flexible alert-suspension mechanism
+    * Alerts notifications can be sent via email or viewed in the StatsAgg website
 * A web-based UI for managing alerts & metrics
 
 A more detailed discussion of StatsAgg's features can be found in the [StatsAgg user manual](./docs/manual.pdf)
@@ -46,7 +51,7 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
 * StatsAgg provides an alternative way of managing servers/services/etc compared to tools like Nagios, Zabbix, etc
     * StatsAgg allows you to break away from viewing everything from the perspective of servers/hosts. You could structure your metrics to group everything by host, but you aren't required to.
     * Generally speaking, tools like Nagios, Zabbix, etc lack the ability to alert off of free-form metrics. Since StatsAgg uses regular-expressions to tie metrics to alerts, you can just as easily alert off of a 'free-form metric hierarchy' as you can a 'highly structured metric hierarchy'.
-    * Tools like Nagios, Zabbix, etc aren't built around having fine datapoint granularity (more frequent than once per minute). StatsAgg was written to be able to receive, aggregate, alert on, and output metrics that are sent at any interval.
+    * Tools like Nagios, Zabbix, etc aren't built around having fine data point granularity (more frequent than once per minute). StatsAgg was written to be able to receive, aggregate, alert on, and output metrics that are sent at any interval.
 * StatsD limitations
     * StatsD doesn't allow the TCP server & the UDP server to be active at the same time. StatsAgg does.
     * StatsD doesn't persist Gauge metrics, so a restart will result of StatsD 'forgetting' what the previous Gauge metric values were. StatsAgg can persists Gauge values, so a restart won't result in Gauges resetting themselves.
@@ -90,7 +95,7 @@ Detailed installation instructions can be found in the [StatsAgg user manual](./
 * [CollectD](https://collectd.org/)
 * [tcollector](https://github.com/OpenTSDB/tcollector/)
 * [scollector](https://github.com/bosun-monitor/bosun/tree/master/cmd/scollector)
-* StatsPoller -- a Pearson-developed metrics collection agent for servers (to be released sometime in 2015).
+* StatsPoller -- a Pearson-developed metrics collection agent for servers (to be publically released sometime in 2015).
 * Anything that can output in Graphite, StatsD, or OpenTSDB format
 
 <br>

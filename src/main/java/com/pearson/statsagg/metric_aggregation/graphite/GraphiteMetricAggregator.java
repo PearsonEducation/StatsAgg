@@ -26,7 +26,8 @@ public class GraphiteMetricAggregator {
     public static final int GRAPHITE_PRECISION = 31;
     public static final RoundingMode GRAPHITE_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext GRAPHITE_MATH_CONTEXT = new MathContext(GRAPHITE_PRECISION, GRAPHITE_ROUNDING_MODE);
-    
+    public static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
+
     public static List<GraphiteMetric> aggregateGraphiteMetrics(List<GraphiteMetric> graphiteMetrics) {
         
         if ((graphiteMetrics == null) || graphiteMetrics.isEmpty()) {
@@ -83,10 +84,12 @@ public class GraphiteMetricAggregator {
         List<GraphiteMetric> graphiteMetricsAggregated = new ArrayList<>();
         Set<String> metricPathSet = graphiteMetricsByMetricPath.keySet();
         
+        BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
+        
         for (String metricPath : metricPathSet) {
             try {
                 List<GraphiteMetric> graphiteMetrics = graphiteMetricsByMetricPath.get(metricPath);
-                List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics);
+                List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics, aggregationWindowLengthInMs);
             
                 if ((multipleGraphiteMetricsAggregated != null) && !multipleGraphiteMetricsAggregated.isEmpty()) {
                     graphiteMetricsAggregated.addAll(multipleGraphiteMetricsAggregated);
@@ -103,9 +106,9 @@ public class GraphiteMetricAggregator {
     /* 
      * This method assumes that all of the input graphite metrics share the same metric path
      */
-    public static List<GraphiteMetric> aggregate(List<GraphiteMetric> graphiteMetrics) {
+    public static List<GraphiteMetric> aggregate(List<GraphiteMetric> graphiteMetrics, BigDecimal aggregationWindowLengthInMs) {
         
-        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty()) {
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (aggregationWindowLengthInMs == null)) {
            return new ArrayList<>(); 
         }
 
@@ -152,6 +155,7 @@ public class GraphiteMetricAggregator {
             
             String metricPath = graphiteMetrics.get(0).getMetricPath();
             BigDecimal metricCount = new BigDecimal(metricCounter);
+            BigDecimal rate = MathUtilities.smartBigDecimalScaleChange(metricCount.multiply(ONE_THOUSAND).divide(aggregationWindowLengthInMs, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             BigDecimal averageMetricValue = MathUtilities.smartBigDecimalScaleChange(sumMetricValues.divide(metricCount, GRAPHITE_MATH_CONTEXT), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             minimumMetricValue = (minimumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(minimumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
             maximumMetricValue = (maximumMetricValue != null) ? MathUtilities.smartBigDecimalScaleChange(maximumMetricValue, GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE) : null;
@@ -194,6 +198,13 @@ public class GraphiteMetricAggregator {
             if (minimumMetricValue != null) {
                 GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Min", 
                         minimumMetricValue, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
+                graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+                graphiteMetricsAggregated.add(graphiteMetric);
+            }
+            
+            if (rate != null) {
+                GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Rate-Sec", 
+                        rate, averagedMetricTimestamp, averagedMetricReceivedTimestamp);
                 graphiteMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 graphiteMetricsAggregated.add(graphiteMetric);
             }

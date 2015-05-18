@@ -69,7 +69,7 @@ public class GraphiteMetricAggregatorTest {
         graphiteMetrics.add(graphiteMetric1); graphiteMetrics.add(graphiteMetric2); graphiteMetrics.add(graphiteMetric3); graphiteMetrics.add(graphiteMetric4); 
         graphiteMetrics.add(graphiteMetric5); graphiteMetrics.add(graphiteMetric6); graphiteMetrics.add(graphiteMetric7); 
         
-        List<GraphiteMetric> aggregatedGraphiteMetrics = GraphiteMetricAggregator.aggregateGraphiteMetrics(graphiteMetrics);
+        List<GraphiteMetric> aggregatedGraphiteMetrics = GraphiteMetricAggregator.aggregate(graphiteMetrics, new BigDecimal(10000));
 
         int matchCount = 0;
         for (GraphiteMetric aggregatedGraphiteMetric : aggregatedGraphiteMetrics) {
@@ -97,9 +97,13 @@ public class GraphiteMetricAggregatorTest {
                 assertEquals(aggregatedGraphiteMetric.getMetricValueString(), "99.99");
                 matchCount++;
             }
+            if (aggregatedGraphiteMetric.getMetricPath().contains("Rate-Sec")) {
+                assertEquals(aggregatedGraphiteMetric.getMetricValueString(), "0.7");
+                matchCount++;
+            }
         }
         
-        assertEquals(6, matchCount);
+        assertEquals(7, matchCount);
         assertEquals(4000, aggregatedGraphiteMetrics.get(0).getMetricTimestamp());
         assertEquals(41, aggregatedGraphiteMetrics.get(0).getMetricReceivedTimestampInMilliseconds());
     }

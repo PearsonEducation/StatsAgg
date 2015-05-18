@@ -30,7 +30,7 @@ public class StatsdMetricAggregator {
     public static final int STATSD_PRECISION = 31;
     public static final RoundingMode STATSD_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext STATSD_MATH_CONTEXT = new MathContext(STATSD_PRECISION, STATSD_ROUNDING_MODE);
-    private static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
+    public static final BigDecimal ONE_THOUSAND = new BigDecimal((int) 1000);
 
     private static String counterMetricPrefix_ = null;
     private static String counterMetricLegacyPrefix_ = null;
@@ -350,8 +350,8 @@ public class StatsdMetricAggregator {
             String aggregatedMetricsSeparator, StatsdNthPercentiles statsdNthPercentiles, List<StatsdHistogramConfiguration> statsdHistogramConfigurations, 
             boolean useLegacyNameSpacing) {
         
-        if ((statsdMetrics == null) || statsdMetrics.isEmpty()) {
-           return new ArrayList<>(); 
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty() || (aggregationWindowLengthInMs == null)) {
+            return new ArrayList<>(); 
         }
         
         if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";

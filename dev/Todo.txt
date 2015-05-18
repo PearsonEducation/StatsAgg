@@ -1,5 +1,4 @@
 StatsAgg 1.3
- * Update screenshots
  * Final QA checks & documentation updates
  
 Short/Medium term
