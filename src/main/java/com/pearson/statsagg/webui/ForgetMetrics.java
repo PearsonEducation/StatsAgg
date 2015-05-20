@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -187,7 +188,7 @@ public class ForgetMetrics extends HttpServlet {
                 String trimmedParameter = parameter.trim();
                 GlobalVariables.immediateCleanupMetrics.put(trimmedParameter, trimmedParameter);
 
-                String cleanMetricKey = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
+                String cleanMetricKey = StringUtilities.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "MetricKey=\"" + cleanMetricKey + "\"");
                 
                 if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
@@ -200,7 +201,7 @@ public class ForgetMetrics extends HttpServlet {
                 forgetMetrics_RegexThread.setPriority(Thread.MIN_PRIORITY);
                 forgetMetrics_RegexThread.start();
                 
-                String cleanRegex = StatsAggHtmlFramework.removeNewlinesFromString(trimmedParameter);
+                String cleanRegex = StringUtilities.removeNewlinesFromString(trimmedParameter);
                 logger.info("Action=ForgetMetrics, " + "Rexex=\"" + cleanRegex + "\"");
             }
 

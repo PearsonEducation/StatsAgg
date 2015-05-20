@@ -22,6 +22,7 @@ import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -284,7 +285,7 @@ public class NotificationGroups extends HttpServlet {
         NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
         
         if ((notificationGroup == null) || (notificationGroup.getName() == null) || (notificationGroup.getId() == null)) {
-            String cleanNotificationGroupName = StatsAggHtmlFramework.removeNewlinesFromString(notificationGroupName, ' ');
+            String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroupName, ' ');
             logger.warn("Failed to send email alert to notification group '" + cleanNotificationGroupName + "'. Notification group does not exist." );
             return;
         }
@@ -321,7 +322,7 @@ public class NotificationGroups extends HttpServlet {
         
         emailThread.sendEmail(emailsAddresses, emailThread.getSubject(), emailThread.getBody());
 
-        String cleanNotificationGroupName = StatsAggHtmlFramework.removeNewlinesFromString(notificationGroup.getName(), ' ');
+        String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test email alert to notification group '" + cleanNotificationGroupName + "'");
     }
 

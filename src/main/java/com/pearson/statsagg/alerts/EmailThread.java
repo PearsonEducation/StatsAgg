@@ -16,6 +16,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -262,8 +263,8 @@ public class EmailThread implements Runnable  {
         
         body_ = body.toString();
         
-        String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(subject_, ' ');
-        String cleanBody = StatsAggHtmlFramework.removeNewlinesFromString(body_, ' ');
+        String cleanSubject = StringUtilities.removeNewlinesFromString(subject_, ' ');
+        String cleanBody = StringUtilities.removeNewlinesFromString(body_, ' ');
         logger.debug(cleanSubject + "\n" + cleanBody);
     }
     
@@ -282,7 +283,7 @@ public class EmailThread implements Runnable  {
             String fromAddress, String fromName, List<String> toAddresses, String emailSubject, String emailBody) {
         
         if (toAddresses.isEmpty()) {
-            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
+            String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
             logger.debug("Message=\"Failed to send email alert. No valid recipients.\", EmailSubject=\"" + cleanSubject + "\"");
             return;
         }
@@ -306,12 +307,12 @@ public class EmailThread implements Runnable  {
             email.setHtmlMsg(emailBody);
             email.send();
             
-            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
-            String cleanBody = StatsAggHtmlFramework.removeNewlinesFromString(emailBody, ' ');
+            String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
+            String cleanBody = StringUtilities.removeNewlinesFromString(emailBody, ' ');
             logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"" + ", EmailBody=\"" + cleanBody + "\"");
         }
         catch (Exception e) {
-            String cleanSubject = StatsAggHtmlFramework.removeNewlinesFromString(emailSubject, ' ');
+            String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
             logger.error("Message=\"Failed to send email alert. SMTP failure.\", " + "EmailSubject=\"" + cleanSubject + "\", " +
                     e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }

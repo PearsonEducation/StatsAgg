@@ -3,6 +3,7 @@ package com.pearson.statsagg.webui;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -85,25 +86,25 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to create alert. An alert the with same name already exists. AlertName=\"" + alertToUpsert.getName() + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
             else if (isUpsertSuccess && isNewAlert && (newAlertFromDb != null)) {
                 lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Successful alert creation. AlertName=\"" + alertToUpsert.getName() + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
             else if (isUpsertSuccess && (newAlertFromDb != null)) {
                 lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Successful alert alteration. AlertName=\"" + alertToUpsert.getName() + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
             else {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to alter alert. " + "AlertName=\"" + alertToUpsert.getName() + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
         }
@@ -132,20 +133,20 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                 if (!didDeleteSucceed) {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                     returnString = "Failed to delete alert. AlertName=\"" + alertName + "\".";
-                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                     logger.warn(cleanReturnString);
                 }
                 else {
                     lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                     returnString = "Delete alert success. AlertName=\"" + alertName + "\".";
-                    String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                     logger.info(cleanReturnString);
                 }
             }
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Alert not found. AlertName=\"" + alertName + "\". Cancelling delete operation.";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
 

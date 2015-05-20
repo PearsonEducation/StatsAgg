@@ -61,13 +61,13 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();
     
     // k=MetricKey, v="Aggregated metric object"
-    public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>();
-    public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
-    public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>(16, 0.75f, 3);
     
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
@@ -76,10 +76,10 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Integer,Byte> metricGroupChanges = new ConcurrentHashMap<>();
             
     // k=MetricKey, v="The most timestamp that this metric was received by this program"
-    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(16, 0.75f, 6); 
     
     // k=MetricKey, v="The most timestamp that this metric was received by this program. Gets updated if the metric is configured to send 0 or previous value when no new metrics were received."
-    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp_UpdateOnResend = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp_UpdateOnResend = new ConcurrentHashMap<>(16, 0.75f, 6); 
     
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 
@@ -91,7 +91,7 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Integer,String> mergedRegexsForMetricGroups = new ConcurrentHashMap<>(); 
     
     // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedSet(HashSet<MetricTimestampAndValue>()))
-    public final static ConcurrentHashMap<String,Set<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<String,Set<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 
 
     // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."
     public final static ConcurrentHashMap<String,Pattern> metricGroupRegexPatterns = new ConcurrentHashMap<>(); 
@@ -112,13 +112,13 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Integer,Alert> pendingDangerAlertsByAlertId = new ConcurrentHashMap<>(); 
 
     // k=MetricKey, v=MetricKey
-    public static final ConcurrentHashMap<String,String> activeAvailabilityAlerts = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<String,String> activeAvailabilityAlerts = new ConcurrentHashMap<>();
    
     // k=AlertId, v=Set<MetricKey>
-    public static final ConcurrentHashMap<Integer,Set<String>> activeCautionAvailabilityAlerts = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Set<String>> activeCautionAvailabilityAlerts = new ConcurrentHashMap<>();
     
     // k=AlertId, v=Set<MetricKey>
-    public static final ConcurrentHashMap<Integer,Set<String>> activeDangerAvailabilityAlerts = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Set<String>> activeDangerAvailabilityAlerts = new ConcurrentHashMap<>();
     
     // k="{metricKey}-{alertId}", v='Alert routine calculated metric value'
     public final static ConcurrentHashMap<String,BigDecimal> activeCautionAlertMetricValues = new ConcurrentHashMap<>(); 

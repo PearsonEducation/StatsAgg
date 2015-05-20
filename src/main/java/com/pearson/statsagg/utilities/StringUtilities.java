@@ -1,6 +1,7 @@
 package com.pearson.statsagg.utilities;
 
 import java.util.List;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,4 +60,26 @@ public class StringUtilities {
         return mergedRegexStringBuilder.toString();
     }
 
+    public static String removeNewlinesFromString(String inputString) {
+
+        if ((inputString == null) || inputString.isEmpty()) {
+            return inputString;
+        }
+        
+        String cleanedString = StringUtils.remove(inputString, '\r');
+        cleanedString = StringUtils.remove(cleanedString, '\n');
+
+        return cleanedString;
+    }
+    
+    public static String removeNewlinesFromString(String inputString, char newlineReplacementCharacter) {
+
+        if ((inputString == null) || inputString.isEmpty()) {
+            return inputString;
+        }
+        
+        String cleanedString = inputString.replace('\n', newlineReplacementCharacter).replace('\r', newlineReplacementCharacter);
+        return cleanedString;
+    }
+    
 }

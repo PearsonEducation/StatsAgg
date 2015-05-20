@@ -2,6 +2,7 @@ package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
             returnString = "Failed to create notification group. A notification group with the same name already exists. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
         else if (isUpsertSuccess && (newNotificationGroupFromDb != null)) {
@@ -70,7 +71,7 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             
             if (isNewNotificationGroup) returnString = "Successful notification group creation. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             else returnString = "Successful notification group alteration. NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.info(cleanReturnString);
         }
         else {
@@ -78,7 +79,7 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             
             if (isNewNotificationGroup) returnString = "Failed to create notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
             else returnString = "Failed to alter notification group. " + "NotificationGroupName=\"" + notificationGroup.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
             
@@ -105,20 +106,20 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             if (!didDeleteSucceed) {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to delete notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Delete notification group success. NotificationGroupName=\"" + notificationGroupName + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
         }
         else {
             lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
             returnString = "Notification group not found. NotificationGroupName=\"" + notificationGroupName + "\". Cancelling delete operation.";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
         

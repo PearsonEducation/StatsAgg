@@ -6,11 +6,11 @@ import java.util.Set;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -265,28 +265,6 @@ public class StatsAggHtmlFramework {
         return htmlEscapedString_StringBuilder.toString();
     }
     
-    public static String removeNewlinesFromString(String inputString) {
-
-        if ((inputString == null) || inputString.isEmpty()) {
-            return inputString;
-        }
-        
-        String cleanedString = StringUtils.remove(inputString, '\r');
-        cleanedString = StringUtils.remove(cleanedString, '\n');
-
-        return cleanedString;
-    }
-    
-    public static String removeNewlinesFromString(String inputString, char newlineReplacementCharacter) {
-
-        if ((inputString == null) || inputString.isEmpty()) {
-            return inputString;
-        }
-        
-        String cleanedString = inputString.replace('\n', newlineReplacementCharacter).replace('\r', newlineReplacementCharacter);
-        return cleanedString;
-    }
-    
     public static void redirectAndGet(HttpServletResponse response, int httpStatusCode, String redirectToPath) {
         
         if (response == null) {
@@ -294,12 +272,13 @@ public class StatsAggHtmlFramework {
         }
         
         if (redirectToPath == null) redirectToPath = "";
+        String redirectToPath_NoNewlines = StringUtilities.removeNewlinesFromString(redirectToPath);
         
         PrintWriter out = null;
                 
         try {
             response.setStatus(httpStatusCode);
-            response.setHeader("Location", redirectToPath);
+            response.setHeader("Location", redirectToPath_NoNewlines);
             out = response.getWriter();
             out.println("");
         }

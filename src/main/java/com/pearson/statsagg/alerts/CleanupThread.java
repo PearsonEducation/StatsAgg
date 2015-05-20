@@ -12,7 +12,7 @@ import com.pearson.statsagg.database.gauges.GaugesDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.StatsAggHtmlFramework;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.HashSet;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -223,7 +223,7 @@ public class CleanupThread implements Runnable {
                     gaugeMetricKeys_SuccessfullyDeleted.add(metricKey);
                 }  
                 else {
-                    String cleanBucketToForget = StatsAggHtmlFramework.removeNewlinesFromString(metricKey);
+                    String cleanBucketToForget = StringUtilities.removeNewlinesFromString(metricKey);
                     logger.error("Failed deleting gauge from the database. Gauge=\"" + cleanBucketToForget + "\"");
                 }
             }

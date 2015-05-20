@@ -15,6 +15,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -168,7 +169,7 @@ public class AlertAssociations extends HttpServlet {
         
         String trimmedMetricToForget = metricToForget.trim();
         GlobalVariables.immediateCleanupMetrics.put(trimmedMetricToForget, trimmedMetricToForget);
-        String cleanMetricKey = StatsAggHtmlFramework.removeNewlinesFromString(trimmedMetricToForget);
+        String cleanMetricKey = StringUtilities.removeNewlinesFromString(trimmedMetricToForget);
         logger.info("Action=AlertAssociations_ForgetMetric, " + "MetricKey=\"" + cleanMetricKey + "\"");
         
         if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();

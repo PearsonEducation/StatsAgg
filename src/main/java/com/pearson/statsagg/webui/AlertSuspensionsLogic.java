@@ -2,6 +2,7 @@ package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -62,7 +63,7 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             
             returnString = "Failed to create alert suspension. An alert suspension with the same name already exists. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
         else if (isUpsertSuccess && (newAlertSuspensionFromDb != null)) {
@@ -70,7 +71,7 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
             
             if (isNewAlertSuspension) returnString = "Successful alert suspension creation. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
             else returnString = "Successful alert suspension alteration. AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.info(cleanReturnString);
         }
         else {
@@ -78,7 +79,7 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
             
             if (isNewAlertSuspension) returnString = "Failed to create alert suspension. " + "AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
             else returnString = "Failed to alter alert suspension. " + "AlertSuspensionName=\"" + alertSuspension.getName() + "\"";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
             
@@ -105,20 +106,20 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
             if (!didDeleteSucceed) {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                 returnString = "Failed to delete alert suspension. AlertSuspensionName=\"" + alertSuspensionName + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
             else {
                 lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
                 returnString = "Delete alert suspension success. AlertSuspensionName=\"" + alertSuspensionName + "\".";
-                String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.info(cleanReturnString);
             }
         }
         else {
             lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
             returnString = "Alert suspension not found. AlertSuspensionName=\"" + alertSuspensionName + "\". Cancelling delete operation.";
-            String cleanReturnString = StatsAggHtmlFramework.removeNewlinesFromString(returnString, ' ');
+            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
             logger.warn(cleanReturnString);
         }
         

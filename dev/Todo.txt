@@ -1,20 +1,25 @@
-StatsAgg 1.3
- * Final QA checks & documentation updates
- 
-Short/Medium term
- * Optimize Graphite metric formatter
+StatsAgg 1.4
+ * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list
+ * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]>
+ * Support 'no timestamp' on Graphite metrics
+ * Optimize/Improve Graphite metric formatter
  * Native InfluxDB support
  * Support output via OpenTSDB HTTP/JSON
+ * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
+
+Short/Medium term
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine
- * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
  * Apply column-sort to WebUI tables via parameter in URI
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Debug mode for "details" pages (include additional details)
  * Advanced options
-   * Maximum concurrently running output-threads
-   * Incoming metric rate limits
-   * Output-thread timeout
+   * (optional) Limit metric-key length displayed in StatsAgg WebUI
+   * (optional) Limit metric group association count
+   * (optional) Limit max # datapoints for in memory for a single metric-key
+   * (optional) Maximum concurrently running output-threads
+   * (optional) Incoming metric rate limits
+   * (optional) Output-thread timeout
    * Cleanup metrics after... (currently hardcoded to 24hrs)
    
 Long-term / Wishlist / Brainstorming
@@ -44,5 +49,3 @@ Long-term / Wishlist / Brainstorming
  * Convert to a regular Java app & use embedded Tomcat for the WebUI
    * Simplifies installation, but removes all the nice stuff we get from Tomcat.
    * Would need to be a separate git repo
- * When altering alerts & 'stuff is in an alerted status', don't null the alert status if the alert status is the same.
-   * May require substantial refactoring
