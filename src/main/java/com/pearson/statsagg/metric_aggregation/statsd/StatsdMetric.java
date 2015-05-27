@@ -39,17 +39,7 @@ public final class StatsdMetric {
         this.sampleRate_ = sampleRate;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
     }
-    
-    private String createAndGetMetricValueString() {
-        if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
-    }
-    
-    private String createAndGetSampleRateString() {
-        if (sampleRate_ == null) return null;
-        return sampleRate_.stripTrailingZeros().toPlainString();
-    }
-    
+
     private byte determineMetricTypeKey(String metricType) {
         
         if ((metricType == null) || metricType.isEmpty()) {
@@ -63,7 +53,7 @@ public final class StatsdMetric {
         else return UNDEFINED_TYPE;
     }
     
-    private String createAndGetMetricTypeString(byte metricType) {
+    private String getMetricTypeString(byte metricType) {
         if (metricType == COUNTER_TYPE) return "c";
         else if (metricType == TIMER_TYPE) return "ms";        
         else if (metricType == GAUGE_TYPE) return "g";  
@@ -83,7 +73,7 @@ public final class StatsdMetric {
         
         stringBuilder.append(bucket_).append(":");
         if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
-        stringBuilder.append(getMetricValueString()).append("|").append(createAndGetMetricTypeString(metricTypeKey_));
+        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeKey_));
         if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         stringBuilder.append(" @ ").append(metricReceivedTimestampInMilliseconds_);
         
@@ -101,7 +91,7 @@ public final class StatsdMetric {
         
         stringBuilder.append(bucket_).append(":");
         if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
-        stringBuilder.append(getMetricValueString()).append("|").append(createAndGetMetricTypeString(metricTypeKey_));
+        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeKey_));
         if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         
         return stringBuilder.toString();
@@ -260,11 +250,12 @@ public final class StatsdMetric {
     }
     
     public String getMetricValueString() {
-        return createAndGetMetricValueString();
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
     }
     
     public String getMetricType() {
-        return createAndGetMetricTypeString(metricTypeKey_);
+        return getMetricTypeString(metricTypeKey_);
     }
 
     public byte getMetricTypeKey() {
@@ -280,7 +271,8 @@ public final class StatsdMetric {
     }
     
     public String getSampleRateString() {
-        return createAndGetSampleRateString();
+        if (sampleRate_ == null) return null;
+        return sampleRate_.stripTrailingZeros().toPlainString();
     }
     
     public long getMetricReceivedTimestampInMilliseconds() {

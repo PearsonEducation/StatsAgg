@@ -33,16 +33,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
         this.metricTimestampInMilliseconds_ = metricTimestampInMilliseconds;
         this.metricTypeKey_ = metricTypeKey;
     }
-    
-    public String createAndGetMetricValueString() {
-        if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
-    }
-    
-    public int createAndGetMetricTimestampInSeconds() {
-        return (int) (metricTimestampInMilliseconds_ / 1000);
-    }
-    
+
     @Override
     public String toString() {
         StringBuilder stringBuilder = new StringBuilder();
@@ -66,7 +57,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     public String getOpenTsdbFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(createAndGetMetricValueString()).append(" Format=StatsD");
+        stringBuilder.append(bucket_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
 
         return stringBuilder.toString();
     }
@@ -104,7 +95,8 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     
     @Override
     public String getMetricValueString() {
-        return createAndGetMetricValueString();
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
     }
     
     public long getTimestampInMilliseconds() {
@@ -113,7 +105,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     
     @Override
     public int getMetricTimestampInSeconds() {
-        return createAndGetMetricTimestampInSeconds();
+        return (int) (metricTimestampInMilliseconds_ / 1000);
     }
     
     @Override

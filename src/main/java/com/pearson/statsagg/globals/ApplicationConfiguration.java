@@ -48,6 +48,8 @@ public class ApplicationConfiguration {
     private static int openTsdbTcpTelnetListenerPort_ = VALUE_NOT_SET_CODE;
     private static boolean openTsdbHttpListenerEnabled_ = false;
     private static int openTsdbHttpListenerPort_ = VALUE_NOT_SET_CODE;
+    private static boolean influxdbHttpListenerEnabled_ = false;
+    private static int influxdbHttpListenerPort_ = VALUE_NOT_SET_CODE;
     
     private static boolean globalMetricNamePrefixEnabled_ = false;
     private static String globalMetricNamePrefixValue_ = null;
@@ -70,6 +72,8 @@ public class ApplicationConfiguration {
     private static String graphitePassthroughMetricNamePrefixValue_ = null;
     private static boolean openTsdbMetricNamePrefixEnabled_ = false;
     private static String openTsdbMetricNamePrefixValue_ = null;
+    private static boolean influxdbMetricNamePrefixEnabled_ = false;
+    private static String influxdbMetricNamePrefixValue_ = null;
     
     private static boolean statsdCounterSendZeroOnInactive_ = false;
     private static boolean statsdTimerSendZeroOnInactive_ = false;
@@ -78,7 +82,8 @@ public class ApplicationConfiguration {
     private static boolean graphiteAggregatorSendPreviousValue_ = false;
     private static boolean graphitePassthroughSendPreviousValue_ = false;      
     private static boolean openTsdbSendPreviousValue_ = false;  
-    
+    private static boolean influxdbSendPreviousValue_ = false;  
+
     private static StatsdNthPercentiles statsdNthPercentiles_ = null;
     private static List<StatsdHistogramConfiguration> statsdHistogramConfigurations_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
@@ -154,6 +159,8 @@ public class ApplicationConfiguration {
             openTsdbTcpTelnetListenerPort_ = applicationConfiguration_.safeGetInt("opentsdb_tcp_telnet_listener_port", 4242);
             openTsdbHttpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("opentsdb_http_listener_enabled", true);
             openTsdbHttpListenerPort_ = applicationConfiguration_.safeGetInt("opentsdb_http_listener_port", 4243);
+            influxdbHttpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("influxdb_http_listener_enabled", true);
+            influxdbHttpListenerPort_ = applicationConfiguration_.safeGetInt("influxdb_http_listener_port", 8086);
             
             // metric naming config
             globalMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("global_metric_name_prefix_enabled", false);
@@ -177,6 +184,8 @@ public class ApplicationConfiguration {
             graphitePassthroughMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("graphite_passthrough_metric_name_prefix_value", "graphite");
             openTsdbMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("opentsdb_metric_name_prefix_enabled", false);
             openTsdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("opentsdb_metric_name_prefix_value", "opentsdb");
+            influxdbMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("influxdb_metric_name_prefix_enabled", false);
+            influxdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("influxdb_metric_name_prefix_value", "influxdb");
             
             // send previous data config
             statsdCounterSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_counter_send_0_on_inactive", true);
@@ -186,7 +195,8 @@ public class ApplicationConfiguration {
             graphiteAggregatorSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_send_previous_value", false);
             graphitePassthroughSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_send_previous_value", false);
             openTsdbSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("opentsdb_send_previous_value", false);
-            
+            influxdbSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("influxdb_send_previous_value", false);
+
             // statsd specific variables
             statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.safeGetString("statsd_nth_percentiles", "90"));
             statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.safeGetString("statsd_histograms", null));
@@ -470,7 +480,15 @@ public class ApplicationConfiguration {
     public static int getOpenTsdbHttpListenerPort() {
         return openTsdbHttpListenerPort_;
     }
+    
+    public static boolean isInfluxdbHttpListenerEnabled() {
+        return influxdbHttpListenerEnabled_;
+    }
 
+    public static int getInfluxdbHttpListenerPort() {
+        return influxdbHttpListenerPort_;
+    }
+    
     public static boolean isGlobalMetricNamePrefixEnabled() {
         return globalMetricNamePrefixEnabled_;
     }
@@ -555,6 +573,14 @@ public class ApplicationConfiguration {
         return openTsdbMetricNamePrefixValue_;
     }
     
+    public static boolean isInfluxdbMetricNamePrefixEnabled() {
+        return influxdbMetricNamePrefixEnabled_;
+    }
+
+    public static String getInfluxdbMetricNamePrefixValue() {
+        return influxdbMetricNamePrefixValue_;
+    }
+    
     public static boolean isStatsdCounterSendZeroOnInactive() {
         return statsdCounterSendZeroOnInactive_;
     }
@@ -582,7 +608,11 @@ public class ApplicationConfiguration {
     public static boolean isOpenTsdbSendPreviousValue() {
         return openTsdbSendPreviousValue_;
     }
-
+    
+    public static boolean isInfluxdbSendPreviousValue() {
+        return influxdbSendPreviousValue_;
+    }
+    
     public static StatsdNthPercentiles getStatsdNthPercentiles() {
         return statsdNthPercentiles_;
     }

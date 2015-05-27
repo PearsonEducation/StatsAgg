@@ -45,6 +45,7 @@ import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.network.JettyServer;
 import com.pearson.statsagg.network.NettyServer;
+import com.pearson.statsagg.network.http.JettyInfluxdb;
 import com.pearson.statsagg.network.http.JettyOpenTsdb;
 import com.pearson.statsagg.network.tcp.TcpServer;
 import com.pearson.statsagg.network.udp.UdpServer;
@@ -72,6 +73,7 @@ public class ContextManager implements ServletContextListener {
     private UdpServer graphitePassthroughUdpServer_ = null;
     private TcpServer openTsdbTcpServer_ = null;
     private JettyOpenTsdb jettyOpenTsdb_ = null;
+    private JettyInfluxdb jettyInfluxdb_ = null;
     private StatsdAggregationInvokerThread statsdAggregationInvokerThread_ = null;
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
@@ -685,6 +687,12 @@ public class ContextManager implements ServletContextListener {
                 jettyOpenTsdb_ = new JettyOpenTsdb(ApplicationConfiguration.getOpenTsdbHttpListenerPort(), 30000);
                 jettyOpenTsdb_.startServer();
             }
+            
+            // start the influxdb jetty http server
+            if (ApplicationConfiguration.isInfluxdbHttpListenerEnabled()) {
+                jettyInfluxdb_ = new JettyInfluxdb(ApplicationConfiguration.getInfluxdbHttpListenerPort(), 30000);
+                jettyInfluxdb_.startServer();
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + File.separator + StackTrace.getStringFromStackTrace(e));
@@ -741,6 +749,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownJettyServer shutdownOpenTsdbJettyServer = new ShutdownJettyServer(jettyOpenTsdb_);
         Thread threadShutdownOpenTsdbJettyServer_ = new Thread(shutdownOpenTsdbJettyServer);
         shutdownServerThreads.add(threadShutdownOpenTsdbJettyServer_);
+        
+        ShutdownJettyServer shutdownInfluxdbJettyServer = new ShutdownJettyServer(jettyInfluxdb_);
+        Thread threadShutdownInfluxdbJettyServer_ = new Thread(shutdownInfluxdbJettyServer);
+        shutdownServerThreads.add(threadShutdownInfluxdbJettyServer_);
         
         Threads.threadExecutorCachedPool(shutdownServerThreads, 30, TimeUnit.SECONDS);
 

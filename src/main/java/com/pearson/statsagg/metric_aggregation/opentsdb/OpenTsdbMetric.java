@@ -11,6 +11,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.boon.Boon;
 import org.boon.core.value.LazyValueMap;
 import org.boon.core.value.ValueList;
@@ -88,17 +89,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             
         return metricKey_.substring(0, metricLength_);
     }
-    
-    public int createAndGetMetricTimestampInSeconds() {
-        if (!isTimestampInMilliseconds_) return (int) metricTimestamp_;
-        else return (int) (metricTimestamp_ / 1000);
-    }
-    
-    public long createAndGetMetricTimestampInMilliseconds() {
-        if (isTimestampInMilliseconds_) return metricTimestamp_;
-        else return (metricTimestamp_ * 1000);
-    }
-    
+
     private List<OpenTsdbTag> getMetricTagsFromMetricKey() {
         if (metricKey_ == null) return new ArrayList<>();
         if (metricLength_ < 1) return new ArrayList<>();
@@ -108,9 +99,34 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         return openTsdbTags;
     }
     
-    public String createAndGetMetricValueString() {
-        if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
+    public static String getOpenTsdbFormattedMetric(String input) {
+
+        if (input == null) {
+            return null;
+        }
+
+        StringBuilder openTsdbFormatted = new StringBuilder();
+ 
+        for (char character : input.toCharArray()) {
+            
+            if ((character >= 'a') && (character <= 'z')) {
+                openTsdbFormatted.append(character);
+                continue;
+            }
+            
+            if ((character >= 'A') && (character <= 'Z')) {
+                openTsdbFormatted.append(character);
+                continue;
+            }
+            
+            if ((character == '-') || (character == '_') || (character == '.') || (character == ',') || (character == '/')) {
+                openTsdbFormatted.append(character);
+                continue;
+            }
+
+        }
+
+        return openTsdbFormatted.toString();
     }
 
     @Override
@@ -457,12 +473,14 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     @Override
     public int getMetricTimestampInSeconds() {
-        return createAndGetMetricTimestampInSeconds();
+        if (!isTimestampInMilliseconds_) return (int) metricTimestamp_;
+        else return (int) (metricTimestamp_ / 1000);
     }
     
     @Override
     public long getMetricTimestampInMilliseconds() {
-        return createAndGetMetricTimestampInMilliseconds();
+        if (isTimestampInMilliseconds_) return metricTimestamp_;
+        else return (metricTimestamp_ * 1000);
     }
     
     public BigDecimal getMetricValue() {
@@ -471,7 +489,8 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     @Override
     public String getMetricValueString() {
-        return createAndGetMetricValueString();
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
     }
     
     @Override

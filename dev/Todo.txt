@@ -1,6 +1,8 @@
 StatsAgg 1.4
+ * StatsAg
  * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]>
+   * May not be possible
  * Support 'no timestamp' on Graphite metrics
  * Optimize/Improve Graphite metric formatter
  * Native InfluxDB support

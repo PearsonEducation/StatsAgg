@@ -61,21 +61,6 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         this.isMetricTimestampInSeconds_ = false;
     }
     
-    public String createAndGetMetricValueString() {
-        if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
-    }
-
-    public int createAndGetMetricTimestampInSeconds() {
-        if (isMetricTimestampInSeconds_) return (int) metricTimestamp_;
-        else return (int) (metricTimestamp_ / 1000);
-    }
-    
-    public long createAndGetMetricTimestampInMilliseconds() {
-        if (!isMetricTimestampInSeconds_) return metricTimestamp_;
-        else return (long) (metricTimestamp_ * 1000);
-    }
-    
     @Override
     public int hashCode() {
         return new HashCodeBuilder(11, 13)
@@ -334,7 +319,8 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     @Override
     public String getMetricValueString() {
-        return createAndGetMetricValueString();
+        if (metricValue_ == null) return null;
+        return metricValue_.stripTrailingZeros().toPlainString();
     }
     
     public long getMetricTimestamp() {
@@ -343,12 +329,14 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
    
     @Override
     public int getMetricTimestampInSeconds() {
-        return createAndGetMetricTimestampInSeconds();
+        if (isMetricTimestampInSeconds_) return (int) metricTimestamp_;
+        else return (int) (metricTimestamp_ / 1000);
     }
     
     @Override
     public long getMetricTimestampInMilliseconds() {
-        return createAndGetMetricTimestampInMilliseconds();
+        if (!isMetricTimestampInSeconds_) return metricTimestamp_;
+        else return (long) (metricTimestamp_ * 1000);
     }
     
     @Override

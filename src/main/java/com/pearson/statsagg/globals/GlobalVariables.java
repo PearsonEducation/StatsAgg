@@ -11,6 +11,7 @@ import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
@@ -26,6 +27,7 @@ public class GlobalVariables {
     public static String graphiteAggregatedPrefix = "";
     public static String graphitePassthroughPrefix = "";
     public static String openTsdbPrefix = "";
+    public static String influxdbPrefix = "";
     
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;
@@ -59,12 +61,14 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphiteAggregatorMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphitePassthroughMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();
-    
+    public final static ConcurrentHashMap<Long,InfluxdbMetric> influxdbMetrics = new ConcurrentHashMap<>();
+
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,OpenTsdbMetric> influxdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>(16, 0.75f, 3);
