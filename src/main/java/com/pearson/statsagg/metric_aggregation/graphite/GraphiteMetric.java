@@ -128,31 +128,48 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     }
     
     // need to optimize
-    public static String getGraphiteFormattedMetricPath(String metricPath) {
+    public static String getGraphiteFormattedMetricPath(String metricPath, boolean substituteCharacters) {
 
         if (metricPath == null) {
             return null;
         }
 
-        String formattedGraphiteMetricPath = metricPath;
+        StringBuilder formattedGraphiteMetricPath = new StringBuilder();
  
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "%", "Pct");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, " ", "_");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "\"", "");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "/", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "\\", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "[", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "]", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "{", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "}", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "(", "|");
-        formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, ")", "|");
-                
-        while (formattedGraphiteMetricPath.contains("..")) {
-            formattedGraphiteMetricPath = StringUtils.replace(formattedGraphiteMetricPath, "..", ".");
+        for (char character : metricPath.toCharArray()) {
+            
+            if ((character >= 'a') && (character <= 'z')) {
+                formattedGraphiteMetricPath.append(character);
+                continue;
+            }
+            
+            if ((character >= 'A') && (character <= 'Z')) {
+                formattedGraphiteMetricPath.append(character);
+                continue;
+            }
+            
+            if ((character == '-') || (character == '_') || (character == '.')) {
+                formattedGraphiteMetricPath.append(character);
+                continue;
+            }
+
+            if (substituteCharacters) {
+                if (character == '%') formattedGraphiteMetricPath.append("Pct");
+                if (character == ' ') formattedGraphiteMetricPath.append("_");
+                if (character == '\\') formattedGraphiteMetricPath.append("|");
+                if (character == '[') formattedGraphiteMetricPath.append("|");
+                if (character == ']') formattedGraphiteMetricPath.append("|");
+                if (character == '{') formattedGraphiteMetricPath.append("|");
+                if (character == '}') formattedGraphiteMetricPath.append("|");
+                if (character == '(') formattedGraphiteMetricPath.append("|");
+                if (character == ')') formattedGraphiteMetricPath.append("|");
+            }
         }
+
+        String formattedGraphiteMetricPath_String = formattedGraphiteMetricPath.toString();
+        while (formattedGraphiteMetricPath_String.contains("..")) formattedGraphiteMetricPath_String = StringUtils.replace(formattedGraphiteMetricPath_String, "..", ".");
         
-        return formattedGraphiteMetricPath;
+        return formattedGraphiteMetricPath_String;
     }
     
     public static GraphiteMetric parseGraphiteMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {

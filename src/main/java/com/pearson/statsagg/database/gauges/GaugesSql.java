@@ -29,7 +29,7 @@ public class GaugesSql {
                     "BUCKET_SHA1 VARCHAR(50) NOT NULL, " + 
                     "BUCKET MEDIUMTEXT NOT NULL, " + 
                     "METRIC_VALUE DECIMAL(65,7) NOT NULL, " +
-                    "LAST_MODIFIED TIMESTAMP NOT NULL " + 
+                    "LAST_MODIFIED TIMESTAMP NULL DEFAULT NULL " + 
                     ") " +
                     "ROW_FORMAT=DYNAMIC";
     

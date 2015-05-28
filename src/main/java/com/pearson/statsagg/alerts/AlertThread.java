@@ -1654,7 +1654,7 @@ public class AlertThread implements Runnable {
             StringBuilder graphiteFormattedAlertName = new StringBuilder();
             if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
             if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
-            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteFormattedMetricPath(alert.getName()));
+            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteFormattedMetricPath(alert.getName(), true));
             graphiteFormattedAlertName.append("~~").append(alert.getId());
             
             if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
