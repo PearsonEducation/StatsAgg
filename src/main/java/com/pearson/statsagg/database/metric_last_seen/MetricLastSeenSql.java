@@ -24,7 +24,7 @@ public class MetricLastSeenSql {
                     "CREATE TABLE METRIC_LAST_SEEN (" + 
                     "METRIC_KEY_SHA1 VARCHAR(50) NOT NULL, " + 
                     "METRIC_KEY MEDIUMTEXT NOT NULL, " + 
-                    "LAST_MODIFIED TIMESTAMP NOT NULL " + 
+                    "LAST_MODIFIED TIMESTAMP NULL DEFAULT NULL" + 
                     ") " +
                     "ROW_FORMAT=DYNAMIC";
     

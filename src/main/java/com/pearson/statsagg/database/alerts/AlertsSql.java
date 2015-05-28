@@ -78,10 +78,10 @@ public class AlertsSql {
                     "CAUTION_STOP_TRACKING_AFTER BIGINT, " +
                     "CAUTION_MINIMUM_SAMPLE_COUNT INTEGER, " + 
                     "IS_CAUTION_ALERT_ACTIVE BOOLEAN NOT NULL, " +
-                    "CAUTION_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP, " +
+                    "CAUTION_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP NULL DEFAULT NULL, " +
                     "IS_CAUTION_ACKNOWLEDGED BOOLEAN, " +
                     "CAUTION_ACTIVE_ALERTS_SET MEDIUMTEXT, " +
-                    "CAUTION_FIRST_ACTIVE_AT TIMESTAMP, " + 
+                    "CAUTION_FIRST_ACTIVE_AT TIMESTAMP NULL DEFAULT NULL, " + 
                     "DANGER_NOTIFICATION_GROUP_ID INTEGER, " +
                     "DANGER_OPERATOR INTEGER, " + 
                     "DANGER_COMBINATION INTEGER, " + 
@@ -91,10 +91,10 @@ public class AlertsSql {
                     "DANGER_STOP_TRACKING_AFTER BIGINT, " +
                     "DANGER_MINIMUM_SAMPLE_COUNT INTEGER, " + 
                     "IS_DANGER_ALERT_ACTIVE BOOLEAN NOT NULL, " +
-                    "DANGER_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP, " +
+                    "DANGER_ALERT_LAST_SENT_TIMESTAMP TIMESTAMP NULL DEFAULT NULL, " +
                     "IS_DANGER_ACKNOWLEDGED BOOLEAN, " +
                     "DANGER_ACTIVE_ALERTS_SET MEDIUMTEXT, " +
-                    "DANGER_FIRST_ACTIVE_AT TIMESTAMP " + 
+                    "DANGER_FIRST_ACTIVE_AT TIMESTAMP NULL DEFAULT NULL" + 
                     ") " +
                     "ROW_FORMAT=DYNAMIC";
     

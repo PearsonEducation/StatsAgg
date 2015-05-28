@@ -57,10 +57,10 @@ public class AlertSuspensionsSql {
                     "IS_RECUR_THURSDAY BOOLEAN NOT NULL, " + 
                     "IS_RECUR_FRIDAY BOOLEAN NOT NULL, " + 
                     "IS_RECUR_SATURDAY BOOLEAN NOT NULL, " +
-                    "START_DATE TIMESTAMP NOT NULL, " + 
-                    "START_TIME TIMESTAMP NOT NULL, " +
+                    "START_DATE TIMESTAMP NULL DEFAULT NULL, " + 
+                    "START_TIME TIMESTAMP NULL DEFAULT NULL, " +
                     "DURATION INTEGER NOT NULL, " + 
-                    "DELETE_AT_TIMESTAMP TIMESTAMP " + 
+                    "DELETE_AT_TIMESTAMP TIMESTAMP NULL DEFAULT NULL" + 
                     ") " +
                     "ROW_FORMAT=DYNAMIC";
     
