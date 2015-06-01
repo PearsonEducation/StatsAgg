@@ -1,11 +1,13 @@
 StatsAgg 1.4
- * StatsAg
- * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list
- * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]>
-   * May not be possible
+ * Document metric prefixes behavior
+ * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list ???
+ * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Support 'no timestamp' on Graphite metrics
  * Optimize/Improve Graphite metric formatter
+   * test
  * Native InfluxDB support
+   * Input 
+   * Output
  * Support output via OpenTSDB HTTP/JSON
  * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
 

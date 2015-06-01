@@ -12,6 +12,7 @@ import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric;
+import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbStatsAggMetric;
 import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
@@ -68,7 +69,7 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,OpenTsdbMetric> influxdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,InfluxdbStatsAggMetric> InfluxdbStatsAggMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>(16, 0.75f, 3);

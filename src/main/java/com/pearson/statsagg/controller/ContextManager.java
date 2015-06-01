@@ -26,6 +26,7 @@ import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
+import com.pearson.statsagg.controller.threads.InfluxdbInvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
@@ -78,6 +79,7 @@ public class ContextManager implements ServletContextListener {
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
     private OpenTsdbInvokerThread openTsdbInvokerThread_ = null;
+    private InfluxdbInvokerThread influxdbInvokerThread_ = null;
     private AlertInvokerThread alertInvokerThread_ = null;
     private CleanupInvokerThread cleanupInvokerThread_ = null;
     private InternalStatsInvokerThread internalStatsInvokerThread_ = null;
@@ -187,6 +189,10 @@ public class ContextManager implements ServletContextListener {
         openTsdbInvokerThread_ = new OpenTsdbInvokerThread();
         Thread openTsdbInvokerThread = new Thread(openTsdbInvokerThread_);
         openTsdbInvokerThread.start();
+        
+        influxdbInvokerThread_ = new InfluxdbInvokerThread();
+        Thread influxdbInvokerThread = new Thread(influxdbInvokerThread_);
+        influxdbInvokerThread.start();
         
         AlertThread.reset();
         alertInvokerThread_ = new AlertInvokerThread();
@@ -561,6 +567,23 @@ public class ContextManager implements ServletContextListener {
         return prefix;
     }
     
+    public static String createInfluxdbMetricPrefix() {
+        StringBuilder prefixBuilder = new StringBuilder();
+        
+        if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue());
+        }
+        
+        if (ApplicationConfiguration.isInfluxdbMetricNamePrefixEnabled() && (ApplicationConfiguration.getInfluxdbMetricNamePrefixValue() != null)) {
+            prefixBuilder.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue());
+        }
+
+        String prefix = prefixBuilder.toString();
+        GlobalVariables.influxdbPrefix = prefix;
+        
+        return prefix;
+    }
+    
     private static long readMetricLastSeenFromDatabaseAndAddToGlobalVariables() {
         
         MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao();
@@ -790,6 +813,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownInvokerThread_Thread shutdownOpenTsdbInvokerThread = new ShutdownInvokerThread_Thread(openTsdbInvokerThread_);
         Thread shutdownOpenTsdbAggregationInvokerThread_Thread = new Thread(shutdownOpenTsdbInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownOpenTsdbAggregationInvokerThread_Thread);
+        
+        ShutdownInvokerThread_Thread shutdownInfluxdbInvokerThread = new ShutdownInvokerThread_Thread(influxdbInvokerThread_);
+        Thread shutdownInfluxdbAggregationInvokerThread_Thread = new Thread(shutdownInfluxdbInvokerThread);
+        shutdownThreadInvokerThreads.add(shutdownInfluxdbAggregationInvokerThread_Thread);
         
         ShutdownInvokerThread_Thread shutdownAlertInvokerThread = new ShutdownInvokerThread_Thread(alertInvokerThread_);
         Thread shutdownAlertInvokerThread_Thread = new Thread(shutdownAlertInvokerThread);

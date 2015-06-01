@@ -2,7 +2,7 @@ package com.pearson.statsagg.network.http;
 
 import com.pearson.statsagg.network.JettyServer;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.api.put;
+import com.pearson.statsagg.webui.api.OpenTsdb_Api_Put;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.slf4j.Logger;
@@ -30,7 +30,7 @@ public class JettyOpenTsdb implements JettyServer {
         jettyServer_.setStopTimeout(stopServerTimeout_);
         ServletHandler handler = new ServletHandler();
         jettyServer_.setHandler(handler);
-        handler.addServletWithMapping(put.class, "/api/put");
+        handler.addServletWithMapping(OpenTsdb_Api_Put.class, "/api/put");
         
         try {
             jettyServer_.start();
