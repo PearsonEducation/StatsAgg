@@ -174,7 +174,7 @@ public class AlertAssociations extends HttpServlet {
         
         if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
 
-        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "&" + "Level=" + level);
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
         
         return true;
     }

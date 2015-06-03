@@ -3,12 +3,9 @@ package com.pearson.statsagg.webui.api;
 import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
-import com.pearson.statsagg.utilities.Compression;
+import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric_v1;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
-import java.util.ArrayList;
 import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -17,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.commons.codec.binary.Base64;
 
 /**
  * @author Jeffrey Schmidt
@@ -99,17 +97,35 @@ public class Influxdb_Api_Write extends HttpServlet {
             
             String username = request.getParameter("u");
             String password = request.getParameter("p");
+            String httpAuth = request.getHeader("Authorization");
+            boolean isUsingHttpBasicAuth = false;
             
-            String contentEncoding = request.getHeader("Content-Encoding");
-            String json;
-            if ((contentEncoding != null) && contentEncoding.equalsIgnoreCase("gzip")) json = Compression.decompressGzipToString(request.getInputStream(), "UTF-8");
-            else if ((contentEncoding != null) && contentEncoding.equalsIgnoreCase("deflate")) json = Compression.decompressDeflateToString(request.getInputStream(), "UTF-8");
-            else json = CharStreams.toString(request.getReader());
+            if ((httpAuth != null) && (username == null) && (password == null) && httpAuth.startsWith("Basic ")) {
+                String base64EncodedCredentials = httpAuth.substring(6);
+                
+                try {
+                    byte[] credentialsBytes = Base64.decodeBase64(base64EncodedCredentials);
+                    String credentialsString = new String(credentialsBytes);
+                    
+                    int colonIndex = credentialsString.indexOf(':');
+                    if ((colonIndex > -1) && (colonIndex < (credentialsString.length() - 1))) {
+                        username = credentialsString.substring(0, colonIndex);
+                        password = credentialsString.substring(colonIndex + 1, credentialsString.length());
+                        
+                        isUsingHttpBasicAuth = true;
+                    }
+                }
+                catch (Exception e) {
+                    logger.warn("Error decoding HTTP Basic Auth base64 credentials.");
+                }
+            }
+            
+            String json = CharStreams.toString(request.getReader());
             
             String requestUri = request.getRequestURI();
             String database = (requestUri == null) ? null : StringUtils.substringBetween(requestUri, "/db/", "/series");
             
-            String responseMessage = parseMetrics(database, json, username, password, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
+            parseMetrics(database, json, username, password, isUsingHttpBasicAuth, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
 
             out = response.getWriter();
         }
@@ -123,11 +139,13 @@ public class Influxdb_Api_Write extends HttpServlet {
         }
     }
 
-    public static String parseMetrics(String database, String inputJson, String username, String password, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
+    public static void parseMetrics(String database, String inputJson, String username, String password, boolean isUsingHttpBasicAuth, 
+            String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
                 
-        InfluxdbMetric influxdbMetric = InfluxdbMetric.parseInfluxdbMetricJson(database, inputJson, username, password, metricPrefix, metricsReceivedTimestampInMilliseconds);
+        List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson(database, inputJson, username, password, 
+                isUsingHttpBasicAuth, metricPrefix, metricsReceivedTimestampInMilliseconds);
 
-        if (influxdbMetric != null) {
+        for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             influxdbMetric.setHashKey(hashKey);
             GlobalVariables.influxdbMetrics.put(influxdbMetric.getHashKey(), influxdbMetric);
@@ -137,8 +155,7 @@ public class Influxdb_Api_Write extends HttpServlet {
                 logger.info("Database=\"" + database + "\", HTTP_InfluxDB_String=\"" + inputJson + "\"");
             }
         }
-    
-        return "";
+
     }
 
 }

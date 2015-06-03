@@ -6,8 +6,6 @@ import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
@@ -21,31 +19,14 @@ import org.slf4j.LoggerFactory;
 public class Compression {
     
     private static final Logger logger = LoggerFactory.getLogger(Compression.class.getName());
-    
-    public static final Map<String,Charset> charsetCache = new ConcurrentHashMap<>();
-    
+        
     public static String decompressDeflateToString(InputStream compressedData, String charsetString) {
         
         if ((compressedData == null) || (charsetString == null)) {
             return null;
         } 
         
-        Charset charsetToUse;
-        
-        try {
-            charsetToUse = charsetCache.get(charsetString);
-            
-            if (charsetToUse == null) {
-                charsetToUse = Charset.availableCharsets().get(charsetString);
-                if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
-                if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            charsetToUse = Charset.defaultCharset();
-            if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
-        }
+        Charset charsetToUse = StringUtilities.getCharsetFromString(charsetString);
         
         byte[] bytes = decompressDeflateToByteArray(compressedData);
         
@@ -184,23 +165,8 @@ public class Compression {
             return null;
         } 
         
-        Charset charsetToUse;
-        
-        try {
-            charsetToUse = charsetCache.get(charsetString);
-            
-            if (charsetToUse == null) {
-                charsetToUse = Charset.availableCharsets().get(charsetString);
-                if (charsetToUse == null) charsetToUse = Charset.defaultCharset();
-                if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            charsetToUse = Charset.defaultCharset();
-            if (charsetToUse != null) charsetCache.put(charsetString, charsetToUse);
-        }
-        
+        Charset charsetToUse = StringUtilities.getCharsetFromString(charsetString);
+
         byte[] bytes = decompressGzipToByteArray(compressedData);
         
         if (bytes != null) {

@@ -1,6 +1,9 @@
 package com.pearson.statsagg.utilities;
 
+import java.nio.charset.Charset;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,6 +14,40 @@ import org.slf4j.LoggerFactory;
 public class StringUtilities {
     
     private static final Logger logger = LoggerFactory.getLogger(StringUtilities.class.getName());
+    
+    private static final Map<String,Charset> charsetCache = new ConcurrentHashMap<>();
+
+    public static Charset getCharsetFromString(String charset) {
+        
+        if (charset == null) {
+            return null;
+        } 
+        
+        Charset charsetToUse;
+        
+        try {
+            charsetToUse = charsetCache.get(charset);
+            
+            if (charsetToUse == null) {
+                charsetToUse = Charset.availableCharsets().get(charset);
+                
+                if (charsetToUse == null) {
+                    logger.warn("Couldn't find Charset \"" + removeNewlinesFromString(charset) + "\". Using default charset.");
+                    charsetToUse = Charset.defaultCharset();
+                }
+                else charsetCache.put(charset, charsetToUse);
+            }
+        }
+        catch (Exception e) {
+            logger.error("Error using Charset \"" + removeNewlinesFromString(charset) + "\". Using default charset." + 
+                    e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            
+            charsetToUse = Charset.defaultCharset();
+            if (charsetToUse != null) charsetCache.put(charset, charsetToUse);
+        }
+        
+        return charsetToUse;
+    }
     
     public static String removeDecimalPointsFromNumber(String number) {
         

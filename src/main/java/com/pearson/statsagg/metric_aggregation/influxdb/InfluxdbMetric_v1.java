@@ -16,10 +16,12 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
+ * 
+ * This object is intended to be compatible with the InfluxDB format used in InfluxDB v0.6x, v0.7x, v0.8x
  */
-public class InfluxdbMetric {
+public class InfluxdbMetric_v1 {
     
-    private static final Logger logger = LoggerFactory.getLogger(InfluxdbMetric.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(InfluxdbMetric_v1.class.getName());
     
     public static final byte TIMESTAMP_PRECISION_UNKNOWN = -1;
     public static final byte TIMESTAMP_PRECISION_SECONDS = 1;
@@ -31,6 +33,7 @@ public class InfluxdbMetric {
     private final String database_;
     private final String username_;
     private final String password_;
+    private final boolean isUsingHttpBasicAuth_;
     
     private final String name_;
     private final ArrayList<String> columns_;
@@ -39,10 +42,12 @@ public class InfluxdbMetric {
     
     private ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetrics_ = null;
     
-    public InfluxdbMetric(String database, String username, String password, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, long metricsReceivedTimestampInMilliseconds) {
+    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String name, ArrayList<String> columns, 
+            ArrayList<ArrayList<Object>> points, long metricsReceivedTimestampInMilliseconds) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
+        this.isUsingHttpBasicAuth_ = isUsingHttpBasicAuth;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
@@ -58,11 +63,13 @@ public class InfluxdbMetric {
         }
     }
     
-    public InfluxdbMetric(String database, String username, String password, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
+    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String name, 
+            ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
             long metricsReceivedTimestampInMilliseconds, ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetrics) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
+        this.isUsingHttpBasicAuth_ = isUsingHttpBasicAuth;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
@@ -111,13 +118,12 @@ public class InfluxdbMetric {
             String column = columns.get(i);
             Object pointColumnValue = point.get(i);
             
+            if (column.equals("time_precision")) continue;
+                    
             if ((pointColumnValue != null) && (pointColumnValue instanceof String)) {
                 String pointString = (String) pointColumnValue;
-                
-                if (!pointString.equals("time_precision")) {
-                    String stringField = "\"" + column + "\"=\"" + pointString + "\"";
-                    stringFields.add(stringField);
-                }
+                String stringField = "\"" + column + "\"=\"" + pointString + "\"";
+                stringFields.add(stringField);
             }
         }
 
@@ -277,7 +283,7 @@ public class InfluxdbMetric {
         else return time;
     }
     
-    public static String getInfluxdbJson(List<InfluxdbMetric> influxdbMetrics) {
+    public static String getInfluxdbJson(List<InfluxdbMetric_v1> influxdbMetrics) {
         
         if (influxdbMetrics == null || influxdbMetrics.isEmpty()) {
             return null;
@@ -287,10 +293,11 @@ public class InfluxdbMetric {
         return "";
     }
 
-    public static InfluxdbMetric parseInfluxdbMetricJson(String database, String inputJson, String username, String password, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
+    public static List<InfluxdbMetric_v1> parseInfluxdbMetricJson(String database, String inputJson, String username, String password, boolean isUsingHttpBasicAuth, 
+            String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
 
         if ((inputJson == null) || inputJson.isEmpty() || (database == null) || (database.isEmpty())) {
-            return null;
+            return new ArrayList<>();
         }
         
         ValueList parsedJsonObject = null;
@@ -302,8 +309,10 @@ public class InfluxdbMetric {
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (parsedJsonObject == null) return null;
-                            
+        if (parsedJsonObject == null) return new ArrayList<>();
+               
+        List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList<>();
+        
         for (Object influxdbMetricJsonObject : parsedJsonObject) {
             try {
                 LazyValueMap influxdbMetricObject = (LazyValueMap) influxdbMetricJsonObject;
@@ -334,15 +343,15 @@ public class InfluxdbMetric {
                     points.add(pointColumnValues);
                 }
 
-                InfluxdbMetric influxdbMetric = new InfluxdbMetric(database, username, password, name, columns, points, metricsReceivedTimestampInMilliseconds);
-                return influxdbMetric;
+                InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, isUsingHttpBasicAuth, name, columns, points, metricsReceivedTimestampInMilliseconds);
+                influxdbMetrics.add(influxdbMetric);
             }
             catch (Exception e) {
                 logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
 
-        return null;
+        return influxdbMetrics;
     }
     
     public long getHashKey() {
@@ -364,7 +373,11 @@ public class InfluxdbMetric {
     public String getPassword() {
         return password_;
     }
-
+    
+    public boolean isUsingHttpBasicAuth() {
+        return isUsingHttpBasicAuth_;
+    }
+    
     public String getName() {
         return name_;
     }

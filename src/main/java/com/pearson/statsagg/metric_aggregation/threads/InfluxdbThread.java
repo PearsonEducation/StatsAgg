@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric;
+import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbMetric_v1;
 import com.pearson.statsagg.metric_aggregation.influxdb.InfluxdbStatsAggMetric;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashSet;
@@ -145,10 +145,10 @@ public class InfluxdbThread implements Runnable {
         }
 
         // gets influxdb metrics for this thread 
-        List<InfluxdbMetric> influxdbMetrics = new ArrayList(GlobalVariables.influxdbMetrics.size());
+        List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList(GlobalVariables.influxdbMetrics.size());
         List<InfluxdbStatsAggMetric> influxdbStatsAggMetrics = new ArrayList(GlobalVariables.influxdbMetrics.size());
         
-        for (InfluxdbMetric influxdbMetric : GlobalVariables.influxdbMetrics.values()) {
+        for (InfluxdbMetric_v1 influxdbMetric : GlobalVariables.influxdbMetrics.values()) {
             if (influxdbMetric.getMetricsReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
                 influxdbMetrics.add(influxdbMetric);
 
@@ -161,7 +161,7 @@ public class InfluxdbThread implements Runnable {
         }
         
         // removes metrics from the global influxdb metrics map (since they are being operated on by this thread)
-        for (InfluxdbMetric influxdbMetric : influxdbMetrics) {
+        for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             GlobalVariables.influxdbMetrics.remove(influxdbMetric.getHashKey());
         }
 
@@ -178,9 +178,9 @@ public class InfluxdbThread implements Runnable {
             for (InfluxdbStatsAggMetric influxdbStatsAggMetric : GlobalVariables.InfluxdbStatsAggMetricsMostRecentValue.values()) {
                 long timestamp;
                 
-                if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMilliseconds;
-                else if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric.TIMESTAMP_PRECISION_SECONDS) timestamp = timestampInSeconds;
-                else if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMicroseconds;
+                if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric_v1.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMilliseconds;
+                else if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric_v1.TIMESTAMP_PRECISION_SECONDS) timestamp = timestampInSeconds;
+                else if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric_v1.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMicroseconds;
                 else timestamp = timestampInMilliseconds;
                 
                 InfluxdbStatsAggMetric updatedInfluxdbStatsAggMetric = new InfluxdbStatsAggMetric(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric.getMetricValue(), 

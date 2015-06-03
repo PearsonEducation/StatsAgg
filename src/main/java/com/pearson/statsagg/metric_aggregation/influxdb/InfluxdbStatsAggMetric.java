@@ -136,12 +136,12 @@ public class InfluxdbStatsAggMetric implements GraphiteMetricFormat, OpenTsdbMet
     
     @Override
     public int getMetricTimestampInSeconds() {
-        return InfluxdbMetric.getMetricTimestampInSeconds(metricTimestampPrecision_, metricTimestamp_);
+        return InfluxdbMetric_v1.getMetricTimestampInSeconds(metricTimestampPrecision_, metricTimestamp_);
     }
     
     @Override
     public long getMetricTimestampInMilliseconds() {
-        return InfluxdbMetric.getMetricTimestampInMilliseconds(metricTimestampPrecision_, metricTimestamp_);
+        return InfluxdbMetric_v1.getMetricTimestampInMilliseconds(metricTimestampPrecision_, metricTimestamp_);
     }
 
     @Override

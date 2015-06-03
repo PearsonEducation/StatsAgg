@@ -108,14 +108,17 @@ public class Common {
             if (metricTimestampsAndValues != null) {
                 synchronized (metricTimestampsAndValues) {
                     if (!metricTimestampsAndValues.contains(metricTimestampAndValue)) {
-                        metricTimestampsAndValues.add(metricTimestampAndValue);
+                        boolean didAdd = metricTimestampsAndValues.add(metricTimestampAndValue);
+                        if (!didAdd) logger.info("UpdateAlertMetricRecentValues -- already contained element.");
                     }
                 }
             }
             else {
                 metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
-                metricTimestampsAndValues.add(metricTimestampAndValue);
+                boolean didAdd = metricTimestampsAndValues.add(metricTimestampAndValue);
                 GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricKey, metricTimestampsAndValues);
+                
+                if (!didAdd) logger.info("UpdateAlertMetricRecentValues -- already contained element.");
             }
 
             didDoAnyUpdates = true;
