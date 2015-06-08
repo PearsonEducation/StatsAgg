@@ -64,7 +64,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
         if (metricGroupRegex == null) return false;
         
         return insert(MetricGroupRegexsSql.Insert_MetricGroupRegex, 
-                metricGroupRegex.getMgId(), metricGroupRegex.getPattern());
+                metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
     }
     
     @Override
@@ -72,7 +72,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
         if (metricGroupRegex == null) return false;
 
         return update(MetricGroupRegexsSql.Update_MetricGroupRegex_ByPrimaryKey, 
-                metricGroupRegex.getMgId(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
+                metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
     }
 
     @Override
@@ -97,10 +97,13 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
             Integer mgId = resultSet.getInt("METRIC_GROUP_ID");
             if (resultSet.wasNull()) mgId = null;
             
+            Boolean isBlacklistRegex = resultSet.getBoolean("IS_BLACKLIST_REGEX");
+            if (resultSet.wasNull()) isBlacklistRegex = null;
+
             String pattern = resultSet.getString("PATTERN");
             if (resultSet.wasNull()) pattern = null;
 
-            MetricGroupRegex metricGroupRegex = new MetricGroupRegex(id, mgId, pattern);
+            MetricGroupRegex metricGroupRegex = new MetricGroupRegex(id, mgId, isBlacklistRegex, pattern);
             
             return metricGroupRegex;
         }

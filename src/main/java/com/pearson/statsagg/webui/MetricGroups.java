@@ -142,10 +142,12 @@ public class MetricGroups extends HttpServlet {
 
                 MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
                 List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
-                TreeSet<String> allMetricGroupRegexs = new TreeSet<>();
+                TreeSet<String> allMetricGroupMatchRegexs = new TreeSet<>();
+                TreeSet<String> allMetricGroupBlacklistRegexs = new TreeSet<>();
                 if (metricGroupRegexs != null) {
                     for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
-                        allMetricGroupRegexs.add(currentMetricGroupRegex.getPattern());
+                        if (!currentMetricGroupRegex.isBlacklistRegex()) allMetricGroupMatchRegexs.add(currentMetricGroupRegex.getPattern());
+                        else allMetricGroupBlacklistRegexs.add(currentMetricGroupRegex.getPattern());
                     }
                 }
 
@@ -165,7 +167,7 @@ public class MetricGroups extends HttpServlet {
                 clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
 
                 MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupRegexs, allMetricGroupTags);
+                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexs, allMetricGroupBlacklistRegexs, allMetricGroupTags);
                 
                 if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(true, false);

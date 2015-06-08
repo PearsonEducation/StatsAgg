@@ -15,6 +15,8 @@ import static org.junit.Assert.*;
  */
 public class InfluxdbMetric_v1Test {
     
+    private String json_;
+    
     public InfluxdbMetric_v1Test() {
     }
     
@@ -28,6 +30,30 @@ public class InfluxdbMetric_v1Test {
     
     @Before
     public void setUp() {
+        
+        json_ = "" +
+                "[\n" +
+                "  {\n" +
+                "    \"name\" : \"metric_name_1\",\n" +
+                "    \"columns\" : [\"time\", \"time_precision\", \"sequence_number\", \"column1\", \"column2\", \"column3\", \"column4\"],\n" +
+                "    \"points\" : [\n" +
+                "      [999991, \"s\", 1, 1, 2, \"meta  1\", \"meta  2\"],\n" +
+                "      [999992, \"ms\", 2, 11.11, 22.22, \"meta  11\", \"meta  22\"],\n" +
+                "      [999993, \"u\", 3, 111.111, 222.222, \"meta  222\", \"meta  222\"],\n" +
+                "      [999994, \"lol\", \"3\", \"111.11\", \"222.22\", \"meta  1111\", \"meta  2222\"]\n" +
+                "    ]\n" +
+                "  },\n" +
+                "  {\n" +
+                "    \"name\": \"metric_name_2\",\n" +
+                "    \"columns\": [\"column1\", \"column2\"],\n" +
+                "    \"points\": [\n" +
+                "      [\"meta\"],\n" +
+                "      [1234],\n" +
+                "      [true]\n" +
+                "    ]\n" +
+                "  }\n" +
+                "]";
+        
     }
     
     @After
@@ -40,30 +66,11 @@ public class InfluxdbMetric_v1Test {
     @Test
     public void testParseInfluxdbMetricJson() {
 
-        String json = ""
-                + "[\n"
-                + "  {\n"
-                + "    \"name\" : \"metric_1\",\n"
-                + "    \"columns\" : [\"column  1\", \"column  2\", \"time\", \"sequence_number\", \"host\", \"mount\", \"time_precision\"],\n"
-                + "    \"points\" : [\n"
-                + "      [1, 2, 909801, 1, \"serverA\", \"/mntA\", \"s\"],\n"
-                + "      [11.1, 22.2, 909802, 2, \"serverB\", \"/mntB\", \"ms\"],\n"
-                + "      [111.1, 222.2, 909803, 3, \"serverC\", \"/mntC\", \"u\"],\n"
-                + "      [\"11.111\", \"22.222\", \"4\", \"909804\", \"serverD\", \"/mntD\", \"u\"]\n"
-                + "    ]\n"
-                + "  },\n"
-                + "  {\n"
-                + "    \"name\" : \"metric_2\",\n"
-                + "    \"columns\" : [\"column  3\"],\n"
-                + "    \"points\" : [\n"
-                + "      [11.11],\n"
-                + "      [\"22.22\"]\n"
-                + "    ]\n"
-                + "  }\n"
-                + "]";
+        long currentTimeInMs = System.currentTimeMillis();
+        List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson("statsagg_db", json_, "user", "pass", false, "global-local-", "global.local.", currentTimeInMs);
         
-        
-        
+        String influxdbJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbMetrics);
+        System.out.println(influxdbJson);
     }
 
 }

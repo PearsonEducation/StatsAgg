@@ -261,7 +261,7 @@ public class StatsdMetricAggregator {
            return new ArrayList<>();
         }
         
-        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = ".";
 
         BigDecimal count = BigDecimal.ZERO;
         long sumTimestamp = 0;
@@ -354,7 +354,7 @@ public class StatsdMetricAggregator {
             return new ArrayList<>(); 
         }
         
-        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = ".";
         
         String bucket = statsdMetrics.get(0).getBucket();
         
@@ -721,7 +721,7 @@ public class StatsdMetricAggregator {
            return null; 
         }
         
-        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = ".";
 
         long sumTimestamp = 0;
         int metricCounter = 0;
@@ -778,7 +778,7 @@ public class StatsdMetricAggregator {
             return null; 
         }
         
-        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = "";
+        if (aggregatedMetricsSeparator == null) aggregatedMetricsSeparator = ".";
         
         Set<String> metricSet = new HashSet<>();
         long sumTimestamp = 0;

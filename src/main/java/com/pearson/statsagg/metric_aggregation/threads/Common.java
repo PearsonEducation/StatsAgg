@@ -9,8 +9,8 @@ import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.Threads;
+import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -103,22 +103,15 @@ public class Common {
             MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(
                     metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
 
-            Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+            List<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
             if (metricTimestampsAndValues != null) {
-                synchronized (metricTimestampsAndValues) {
-                    if (!metricTimestampsAndValues.contains(metricTimestampAndValue)) {
-                        boolean didAdd = metricTimestampsAndValues.add(metricTimestampAndValue);
-                        if (!didAdd) logger.info("UpdateAlertMetricRecentValues -- already contained element.");
-                    }
-                }
+                metricTimestampsAndValues.add(metricTimestampAndValue);
             }
             else {
-                metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
-                boolean didAdd = metricTimestampsAndValues.add(metricTimestampAndValue);
+                metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<MetricTimestampAndValue>());
+                metricTimestampsAndValues.add(metricTimestampAndValue);
                 GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricKey, metricTimestampsAndValues);
-                
-                if (!didAdd) logger.info("UpdateAlertMetricRecentValues -- already contained element.");
             }
 
             didDoAnyUpdates = true;

@@ -17,6 +17,7 @@ public class MetricGroupRegexsSql {
                     "CREATE TABLE METRIC_GROUP_REGEXS (" + 
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL," + 
+                    "IS_BLACKLIST_REGEX BOOLEAN NOT NULL," + 
                     "PATTERN CLOB(65535) NOT NULL" + 
                     ")";
     
@@ -24,6 +25,7 @@ public class MetricGroupRegexsSql {
                     "CREATE TABLE METRIC_GROUP_REGEXS (" + 
                     "ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, " + 
                     "METRIC_GROUP_ID INTEGER NOT NULL," + 
+                    "IS_BLACKLIST_REGEX BOOLEAN NOT NULL," + 
                     "PATTERN TEXT NOT NULL" + 
                     ") " +
                     "ROW_FORMAT=DYNAMIC";
@@ -51,12 +53,12 @@ public class MetricGroupRegexsSql {
     
     protected final static String Insert_MetricGroupRegex =
                     "INSERT INTO METRIC_GROUP_REGEXS " +
-                    "(METRIC_GROUP_ID, PATTERN) " +
-                    "VALUES(?,?)";
+                    "(METRIC_GROUP_ID, IS_BLACKLIST_REGEX, PATTERN) " +
+                    "VALUES(?,?,?)";
     
     protected final static String Update_MetricGroupRegex_ByPrimaryKey =
                     "UPDATE METRIC_GROUP_REGEXS " +
-                    "SET METRIC_GROUP_ID = ?, PATTERN = ? " +
+                    "SET METRIC_GROUP_ID = ?, IS_BLACKLIST_REGEX = ?, PATTERN = ? " +
                     "WHERE ID = ?";
     
     protected final static String Delete_MetricGroupRegex_ByPrimaryKey = 

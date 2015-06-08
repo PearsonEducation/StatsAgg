@@ -21,13 +21,24 @@ public class InfluxdbStatsAggMetric implements GraphiteMetricFormat, OpenTsdbMet
     private long hashKey_ = -1;
     
     private final String metricKey_;
+    private final String metricDatabase_;
+    private final String metricPrefix_;
+    private final String metricPrefixPeriodDelimited_;
+    private final String metricName_;
+    private final String metricValueName_;
     private final BigDecimal metricValue_;
     private final long metricTimestamp_;
     private final byte metricTimestampPrecision_;
     private final long metricReceivedTimestampInMilliseconds_;
     
-    public InfluxdbStatsAggMetric(String metricKey, BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds) {
+    public InfluxdbStatsAggMetric(String metricKey, String metricDatabase, String metricPrefix, String metricPrefixPeriodDelimited, 
+            String metricName, String metricValueName, BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds) {
         this.metricKey_ = metricKey;
+        this.metricDatabase_ = metricDatabase;
+        this.metricPrefix_ = metricPrefix;
+        this.metricPrefixPeriodDelimited_ = metricPrefixPeriodDelimited;
+        this.metricName_ = metricName;
+        this.metricValueName_ = metricValueName;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
         this.metricTimestampPrecision_ = metricTimestampPrecision;
@@ -38,13 +49,25 @@ public class InfluxdbStatsAggMetric implements GraphiteMetricFormat, OpenTsdbMet
     public String getGraphiteFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
 
+        if ((metricPrefixPeriodDelimited_ != null) && !metricPrefixPeriodDelimited_.isEmpty()) stringBuilder.append(metricPrefixPeriodDelimited_);
+        stringBuilder.append(metricDatabase_).append(".").append(metricName_);
+        if ((metricValueName_ != null) && !metricValueName_.isEmpty()) stringBuilder.append(".").append(metricValueName_);
+
+        stringBuilder.append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
+
         return stringBuilder.toString();
     }
 
     @Override
     public String getOpenTsdbFormatString() {
         StringBuilder stringBuilder = new StringBuilder();
-
+        
+        if ((metricPrefixPeriodDelimited_ != null) && !metricPrefixPeriodDelimited_.isEmpty()) stringBuilder.append(metricPrefixPeriodDelimited_);
+        stringBuilder.append(metricDatabase_).append(".").append(metricName_);
+        if ((metricValueName_ != null) && !metricValueName_.isEmpty()) stringBuilder.append(".").append(metricValueName_);
+        
+        stringBuilder.append(" ").append(getMetricTimestampInMilliseconds()).append(" ").append(getMetricValueString());
+        
         return stringBuilder.toString();
     }
     
@@ -111,6 +134,26 @@ public class InfluxdbStatsAggMetric implements GraphiteMetricFormat, OpenTsdbMet
         return metricKey_;
     }
 
+    public String getMetricDatabase() {
+        return metricDatabase_;
+    }
+
+    public String getMetricPrefix() {
+        return metricPrefix_;
+    }
+
+    public String getMetricPrefixPeriodDelimited() {
+        return metricPrefixPeriodDelimited_;
+    }
+
+    public String getMetricName() {
+        return metricName_;
+    }
+
+    public String getMetricValueName() {
+        return metricValueName_;
+    }
+
     public BigDecimal getMetricValue() {
         return metricValue_;
     }
@@ -148,5 +191,5 @@ public class InfluxdbStatsAggMetric implements GraphiteMetricFormat, OpenTsdbMet
     public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
     }
-
+    
 }

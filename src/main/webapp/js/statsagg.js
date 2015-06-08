@@ -98,8 +98,10 @@ function generateForgetMetricsPreviewLink() {
 
 function generateMergedRegexMetricsPreview() {
     var RegexParameter = "Regexs=" + encodeURIComponent(document.getElementById("Regexs").value);
-    var uriEncodedLink = "MergedRegexMetricsPreview?" + RegexParameter;
-    document.getElementById("MergedRegexMetricsPreview").setAttribute("href", uriEncodedLink);
+    var BlacklistRegexParameter = "BlacklistRegexs=" + encodeURIComponent(document.getElementById("BlacklistRegexs").value);
+    var uriEncodedLink = "MergedRegexMetricsPreview?" + RegexParameter + "&" + BlacklistRegexParameter;
+    document.getElementById("MergedMatchRegexMetricsPreview").setAttribute("href", uriEncodedLink);
+    document.getElementById("MergedBlacklistRegexMetricsPreview").setAttribute("href", uriEncodedLink);
 }
 
 $(document).ready(function () {

@@ -36,8 +36,8 @@ public class MetricGroupRegexTest {
      */
     @Test
     public void testIsEqual() {
-        MetricGroupRegex metricGroupRegex1 = new MetricGroupRegex(1, 55, "SomePattern");
-        MetricGroupRegex metricGroupRegex2 = new MetricGroupRegex(1, 55, "SomePattern");
+        MetricGroupRegex metricGroupRegex1 = new MetricGroupRegex(1, 55, true, "SomePattern");
+        MetricGroupRegex metricGroupRegex2 = new MetricGroupRegex(1, 55, true, "SomePattern");
         
         assertTrue(metricGroupRegex1.isEqual(metricGroupRegex2));
         
@@ -53,6 +53,10 @@ public class MetricGroupRegexTest {
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
         metricGroupRegex1.setPattern("SomePattern");
         
+        metricGroupRegex1.setIsBlacklistRegex(false);
+        assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
+        metricGroupRegex1.setIsBlacklistRegex(true);
+        
         assertTrue(metricGroupRegex1.isEqual(metricGroupRegex2));
     }
 
@@ -61,7 +65,7 @@ public class MetricGroupRegexTest {
      */
     @Test
     public void testCopy() {
-        MetricGroupRegex metricGroupRegex1 = new MetricGroupRegex(1, 55, "SomePattern");
+        MetricGroupRegex metricGroupRegex1 = new MetricGroupRegex(1, 55, true, "SomePattern");
         
         MetricGroupRegex metricGroupRegex2 = MetricGroupRegex.copy(metricGroupRegex1);
         assertTrue(metricGroupRegex1.isEqual(metricGroupRegex2));
@@ -76,6 +80,11 @@ public class MetricGroupRegexTest {
         assertTrue(metricGroupRegex2.getMgId() == 55);
         metricGroupRegex1.setMgId(55);
         
+        metricGroupRegex1.setIsBlacklistRegex(false);
+        assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
+        assertTrue(metricGroupRegex2.isBlacklistRegex() == true);
+        metricGroupRegex1.setIsBlacklistRegex(true);
+
         metricGroupRegex1.setPattern("SomePattern Bad");
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
         assertTrue(metricGroupRegex2.getPattern().equals("SomePattern"));

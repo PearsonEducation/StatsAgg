@@ -3,7 +3,7 @@ package com.pearson.statsagg.metric_aggregation.opentsdb;
 import com.pearson.statsagg.metric_aggregation.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
-import com.pearson.statsagg.utilities.Json;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -11,7 +11,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringUtils;
 import org.boon.Boon;
 import org.boon.core.value.LazyValueMap;
 import org.boon.core.value.ValueList;
@@ -315,16 +314,10 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 String metric = (String) openTsdbMetric.get("metric");
                 
                 Object timestampObject = openTsdbMetric.get("timestamp");
-                String timestampString = null;
-                if (timestampObject instanceof Integer) timestampString = Integer.toString((Integer) timestampObject);
-                else if (timestampObject instanceof Long) timestampString = Long.toString((Long) timestampObject);
-                else if (timestampObject instanceof Double) timestampString = Double.toString((Double) timestampObject);
-                else if (timestampObject instanceof Float) timestampString = Float.toString((Float) timestampObject);
-                else if (timestampObject instanceof String) timestampString = (String) timestampObject;
+                String timestampString = JsonUtils.convertNumericObjectToString(timestampObject, false);
                 
                 Object valueObject = openTsdbMetric.get("value");
-                String valueString = Json.convertBoxedPrimativeNumberToString(valueObject);
-                if ((valueString == null) && (valueObject instanceof String)) valueString = (String) valueObject;
+                String valueString = JsonUtils.convertNumericObjectToString(valueObject, true);
                 
                 LazyValueMap tagsObject = (LazyValueMap) openTsdbMetric.get("tags");
                 StringBuilder tagsString = new StringBuilder();

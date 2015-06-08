@@ -145,11 +145,27 @@ public class MetricGroupDetails extends HttpServlet {
             }
             else outputString.append("<br><br>");
             
+            boolean didOutputMatchRegex = false;
             if ((metricGroupRegexs != null) && !metricGroupRegexs.isEmpty()) {
                 int i = 1;
                 for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
-                    outputString.append("<b>Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
-                    i++;
+                    if (!metricGroupRegex.isBlacklistRegex()) {
+                        outputString.append("<b>Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
+                        i++;
+                        didOutputMatchRegex = true;
+                    }
+                }
+            }
+            
+            if (didOutputMatchRegex) outputString.append("<br>");
+            
+            if ((metricGroupRegexs != null) && !metricGroupRegexs.isEmpty()) {
+                int i = 1;
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+                    if (metricGroupRegex.isBlacklistRegex()) {
+                        outputString.append("<b>Blacklist Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
+                        i++;
+                    }
                 }
             }
             

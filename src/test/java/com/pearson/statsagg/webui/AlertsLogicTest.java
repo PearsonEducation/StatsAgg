@@ -82,7 +82,7 @@ public class AlertsLogicTest {
         regexs.add(metricGroupName_);
         TreeSet<String> tags = new TreeSet<>();
         regexs.add(metricGroupName_);
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup, regexs, tags);
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup, regexs, null, tags);
         assertTrue(result.contains("Success"));
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         metricGroup_ = metricGroupsDao.getMetricGroupByName(metricGroupName_);

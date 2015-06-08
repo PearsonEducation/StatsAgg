@@ -131,7 +131,7 @@ public class MetricRecentValues extends HttpServlet {
         List<MetricTimestampAndValue> metricTimestampsAndValuesLocal = new ArrayList<>();
         
         synchronized(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
-            Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+            List<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
             if (metricTimestampsAndValues != null) {
                 synchronized(metricTimestampsAndValues) {

@@ -1,7 +1,7 @@
 package com.pearson.statsagg.globals;
 
 import com.google.common.collect.ImmutableList;
-import com.pearson.statsagg.utilities.Json;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -72,7 +72,7 @@ public class StatsdHistogramConfiguration {
 
                         for (Object binObject : binObjects) {
                             Object binsObject = (Object) binObject;
-                            String binValue = Json.convertBoxedPrimativeNumberToString(binsObject);
+                            String binValue = JsonUtils.convertNumericObjectToString(binsObject, true);
 
                             if (binValue != null) {
                                 BigDecimal binValue_BigDecimal = new BigDecimal(binValue.trim()).stripTrailingZeros();

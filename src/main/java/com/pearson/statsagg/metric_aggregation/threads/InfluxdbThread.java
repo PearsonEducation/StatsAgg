@@ -90,16 +90,15 @@ public class InfluxdbThread implements Runnable {
             Common.updateAlertMetricRecentValues(influxdbStatsAggMetricsMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
             
-            // send to graphite
-            if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) {
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(influxdbStatsAggMetricsMerged, threadId_);
-            }
+            // send to graphite via tcp
+            if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(influxdbStatsAggMetricsMerged, threadId_);
             
             // send to influxdb via telnet
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) {
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(influxdbStatsAggMetricsMerged, threadId_);
-            }
-            
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(influxdbStatsAggMetricsMerged, threadId_);
+
+            // send to opentsdb via http
+            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbHttpOutputModuleEnabled()) SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbHttpEndpoints(influxdbStatsAggMetricsMerged, threadId_);
+                        
             // total time for this thread took to get & send the graphite metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
@@ -183,8 +182,10 @@ public class InfluxdbThread implements Runnable {
                 else if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric_v1.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMicroseconds;
                 else timestamp = timestampInMilliseconds;
                 
-                InfluxdbStatsAggMetric updatedInfluxdbStatsAggMetric = new InfluxdbStatsAggMetric(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric.getMetricValue(), 
-                        timestamp, influxdbStatsAggMetric.getMetricTimestampPrecision(), timestampInMilliseconds);
+                InfluxdbStatsAggMetric updatedInfluxdbStatsAggMetric = new InfluxdbStatsAggMetric(influxdbStatsAggMetric.getMetricKey(), 
+                        influxdbStatsAggMetric.getMetricDatabase(), influxdbStatsAggMetric.getMetricPrefix(), influxdbStatsAggMetric.getMetricPrefixPeriodDelimited(),
+                        influxdbStatsAggMetric.getMetricName(), influxdbStatsAggMetric.getMetricValueName(),
+                        influxdbStatsAggMetric.getMetricValue(), timestamp, influxdbStatsAggMetric.getMetricTimestampPrecision(), timestampInMilliseconds);
                 updatedInfluxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
                 GlobalVariables.InfluxdbStatsAggMetricsMostRecentValue.put(updatedInfluxdbStatsAggMetric.getMetricKey(), updatedInfluxdbStatsAggMetric);

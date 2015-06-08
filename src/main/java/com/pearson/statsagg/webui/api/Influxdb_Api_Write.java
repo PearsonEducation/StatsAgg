@@ -125,7 +125,8 @@ public class Influxdb_Api_Write extends HttpServlet {
             String requestUri = request.getRequestURI();
             String database = (requestUri == null) ? null : StringUtils.substringBetween(requestUri, "/db/", "/series");
             
-            parseMetrics(database, json, username, password, isUsingHttpBasicAuth, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
+            parseMetrics(database, json, username, password, isUsingHttpBasicAuth, GlobalVariables.influxdbPrefix, 
+                    GlobalVariables.influxdbPeriodDelimitedPrefix, metricsReceivedTimestampInMilliseconds);
 
             out = response.getWriter();
         }
@@ -140,10 +141,10 @@ public class Influxdb_Api_Write extends HttpServlet {
     }
 
     public static void parseMetrics(String database, String inputJson, String username, String password, boolean isUsingHttpBasicAuth, 
-            String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
+            String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
                 
         List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson(database, inputJson, username, password, 
-                isUsingHttpBasicAuth, metricPrefix, metricsReceivedTimestampInMilliseconds);
+                isUsingHttpBasicAuth, namePrefix, namePrefixPeriodDelimited, metricsReceivedTimestampInMilliseconds);
 
         for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();

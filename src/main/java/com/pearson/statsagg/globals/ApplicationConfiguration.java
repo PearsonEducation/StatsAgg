@@ -325,12 +325,11 @@ public class ApplicationConfiguration {
                 if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
                     String[] csvValues = csvValuesArray.get(0);
 
-                    if (csvValues.length >= 4) {                                
+                    if (csvValues.length == 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
                         String url = csvValues[1];
                         int numSendRetryAttempts = Integer.valueOf(csvValues[2]);
-                        int maxMetricsPerMessage = 100;
-                        if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
+                        int maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
                         
                         OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, maxMetricsPerMessage);
                         openTsdbHttpOutputModules.add(openTsdbHttpOutputModule);

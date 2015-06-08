@@ -329,7 +329,7 @@ public class CleanupThread implements Runnable {
                 // lookup the longest window duration associated with this metric key...
                 Long windowDuration = longestWindowDurationsForMetricKeys.get(metricKey);
 
-                Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+                List<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
                 // remove data that is outside of the window duration (older than 'now' minus 'duration') for this metric key               
                 if ((windowDuration != null) && (recentMetricTimestampsAndValues != null)) { 

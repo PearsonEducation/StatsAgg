@@ -54,8 +54,6 @@ import com.pearson.statsagg.utilities.Threads;
 import java.io.ByteArrayInputStream;
 import java.io.FileInputStream;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 import org.apache.commons.io.IOUtils;
 
 /**
@@ -516,9 +514,9 @@ public class ContextManager implements ServletContextListener {
         return isSchemaCreateSuccess;
     }
 
-    public static String createGraphiteAggregatorMetricPrefix() {
+    public static void createGraphiteAggregatorMetricPrefix() {
         StringBuilder prefixBuilder = new StringBuilder();
-        
+
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
             prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
         }
@@ -526,14 +524,11 @@ public class ContextManager implements ServletContextListener {
         if (ApplicationConfiguration.isGraphiteAggregatorMetricNamePrefixEnabled() && (ApplicationConfiguration.getGraphiteAggregatorMetricNamePrefixValue() != null)) {
             prefixBuilder.append(ApplicationConfiguration.getGraphiteAggregatorMetricNamePrefixValue()).append(".");
         }
-
-        String prefix = prefixBuilder.toString();
-        GlobalVariables.graphiteAggregatedPrefix = prefix;
         
-        return prefix;
+        GlobalVariables.graphiteAggregatedPrefix = prefixBuilder.toString();
     }
     
-    public static String createGraphitePassthroughMetricPrefix() {
+    public static void createGraphitePassthroughMetricPrefix() {
         StringBuilder prefixBuilder = new StringBuilder();
         
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
@@ -544,15 +539,12 @@ public class ContextManager implements ServletContextListener {
             prefixBuilder.append(ApplicationConfiguration.getGraphitePassthroughMetricNamePrefixValue()).append(".");
         }
 
-        String prefix = prefixBuilder.toString();
-        GlobalVariables.graphitePassthroughPrefix = prefix;
-        
-        return prefix;
+        GlobalVariables.graphitePassthroughPrefix = prefixBuilder.toString();
     }
     
-    public static String createOpenTsdbMetricPrefix() {
+    public static void createOpenTsdbMetricPrefix() {
         StringBuilder prefixBuilder = new StringBuilder();
-        
+
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
             prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
         }
@@ -561,27 +553,25 @@ public class ContextManager implements ServletContextListener {
             prefixBuilder.append(ApplicationConfiguration.getOpenTsdbMetricNamePrefixValue()).append(".");
         }
 
-        String prefix = prefixBuilder.toString();
-        GlobalVariables.openTsdbPrefix = prefix;
-        
-        return prefix;
+        GlobalVariables.openTsdbPrefix = prefixBuilder.toString();
     }
     
-    public static String createInfluxdbMetricPrefix() {
+    public static void createInfluxdbMetricPrefix() {
         StringBuilder prefixBuilder = new StringBuilder();
-        
+        StringBuilder prefixBuilder_Influxdb = new StringBuilder();
+
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
-            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue());
+            prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            prefixBuilder_Influxdb.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue());
         }
         
         if (ApplicationConfiguration.isInfluxdbMetricNamePrefixEnabled() && (ApplicationConfiguration.getInfluxdbMetricNamePrefixValue() != null)) {
-            prefixBuilder.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue());
+            prefixBuilder.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue()).append(".");
+            prefixBuilder_Influxdb.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue());
         }
 
-        String prefix = prefixBuilder.toString();
-        GlobalVariables.influxdbPrefix = prefix;
-        
-        return prefix;
+        GlobalVariables.influxdbPeriodDelimitedPrefix = prefixBuilder.toString();
+        GlobalVariables.influxdbPrefix = prefixBuilder_Influxdb.toString();
     }
     
     private static long readMetricLastSeenFromDatabaseAndAddToGlobalVariables() {
@@ -594,10 +584,10 @@ public class ContextManager implements ServletContextListener {
                 if ((metricLastSeen.getMetricKey() == null) || (metricLastSeen.getLastModified() == null)) continue;
                 
                 synchronized (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey) {
-                    Set<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricLastSeen.getMetricKey());
+                    List<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricLastSeen.getMetricKey());
 
                     if (metricTimestampsAndValues == null) {
-                        metricTimestampsAndValues = Collections.synchronizedSet(new HashSet<MetricTimestampAndValue>());
+                        metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<MetricTimestampAndValue>());
                         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricLastSeen.getMetricKey(), metricTimestampsAndValues);
                     }
                 }

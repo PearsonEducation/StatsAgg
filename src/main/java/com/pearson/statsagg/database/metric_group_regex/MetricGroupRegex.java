@@ -14,15 +14,17 @@ public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
     
     private Integer id_;
     private Integer mgId_;
+    private Boolean isBlacklistRegex_;
     private String pattern_;
     
     public MetricGroupRegex() {
         this.id_ = -1;
     }
     
-    public MetricGroupRegex(Integer id, Integer mgId, String pattern) {
+    public MetricGroupRegex(Integer id, Integer mgId, Boolean isBlacklistRegex, String pattern) {
         this.id_ = id;
         this.mgId_ = mgId;
+        this.isBlacklistRegex_ = isBlacklistRegex;
         this.pattern_ = pattern;
     } 
     
@@ -36,6 +38,7 @@ public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
         return new EqualsBuilder()
                 .append(id_, metricGroupRegex.getId())
                 .append(mgId_, metricGroupRegex.getMgId())
+                .append(isBlacklistRegex_, metricGroupRegex.isBlacklistRegex())
                 .append(pattern_, metricGroupRegex.getPattern())
                 .isEquals();
     }
@@ -50,6 +53,7 @@ public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
         
         metricGroupRegexCopy.setId(metricGroupRegex.getId());
         metricGroupRegexCopy.setMgId(metricGroupRegex.getMgId());
+        metricGroupRegexCopy.setIsBlacklistRegex(metricGroupRegex.isBlacklistRegex());
         metricGroupRegexCopy.setPattern(metricGroupRegex.getPattern());
         
         return metricGroupRegexCopy;
@@ -71,6 +75,14 @@ public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
         this.mgId_ = mgId;
     }
 
+    public Boolean isBlacklistRegex() {
+        return isBlacklistRegex_;
+    }
+
+    public void setIsBlacklistRegex(Boolean isBlacklistRegex) {
+        this.isBlacklistRegex_ = isBlacklistRegex;
+    }
+
     public String getPattern() {
         return pattern_;
     }
@@ -78,5 +90,5 @@ public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
     public void setPattern(String pattern) {
         this.pattern_ = pattern;
     }
-    
+
 }

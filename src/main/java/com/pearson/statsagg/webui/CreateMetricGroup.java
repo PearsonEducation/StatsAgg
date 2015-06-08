@@ -16,6 +16,7 @@ import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -182,20 +183,23 @@ public class CreateMetricGroup extends HttpServlet {
             "</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Regular Expressions</label>\n" +
-            "  <a id=\"MergedRegexMetricsPreview\" name=\"MergedRegexMetricsPreview\" class=\"iframe cboxElement statsagg_merged_regex_metrics_preview pull-right\" href=\"#\" onclick=\"generateMergedRegexMetricsPreview();\">Preview Regex Matches</a>" +
-            "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"5\" name=\"Regexs\" id=\"Regexs\" >");
+            "  <a id=\"MergedMatchRegexMetricsPreview\" name=\"MergedMatchRegexMetricsPreview\" class=\"iframe cboxElement statsagg_merged_regex_metrics_preview pull-right\" href=\"#\" onclick=\"generateMergedRegexMetricsPreview();\">Preview Regex Matches</a>" +
+            "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"Regexs\" id=\"Regexs\" >");
 
         if ((metricGroup != null)) {
             MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
             List<MetricGroupRegex> metricGroupRegexs =  metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
+            List<MetricGroupRegex> matchMetricGroupRegexs = new ArrayList<>();
             
             if (metricGroupRegexs != null) {
-                for (int i = 0; i < metricGroupRegexs.size(); i++) {
-                    htmlBody.append(Encode.forHtmlAttribute(metricGroupRegexs.get(i).getPattern()));
-                    if ((i + 1) < metricGroupRegexs.size()) {
-                        htmlBody.append("\n");
-                    }
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+                    if ((metricGroupRegex.isBlacklistRegex() != null) && !metricGroupRegex.isBlacklistRegex()) matchMetricGroupRegexs.add(metricGroupRegex);
                 }
+            }
+            
+            for (int i = 0; i < matchMetricGroupRegexs.size(); i++) {
+                htmlBody.append(Encode.forHtmlAttribute(matchMetricGroupRegexs.get(i).getPattern()));
+                if ((i + 1) < matchMetricGroupRegexs.size()) htmlBody.append("\n");
             }
         }
          
@@ -203,8 +207,33 @@ public class CreateMetricGroup extends HttpServlet {
             "</textarea>\n" +
             "</div>\n" +
             "<div class=\"form-group\">\n" +
+            "  <label class=\"label_small_margin\">Blacklist Regular Expressions</label>\n" +
+            "  <a id=\"MergedBlacklistRegexMetricsPreview\" name=\"MergedBlacklistRegexMetricsPreview\" class=\"iframe cboxElement statsagg_merged_regex_metrics_preview pull-right\" href=\"#\" onclick=\"generateMergedRegexMetricsPreview();\">Preview Regex Matches</a>" +
+            "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"BlacklistRegexs\" id=\"BlacklistRegexs\" >");
+
+        if ((metricGroup != null)) {
+            MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
+            List<MetricGroupRegex> metricGroupRegexs =  metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
+            List<MetricGroupRegex> blacklistMetricGroupRegexs = new ArrayList<>();
+            
+            if (metricGroupRegexs != null) {
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+                    if ((metricGroupRegex.isBlacklistRegex() != null) && metricGroupRegex.isBlacklistRegex()) blacklistMetricGroupRegexs.add(metricGroupRegex);
+                }
+            }
+            
+            for (int i = 0; i < blacklistMetricGroupRegexs.size(); i++) {
+                htmlBody.append(Encode.forHtmlAttribute(blacklistMetricGroupRegexs.get(i).getPattern()));
+                if ((i + 1) < blacklistMetricGroupRegexs.size()) htmlBody.append("\n");
+            }
+        }
+
+        htmlBody.append(
+            "</textarea>\n" +
+            "</div>\n" +
+            "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Tags</label>\n" +
-            "  <textarea class=\"form-control-statsagg\" placeholder=\"One tag per line.\" rows=\"5\" name=\"Tags\" id=\"Tags\" >");
+            "  <textarea class=\"form-control-statsagg\" placeholder=\"One tag per line.\" rows=\"4\" name=\"Tags\" id=\"Tags\" >");
 
         if ((metricGroup != null)) {
             MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
@@ -243,13 +272,14 @@ public class CreateMetricGroup extends HttpServlet {
         
         MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(request);
         String oldName = request.getParameter("Old_Name");
-        TreeSet<String> regexs = getMetricGroupRegexsFromMetricGroupParameters(request);
-        TreeSet<String> tags = getMetricGroupTagsFromMetricGroupParameters(request);
+        TreeSet<String> matchRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "Regexs");
+        TreeSet<String> blacklistRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexs");
+        TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(request, "Tags");
         
         // insert/update records in the database
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
             MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            returnString = metricGroupsLogic.alterRecordInDatabase(metricGroup, regexs, tags, oldName);
+            returnString = metricGroupsLogic.alterRecordInDatabase(metricGroup, matchRegexs, blacklistRegexs, tags, oldName);
             
             if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(true, false);
@@ -304,25 +334,23 @@ public class CreateMetricGroup extends HttpServlet {
         return metricGroup;
     }
 
-    protected static TreeSet<String> getMetricGroupRegexsFromMetricGroupParameters(HttpServletRequest request) {
+    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(HttpServletRequest request, String parameterName) {
         
-        if (request == null) {
+        if ((request == null) || (parameterName == null)) {
             return null;
         }
         
         boolean didEncounterError = false;
-        
-        TreeSet<String> regexs = new TreeSet<>();
+        TreeSet<String> parameterValues = new TreeSet<>();
 
         try {
-            String parameter;
-
-            parameter = request.getParameter("Regexs");
+            String parameter = request.getParameter(parameterName);
+            
             if (parameter != null) {
-                Scanner regexScanner = new Scanner(parameter);
+                Scanner scanner = new Scanner(parameter);
                 
-                while (regexScanner.hasNext()) {
-                    regexs.add(regexScanner.nextLine().trim());
+                while (scanner.hasNext()) {
+                    parameterValues.add(scanner.nextLine().trim());
                 }
             }
         }
@@ -331,45 +359,9 @@ public class CreateMetricGroup extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (didEncounterError) {
-            regexs = null;
-        }
+        if (didEncounterError) parameterValues = null;
         
-        return regexs;
+        return parameterValues;
     }
-    
-    protected static TreeSet<String> getMetricGroupTagsFromMetricGroupParameters(HttpServletRequest request) {
-        
-        if (request == null) {
-            return null;
-        }
-        
-        boolean didEncounterError = false;
-        
-        TreeSet<String> tags = new TreeSet<>();
 
-        try {
-            String parameter;
-
-            parameter = request.getParameter("Tags");
-            if (parameter != null) {
-                Scanner tagScanner = new Scanner(parameter);
-                
-                while (tagScanner.hasNext()) {
-                    tags.add(tagScanner.nextLine().trim());
-                }
-            }
-        }
-        catch (Exception e) {
-            didEncounterError = true;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-            
-        if (didEncounterError) {
-            tags = null;
-        }
-        
-        return tags;
-    }
-    
 }

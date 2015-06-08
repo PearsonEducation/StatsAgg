@@ -1,7 +1,7 @@
 package com.pearson.statsagg.metric_aggregation.influxdb;
 
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.Json;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.math.BigDecimal;
@@ -35,25 +35,27 @@ public class InfluxdbMetric_v1 {
     private final String password_;
     private final boolean isUsingHttpBasicAuth_;
     
+    private final String namePrefix_;
     private final String name_;
     private final ArrayList<String> columns_;
     private final ArrayList<ArrayList<Object>> points_;
     private long metricsReceivedTimestampInMilliseconds_ = -1;
     
     private ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetrics_ = null;
-    
-    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String name, ArrayList<String> columns, 
-            ArrayList<ArrayList<Object>> points, long metricsReceivedTimestampInMilliseconds) {
+
+    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String namePrefix, String namePrefixPeriodDelimited,
+            String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, long metricsReceivedTimestampInMilliseconds) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
         this.isUsingHttpBasicAuth_ = isUsingHttpBasicAuth;
+        this.namePrefix_ = namePrefix;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
         
         this.metricsReceivedTimestampInMilliseconds_ = metricsReceivedTimestampInMilliseconds;
-        createInfluxdbStatsAggMetrics();
+        createInfluxdbStatsAggMetrics(namePrefix, namePrefixPeriodDelimited);
 
         if (this.influxdbStatsAggMetrics_ != null) this.influxdbStatsAggMetrics_.trimToSize();
         if (this.columns_ != null) this.columns_.trimToSize();
@@ -63,13 +65,14 @@ public class InfluxdbMetric_v1 {
         }
     }
     
-    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String name, 
+    public InfluxdbMetric_v1(String database, String username, String password, boolean isUsingHttpBasicAuth, String namePrefix, String name, 
             ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
             long metricsReceivedTimestampInMilliseconds, ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetrics) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
         this.isUsingHttpBasicAuth_ = isUsingHttpBasicAuth;
+        this.namePrefix_ = namePrefix;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
@@ -77,7 +80,7 @@ public class InfluxdbMetric_v1 {
         this.influxdbStatsAggMetrics_ = influxdbStatsAggMetrics;
     }
     
-    private void createInfluxdbStatsAggMetrics() {
+    private void createInfluxdbStatsAggMetrics(String namePrefix, String namePrefixPeriodDelimited) {
         
         if ((name_ == null) || (columns_ == null) || (points_ == null) || columns_.isEmpty() || points_.isEmpty()) return;
 
@@ -91,11 +94,13 @@ public class InfluxdbMetric_v1 {
             byte timePrecision = getTimePrecisionFromPoint(point);
             String metricKeyStringFields = getSortedStringFieldsForMetricKey(columns_, point);
 
-            ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetricsFromNumericPointValues = getInfluxdbStatsAggMetricsFromNumericPointValues(columns_, point, metricKeyStringFields, time, timePrecision);
+            ArrayList<InfluxdbStatsAggMetric> influxdbStatsAggMetricsFromNumericPointValues = getInfluxdbStatsAggMetricsFromNumericPointValues(columns_, point, namePrefix, 
+                    namePrefixPeriodDelimited, metricKeyStringFields, time, timePrecision);
             if (influxdbStatsAggMetricsFromNumericPointValues != null) influxdbStatsAggMetrics.addAll(influxdbStatsAggMetricsFromNumericPointValues);
 
             if (influxdbStatsAggMetrics.isEmpty()) {
-                InfluxdbStatsAggMetric influxdbStatsAggMetric = getInfluxdbStatsAggMetricFromStringFieldsOnly(metricKeyStringFields, time, timePrecision);
+                InfluxdbStatsAggMetric influxdbStatsAggMetric = getInfluxdbStatsAggMetricFromStringFieldsOnly(namePrefix, namePrefixPeriodDelimited, 
+                        metricKeyStringFields, time, timePrecision);
                 if (influxdbStatsAggMetricsFromNumericPointValues != null) influxdbStatsAggMetrics.add(influxdbStatsAggMetric);
             }
             
@@ -139,7 +144,8 @@ public class InfluxdbMetric_v1 {
         return metricKeyStringFields;
     }
     
-    private ArrayList<InfluxdbStatsAggMetric> getInfluxdbStatsAggMetricsFromNumericPointValues(ArrayList<String> columns, ArrayList<Object> point, String metricKeyStringFields, long time, byte timePrecision) {
+    private ArrayList<InfluxdbStatsAggMetric> getInfluxdbStatsAggMetricsFromNumericPointValues(ArrayList<String> columns, ArrayList<Object> point, 
+            String namePrefix, String namePrefixPeriodDelimited, String metricKeyStringFields, long time, byte timePrecision) {
         
         if ((columns == null) || (point == null) || (columns.size() != point.size()) || point.isEmpty()) {
             return new ArrayList<>();
@@ -150,13 +156,15 @@ public class InfluxdbMetric_v1 {
         for (int i = 0; i < point.size(); i++) {
             Object pointColumnValue = point.get(i);
             String column = columns_.get(i);
-            if ((pointColumnValue == null) || !Json.isObjectNumberic(pointColumnValue)) continue;
-            if (column.equals("time") || column.equals("time_precision") || column.equals("sequence_number")) continue;
+            if ((pointColumnValue == null) || !JsonUtils.isObjectNumberic(pointColumnValue, true)) continue;
+            if ((column == null) || column.equals("time") || column.equals("time_precision") || column.equals("sequence_number")) continue;
             
             StringBuilder metricKey = new StringBuilder();
-            metricKey.append(database_).append(" : ").append(name_).append(" : ").append(column);
+            metricKey.append(database_).append(" : ");
+            if (namePrefix != null) metricKey.append(namePrefix);
+            metricKey.append(name_).append(" : ").append(column);
             if ((metricKeyStringFields != null) && !metricKeyStringFields.isEmpty()) metricKey.append(" : ").append(metricKeyStringFields);
-            BigDecimal metricValue = Json.convertBoxedPrimativeNumberToBigDecimal(pointColumnValue);
+            BigDecimal metricValue = JsonUtils.convertNumericObjectToBigDecimal(pointColumnValue, true);
 
             long metricTimestamp;
             byte metricTimestampPrecision;
@@ -170,21 +178,27 @@ public class InfluxdbMetric_v1 {
                 metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
             }
 
-            InfluxdbStatsAggMetric influxdbStatsAggMetric = new InfluxdbStatsAggMetric(metricKey.toString(), metricValue, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_);
+            InfluxdbStatsAggMetric influxdbStatsAggMetric = new InfluxdbStatsAggMetric(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, column,
+                    metricValue, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_);
             influxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+            
             influxdbStatsAggMetrics.add(influxdbStatsAggMetric);
         }
         
         return influxdbStatsAggMetrics;
     }
     
-    private InfluxdbStatsAggMetric getInfluxdbStatsAggMetricFromStringFieldsOnly(String metricKeyStringFields, long time, byte timePrecision) {
+    private InfluxdbStatsAggMetric getInfluxdbStatsAggMetricFromStringFieldsOnly(String namePrefix, String namePrefixPeriodDelimited, 
+            String metricKeyStringFields, long time, byte timePrecision) {
         
         if ((metricKeyStringFields == null) || metricKeyStringFields.isEmpty()) {
             return null;
         }
-                
-        String metricKey = database_ + " : " + name_ + " : " + metricKeyStringFields;
+              
+        StringBuilder metricKey = new StringBuilder();
+        metricKey.append(database_).append(" : ");
+        if (namePrefix != null) metricKey.append(namePrefix);
+        metricKey.append(name_).append(" : ").append(metricKeyStringFields);
 
         long metricTimestamp;
         byte metricTimestampPrecision;
@@ -198,8 +212,8 @@ public class InfluxdbMetric_v1 {
             metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
         }
 
-        InfluxdbStatsAggMetric influxdbStatsAggMetric = new InfluxdbStatsAggMetric(metricKey, BigDecimal.ONE, metricTimestamp, 
-                metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_);
+        InfluxdbStatsAggMetric influxdbStatsAggMetric = new InfluxdbStatsAggMetric(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, 
+                null, BigDecimal.ONE, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_);
         influxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
         return influxdbStatsAggMetric;
@@ -285,16 +299,78 @@ public class InfluxdbMetric_v1 {
     
     public static String getInfluxdbJson(List<InfluxdbMetric_v1> influxdbMetrics) {
         
-        if (influxdbMetrics == null || influxdbMetrics.isEmpty()) {
-            return null;
+        if (influxdbMetrics == null) return null;
+        
+        StringBuilder influxdbJson = new StringBuilder();
+        
+        influxdbJson.append("[");
+        
+        for (int i = 0; i < influxdbMetrics.size(); i++) {
+            InfluxdbMetric_v1 influxdbMetric = influxdbMetrics.get(i);
+
+            if (influxdbMetric.getDatabase() == null) continue;
+            if (influxdbMetric.getName() == null) continue;
+
+            influxdbJson.append("{");
+            
+            influxdbJson.append("\"name\":\"");
+            if (influxdbMetric.getNamePrefix() != null) influxdbJson.append(influxdbMetric.getNamePrefix());
+            influxdbJson.append(influxdbMetric.getName()).append("\",");
+            
+            if (influxdbMetric.getColumns() != null) {
+                influxdbJson.append("\"columns\":[");
+                
+                for (int j = 0; j < influxdbMetric.getColumns().size(); j++) {
+                    String column = influxdbMetric.getColumns().get(j);
+                    if ((column == null) || column.isEmpty()) continue;
+                    
+                    influxdbJson.append("\"").append(column).append("\"");
+                    
+                    if ((j + 1) != influxdbMetric.getColumns().size()) influxdbJson.append(",");
+                }
+                
+                influxdbJson.append("],");
+            }
+            
+            if (influxdbMetric.getPoints() != null) {
+                influxdbJson.append("\"points\":[");
+
+                for (int j = 0; j < influxdbMetric.getPoints().size(); j++) {
+                    ArrayList<Object> point = influxdbMetric.getPoints().get(j);
+                    if ((point == null) || point.isEmpty()) continue;
+                    
+                    influxdbJson.append("[");
+                    
+                    for (int k = 0; k < point.size(); k++) {
+                        Object pointObject = point.get(k);
+                        if (pointObject == null) continue;
+                        
+                        if (JsonUtils.isObjectNumberic(pointObject, true)) influxdbJson.append(JsonUtils.convertNumericObjectToString(pointObject, false));
+                        else if (pointObject instanceof String) influxdbJson.append("\"").append((String) pointObject).append("\"");
+                        
+                        if ((k + 1) != point.size()) influxdbJson.append(",");
+                    }
+                    
+                    influxdbJson.append("]");
+                    
+                    if ((j + 1) != influxdbMetric.getPoints().size()) influxdbJson.append(",");
+                }
+                
+                influxdbJson.append("]");
+            }
+
+            influxdbJson.append("}");
+            
+            if ((i + 1) != influxdbMetrics.size()) influxdbJson.append(",");
         }
         
+        influxdbJson.append("]");
         
-        return "";
+        return influxdbJson.toString();
     }
 
     public static List<InfluxdbMetric_v1> parseInfluxdbMetricJson(String database, String inputJson, String username, String password, boolean isUsingHttpBasicAuth, 
-            String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
+            String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
 
         if ((inputJson == null) || inputJson.isEmpty() || (database == null) || (database.isEmpty())) {
             return new ArrayList<>();
@@ -343,7 +419,9 @@ public class InfluxdbMetric_v1 {
                     points.add(pointColumnValues);
                 }
 
-                InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, isUsingHttpBasicAuth, name, columns, points, metricsReceivedTimestampInMilliseconds);
+                InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, isUsingHttpBasicAuth, namePrefix, namePrefixPeriodDelimited,
+                        name, columns, points, metricsReceivedTimestampInMilliseconds);
+                
                 influxdbMetrics.add(influxdbMetric);
             }
             catch (Exception e) {
@@ -377,7 +455,11 @@ public class InfluxdbMetric_v1 {
     public boolean isUsingHttpBasicAuth() {
         return isUsingHttpBasicAuth_;
     }
-    
+
+    public String getNamePrefix() {
+        return namePrefix_;
+    }
+
     public String getName() {
         return name_;
     }

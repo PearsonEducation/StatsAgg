@@ -1,3 +1,12 @@
+StatsAgg 1.4
+ * Added support for receiving InfluxDB metrics
+   * Metric formats for InfluxDB 0.6x, 0.7x, and 0.8x are supported
+ * Metric groups can now 'blacklist' metrics via regular expressions. When a metric is 'blacklisted' in a metric group, it will not represent itself as being a match for the metric group (and therefore cannot be alerted on).
+ * Added support output via OpenTSDB HTTP/JSON
+   * Previously, StatsAgg could only output to OpenTSDB via telnet
+ * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
+   * Located @ StatsAgg\WEB-INF\sql
+ 
 StatsAgg 1.3  - released 2015-05-20
  * Added new properties to an alert -- 'first triggered at' timestamp for caution & danger
  * Resent email notifications include a field that says how long the alert has been triggered
@@ -20,7 +29,8 @@ StatsAgg 1.3  - released 2015-05-20
  * Converted 'Alert Suspension Details' page into panel-based UI
  * Reduced the maximum size of alert & 'metric group' descriptions to 100,000 characters
  * Tweaks to several WebUI pages. Some changes were minor (font sizes, etc), some changes were moderate (performance improvements, additional functionality, etc).
-
+ * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.3.txt" against your StatsAgg database
+   * Located @ StatsAgg\WEB-INF\sql
 
 StatsAgg 1.2  - released 2015-04-27
  * Performance & memory utilization improvements -- most noticeable under high load scenarios

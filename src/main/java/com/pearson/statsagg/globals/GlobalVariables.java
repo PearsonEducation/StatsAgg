@@ -29,7 +29,8 @@ public class GlobalVariables {
     public static String graphitePassthroughPrefix = "";
     public static String openTsdbPrefix = "";
     public static String influxdbPrefix = "";
-    
+    public static String influxdbPeriodDelimitedPrefix = "";
+        
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;
     
@@ -92,11 +93,14 @@ public class GlobalVariables {
     // k=MetricKey, v="Boolean for "is this metric key associated with ANY metric group"?
     public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyMetricGroup = new ConcurrentHashMap<>(); 
     
-    // k=MetricGroupId, v=string representing a single, merged, regex statement that is composed of the metric group's associated regexs
-    public final static ConcurrentHashMap<Integer,String> mergedRegexsForMetricGroups = new ConcurrentHashMap<>(); 
+    // k=MetricGroupId, v=string representing a single, merged, match regex statement that is composed of the metric group's associated regexs
+    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexsForMetricGroups = new ConcurrentHashMap<>(); 
     
-    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedSet(HashSet<MetricTimestampAndValue>()))
-    public final static ConcurrentHashMap<String,Set<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 
+    // k=MetricGroupId, v=string representing a single, merged, blacklist regex statement that is composed of the metric group's associated regexs
+    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexsForMetricGroups = new ConcurrentHashMap<>(); 
+    
+    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedList(ArrayList<MetricTimestampAndValue>()))
+    public final static ConcurrentHashMap<String,List<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 
 
     // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."
     public final static ConcurrentHashMap<String,Pattern> metricGroupRegexPatterns = new ConcurrentHashMap<>(); 

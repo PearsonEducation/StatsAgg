@@ -1,5 +1,11 @@
 StatsAgg 1.4
  * Document metric prefixes behavior
+ * Document quirks in each output db
+ * Finish blacklist metric-group regexs
+   * Previews
+   * Metric association (test)
+   * Documentation
+ * Move separator character out of graphite-aggregator aggregate method
  * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list ???
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Support 'no timestamp' on Graphite metrics
@@ -9,6 +15,8 @@ StatsAgg 1.4
    * Input 
    * Output
  * Support output via OpenTSDB HTTP/JSON
+   * Test
+   * Document "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
  * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
 
 Short/Medium term
@@ -28,6 +36,7 @@ Short/Medium term
    
 Long-term / Wishlist / Brainstorming
  * StatsD forwarder
+ * Support more forms of notification (not just email)
  * View application config in WebUI
    * Need to remove anything sensitive (smtp credentials, etc)
  * History/events log w/ UI component

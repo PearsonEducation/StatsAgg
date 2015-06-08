@@ -683,7 +683,7 @@ public class AlertThread implements Runnable {
                 List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert);
                 
                 for (String metricKey : metricKeysAssociatedWithAlert) {
-                    Set<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
+                    List<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
                     List<MetricTimestampAndValue> recentMetricTimestampsAndValuesLocal = null;
 
                     if (recentMetricTimestampsAndValues != null) {

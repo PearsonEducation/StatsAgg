@@ -5,10 +5,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupRegexsFromMetricGroupParameters;
 import static com.pearson.statsagg.webui.RegexTester.getRegexMatchesHtml;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
+import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupNewlineDelimitedParameterValues;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.TreeSet;
@@ -68,13 +68,14 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
         
-        TreeSet<String> regexs = getMetricGroupRegexsFromMetricGroupParameters(request);
+        TreeSet<String> matchRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "Regexs");
+        TreeSet<String> blacklistRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexs");
         
-        List regexs_List;
-        if (regexs != null) regexs_List = new ArrayList<>(regexs);
-        else regexs_List = new ArrayList<>();
+        List matchRegexs_List;
+        if (matchRegexs != null) matchRegexs_List = new ArrayList<>(matchRegexs);
+        else matchRegexs_List = new ArrayList<>();
         
-        String mergedRegex = StringUtilities.createMergedRegex(regexs_List);
+        String mergedRegex = StringUtilities.createMergedRegex(matchRegexs_List);
         
         String regexMatchesHtml = getRegexMatchesHtml(mergedRegex, 1000);
         
