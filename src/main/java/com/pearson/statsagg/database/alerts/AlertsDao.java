@@ -9,7 +9,10 @@ import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.database.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
+import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -510,6 +513,59 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         if (distinctDangerNotificationGroupIds != null) distinctNotificationGroupIds.addAll(distinctDangerNotificationGroupIds);
         
         return distinctNotificationGroupIds;
+    }
+    
+     public JSONObject getAlerts(int offset, int pageSize) {
+        logger.info("getAlerts");
+        List<Object> parametersList = new ArrayList<>(2);
+        
+        JSONArray alertsList = new JSONArray();
+        JSONObject alertsJson = new JSONObject();
+        int alertsCount = 0;
+        
+        try {
+
+            if (!isConnectionValid()) {
+                return null;
+            }
+            
+            if (offset == 0 && pageSize == 0) {
+              alertsJson.put(GlobalVariables.alerts, alertsList);
+              alertsJson.put(GlobalVariables.count, alertsCount);
+              return alertsJson;
+            }
+            parametersList.add(offset);
+            parametersList.add(pageSize);
+            databaseInterface_.createPreparedStatement(AlertsSql.Fetch_Alerts_Derby, pageSize);
+            databaseInterface_.addPreparedStatementParameters(parametersList);
+
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                logger.info("invalid dataset");
+                return null;
+            }
+            
+            ResultSet resultSet = databaseInterface_.getResults();
+            
+            while(resultSet.next()) {
+                JSONObject alert = new JSONObject();
+                alert.put(GlobalVariables.name, resultSet.getString(GlobalVariables.name));
+                alert.put(GlobalVariables.id, resultSet.getString(GlobalVariables.id));
+                alertsList.add(alert);
+                alertsCount++;
+            }
+            alertsJson.put(GlobalVariables.alerts, alertsList);
+            alertsJson.put(GlobalVariables.count, alertsCount);
+            return alertsJson;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
     }
     
 }
