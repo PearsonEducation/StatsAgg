@@ -1,7 +1,6 @@
 package com.pearson.statsagg.globals;
 
 import au.com.bytecode.opencsv.CSVReader;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdNthPercentiles;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import com.pearson.statsagg.webui.HttpLink;
 import java.io.InputStream;
@@ -88,6 +87,10 @@ public class ApplicationConfiguration {
     private static List<StatsdHistogramConfiguration> statsdHistogramConfigurations_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
     private static boolean statsdPersistGauges_ = false;
+    
+    private static String influxdbDefaultDatabaseName_;
+    private static String influxdbDefaultDatabaseUsername_;
+    private static String influxdbDefaultDatabasePassword_;
     
     private static boolean alertRoutineEnabled_ = false;
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
@@ -202,6 +205,11 @@ public class ApplicationConfiguration {
             statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.safeGetString("statsd_histograms", null));
             statsdUseLegacyNameSpacing_ = applicationConfiguration_.safeGetBoolean("statsd_use_legacy_name_spacing", false);
             statsdPersistGauges_ = applicationConfiguration_.safeGetBoolean("statsd_persist_gauges", true);
+            
+            // influxdb specific variables
+            influxdbDefaultDatabaseName_ = applicationConfiguration_.safeGetString("influxdb_default_database_name", "statsagg");
+            influxdbDefaultDatabaseUsername_ = applicationConfiguration_.safeGetString("influxdb_default_database_username", "statsagg");
+            influxdbDefaultDatabasePassword_ = applicationConfiguration_.safeGetString("influxdb_default_database_password", "statsagg");
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.safeGetBoolean("alert_routine_enabled", true);
@@ -628,6 +636,18 @@ public class ApplicationConfiguration {
         return statsdPersistGauges_;
     }
 
+    public static String getInfluxdbDefaultDatabaseName() {
+        return influxdbDefaultDatabaseName_;
+    }
+
+    public static String getInfluxdbDefaultDatabaseUsername() {
+        return influxdbDefaultDatabaseUsername_;
+    }
+
+    public static String getInfluxdbDefaultDatabasePassword() {
+        return influxdbDefaultDatabasePassword_;
+    }
+    
     public static boolean isAlertRoutineEnabled() {
         return alertRoutineEnabled_;
     }

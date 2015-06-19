@@ -7,7 +7,7 @@ import io.netty.util.CharsetUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -170,7 +170,6 @@ public class MetricGroupDetails extends HttpServlet {
             }
             
             if ((metricGroupRegexs == null) || metricGroupRegexs.isEmpty()) outputString.append("<br>");
-            outputString.append("<br>");
             
             if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
                 int i = 1;
@@ -180,7 +179,8 @@ public class MetricGroupDetails extends HttpServlet {
                 }
             }
             
-            outputString.append("<br>");
+            if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) outputString.append("<br>");
+            
             outputString.append("<b>Metric Key Associations</b> = ");            
             String metricGroup_MetricKeyAssociations_Link = "<a href=\"MetricGroupMetricKeyAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             outputString.append(metricGroup_MetricKeyAssociations_Link);  

@@ -68,11 +68,12 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
         
-        TreeSet<String> matchRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "Regexs");
+        TreeSet<String> matchRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexs");
         TreeSet<String> blacklistRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexs");
         
         List matchRegexs_List;
-        if (matchRegexs != null) matchRegexs_List = new ArrayList<>(matchRegexs);
+        if ((matchRegexs != null) && !matchRegexs.isEmpty()) matchRegexs_List = new ArrayList<>(matchRegexs);
+        else if ((blacklistRegexs != null) && !blacklistRegexs.isEmpty()) matchRegexs_List = new ArrayList<>(blacklistRegexs);
         else matchRegexs_List = new ArrayList<>();
         
         String mergedRegex = StringUtilities.createMergedRegex(matchRegexs_List);

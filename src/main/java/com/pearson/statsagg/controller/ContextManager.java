@@ -26,7 +26,7 @@ import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
-import com.pearson.statsagg.controller.threads.InfluxdbInvokerThread;
+import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
@@ -43,7 +43,7 @@ import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetricAggregated;
+import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.network.JettyServer;
 import com.pearson.statsagg.network.NettyServer;
 import com.pearson.statsagg.network.http.JettyInfluxdb;
@@ -77,7 +77,7 @@ public class ContextManager implements ServletContextListener {
     private GraphiteAggregationInvokerThread graphiteAggregationInvokerThread_ = null;
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
     private OpenTsdbInvokerThread openTsdbInvokerThread_ = null;
-    private InfluxdbInvokerThread influxdbInvokerThread_ = null;
+    private InfluxdbV1InvokerThread influxdbInvokerThread_ = null;
     private AlertInvokerThread alertInvokerThread_ = null;
     private CleanupInvokerThread cleanupInvokerThread_ = null;
     private InternalStatsInvokerThread internalStatsInvokerThread_ = null;
@@ -188,7 +188,7 @@ public class ContextManager implements ServletContextListener {
         Thread openTsdbInvokerThread = new Thread(openTsdbInvokerThread_);
         openTsdbInvokerThread.start();
         
-        influxdbInvokerThread_ = new InfluxdbInvokerThread();
+        influxdbInvokerThread_ = new InfluxdbV1InvokerThread();
         Thread influxdbInvokerThread = new Thread(influxdbInvokerThread_);
         influxdbInvokerThread.start();
         

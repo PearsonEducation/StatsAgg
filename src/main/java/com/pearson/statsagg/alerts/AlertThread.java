@@ -20,9 +20,9 @@ import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
@@ -131,8 +131,11 @@ public class AlertThread implements Runnable {
                 // send to graphite
                 SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_);
                 
-                // send to opentsdb
+                // send to opentsdb telnet
                 SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(alertStatusMetricsForGraphite, threadId_);
+                
+                // send to opentsdb http
+                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbHttpEndpoints(alertStatusMetricsForGraphite, threadId_);
             }
         }
 

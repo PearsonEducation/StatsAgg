@@ -3,7 +3,7 @@ package com.pearson.statsagg.webui.api;
 import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.utilities.Compression;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;

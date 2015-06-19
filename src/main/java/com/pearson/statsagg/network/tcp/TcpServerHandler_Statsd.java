@@ -6,7 +6,7 @@ import io.netty.util.ReferenceCountUtil;
 import java.util.List;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.statsd.StatsdMetric;
+import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -234,6 +234,28 @@ public class FileIo {
     /**
      * This is a quiet method.
      */
+    public static boolean doesFileExist(File file) {
+        
+        if (file == null) {
+            return false;
+        }
+        
+        boolean doesFileExist;
+        
+        try {
+            doesFileExist = file.exists();
+        }
+        catch (Exception e) {
+            logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            doesFileExist = false;
+        }
+
+        return doesFileExist;
+    }
+    
+    /**
+     * This is a quiet method.
+     */
     public static boolean doesFileExist(String filePath, String filename) {
         if ((filePath == null) || filePath.isEmpty() || (filename == null) || filename.isEmpty()) {
             return false;
@@ -548,9 +570,15 @@ public class FileIo {
      * This is a quiet method.
      */
     public static boolean saveStringToFile(String saveFilePath, String saveFilename, String saveString) {
+        return saveStringToFile(saveFilePath + File.separator + saveFilename, saveString);
+    }
+    
+    /**
+     * This is a quiet method.
+     */
+    public static boolean saveStringToFile(String saveFilePathAndName, String saveString) {
         
-        if ((saveFilePath == null) || saveFilePath.isEmpty() ||
-                (saveFilename == null) || saveFilename.isEmpty() || 
+        if ((saveFilePathAndName == null) || saveFilePathAndName.isEmpty() ||
                 (saveString == null) || saveString.isEmpty()) {
             return false;
         }
@@ -558,7 +586,7 @@ public class FileIo {
         BufferedWriter writer = null;
         
         try {  
-            File outputFile = new File(saveFilePath + File.separator + saveFilename);      
+            File outputFile = new File(saveFilePathAndName);      
             writer = new BufferedWriter(new FileWriter(outputFile));
             
             writer.write(saveString);

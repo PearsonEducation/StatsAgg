@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_aggregation.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashSet;
 import java.util.Set;

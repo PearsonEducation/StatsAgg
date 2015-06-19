@@ -9,6 +9,7 @@ import java.net.URL;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -162,4 +163,36 @@ public class HttpUtils {
         return isAllRequestsSuccess;
     }
     
+    // The returned value at [0] is the username
+    // The returned value at [1] is the password
+    public static String[] getUsernameAndPasswordFromBasicAuthoricationHeaderValue(String httpAuthorizationHeaderValue) {
+        
+        String[] usernameAndPassword = new String[2];
+        usernameAndPassword[0] = null;
+        usernameAndPassword[1] = null;
+        
+        if ((httpAuthorizationHeaderValue != null) && httpAuthorizationHeaderValue.startsWith("Basic ")) {
+            String base64EncodedCredentials = httpAuthorizationHeaderValue.substring(6);
+
+            try {
+                byte[] credentialsBytes = Base64.decodeBase64(base64EncodedCredentials);
+                String credentialsString = new String(credentialsBytes);
+
+                int colonIndex = credentialsString.indexOf(':');
+                if ((colonIndex > -1) && (colonIndex < (credentialsString.length() - 1))) {
+                    String username = credentialsString.substring(0, colonIndex);
+                    String password = credentialsString.substring(colonIndex + 1, credentialsString.length());
+
+                    usernameAndPassword[0] = username;
+                    usernameAndPassword[1] = password;
+                }
+            }
+            catch (Exception e) {
+                logger.warn("Error decoding HTTP Basic Auth base64 credentials.");
+            }
+        }
+        
+        return usernameAndPassword;
+    }
+
 }

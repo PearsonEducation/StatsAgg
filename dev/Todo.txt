@@ -2,21 +2,19 @@ StatsAgg 1.4
  * Document metric prefixes behavior
  * Document quirks in each output db
  * Finish blacklist metric-group regexs
-   * Previews
-   * Metric association (test)
-   * Documentation
+   * Document
  * Move separator character out of graphite-aggregator aggregate method
  * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list ???
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Support 'no timestamp' on Graphite metrics
  * Optimize/Improve Graphite metric formatter
    * test
- * Native InfluxDB support
-   * Input 
+ * Native InfluxDB support (v0.6x - v0.8x)
    * Output
  * Support output via OpenTSDB HTTP/JSON
-   * Test
    * Document "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
+   * Bug -- Graphite & InfluxDB metrics won't output with OpenTSDB HTTP/JSON
+ * Test cross-format metric output (graphite->opentsdb,influx), (opentsdb->influx,graphite), (influx->opentsdb,graphite)
  * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
 
 Short/Medium term

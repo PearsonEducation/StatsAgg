@@ -4,7 +4,7 @@ import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.OpenTsdbHttpOutputModule;
 import com.pearson.statsagg.globals.OpenTsdbTelnetOutputModule;
-import com.pearson.statsagg.metric_aggregation.OpenTsdbMetricFormat;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.HttpUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.List;
@@ -16,7 +16,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.metric_aggregation.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 
 /**
  * @author Jeffrey Schmidt
@@ -113,7 +113,7 @@ public class SendMetricsToOpenTsdbThread implements Runnable {
         
         // send metrics to opentsdb
         for (OpenTsdbMetricFormat openTsdbMetric : openTsdbMetrics) {
-            boolean isSendSucess = tcpClient.send("put " + openTsdbMetric.getOpenTsdbFormatString() + "\n", numSendRetries, false, false);
+            boolean isSendSucess = tcpClient.send("put " + openTsdbMetric.getOpenTsdbTelnetFormatString() + "\n", numSendRetries, false, false);
 
             if (!isSendSucess) {
                 logger.error("Error sending message to OpenTSDB.");

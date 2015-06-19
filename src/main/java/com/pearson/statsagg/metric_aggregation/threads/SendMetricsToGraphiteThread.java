@@ -2,7 +2,7 @@ package com.pearson.statsagg.metric_aggregation.threads;
 
 import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.metric_aggregation.GraphiteMetricFormat;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.globals.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.List;
