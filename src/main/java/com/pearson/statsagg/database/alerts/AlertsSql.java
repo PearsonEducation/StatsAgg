@@ -181,7 +181,7 @@ public class AlertsSql {
                     "DELETE FROM ALERTS " +
                     "WHERE ID = ?";
     
-    protected final static String Fetch_Alerts_Derby = 
-                  "SELECT id, name FROM ALERTS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    protected final static String Select_Alerts_ByPageNumberAndPageSize_Derby = 
+                    "SELECT ID, NAME FROM ALERTS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     
 }

@@ -152,20 +152,5 @@ public class GlobalVariables {
     
     // Used to lock down the cleanup routine so that it doesn't clear out any metrics while the metric association routine is running
     public final static Object cleanupOldMetricsLock = new Object();
-    
-    public final static String pageNumber = "page_number";
-    
-    public final static String pageSize = "page_size";
-    
-    public final static String name = "name";
-    
-    public final static String id = "id";
-    
-    public final static String count = "count";
-    
-    public final static String alerts = "alerts";
-    
-    public final static String error = "error";
-    
-    public final static String errorMsg = "Invalid request parameters.";
+
 }

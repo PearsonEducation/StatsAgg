@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.database.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
-import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -516,7 +515,9 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
     }
     
      public JSONObject getAlerts(int offset, int pageSize) {
-        logger.info("getAlerts");
+        // needs input check
+         
+        logger.debug("getAlerts");
         List<Object> parametersList = new ArrayList<>(2);
         
         JSONArray alertsList = new JSONArray();
@@ -524,25 +525,25 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         int alertsCount = 0;
         
         try {
-
             if (!isConnectionValid()) {
                 return null;
             }
             
-            if (offset == 0 && pageSize == 0) {
-              alertsJson.put(GlobalVariables.alerts, alertsList);
-              alertsJson.put(GlobalVariables.count, alertsCount);
-              return alertsJson;
+            if ((offset == 0) && (pageSize == 0)) {
+                alertsJson.put("alerts", alertsList);
+                alertsJson.put("count", alertsCount);
+                return alertsJson;
             }
+            
             parametersList.add(offset);
             parametersList.add(pageSize);
-            databaseInterface_.createPreparedStatement(AlertsSql.Fetch_Alerts_Derby, pageSize);
+            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby, pageSize);
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {
-                logger.info("invalid dataset");
+                logger.error("Invalid resultset");
                 return null;
             }
             
@@ -550,13 +551,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
             while(resultSet.next()) {
                 JSONObject alert = new JSONObject();
-                alert.put(GlobalVariables.name, resultSet.getString(GlobalVariables.name));
-                alert.put(GlobalVariables.id, resultSet.getString(GlobalVariables.id));
+                alert.put("name", resultSet.getString("NAME"));
+                alert.put("id", resultSet.getString("ID"));
                 alertsList.add(alert);
                 alertsCount++;
             }
-            alertsJson.put(GlobalVariables.alerts, alertsList);
-            alertsJson.put(GlobalVariables.count, alertsCount);
+            
+            alertsJson.put("alerts", alertsList);
+            alertsJson.put("count", alertsCount);
+            
             return alertsJson;
         }
         catch (Exception e) {
