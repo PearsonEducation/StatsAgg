@@ -59,7 +59,8 @@ public class GlobalVariables {
     public final static AtomicLong metricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
 
     // k="Value assigned at metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="metric object"
-    public final static ConcurrentHashMap<Long,StatsdMetric> statsdMetrics = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,StatsdMetric> statsdNotGaugeMetrics = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,StatsdMetric> statsdGaugeMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphiteAggregatorMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphitePassthroughMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();
@@ -70,7 +71,7 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
     public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,InfluxdbStatsAggMetric_v1> InfluxdbStatsAggMetricsV1MostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
+    public final static ConcurrentHashMap<String,InfluxdbStatsAggMetric_v1> influxdbStatsAggMetricsV1MostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>(16, 0.75f, 3);

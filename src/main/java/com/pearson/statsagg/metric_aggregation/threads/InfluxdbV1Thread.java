@@ -72,7 +72,7 @@ public class InfluxdbV1Thread implements Runnable {
             
             // merge current values with the previous window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetricsMerged = mergePreviousValuesWithCurrentValues(influxdbStatsAggMetrics, GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue);
+            List<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetricsMerged = mergePreviousValuesWithCurrentValues(influxdbStatsAggMetrics, GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue);
             removeMetricKeysFromInfluxdbStatsAggMetricsList(influxdbStatsAggMetricsMerged, metricKeysToForget);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
   
@@ -137,20 +137,22 @@ public class InfluxdbV1Thread implements Runnable {
         
     }
     
+    // gets influxdb metrics for this thread 
+    // also removes metrics from the global influxdb metrics map (since they are being operated on by this thread)
     private List<InfluxdbStatsAggMetric_v1> getCurrentInfluxdbStatsAggMetricsAndRemoveMetricsFromGlobal() {
 
         if (GlobalVariables.influxdbV1Metrics == null) {
             return new ArrayList();
         }
 
-        // gets influxdb metrics for this thread 
         List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList(GlobalVariables.influxdbV1Metrics.size());
         List<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics = new ArrayList(GlobalVariables.influxdbV1Metrics.size());
         
         for (InfluxdbMetric_v1 influxdbMetric : GlobalVariables.influxdbV1Metrics.values()) {
             if (influxdbMetric.getMetricsReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
                 influxdbMetrics.add(influxdbMetric);
-
+                GlobalVariables.influxdbV1Metrics.remove(influxdbMetric.getHashKey());
+                
                 if ((influxdbMetric.getInfluxdbStatsAggMetrics() == null) || influxdbMetric.getInfluxdbStatsAggMetrics().isEmpty()) continue;
 
                 for (InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric : influxdbMetric.getInfluxdbStatsAggMetrics()) {
@@ -158,23 +160,18 @@ public class InfluxdbV1Thread implements Runnable {
                 }
             }
         }
-        
-        // removes metrics from the global influxdb metrics map (since they are being operated on by this thread)
-        for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
-            GlobalVariables.influxdbV1Metrics.remove(influxdbMetric.getHashKey());
-        }
 
         return influxdbStatsAggMetrics;
     }
     
     private void updateMetricMostRecentValues(List<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics) {
 
-        if (GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue != null) {
+        if (GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue != null) {
             long timestampInMilliseconds = System.currentTimeMillis();
             long timestampInSeconds = timestampInMilliseconds / 1000;
             long timestampInMicroseconds = timestampInMilliseconds * 1000;
 
-            for (InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric : GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue.values()) {
+            for (InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric : GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue.values()) {
                 long timestamp;
                 
                 if (influxdbStatsAggMetric.getMetricTimestampPrecision() == InfluxdbMetric_v1.TIMESTAMP_PRECISION_MICROSECONDS) timestamp = timestampInMilliseconds;
@@ -189,7 +186,7 @@ public class InfluxdbV1Thread implements Runnable {
                         influxdbStatsAggMetric.getColumns(), influxdbStatsAggMetric.getPoint());
                 updatedInfluxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
                 
-                GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue.put(updatedInfluxdbStatsAggMetric.getMetricKey(), updatedInfluxdbStatsAggMetric);
+                GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue.put(updatedInfluxdbStatsAggMetric.getMetricKey(), updatedInfluxdbStatsAggMetric);
             }
         }
 
@@ -197,11 +194,11 @@ public class InfluxdbV1Thread implements Runnable {
             return;
         }
         
-        if ((GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue != null) && ApplicationConfiguration.isInfluxdbSendPreviousValue()) {
+        if ((GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue != null) && ApplicationConfiguration.isInfluxdbSendPreviousValue()) {
             Map<String,InfluxdbStatsAggMetric_v1> mostRecentInfluxdbStatsAggMetricsByMetricKey = InfluxdbStatsAggMetric_v1.getMostRecentInfluxdbStatsAggMetricByMetricKey(influxdbStatsAggMetrics);
             
             for (InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric : mostRecentInfluxdbStatsAggMetricsByMetricKey.values()) {
-                GlobalVariables.InfluxdbStatsAggMetricsV1MostRecentValue.put(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric);
+                GlobalVariables.influxdbStatsAggMetricsV1MostRecentValue.put(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric);
             }
         }
 

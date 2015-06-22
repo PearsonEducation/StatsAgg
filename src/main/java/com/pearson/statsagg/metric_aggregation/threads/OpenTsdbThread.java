@@ -136,24 +136,21 @@ public class OpenTsdbThread implements Runnable {
         
     }
     
+    // gets opentsdb metrics for this thread 
+    // also removes metrics from the global opentsdb metrics map (since they are being operated on by this thread)
     private List<OpenTsdbMetric> getCurrentOpenTsdbMetricsAndRemoveMetricsFromGlobal() {
 
         if (GlobalVariables.openTsdbMetrics == null) {
             return new ArrayList();
         }
 
-        // gets opentsdb metrics for this thread 
         List<OpenTsdbMetric> openTsdbMetrics = new ArrayList(GlobalVariables.openTsdbMetrics.size());
         
         for (OpenTsdbMetric openTsdbMetric : GlobalVariables.openTsdbMetrics.values()) {
             if (openTsdbMetric.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
                 openTsdbMetrics.add(openTsdbMetric);
+                GlobalVariables.openTsdbMetrics.remove(openTsdbMetric.getHashKey());
             }
-        }
-        
-        // removes metrics from the global opentsdb metrics map (since they are being operated on by this thread)
-        for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
-            GlobalVariables.openTsdbMetrics.remove(openTsdbMetric.getHashKey());
         }
 
         return openTsdbMetrics;

@@ -26,7 +26,7 @@ public final class StatsdMetric {
 
     private final String bucket_;
     private final BigDecimal metricValue_;
-    private final byte metricTypeKey_;
+    private final byte metricTypeCode_;
     private final boolean doesContainOperator_;
     private final BigDecimal sampleRate_;
     private final long metricReceivedTimestampInMilliseconds_;
@@ -34,7 +34,7 @@ public final class StatsdMetric {
     public StatsdMetric(String bucket, BigDecimal metricValue, String metricType, boolean doesContainOperator, BigDecimal sampleRate, long metricReceivedTimestampInMilliseconds) {
         this.bucket_ = bucket;
         this.metricValue_ = metricValue;
-        this.metricTypeKey_ = determineMetricTypeKey(metricType);
+        this.metricTypeCode_ = determineMetricTypeKey(metricType);
         this.doesContainOperator_ = doesContainOperator;
         this.sampleRate_ = sampleRate;
         this.metricReceivedTimestampInMilliseconds_ = metricReceivedTimestampInMilliseconds;
@@ -72,8 +72,8 @@ public final class StatsdMetric {
         }
         
         stringBuilder.append(bucket_).append(":");
-        if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
-        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeKey_));
+        if ((metricTypeCode_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
+        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeCode_));
         if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         stringBuilder.append(" @ ").append(metricReceivedTimestampInMilliseconds_);
         
@@ -90,8 +90,8 @@ public final class StatsdMetric {
         }
         
         stringBuilder.append(bucket_).append(":");
-        if ((metricTypeKey_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
-        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeKey_));
+        if ((metricTypeCode_ == GAUGE_TYPE) && doesContainOperator_ && isMetricValueGreaterThanOrEqualToZero) stringBuilder.append("+");
+        stringBuilder.append(getMetricValueString()).append("|").append(getMetricTypeString(metricTypeCode_));
         if (sampleRate_ != null) stringBuilder.append("|@").append(getSampleRateString());
         
         return stringBuilder.toString();
@@ -220,10 +220,10 @@ public final class StatsdMetric {
         
         @Override
         public int compare(StatsdMetric statsdMetric1, StatsdMetric statsdMetric2) {
-            if (statsdMetric1.getMetricTypeKey() > statsdMetric2.getMetricTypeKey()) {
+            if (statsdMetric1.getMetricTypeCode() > statsdMetric2.getMetricTypeCode()) {
                 return 1;
             }
-            else if (statsdMetric1.getMetricTypeKey() < statsdMetric2.getMetricTypeKey()) {
+            else if (statsdMetric1.getMetricTypeCode() < statsdMetric2.getMetricTypeCode()) {
                 return -1;
             }
             else {
@@ -255,11 +255,11 @@ public final class StatsdMetric {
     }
     
     public String getMetricType() {
-        return getMetricTypeString(metricTypeKey_);
+        return getMetricTypeString(metricTypeCode_);
     }
 
-    public byte getMetricTypeKey() {
-        return metricTypeKey_;
+    public byte getMetricTypeCode() {
+        return metricTypeCode_;
     }
     
     public boolean doesContainOperator() {

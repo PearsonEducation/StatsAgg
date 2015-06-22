@@ -98,7 +98,8 @@ public class AlertThreadTest {
  
         Map<Integer,List<Alert>> metricKeysByCpuCore = AlertThread.separateAlertsByCpuCore(alerts);
         
-        assertTrue(metricKeysByCpuCore.size() == Runtime.getRuntime().availableProcessors());
+        if (Runtime.getRuntime().availableProcessors() > 2) assertEquals(metricKeysByCpuCore.size(), Runtime.getRuntime().availableProcessors() - 1);
+        else assertEquals(1, Runtime.getRuntime().availableProcessors() - 1);
         
         int totalAlerts = 0;
         for (List<Alert> metricKeysSingleCore : metricKeysByCpuCore.values()) {

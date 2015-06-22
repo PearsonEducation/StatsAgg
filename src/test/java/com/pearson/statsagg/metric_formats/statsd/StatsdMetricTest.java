@@ -62,7 +62,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric1.getBucket(), "countMetric_1");
         assertEquals(0, statsdMetric1.getMetricValue().compareTo(new BigDecimal("100")));
         assertEquals(statsdMetric1.getMetricType(), "c");
-        assertEquals(statsdMetric1.getMetricTypeKey(), StatsdMetric.COUNTER_TYPE);
+        assertEquals(statsdMetric1.getMetricTypeCode(), StatsdMetric.COUNTER_TYPE);
         assertEquals(statsdMetric1.doesContainOperator(), false);
         assertEquals(statsdMetric1.getSampleRate(), null);
         assertEquals(statsdMetric1.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -71,7 +71,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric2.getBucket(), "countMetric_2");
         assertEquals(0, statsdMetric2.getMetricValue().compareTo(new BigDecimal("-800.3")));
         assertEquals(statsdMetric2.getMetricType(), "c");
-        assertEquals(statsdMetric2.getMetricTypeKey(), StatsdMetric.COUNTER_TYPE);
+        assertEquals(statsdMetric2.getMetricTypeCode(), StatsdMetric.COUNTER_TYPE);
         assertEquals(statsdMetric2.doesContainOperator(), true);
         assertEquals(0, statsdMetric2.getSampleRate().compareTo(new BigDecimal("0.1")));
         assertEquals(statsdMetric2.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -80,7 +80,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric3.getBucket(), "countMetric_3");
         assertEquals(0, statsdMetric3.getMetricValue().compareTo(new BigDecimal("10000000000000")));
         assertEquals(statsdMetric3.getMetricType(), "c");
-        assertEquals(statsdMetric3.getMetricTypeKey(), StatsdMetric.COUNTER_TYPE);
+        assertEquals(statsdMetric3.getMetricTypeCode(), StatsdMetric.COUNTER_TYPE);
         assertEquals(statsdMetric3.doesContainOperator(), false);
         assertEquals(0, statsdMetric3.getSampleRate().compareTo(new BigDecimal("1.11111")));
         assertEquals(statsdMetric3.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -101,7 +101,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric1.getBucket(), "timerMetric_1");
         assertEquals(0, statsdMetric1.getMetricValue().compareTo(new BigDecimal("100")));
         assertEquals(statsdMetric1.getMetricType(), "ms");
-        assertEquals(statsdMetric1.getMetricTypeKey(), StatsdMetric.TIMER_TYPE);
+        assertEquals(statsdMetric1.getMetricTypeCode(), StatsdMetric.TIMER_TYPE);
         assertEquals(statsdMetric1.doesContainOperator(), false);
         assertEquals(statsdMetric1.getSampleRate(), null);
         assertEquals(statsdMetric1.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -110,7 +110,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric2.getBucket(), "timerMetric_2");
         assertEquals(0, statsdMetric2.getMetricValue().compareTo(new BigDecimal("800.3")));
         assertEquals(statsdMetric2.getMetricType(), "ms");
-        assertEquals(statsdMetric2.getMetricTypeKey(), StatsdMetric.TIMER_TYPE);
+        assertEquals(statsdMetric2.getMetricTypeCode(), StatsdMetric.TIMER_TYPE);
         assertEquals(statsdMetric2.doesContainOperator(), true);
         assertEquals(0, statsdMetric2.getSampleRate().compareTo(new BigDecimal("0.1")));
         assertEquals(statsdMetric2.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -119,7 +119,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric3.getBucket(), "timerMetric_3");
         assertEquals(0, statsdMetric3.getMetricValue().compareTo(new BigDecimal("10000000000000")));
         assertEquals(statsdMetric3.getMetricType(), "ms");
-        assertEquals(statsdMetric3.getMetricTypeKey(), StatsdMetric.TIMER_TYPE);
+        assertEquals(statsdMetric3.getMetricTypeCode(), StatsdMetric.TIMER_TYPE);
         assertEquals(statsdMetric3.doesContainOperator(), false);
         assertEquals(0, statsdMetric3.getSampleRate().compareTo(new BigDecimal("1.11111")));
         assertEquals(statsdMetric3.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -140,7 +140,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric1.getBucket(), "gaugeMetric_1");
         assertEquals(0, statsdMetric1.getMetricValue().compareTo(new BigDecimal("100")));
         assertEquals(statsdMetric1.getMetricType(), "g");
-        assertEquals(statsdMetric1.getMetricTypeKey(), StatsdMetric.GAUGE_TYPE);
+        assertEquals(statsdMetric1.getMetricTypeCode(), StatsdMetric.GAUGE_TYPE);
         assertEquals(statsdMetric1.doesContainOperator(), false);
         assertEquals(statsdMetric1.getSampleRate(), null);
         assertEquals(statsdMetric1.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -149,7 +149,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric2.getBucket(), "gaugeMetric_2");
         assertEquals(0, statsdMetric2.getMetricValue().compareTo(new BigDecimal("800.3")));
         assertEquals(statsdMetric2.getMetricType(), "g");
-        assertEquals(statsdMetric2.getMetricTypeKey(), StatsdMetric.GAUGE_TYPE);
+        assertEquals(statsdMetric2.getMetricTypeCode(), StatsdMetric.GAUGE_TYPE);
         assertEquals(statsdMetric2.doesContainOperator(), true);
         assertEquals(statsdMetric2.getSampleRate(), null);
         assertEquals(statsdMetric2.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -158,7 +158,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric3.getBucket(), "gaugeMetric_3");
         assertEquals(0, statsdMetric3.getMetricValue().compareTo(new BigDecimal("-215.1")));
         assertEquals(statsdMetric3.getMetricType(), "g");
-        assertEquals(statsdMetric3.getMetricTypeKey(), StatsdMetric.GAUGE_TYPE);
+        assertEquals(statsdMetric3.getMetricTypeCode(), StatsdMetric.GAUGE_TYPE);
         assertEquals(statsdMetric3.doesContainOperator(), true);
         assertEquals(statsdMetric3.getSampleRate(), null);
         assertEquals(statsdMetric3.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -179,7 +179,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric1.getBucket(), "setMetric_1");
         assertEquals(0, statsdMetric1.getMetricValue().compareTo(new BigDecimal("100")));
         assertEquals(statsdMetric1.getMetricType(), "s");
-        assertEquals(statsdMetric1.getMetricTypeKey(), StatsdMetric.SET_TYPE);
+        assertEquals(statsdMetric1.getMetricTypeCode(), StatsdMetric.SET_TYPE);
         assertEquals(statsdMetric1.doesContainOperator(), false);
         assertEquals(statsdMetric1.getSampleRate(), null);
         assertEquals(statsdMetric1.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -188,7 +188,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric2.getBucket(), "setMetric_2");
         assertEquals(0, statsdMetric2.getMetricValue().compareTo(new BigDecimal("-800.3")));
         assertEquals(statsdMetric2.getMetricType(), "s");
-        assertEquals(statsdMetric2.getMetricTypeKey(), StatsdMetric.SET_TYPE);
+        assertEquals(statsdMetric2.getMetricTypeCode(), StatsdMetric.SET_TYPE);
         assertEquals(statsdMetric2.doesContainOperator(), true);
         assertEquals(statsdMetric2.getSampleRate(), null);
         assertEquals(statsdMetric2.getMetricReceivedTimestampInMilliseconds(), currentTime);
@@ -197,7 +197,7 @@ public class StatsdMetricTest {
         assertEquals(statsdMetric3.getBucket(), "setMetric_3");
         assertEquals(0, statsdMetric3.getMetricValue().compareTo(new BigDecimal("10000000000000")));
         assertEquals(statsdMetric3.getMetricType(), "s");
-        assertEquals(statsdMetric3.getMetricTypeKey(), StatsdMetric.SET_TYPE);
+        assertEquals(statsdMetric3.getMetricTypeCode(), StatsdMetric.SET_TYPE);
         assertEquals(statsdMetric3.doesContainOperator(), false);
         assertEquals(statsdMetric3.getSampleRate(), null);
         assertEquals(statsdMetric3.getMetricReceivedTimestampInMilliseconds(), currentTime);

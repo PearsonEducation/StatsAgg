@@ -1069,7 +1069,9 @@ public class AlertThread implements Runnable {
         
         Map<Integer,List<Alert>> alertsByCpuCore = new HashMap<>();
         
-        int numCoresOnSystem = Runtime.getRuntime().availableProcessors();
+        // only use more than 1 core if the number of available cpu cores is greater than or equal to 3. 
+        // this should help avoid cpu contention on lower-end systems
+        int numCoresOnSystem = Runtime.getRuntime().availableProcessors() - 1;
         if (numCoresOnSystem < 1) numCoresOnSystem = 1;
         
         int currentCore = 0;

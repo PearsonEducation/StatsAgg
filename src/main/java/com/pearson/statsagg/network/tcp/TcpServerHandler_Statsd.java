@@ -27,7 +27,12 @@ public class TcpServerHandler_Statsd extends SimpleChannelInboundHandler<String>
             for (StatsdMetric statsdMetric : statsdMetrics) {
                 long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
                 statsdMetric.setHashKey(hashKey);
-                GlobalVariables.statsdMetrics.put(statsdMetric.getHashKey(), statsdMetric);
+                
+                if (statsdMetric.getMetricTypeCode() == StatsdMetric.GAUGE_TYPE) GlobalVariables.statsdGaugeMetrics.put(statsdMetric.getHashKey(), statsdMetric);
+                else GlobalVariables.statsdNotGaugeMetrics.put(statsdMetric.getHashKey(), statsdMetric);
+                
+                if (statsdMetric.getBucket() != null) statsdMetric.getBucket().hashCode();
+                
                 GlobalVariables.incomingMetricsCount.incrementAndGet();
             }
             

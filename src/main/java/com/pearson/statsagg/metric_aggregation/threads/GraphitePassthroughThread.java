@@ -136,26 +136,23 @@ public class GraphitePassthroughThread implements Runnable {
         
     }
     
+    // gets graphite metrics for this thread 
+    // also removes metrics from the global graphite passthrough metrics map (since they are being operated on by this thread)
     private List<GraphiteMetric> getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal() {
 
         if (GlobalVariables.graphitePassthroughMetrics == null) {
             return new ArrayList();
         }
 
-        // gets graphite passthrough metrics for this thread 
         List<GraphiteMetric> graphiteMetrics = new ArrayList(GlobalVariables.graphitePassthroughMetrics.size());
         
         for (GraphiteMetric graphiteMetric : GlobalVariables.graphitePassthroughMetrics.values()) {
             if (graphiteMetric.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
                 graphiteMetrics.add(graphiteMetric);
+                GlobalVariables.graphitePassthroughMetrics.remove(graphiteMetric.getHashKey());
             }
         }
         
-        // removes metrics from the global graphite passthrough metrics map (since they are being operated on by this thread)
-        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
-            GlobalVariables.graphitePassthroughMetrics.remove(graphiteMetric.getHashKey());
-        }
-
         return graphiteMetrics;
     }
     

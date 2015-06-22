@@ -30,6 +30,7 @@ public class UdpServerHandler_GraphiteAggregator extends SimpleChannelInboundHan
         for (GraphiteMetric graphiteMetric : graphiteMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             graphiteMetric.setHashKey(hashKey);
+            if (graphiteMetric.getMetricPath() != null) graphiteMetric.getMetricPath().hashCode();
             GlobalVariables.graphiteAggregatorMetrics.put(graphiteMetric.getHashKey(), graphiteMetric);
             GlobalVariables.incomingMetricsCount.incrementAndGet();
         }

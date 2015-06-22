@@ -142,25 +142,22 @@ public class GraphiteAggregationThread implements Runnable {
         }
         
     }
-        
+    
+    // gets graphite metrics for this thread to aggregate
+    // also removes metrics from the global graphite aggregator metrics map (since they are being operated on by this thread)
     private List<GraphiteMetric> getCurrentGraphiteAggregatorMetricsAndRemoveMetricsFromGlobal() {
 
         if (GlobalVariables.graphiteAggregatorMetrics == null) {
             return new ArrayList();
         }
 
-        // gets graphite aggregator metrics for this thread to aggregate & send to graphite
         List<GraphiteMetric> graphiteMetrics = new ArrayList(GlobalVariables.graphiteAggregatorMetrics.size());
         
         for (GraphiteMetric graphiteMetric : GlobalVariables.graphiteAggregatorMetrics.values()) {
             if (graphiteMetric.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
                 graphiteMetrics.add(graphiteMetric);
+                GlobalVariables.graphiteAggregatorMetrics.remove(graphiteMetric.getHashKey());
             }
-        }
-        
-        // removes metrics from the global graphite aggregator metrics map (since they are being operated on by this thread)
-        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
-            GlobalVariables.graphiteAggregatorMetrics.remove(graphiteMetric.getHashKey());
         }
 
         return graphiteMetrics;

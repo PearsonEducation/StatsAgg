@@ -17,6 +17,7 @@ import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
+import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,9 +75,9 @@ public class StatsdAggregationThread implements Runnable {
             
             // get metrics for aggregation
             long createMetricsTimeStart = System.currentTimeMillis();
-            List<StatsdMetric> statsdMetrics = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal();
-            List<StatsdMetric> statsdMetricsGauges = StatsdMetricAggregator.getStatsdMetricsByMetricTypeKey(statsdMetrics, StatsdMetric.GAUGE_TYPE);
-            List<StatsdMetric> statsdMetricsNotGauges = StatsdMetricAggregator.getStatsdMetricsExcludeMetricTypeKey(statsdMetrics, StatsdMetric.GAUGE_TYPE);
+            List<StatsdMetric> statsdMetricsGauges = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal(GlobalVariables.statsdGaugeMetrics);
+            List<StatsdMetric> statsdMetricsNotGauges = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal(GlobalVariables.statsdNotGaugeMetrics);
+            long totalNumberOfStatsdMetrics = statsdMetricsGauges.size() + statsdMetricsNotGauges.size();
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
             
             // aggregate everything except gauges, then remove any aggregated metrics that need to be 'forgotten'
@@ -140,13 +141,13 @@ public class StatsdAggregationThread implements Runnable {
             long timeAggregationTimeElasped = System.currentTimeMillis() - timeAggregationTimeStart - waitInMsCounter;
             String aggregationRate = "0";
             if (timeAggregationTimeElasped > 0) {
-                aggregationRate = Long.toString(statsdMetrics.size() / timeAggregationTimeElasped * 1000);
+                aggregationRate = Long.toString(totalNumberOfStatsdMetrics / timeAggregationTimeElasped * 1000);
             }
 
             String aggregationStatistics = "ThreadId=" + threadId_
                     + ", AggTotalTime=" + timeAggregationTimeElasped 
-                    + ", RawMetricCount=" + statsdMetrics.size() 
-                    + ", RawMetricRatePerSec=" + (statsdMetrics.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", RawMetricCount=" + totalNumberOfStatsdMetrics 
+                    + ", RawMetricRatePerSec=" + (totalNumberOfStatsdMetrics / ApplicationConfiguration.getFlushTimeAgg() * 1000)
                     + ", AggMetricCount=" + statsdMetricsAggregated.size()                    
                     + ", MetricsProcessedPerSec=" + aggregationRate
                     + ", CreateMetricsTime=" + createMetricsTimeElasped 
@@ -182,28 +183,25 @@ public class StatsdAggregationThread implements Runnable {
         }
         
     }
+    
+    // gets statsd metrics for this thread to aggregate
+    // also removes metrics from the statsd metrics map (since they are being operated on by this thread)
+    private List<StatsdMetric> getCurrentStatsdMetricsAndRemoveMetricsFromGlobal(ConcurrentHashMap<Long,StatsdMetric> statsdMetrics) {
 
-    private List<StatsdMetric> getCurrentStatsdMetricsAndRemoveMetricsFromGlobal() {
-
-        if (GlobalVariables.statsdMetrics == null) {
+        if (statsdMetrics == null) {
             return new ArrayList();
         }
 
-        // gets statsd metrics for this thread to aggregate & send to statsd
-        List<StatsdMetric> statsdMetrics = new ArrayList(GlobalVariables.statsdMetrics.size());
+        List<StatsdMetric> statsdMetricsToReturn = new ArrayList(statsdMetrics.size());
         
-        for (StatsdMetric statsdMetric : GlobalVariables.statsdMetrics.values()) {
+        for (StatsdMetric statsdMetric : statsdMetrics.values()) {
             if (statsdMetric.getMetricReceivedTimestampInMilliseconds() <= threadStartTimestampInMilliseconds_) {
-                statsdMetrics.add(statsdMetric);
+                statsdMetricsToReturn.add(statsdMetric);
+                statsdMetrics.remove(statsdMetric.getHashKey());
             }
         }
-        
-        // removes metrics from the global statsd metrics map (since they are being operated on by this thread)
-        for (StatsdMetric statsdMetric : statsdMetrics) {
-            GlobalVariables.statsdMetrics.remove(statsdMetric.getHashKey());
-        }
 
-        return statsdMetrics;
+        return statsdMetricsToReturn;
     }
     
     private void updateStatsdGaugesInDatabaseAndCache(List<StatsdMetricAggregated> statsdMetricsAggregatedGauges) {
