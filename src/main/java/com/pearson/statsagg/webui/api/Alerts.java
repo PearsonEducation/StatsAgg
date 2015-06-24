@@ -67,10 +67,8 @@ public class Alerts extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Common.pageSize));
             }
             
-            //AlertsDao alertsDao = new AlertsDao();
             alertsJson = alertsDao.getAlerts(pageNumber*pageSize, pageSize);
         } catch (Exception e) {
-            logger.debug("error caught!");
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Common.error, Common.errorMsg);
