@@ -34,7 +34,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     private final String username_;
     private final String password_;
     private final String basicAuth_;
-    private final byte timePrecision_;
+    private final byte timePrecisionCode_;
     
     private final String namePrefix_;
     private final String namePrefixPeriodDelimited_;
@@ -43,16 +43,16 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     private final ArrayList<ArrayList<Object>> points_;
     private long metricsReceivedTimestampInMilliseconds_ = -1;
     
-    private ArrayList<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics_ = null;
+    private ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics_ = null;
 
-    public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecision,
+    public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecisionCode,
             String namePrefix, String namePrefixPeriodDelimited, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
             long metricsReceivedTimestampInMilliseconds) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
         this.basicAuth_ = basicAuth;
-        this.timePrecision_ = timePrecision;
+        this.timePrecisionCode_ = timePrecisionCode;
         this.namePrefix_ = namePrefix;
         this.namePrefixPeriodDelimited_ = namePrefixPeriodDelimited;
         this.name_ = name;
@@ -66,59 +66,59 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         }
         
         this.metricsReceivedTimestampInMilliseconds_ = metricsReceivedTimestampInMilliseconds;
-        createInfluxdbStatsAggMetrics(namePrefix, namePrefixPeriodDelimited);
+        createInfluxdbStandardizedMetrics(namePrefix, namePrefixPeriodDelimited);
 
-        if (this.influxdbStatsAggMetrics_ != null) this.influxdbStatsAggMetrics_.trimToSize();
+        if (this.influxdbStandardizedMetrics_ != null) this.influxdbStandardizedMetrics_.trimToSize();
     }
     
-    public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecision,   
+    public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecisionCode,   
             String namePrefix, String namePrefixPeriodDelimited, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
-            long metricsReceivedTimestampInMilliseconds, ArrayList<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics) {
+            long metricsReceivedTimestampInMilliseconds, ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics) {
         this.database_ = database;
         this.username_ = username;
         this.password_ = password;
         this.basicAuth_ = basicAuth;
-        this.timePrecision_ = timePrecision;
+        this.timePrecisionCode_ = timePrecisionCode;
         this.namePrefix_ = namePrefix;
         this.namePrefixPeriodDelimited_ = namePrefixPeriodDelimited;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
         this.metricsReceivedTimestampInMilliseconds_ = metricsReceivedTimestampInMilliseconds;
-        this.influxdbStatsAggMetrics_ = influxdbStatsAggMetrics;
+        this.influxdbStandardizedMetrics_ = influxdbStandardizedMetrics;
     }
     
-    private void createInfluxdbStatsAggMetrics(String namePrefix, String namePrefixPeriodDelimited) {
+    private void createInfluxdbStandardizedMetrics(String namePrefix, String namePrefixPeriodDelimited) {
         
         if ((name_ == null) || (columns_ == null) || (points_ == null) || columns_.isEmpty() || points_.isEmpty()) return;
 
-        influxdbStatsAggMetrics_ = new ArrayList<>();
+        influxdbStandardizedMetrics_ = new ArrayList<>();
 
         for (ArrayList<Object> point : points_) {
             if ((point == null) || (point.size() != columns_.size())) continue;
             
-            ArrayList<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics = new ArrayList<>();
+            ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics = new ArrayList<>();
             long time = getTimeFromPoint(point);
             String metricKeyStringFields = getSortedStringFieldsForMetricKey(columns_, point);
 
-            ArrayList<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetricsFromNumericPointValues = getInfluxdbStatsAggMetricsFromNumericPointValues(columns_, point, namePrefix, 
-                    namePrefixPeriodDelimited, metricKeyStringFields, time);
-            if (influxdbStatsAggMetricsFromNumericPointValues != null) influxdbStatsAggMetrics.addAll(influxdbStatsAggMetricsFromNumericPointValues);
+            ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetricsFromNumericPointValues = getInfluxdbStandardizedMetricsFromNumericPointValues(columns_,  
+                    point, namePrefix, namePrefixPeriodDelimited, metricKeyStringFields, time);
+            if (influxdbStandardizedMetricsFromNumericPointValues != null) influxdbStandardizedMetrics.addAll(influxdbStandardizedMetricsFromNumericPointValues);
 
-            if (influxdbStatsAggMetrics.isEmpty()) {
-                InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric = getInfluxdbStatsAggMetricFromStringFieldsOnly(point, 
+            if (influxdbStandardizedMetrics.isEmpty()) {
+                InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = getInfluxdbStandardizedMetricFromStringFieldsOnly(point, 
                         namePrefix, namePrefixPeriodDelimited, metricKeyStringFields, time);
                 
-                if (influxdbStatsAggMetricsFromNumericPointValues != null) influxdbStatsAggMetrics.add(influxdbStatsAggMetric);
+                if (influxdbStandardizedMetricsFromNumericPointValues != null) influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
             }
             
-            influxdbStatsAggMetrics_.addAll(influxdbStatsAggMetrics);
+            influxdbStandardizedMetrics_.addAll(influxdbStandardizedMetrics);
         }
             
     }
 
     // create list of sorted string key/value pairs of influxdb fields (non-numeric fields).
-    // statsagg treats this as the influxdb version of opentsdb tags
+    // this is treated as the influxdb version of opentsdb tags
     private String getSortedStringFieldsForMetricKey(ArrayList<String> columns, ArrayList<Object> point) {
         
         if ((columns == null) || (point == null) || (columns.size() != point.size()) || point.isEmpty()) {
@@ -151,14 +151,14 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         return metricKeyStringFields;
     }
     
-    private ArrayList<InfluxdbStatsAggMetric_v1> getInfluxdbStatsAggMetricsFromNumericPointValues(ArrayList<String> columns, ArrayList<Object> point, 
+    private ArrayList<InfluxdbStandardizedMetric_v1> getInfluxdbStandardizedMetricsFromNumericPointValues(ArrayList<String> columns, ArrayList<Object> point, 
             String namePrefix, String namePrefixPeriodDelimited, String metricKeyStringFields, long time) {
         
         if ((columns == null) || (point == null) || (columns.size() != point.size()) || point.isEmpty()) {
             return new ArrayList<>();
         }
         
-        ArrayList<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics = new ArrayList<>();
+        ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics = new ArrayList<>();
         
         for (int i = 0; i < point.size(); i++) {
             Object pointColumnValue = point.get(i);
@@ -177,26 +177,26 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             long metricTimestamp;
             byte metricTimestampPrecision;
 
-            if ((time >= 0) && (timePrecision_ != TIMESTAMP_PRECISION_UNKNOWN)) {
+            if ((time >= 0) && (timePrecisionCode_ != TIMESTAMP_PRECISION_UNKNOWN)) {
                 metricTimestamp = time;
-                metricTimestampPrecision = timePrecision_;
+                metricTimestampPrecision = timePrecisionCode_;
             }
             else {
                 metricTimestamp = metricsReceivedTimestampInMilliseconds_;
                 metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
             }
 
-            InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric = new InfluxdbStatsAggMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, column,
+            InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, column,
                     metricValue, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point);
-            influxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+            influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             
-            influxdbStatsAggMetrics.add(influxdbStatsAggMetric);
+            influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
         }
         
-        return influxdbStatsAggMetrics;
+        return influxdbStandardizedMetrics;
     }
     
-    private InfluxdbStatsAggMetric_v1 getInfluxdbStatsAggMetricFromStringFieldsOnly(ArrayList<Object> point, 
+    private InfluxdbStandardizedMetric_v1 getInfluxdbStandardizedMetricFromStringFieldsOnly(ArrayList<Object> point, 
             String namePrefix, String namePrefixPeriodDelimited, String metricKeyStringFields, long time) {
         
         if ((metricKeyStringFields == null) || metricKeyStringFields.isEmpty()) {
@@ -211,20 +211,20 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         long metricTimestamp;
         byte metricTimestampPrecision;
 
-        if ((time >= 0) && (timePrecision_ != TIMESTAMP_PRECISION_UNKNOWN)) {
+        if ((time >= 0) && (timePrecisionCode_ != TIMESTAMP_PRECISION_UNKNOWN)) {
             metricTimestamp = time;
-            metricTimestampPrecision = timePrecision_;
+            metricTimestampPrecision = timePrecisionCode_;
         }
         else {
             metricTimestamp = metricsReceivedTimestampInMilliseconds_;
             metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
         }
 
-        InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric = new InfluxdbStatsAggMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, 
+        InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, 
                 null, BigDecimal.ONE, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point);
-        influxdbStatsAggMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
+        influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
-        return influxdbStatsAggMetric;
+        return influxdbStandardizedMetric;
     }
 
     private long getTimeFromPoint(ArrayList<Object> point) {
@@ -317,25 +317,70 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         return influxdbJson.toString();
     }
     
-    public static int getMetricTimestampInSeconds(byte timePrecision, long time) {
-        if (timePrecision == TIMESTAMP_PRECISION_SECONDS) return (int) time;
-        else if (timePrecision == TIMESTAMP_PRECISION_MILLISECONDS) return (int) (time / 1000);
-        else if (timePrecision == TIMESTAMP_PRECISION_MICROSECONDS) return (int) (time / 1000000);
+    public static byte getTimePrecisionCodeFromTimePrecisionString(String timePrecisionString) {
+        
+        if (timePrecisionString == null) {
+            return TIMESTAMP_PRECISION_UNKNOWN;
+        }
+        
+        byte timePrecisionCode;
+
+        if (timePrecisionString.equals("s")) timePrecisionCode = TIMESTAMP_PRECISION_SECONDS;
+        else if (timePrecisionString.equals("ms")) timePrecisionCode = TIMESTAMP_PRECISION_MILLISECONDS;
+        else if (timePrecisionString.equals("u")) timePrecisionCode = TIMESTAMP_PRECISION_MICROSECONDS;
+        else timePrecisionCode = TIMESTAMP_PRECISION_UNKNOWN;
+
+        return timePrecisionCode;
+    }
+    
+    public static String getTimePrecisionStringFromTimePrecisionCode(byte timePrecisionCode) {
+        
+        if (timePrecisionCode == TIMESTAMP_PRECISION_UNKNOWN) {
+            return null;
+        }
+        
+        String timePrecisionString;
+
+        if (timePrecisionCode == TIMESTAMP_PRECISION_SECONDS) timePrecisionString = "s";
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MILLISECONDS) timePrecisionString = "ms";
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MICROSECONDS) timePrecisionString = "u";
+        else timePrecisionString = null;
+
+        return timePrecisionString;
+    }
+    
+    public static int getMetricTimestampInSeconds(byte timePrecisionCode, long time) {
+        if (timePrecisionCode == TIMESTAMP_PRECISION_SECONDS) return (int) time;
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MILLISECONDS) return (int) (time / 1000);
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MICROSECONDS) return (int) (time / 1000000);
         else return (int) time;
     }
     
-    public static long getMetricTimestampInMilliseconds(byte timePrecision, long time) {
-        if (timePrecision == TIMESTAMP_PRECISION_MILLISECONDS) return time;
-        else if (timePrecision == TIMESTAMP_PRECISION_SECONDS) return (time * 1000);
-        else if (timePrecision == TIMESTAMP_PRECISION_MICROSECONDS) return (time / 1000);
+    public static long getMetricTimestampInMilliseconds(byte timePrecisionCode, long time) {
+        if (timePrecisionCode == TIMESTAMP_PRECISION_MILLISECONDS) return time;
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_SECONDS) return (time * 1000);
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MICROSECONDS) return (time / 1000);
         else return time;
     }
     
-    public static long getMetricTimestampInMicroseconds(byte timePrecision, long time) {
-        if (timePrecision == TIMESTAMP_PRECISION_MICROSECONDS) return time;
-        else if (timePrecision == TIMESTAMP_PRECISION_SECONDS) return (time * 1000000);
-        else if (timePrecision == TIMESTAMP_PRECISION_MILLISECONDS) return (time * 1000);
+    public static long getMetricTimestampInMicroseconds(byte timePrecisionCode, long time) {
+        if (timePrecisionCode == TIMESTAMP_PRECISION_MICROSECONDS) return time;
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_SECONDS) return (time * 1000000);
+        else if (timePrecisionCode == TIMESTAMP_PRECISION_MILLISECONDS) return (time * 1000);
         else return time;
+    }
+    
+    public static String getInfluxdbJson(InfluxdbMetricFormat_v1 influxdbMetric) {
+        
+        if (influxdbMetric == null) return null;
+        
+        StringBuilder influxdbJson = new StringBuilder();
+        
+        influxdbJson.append("[");
+        influxdbJson.append(influxdbMetric.getInfluxdbV1JsonFormatString());
+        influxdbJson.append("]");
+        
+        return influxdbJson.toString();
     }
     
     public static String getInfluxdbJson(List<? extends InfluxdbMetricFormat_v1> influxdbMetrics) {
@@ -357,7 +402,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     }
 
     public static List<InfluxdbMetric_v1> parseInfluxdbMetricJson(String database, String inputJson, String username, String password, String basicAuth, 
-            byte timePrecisionCode, String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
+            String timePrecision, String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
 
         if ((inputJson == null) || inputJson.isEmpty() || (database == null) || (database.isEmpty())) {
             return new ArrayList<>();
@@ -405,6 +450,8 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                     
                     points.add(pointColumnValues);
                 }
+                
+                byte timePrecisionCode = getTimePrecisionCodeFromTimePrecisionString(timePrecision);
 
                 InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, basicAuth, timePrecisionCode, 
                         namePrefix, namePrefixPeriodDelimited, name, columns, points, metricsReceivedTimestampInMilliseconds);
@@ -443,6 +490,10 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         return basicAuth_;
     }
 
+    public byte getTimePrecisionCode() {
+        return timePrecisionCode_;
+    }
+
     public String getNamePrefix() {
         return namePrefix_;
     }
@@ -467,8 +518,8 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         return metricsReceivedTimestampInMilliseconds_;
     }
 
-    public ArrayList<InfluxdbStatsAggMetric_v1> getInfluxdbStatsAggMetrics() {
-        return influxdbStatsAggMetrics_;
+    public ArrayList<InfluxdbStandardizedMetric_v1> getInfluxdbStandardizedMetrics() {
+        return influxdbStandardizedMetrics_;
     }
 
 }

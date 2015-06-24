@@ -78,11 +78,11 @@ public class AlertsLogicTest {
         result = metricGroupsLogic_.deleteRecordInDatabase(metricGroupName_);
         assertTrue(result.contains("success") || result.contains("Metric group not found"));
         MetricGroup metricGroup = new MetricGroup(-1, metricGroupName_, metricGroupName_);   
-        TreeSet<String> regexs = new TreeSet<>();
-        regexs.add(metricGroupName_);
+        TreeSet<String> regexes = new TreeSet<>();
+        regexes.add(metricGroupName_);
         TreeSet<String> tags = new TreeSet<>();
-        regexs.add(metricGroupName_);
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup, regexs, null, tags);
+        regexes.add(metricGroupName_);
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup, regexes, null, tags);
         assertTrue(result.contains("Success"));
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         metricGroup_ = metricGroupsDao.getMetricGroupByName(metricGroupName_);

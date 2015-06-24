@@ -4,8 +4,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.globals.GraphiteOutputModule;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +64,81 @@ public class SendToGraphiteThreadPoolManager {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+    }
+    
+
+    public static boolean isAnyGraphiteOutputModuleEnabled() {
+        
+        List<GraphiteOutputModule> graphiteOutuputModules = ApplicationConfiguration.getGraphiteOutputModules();
+        if (graphiteOutuputModules == null) return false;
+        
+        for (GraphiteOutputModule graphiteOutputModule : graphiteOutuputModules) {
+            if (graphiteOutputModule.isOutputEnabled()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public static List<GraphiteOutputModule> getEnabledGraphiteOutputModules() {
+        
+        List<GraphiteOutputModule> graphiteOutuputModules = ApplicationConfiguration.getGraphiteOutputModules();
+        if (graphiteOutuputModules == null) return new ArrayList<>();
+        
+        List<GraphiteOutputModule> enabledGraphiteOutputModules = new ArrayList<>();
+        
+        for (GraphiteOutputModule graphiteOutputModule : graphiteOutuputModules) {
+            if (graphiteOutputModule.isOutputEnabled()) {
+                enabledGraphiteOutputModules.add(graphiteOutputModule);
+            }
+        }
+        
+        return enabledGraphiteOutputModules;
+    }
+    
+    public static void sendMetricsToGraphiteOutputModule(GraphiteOutputModule graphiteOutputModule, List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId) {
+        
+        if ((graphiteOutputModule == null) || (graphiteMetrics == null) || graphiteMetrics.isEmpty() || (threadId == null) || threadId.isEmpty()) {
+            return;
+        }
+        
+        try {
+            SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, 
+                    graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), 
+                    graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
+
+            SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+    }
+    
+    public static void sendMetricsToAllGraphiteOutputModules(List<? extends GraphiteMetricFormat> graphiteMetrics, String threadId) {
+        
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (threadId == null) || threadId.isEmpty()) {
+            return;
+        }
+        
+        try {
+            List<GraphiteOutputModule> graphiteOutuputModules = ApplicationConfiguration.getGraphiteOutputModules();
+            if (graphiteOutuputModules == null) return;
+                    
+            for (GraphiteOutputModule graphiteOutputModule : graphiteOutuputModules) {
+                if (!graphiteOutputModule.isOutputEnabled()) continue;
+                
+                SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, graphiteOutputModule.getHost(), 
+                       graphiteOutputModule.getPort(), graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
+                
+                SendToGraphiteThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
     }
     
 }

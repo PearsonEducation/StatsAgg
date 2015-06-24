@@ -5,7 +5,7 @@ import java.util.TreeSet;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
@@ -29,13 +29,13 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
     public static final Byte ALTER = 2;
     public static final Byte REMOVE = 3;
     
-    public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexs, TreeSet<String> blacklistRegexs, TreeSet<String> tags) {
-        return alterRecordInDatabase(metricGroup, matchRegexs, blacklistRegexs, tags, null);
+    public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
+        return alterRecordInDatabase(metricGroup, matchRegexes, blacklistRegexes, tags, null);
     }
     
-    public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexs, TreeSet<String> blacklistRegexs, TreeSet<String> tags, String oldName) {
+    public String alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags, String oldName) {
         
-        if ((metricGroup == null) || (metricGroup.getName() == null) || (matchRegexs == null) || matchRegexs.isEmpty()) {
+        if ((metricGroup == null) || (metricGroup.getName() == null) || (matchRegexes == null) || matchRegexes.isEmpty()) {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
             String returnString = "Failed to alter metric group.";
             logger.warn(returnString);
@@ -84,19 +84,19 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 return returnString;
             }
             else if (metricGroupUpsertSuccess && (newMetricGroupFromDb != null)) {
-                boolean isAllMetricGroupRegexsUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true, isMetricGroupAssociationRoutineRequired = true;
+                boolean isAllMetricGroupRegexesUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true, isMetricGroupAssociationRoutineRequired = true;
                 
                 // update regexes, if necessary
-                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(metricGroupsDao.getDatabaseInterface());
-                List<MetricGroupRegex> metricGroupRegexsFromDb = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(newMetricGroupFromDb.getId());
+                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
+                List<MetricGroupRegex> metricGroupRegexesFromDb = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(newMetricGroupFromDb.getId());
                 
-                Set<String> metricGroupMatchRegexsFromDb_Set = new HashSet<>();
-                for (MetricGroupRegex metricGroupRegex : metricGroupRegexsFromDb) if (!metricGroupRegex.isBlacklistRegex()) metricGroupMatchRegexsFromDb_Set.add(metricGroupRegex.getPattern());
-                boolean areMatchRegexSetsEqual = areRegexSetContentsEqual(matchRegexs, metricGroupMatchRegexsFromDb_Set);
+                Set<String> metricGroupMatchRegexesFromDb_Set = new HashSet<>();
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexesFromDb) if (!metricGroupRegex.isBlacklistRegex()) metricGroupMatchRegexesFromDb_Set.add(metricGroupRegex.getPattern());
+                boolean areMatchRegexSetsEqual = areRegexSetContentsEqual(matchRegexes, metricGroupMatchRegexesFromDb_Set);
 
-                Set<String> metricGroupBlacklistRegexsFromDb_Set = new HashSet<>();
-                for (MetricGroupRegex metricGroupRegex : metricGroupRegexsFromDb) if (metricGroupRegex.isBlacklistRegex()) metricGroupBlacklistRegexsFromDb_Set.add(metricGroupRegex.getPattern());
-                boolean areBlacklistRegexSetsEqual = areRegexSetContentsEqual(blacklistRegexs, metricGroupBlacklistRegexsFromDb_Set);
+                Set<String> metricGroupBlacklistRegexesFromDb_Set = new HashSet<>();
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexesFromDb) if (metricGroupRegex.isBlacklistRegex()) metricGroupBlacklistRegexesFromDb_Set.add(metricGroupRegex.getPattern());
+                boolean areBlacklistRegexSetsEqual = areRegexSetContentsEqual(blacklistRegexes, metricGroupBlacklistRegexesFromDb_Set);
                 
                 if (areMatchRegexSetsEqual && areBlacklistRegexSetsEqual) {
                     logger.info("Alter metric group: Metric group \"" + newMetricGroupFromDb.getName() + "\" regular expression set is unchanged. This metric group will retain all metric-key associations.");
@@ -104,13 +104,13 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 }
                 else {
                     logger.info("Alter metric group: Metric group \"" + newMetricGroupFromDb.getName() + "\" regular expression set is changed. This metric group will go through the metric-key association routine.");
-                    isAllMetricGroupRegexsUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), matchRegexs, blacklistRegexs, newMetricGroupFromDb);
+                    isAllMetricGroupRegexesUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), matchRegexes, blacklistRegexes, newMetricGroupFromDb);
                 }
 
                 // update tags
                 isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
 
-                if (isAllMetricGroupRegexsUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
+                if (isAllMetricGroupRegexesUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
                     boolean didCommitSucceed = metricGroupsDao.getDatabaseInterface().endTransaction(true);
                     metricGroupsDao.close();
 
@@ -142,13 +142,13 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     if (isNewMetricGroup) {
                         returnString = "Failed to create metric group. " + "MetricGroupName=\"" + metricGroup.getName() + "\"" 
                                 + ", MetricGroup_UpsertSuccess=" + metricGroupUpsertSuccess 
-                                + ", MetricGroupRegex_UpsertSuccess=" + isAllMetricGroupRegexsUpsertSuccess
+                                + ", MetricGroupRegex_UpsertSuccess=" + isAllMetricGroupRegexesUpsertSuccess
                                 + ", MetricGroupTag_UpsertSuccess=" + isAllMetricGroupTagsUpsertSuccess;
                     }
                     else {
                         returnString = "Failed to alter metric group. " + "MetricGroupName=\"" + metricGroup.getName() + "\"" 
                                 + ", MetricGroup_UpsertSuccess=" + metricGroupUpsertSuccess 
-                                + ", MetricGroupRegex_UpsertSuccess=" + isAllMetricGroupRegexsUpsertSuccess
+                                + ", MetricGroupRegex_UpsertSuccess=" + isAllMetricGroupRegexesUpsertSuccess
                                 + ", MetricGroupTag_UpsertSuccess=" + isAllMetricGroupTagsUpsertSuccess;
                     }
                     
@@ -190,40 +190,40 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         return true;
     }
     
-    private static boolean alterRecordInDatabase_UpsertRegex(DatabaseInterface databaseInterface, TreeSet<String> matchRegexs, TreeSet<String> blacklistRegexs, MetricGroup newMetricGroupFromDb) {
+    private static boolean alterRecordInDatabase_UpsertRegex(DatabaseInterface databaseInterface, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, MetricGroup newMetricGroupFromDb) {
         
-        boolean isAllMetricGroupRegexsUpsertSuccess = true;
+        boolean isAllMetricGroupRegexesUpsertSuccess = true;
                 
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(databaseInterface);
-        metricGroupRegexsDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
+        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(databaseInterface);
+        metricGroupRegexesDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
 
-        if (matchRegexs != null) {
-            for (String matchRegex : matchRegexs) {
+        if (matchRegexes != null) {
+            for (String matchRegex : matchRegexes) {
                 MetricGroupRegex metricGroupRegex = new MetricGroupRegex(-1, newMetricGroupFromDb.getId(), false, matchRegex);
-                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexsDao.upsert(metricGroupRegex);
+                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexesDao.upsert(metricGroupRegex);
 
                 if (!isMetricGroupRegexInsertSuccess) {
                     String cleanRegex = StringUtilities.removeNewlinesFromString(matchRegex);
                     logger.warn("Failed to alter metric group regex. Regex=" + cleanRegex);
-                    isAllMetricGroupRegexsUpsertSuccess = false;
+                    isAllMetricGroupRegexesUpsertSuccess = false;
                 }
             }
         }
         
-        if (blacklistRegexs != null) {
-            for (String blacklistRegex : blacklistRegexs) {
+        if (blacklistRegexes != null) {
+            for (String blacklistRegex : blacklistRegexes) {
                 MetricGroupRegex metricGroupRegex = new MetricGroupRegex(-1, newMetricGroupFromDb.getId(), true, blacklistRegex);
-                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexsDao.upsert(metricGroupRegex);
+                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexesDao.upsert(metricGroupRegex);
 
                 if (!isMetricGroupRegexInsertSuccess) {
                     String cleanRegex = StringUtilities.removeNewlinesFromString(blacklistRegex);
                     logger.warn("Failed to alter metric group blacklist regex. Regex=" + cleanRegex);
-                    isAllMetricGroupRegexsUpsertSuccess = false;
+                    isAllMetricGroupRegexesUpsertSuccess = false;
                 }
             }
         }
         
-        return isAllMetricGroupRegexsUpsertSuccess;
+        return isAllMetricGroupRegexesUpsertSuccess;
     }
     
     private static boolean alterRecordInDatabase_UpsertTag(DatabaseInterface databaseInterface, TreeSet<String> tags, MetricGroup newMetricGroupFromDb) {
@@ -265,8 +265,8 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
             MetricGroup metricGroupFromDb = metricGroupsDao.getMetricGroupByName(metricGroupName);
 
             if (metricGroupFromDb != null) {
-                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao(false);
-                boolean didRegexDeleteSucceed = metricGroupRegexsDao.deleteByMetricGroupId(metricGroupFromDb.getId());
+                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(false);
+                boolean didRegexDeleteSucceed = metricGroupRegexesDao.deleteByMetricGroupId(metricGroupFromDb.getId());
 
                 MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(false);
                 boolean didTagDeleteSucceed = metricGroupTagsDao.deleteByMetricGroupId(metricGroupFromDb.getId());
@@ -275,7 +275,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     boolean didMetricGroupDeleteSucceed = metricGroupsDao.delete(metricGroupFromDb);
 
                     if (!didMetricGroupDeleteSucceed) {
-                        metricGroupRegexsDao.getDatabaseInterface().endTransaction(false);
+                        metricGroupRegexesDao.getDatabaseInterface().endTransaction(false);
                         metricGroupTagsDao.getDatabaseInterface().endTransaction(false);
 
                         lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -294,12 +294,12 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 }
                 else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                    returnString = "Failed to delete metric group regexs and/or tags. MetricGroupName=\"" + metricGroupName + "\".";
+                    returnString = "Failed to delete metric group regexes and/or tags. MetricGroupName=\"" + metricGroupName + "\".";
                     String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                     logger.warn(cleanReturnString);
                 }
 
-                metricGroupRegexsDao.close();
+                metricGroupRegexesDao.close();
                 metricGroupTagsDao.close();
             }
             else {

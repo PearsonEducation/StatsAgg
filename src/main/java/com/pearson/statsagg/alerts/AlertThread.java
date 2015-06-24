@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
+import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
+import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
+import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.metric_last_seen.MetricLastSeen;
@@ -20,8 +23,6 @@ import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -125,17 +126,12 @@ public class AlertThread implements Runnable {
                 runAlertRoutine(alerts);
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
                 
-                // generate messages for graphite
+                // generate alert statuses for output, and send to enabled output modules
                 List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
-
-                // send to graphite
-                SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(alertStatusMetricsForGraphite, threadId_);
-                
-                // send to opentsdb telnet
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(alertStatusMetricsForGraphite, threadId_);
-                
-                // send to opentsdb http
-                SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbHttpEndpoints(alertStatusMetricsForGraphite, threadId_);
+                SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
+                SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, true, threadId_);
+                SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, true, threadId_);
+                SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(alertStatusMetricsForGraphite, threadId_);
             }
         }
 

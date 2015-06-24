@@ -126,21 +126,14 @@ public class InfluxdbV1_Api_Write extends HttpServlet {
     public static void parseMetrics(String database, String inputJson, String username, String password, String httpAuth, String timePrecision,
             String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
                 
-        byte timePrecisionCode = TIMESTAMP_PRECISION_UNKNOWN;
-        if (timePrecision != null) {
-            if (timePrecision.equals("s")) timePrecisionCode = TIMESTAMP_PRECISION_SECONDS;
-            else if (timePrecision.equals("ms")) timePrecisionCode = TIMESTAMP_PRECISION_MILLISECONDS;
-            else if (timePrecision.equals("u")) timePrecisionCode = TIMESTAMP_PRECISION_MICROSECONDS;
-        }
-  
         List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson(database, inputJson, username, password, httpAuth, 
-                timePrecisionCode, namePrefix, namePrefixPeriodDelimited, metricsReceivedTimestampInMilliseconds);
+                timePrecision, namePrefix, namePrefixPeriodDelimited, metricsReceivedTimestampInMilliseconds);
 
         for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             influxdbMetric.setHashKey(hashKey);
             GlobalVariables.influxdbV1Metrics.put(influxdbMetric.getHashKey(), influxdbMetric);
-            if (influxdbMetric.getInfluxdbStatsAggMetrics() != null) GlobalVariables.incomingMetricsCount.addAndGet(influxdbMetric.getInfluxdbStatsAggMetrics().size());
+            if (influxdbMetric.getInfluxdbStandardizedMetrics() != null) GlobalVariables.incomingMetricsCount.addAndGet(influxdbMetric.getInfluxdbStandardizedMetrics().size());
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
                 logger.info("Database=\"" + database + "\", HTTP_InfluxDB_String=\"" + inputJson + "\"");

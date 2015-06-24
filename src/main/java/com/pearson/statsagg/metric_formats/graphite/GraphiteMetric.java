@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -121,15 +122,27 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     @Override
     public String getOpenTsdbTelnetFormatString() {
+        return getOpenTsdbTelnetFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
+        String metricPath = sanitizeMetrics ? OpenTsdbMetric.getOpenTsdbFormattedMetric(metricPath_) : metricPath_;
+        
+        stringBuilder.append(metricPath).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }
     
     @Override
     public String getOpenTsdbJsonFormatString() {
+        return getOpenTsdbJsonFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
                 
         if ((metricPath_ == null) || metricPath_.isEmpty()) return null;
         if (getMetricTimestampInSeconds() < 0) return null;
@@ -139,7 +152,9 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
         openTsdbJson.append("{");
 
-        openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(metricPath_)).append("\",");
+        if (sanitizeMetrics) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbFormattedMetric(metricPath_))).append("\",");
+        else openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(metricPath_)).append("\",");
+        
         openTsdbJson.append("\"timestamp\":").append(getMetricTimestampInSeconds()).append(",");
         openTsdbJson.append("\"value\":").append(getMetricValueString()).append(",");
 
@@ -415,5 +430,5 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     public boolean isMetricTimestampInSeconds() {
         return isMetricTimestampInSeconds_;
     }
-
+    
 }

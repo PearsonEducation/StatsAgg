@@ -15,7 +15,7 @@ import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
@@ -140,14 +140,14 @@ public class MetricGroups extends HttpServlet {
                     }
                 }
 
-                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-                List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
-                TreeSet<String> allMetricGroupMatchRegexs = new TreeSet<>();
-                TreeSet<String> allMetricGroupBlacklistRegexs = new TreeSet<>();
-                if (metricGroupRegexs != null) {
-                    for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexs) {
-                        if (!currentMetricGroupRegex.isBlacklistRegex()) allMetricGroupMatchRegexs.add(currentMetricGroupRegex.getPattern());
-                        else allMetricGroupBlacklistRegexs.add(currentMetricGroupRegex.getPattern());
+                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+                List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+                TreeSet<String> allMetricGroupMatchRegexes = new TreeSet<>();
+                TreeSet<String> allMetricGroupBlacklistRegexes = new TreeSet<>();
+                if (metricGroupRegexes != null) {
+                    for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexes) {
+                        if (!currentMetricGroupRegex.isBlacklistRegex()) allMetricGroupMatchRegexes.add(currentMetricGroupRegex.getPattern());
+                        else allMetricGroupBlacklistRegexes.add(currentMetricGroupRegex.getPattern());
                     }
                 }
 
@@ -167,7 +167,7 @@ public class MetricGroups extends HttpServlet {
                 clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
 
                 MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexs, allMetricGroupBlacklistRegexs, allMetricGroupTags);
+                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexes, allMetricGroupBlacklistRegexes, allMetricGroupTags);
                 
                 if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(true, false);
@@ -215,7 +215,7 @@ public class MetricGroups extends HttpServlet {
             "    <thead>\n" +
             "      <tr>\n" +
             "        <th>Metric Group Name</th>\n" +
-            "        <th># Regexs</th>\n" +
+            "        <th># Regexes</th>\n" +
             "        <th>Tags</th>\n" +
             "        <th># Metric Associations</th>\n" +
             "        <th>Operations</th>\n" +
@@ -226,8 +226,8 @@ public class MetricGroups extends HttpServlet {
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         List<MetricGroup> metricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
         
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-        Map<Integer,List<MetricGroupRegex>> metricGroupRegexsByMetricGroupId = metricGroupRegexsDao.getAllMetricGroupRegexsByMetricGroupId();
+        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+        Map<Integer,List<MetricGroupRegex>> metricGroupRegexesByMetricGroupId = metricGroupRegexesDao.getAllMetricGroupRegexesByMetricGroupId();
         
         AlertsDao alertsDao = new AlertsDao();
         Set<Integer> metricGroupIdsAssociatedWithAlerts = alertsDao.getDistinctMetricGroupIds();
@@ -238,14 +238,14 @@ public class MetricGroups extends HttpServlet {
         for (MetricGroup metricGroup : metricGroups) {
             if ((metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
             
-            List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsByMetricGroupId.get(metricGroup.getId());
+            List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesByMetricGroupId.get(metricGroup.getId());
             
             String metricGroupDetails = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             
             int regexCount;
-            if (metricGroupRegexs == null) regexCount = 0;
-            else regexCount = metricGroupRegexs.size();
+            if (metricGroupRegexes == null) regexCount = 0;
+            else regexCount = metricGroupRegexes.size();
             
             StringBuilder tagsCsv = new StringBuilder();
             if (tagsByMetricGroupId != null) {

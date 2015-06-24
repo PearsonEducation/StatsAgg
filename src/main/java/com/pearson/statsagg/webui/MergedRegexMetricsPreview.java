@@ -68,15 +68,15 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
         
-        TreeSet<String> matchRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexs");
-        TreeSet<String> blacklistRegexs = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexs");
+        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
+        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
         
-        List matchRegexs_List;
-        if ((matchRegexs != null) && !matchRegexs.isEmpty()) matchRegexs_List = new ArrayList<>(matchRegexs);
-        else if ((blacklistRegexs != null) && !blacklistRegexs.isEmpty()) matchRegexs_List = new ArrayList<>(blacklistRegexs);
-        else matchRegexs_List = new ArrayList<>();
+        List matchRegexes_List;
+        if ((matchRegexes != null) && !matchRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(matchRegexes);
+        else if ((blacklistRegexes != null) && !blacklistRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(blacklistRegexes);
+        else matchRegexes_List = new ArrayList<>();
         
-        String mergedRegex = StringUtilities.createMergedRegex(matchRegexs_List);
+        String mergedRegex = StringUtilities.createMergedRegex(matchRegexes_List);
         
         String regexMatchesHtml = getRegexMatchesHtml(mergedRegex, 1000);
         

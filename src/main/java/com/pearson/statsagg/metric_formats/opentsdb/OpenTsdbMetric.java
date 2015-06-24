@@ -145,15 +145,23 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
     @Override
     public String getOpenTsdbTelnetFormatString() {
+        return getOpenTsdbTelnetFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(getMetric()).append(" ").append(metricTimestamp_).append(" ").append(getMetricValueString()).append(" ");
+        String metric = sanitizeMetrics ? getOpenTsdbFormattedMetric(getMetric()) : getMetric();
+        
+        stringBuilder.append(metric).append(" ").append(metricTimestamp_).append(" ").append(getMetricValueString()).append(" ");
 
         List<OpenTsdbTag> openTsdbTags = getMetricTagsFromMetricKey();
         
         if (openTsdbTags != null) {
             for (int i = 0; i < openTsdbTags.size(); i++) {
-                stringBuilder.append(openTsdbTags.get(i).getTag());
+                String tag = sanitizeMetrics ? getOpenTsdbFormattedMetric(openTsdbTags.get(i).getTag()) : openTsdbTags.get(i).getTag();
+                stringBuilder.append(tag);
                 if ((i + 1) != openTsdbTags.size()) stringBuilder.append(" ");
             }
         }
@@ -163,8 +171,13 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     @Override
     public String getOpenTsdbJsonFormatString() {
+        return getOpenTsdbJsonFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
                 
-        String metric = getMetric();
+        String metric = sanitizeMetrics ? getOpenTsdbFormattedMetric(getMetric()) : getMetric();
         List<OpenTsdbTag> openTsdbTags = getMetricTagsFromMetricKey();
 
         if ((metric == null) || metric.isEmpty()) return null;
@@ -184,7 +197,16 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         if (openTsdbTags != null) {
             for (int j = 0; j < openTsdbTags.size(); j++) {
                 OpenTsdbTag tag = openTsdbTags.get(j);
-                openTsdbJson.append("\"").append(StringEscapeUtils.escapeJson(tag.getTagKey())).append("\":\"").append(StringEscapeUtils.escapeJson(tag.getTagValue())).append("\"");
+                
+                if (sanitizeMetrics) {
+                    openTsdbJson.append("\"").append(StringEscapeUtils.escapeJson(getOpenTsdbFormattedMetric(tag.getTagKey())));
+                    openTsdbJson.append("\":\"").append(StringEscapeUtils.escapeJson(getOpenTsdbFormattedMetric(tag.getTagValue()))).append("\"");
+                }
+                else {
+                    openTsdbJson.append("\"").append(StringEscapeUtils.escapeJson(tag.getTagKey()));
+                    openTsdbJson.append("\":\"").append(StringEscapeUtils.escapeJson(tag.getTagValue())).append("\"");
+                }
+                
                 if ((j + 1) != openTsdbTags.size()) openTsdbJson.append(",");
             }
         }
@@ -249,7 +271,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         return influxdbJson.toString();
     }
     
-    public static String getOpenTsdbJson(List<? extends OpenTsdbMetricFormat> openTsdbFormatMetrics) {
+    public static String getOpenTsdbJson(List<? extends OpenTsdbMetricFormat> openTsdbFormatMetrics, boolean sanitizeMetrics) {
         
         if (openTsdbFormatMetrics == null) return null;
 
@@ -259,7 +281,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         
         for (int i = 0; i < openTsdbFormatMetrics.size(); i++) {
             OpenTsdbMetricFormat openTsdbMetric = openTsdbFormatMetrics.get(i);
-            String openTsdbJsonString = openTsdbMetric.getOpenTsdbJsonFormatString();
+            String openTsdbJsonString = openTsdbMetric.getOpenTsdbJsonFormatString(sanitizeMetrics);
             
             if (openTsdbJsonString != null) {
                 openTsdbJson.append(openTsdbJsonString);

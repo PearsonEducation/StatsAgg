@@ -1,9 +1,9 @@
 # StatsAgg
 
 ## Overview
-StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, and StatsD-formatted metrics.
+StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, InfluxDB-formatted metrics (0.6x-0.8x format), and StatsD-formatted metrics.
 
-StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
+StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
 
 [StatsAgg component diagram](./docs/component-diagram.png)
 
@@ -23,8 +23,9 @@ StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally)
     * Telnet & HTTP interfaces are supported
 	* Supports GZIP compression on HTTP interface 
 * Outputs metrics to metric storage platforms
-    * Graphite (and Graphite compatible services, like InfluxDB)
-    * OpenTSDB (via telnet)
+    * Graphite (and Graphite compatible services)
+    * InfluxDB (versions 0.6x, 0.7x, 0.8x  -- support for 0.9x will come in a future release)
+    * OpenTSDB (via telnet & HTTP)
     * Outputting to a storage engine is completely optional; you can send metrics into StatsAgg without having them forwarded to a metric storage solution. This also means that if you’re having issues with your metric storage solution, StatsAgg will still be available & capable of alerting off the metrics that it receives.
 * A robust alerting mechanism 
     * Can alert off of any received/aggregated metric
@@ -42,11 +43,11 @@ A more detailed discussion of StatsAgg's features can be found in the [StatsAgg 
 
 StatsAgg was originally written to fill some gaps that in some other popular open-source monitoring tools. Specifically...
 
-* Graphite, StatsD, and OpenTSDB do not have native alerting mechanisms
-    * Most alerting solutions for StatsD, Graphite, and/or OpenTSDB metrics are provided by (expensive) SaaS venders.
+* Graphite, StatsD, InfluxDB, and OpenTSDB do not have native alerting mechanisms
+    * Most alerting solutions for StatsD, Graphite, InfluxDB, and/or OpenTSDB metrics are provided by (expensive) SaaS venders.
     * The alerting mechanism in StatsAgg compares favourably to many pay-based solutions.
 * StatsAgg can act as a sort of 'metric transcoder' between various technologies. 
-    * It allows any combination of input metrics StatsD, Graphite, and OpenTSDB metrics to be output to OpenTSDB, Graphite, InfluxDB (via the Graphite listener), etc.
+    * It allows any combination of input metrics StatsD, Graphite, InfluxDB, and OpenTSDB metrics to be output to OpenTSDB, Graphite, InfluxDB, etc.
     * Support for more input & output formats will increase as StatsAgg evolves.
 * StatsAgg provides an alternative way of managing servers/services/etc compared to tools like Nagios, Zabbix, etc
     * StatsAgg allows you to break away from viewing everything from the perspective of servers/hosts. You could structure your metrics to group everything by host, but you aren't required to.
@@ -58,7 +59,8 @@ StatsAgg was originally written to fill some gaps that in some other popular ope
 * StatsAgg provides a web-based UI for managing alerts & metrics.
 * Performance
     * StatsAgg is Java-based, and has been thoroughly tuned for performance.
-    * A server with 2 cpu cores & 4 gigabytes of RAM should have no trouble processing thousands of metrics per second.
+    * A server with 2 cpu cores & 4 gigabytes of RAM should have no trouble processing tens-of-thousands of metrics per second.
+	* A server with 4+ cores & 8+ gigabytes of RAM can process hundreds-of-thousands to millions of metrics per second.
 
 <br>
 

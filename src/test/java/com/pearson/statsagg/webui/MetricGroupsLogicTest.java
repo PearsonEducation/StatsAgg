@@ -7,7 +7,7 @@ import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
@@ -68,9 +68,9 @@ public class MetricGroupsLogicTest {
     @Test
     public void testAlterRecordInDatabase() {
         MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 1");
-        TreeSet<String> matchRegexs1 = new TreeSet<>();
-        matchRegexs1.add(".*junit_1_1.*");
-        matchRegexs1.add(".*junit_1_2.*");
+        TreeSet<String> matchRegexes1 = new TreeSet<>();
+        matchRegexes1.add(".*junit_1_1.*");
+        matchRegexes1.add(".*junit_1_2.*");
         TreeSet<String> tags1 = new TreeSet<>();
         tags1.add("tag1_1");
         tags1.add("tag1_2");
@@ -78,11 +78,11 @@ public class MetricGroupsLogicTest {
         String result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, null, null, null);
         assertTrue(result.contains("Fail"));
         
-        result = metricGroupsLogic_.alterRecordInDatabase(null, matchRegexs1, null, tags1);
+        result = metricGroupsLogic_.alterRecordInDatabase(null, matchRegexes1, null, tags1);
         assertTrue(result.contains("Fail"));
         
         // create a metric group & insert it into the db
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexs1, null, tags1);
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexes1, null, tags1);
         assertTrue(result.contains("Success"));
 
         // check to see that the metric group is in the database & has correct values
@@ -90,11 +90,11 @@ public class MetricGroupsLogicTest {
         MetricGroup metricGroupFromDb = metricGroupsDao.getMetricGroupByName("metricgroup junit_test");
         assertTrue(metricGroupFromDb.getDescription().equals("this is a junit test 1"));
 
-        // check to see that the metric group's regexs made it into the db
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-        List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupFromDb.getId());
-        for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) assertTrue(matchRegexs1.contains(metricGroupRegex.getPattern()));
-        assertEquals(matchRegexs1.size(), metricGroupRegexs.size());
+        // check to see that the metric group's regexes made it into the db
+        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+        List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupFromDb.getId());
+        for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) assertTrue(matchRegexes1.contains(metricGroupRegex.getPattern()));
+        assertEquals(matchRegexes1.size(), metricGroupRegexes.size());
         
         // check to see that the metric group's tags made it into the db
         MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
@@ -108,7 +108,7 @@ public class MetricGroupsLogicTest {
         assertTrue(metricGroupFromDbOriginalName.getName().contains("metricgroup junit_test"));
         MetricGroup metricGroupFromDbNewName = MetricGroup.copy(metricGroupFromDbOriginalName);
         metricGroupFromDbNewName.setName("metricgroup junit_test_11");
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbNewName, matchRegexs1, null, tags1, metricGroupFromDbNewName.getName());
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbNewName, matchRegexes1, null, tags1, metricGroupFromDbNewName.getName());
         assertTrue(result.contains("Successful"));
         MetricGroup metricGroupFromDbNewNameVerify = metricGroupsDao.getMetricGroupByName(metricGroupFromDbNewName.getName()); // pt2
         assertTrue(metricGroupFromDbNewNameVerify.getName().contains(metricGroupFromDbNewName.getName()));
@@ -118,26 +118,26 @@ public class MetricGroupsLogicTest {
         assertEquals(metricGroupFromDbOriginalName_NoResult, null);
         MetricGroup metricGroupFromDbOriginalName_Reset = MetricGroup.copy(metricGroupFromDbOriginalName); // pt4
         metricGroupFromDbOriginalName_Reset.setName(metricGroupFromDbOriginalName.getName());  
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, matchRegexs1, null, tags1, metricGroupFromDbOriginalName.getName());
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName());
         assertTrue(result.contains("Successful"));
         metricGroupsDao.close();
         
         // create a second metric group & insert it into the db. also check to see if inserting blacklist regexes works.
         MetricGroup metricGroup2 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 2");
-        TreeSet<String> matchRegexs2 = new TreeSet<>();
-        matchRegexs2.add(".*junit_2_2.*");
-        matchRegexs2.add(".*junit_2_1.*");
-        matchRegexs2.add(".*junit_2_3.*");
-        TreeSet<String> blacklistRegexs2 = new TreeSet<>();
-        blacklistRegexs2.add(".*blaclist1.*");
-        blacklistRegexs2.add(".*blaclist2.*");
+        TreeSet<String> matchRegexes2 = new TreeSet<>();
+        matchRegexes2.add(".*junit_2_2.*");
+        matchRegexes2.add(".*junit_2_1.*");
+        matchRegexes2.add(".*junit_2_3.*");
+        TreeSet<String> blacklistRegexes2 = new TreeSet<>();
+        blacklistRegexes2.add(".*blaclist1.*");
+        blacklistRegexes2.add(".*blaclist2.*");
         TreeSet<String> tags2 = new TreeSet<>();
         tags2.add("tag2_1");
         tags2.add("tag2_2");
         tags2.add("tag2_3");
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexs2, blacklistRegexs2, tags2);
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2);
         assertTrue(result.contains("Fail"));
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexs2, blacklistRegexs2, tags2, metricGroup2.getName());
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2, metricGroup2.getName());
         assertTrue(result.contains("Success"));
         
         // check to see that the second metric group is in the database & has correct values
@@ -146,20 +146,20 @@ public class MetricGroupsLogicTest {
         Integer metricGroupFromDb2 = metricGroupFromDb.getId();
         assertTrue(metricGroupFromDb.getDescription().equals("this is a junit test 2"));
         
-        // check to see that the second metric group's regexs made it into the db & that we didn't accidentially associate with other regexs 
-        metricGroupRegexsDao = new MetricGroupRegexsDao();
-        metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupFromDb.getId());
-        for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+        // check to see that the second metric group's regexes made it into the db & that we didn't accidentially associate with other regexes 
+        metricGroupRegexesDao = new MetricGroupRegexesDao();
+        metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupFromDb.getId());
+        for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
             if (!metricGroupRegex.isBlacklistRegex()) {
-                assertTrue(matchRegexs2.contains(metricGroupRegex.getPattern()));
-                assertFalse(matchRegexs1.contains(metricGroupRegex.getPattern()));
+                assertTrue(matchRegexes2.contains(metricGroupRegex.getPattern()));
+                assertFalse(matchRegexes1.contains(metricGroupRegex.getPattern()));
             }
             else {
-                assertTrue(blacklistRegexs2.contains(metricGroupRegex.getPattern()));
+                assertTrue(blacklistRegexes2.contains(metricGroupRegex.getPattern()));
             }
         }
-        assertEquals(matchRegexs2.size() + blacklistRegexs2.size(), metricGroupRegexs.size());
-        assertEquals(matchRegexs2.first(), ".*junit_2_1.*");
+        assertEquals(matchRegexes2.size() + blacklistRegexes2.size(), metricGroupRegexes.size());
+        assertEquals(matchRegexes2.first(), ".*junit_2_1.*");
         
         // check to see that the second metric group's tags made it into the db & that we didn't accidentially associate with other tags 
         metricGroupTagsDao = new MetricGroupTagsDao();
@@ -176,9 +176,9 @@ public class MetricGroupsLogicTest {
         metricGroupsDao = new MetricGroupsDao();
         metricGroupFromDb = metricGroupsDao.getMetricGroupByName("metricgroup junit_test");
         assertEquals(null, metricGroupFromDb);
-        metricGroupRegexsDao = new MetricGroupRegexsDao();
-        metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupFromDb2);
-        assertEquals(0, metricGroupRegexs.size());
+        metricGroupRegexesDao = new MetricGroupRegexesDao();
+        metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupFromDb2);
+        assertEquals(0, metricGroupRegexes.size());
     }
     
     /**
@@ -188,16 +188,16 @@ public class MetricGroupsLogicTest {
     public void testDeleteRecordInDatabase() {
         // create a metric group & insert it into the db
         MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test_delete", "this is a junit test of delete");
-        TreeSet<String> matchRegexs1 = new TreeSet<>();
-        matchRegexs1.add(".*junit_delete_1_1.*");
-        matchRegexs1.add(".*junit_delete_1_2.*");
-        TreeSet<String> blacklistRegexs1 = new TreeSet<>();
-        blacklistRegexs1.add(".*blaclist1.*");
-        blacklistRegexs1.add(".*blaclist2.*");
+        TreeSet<String> matchRegexes1 = new TreeSet<>();
+        matchRegexes1.add(".*junit_delete_1_1.*");
+        matchRegexes1.add(".*junit_delete_1_2.*");
+        TreeSet<String> blacklistRegexes1 = new TreeSet<>();
+        blacklistRegexes1.add(".*blaclist1.*");
+        blacklistRegexes1.add(".*blaclist2.*");
         TreeSet<String> tags1 = new TreeSet<>();
         tags1.add("tag1_1");
         tags1.add("tag1_2");
-        String result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexs1, blacklistRegexs1, tags1);
+        String result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexes1, blacklistRegexes1, tags1);
         assertTrue(result.contains("Success"));
         
         // check to see that the metric group is in the database & has correct values
@@ -206,25 +206,25 @@ public class MetricGroupsLogicTest {
         Integer metricGroupIdFromDb = metricGroupFromDb.getId();
         assertTrue(metricGroupFromDb.getDescription().equals("this is a junit test of delete"));
         
-        // check to see that the metric group's regexs made it into the db
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-        List<MetricGroupRegex> metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupFromDb.getId());
-        assertEquals(matchRegexs1.size() + blacklistRegexs1.size(), metricGroupRegexs.size());
+        // check to see that the metric group's regexes made it into the db
+        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+        List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupFromDb.getId());
+        assertEquals(matchRegexes1.size() + blacklistRegexes1.size(), metricGroupRegexes.size());
         
         // check to see that the metric group's tags made it into the db
         MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
         List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroupFromDb.getId());
         assertEquals(tags1.size(), metricGroupTags.size());
         
-        // delete the metric group & verify that everything is deleted (metric group, regexs, tags)
+        // delete the metric group & verify that everything is deleted (metric group, regexes, tags)
         result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test_delete");
         assertTrue(result.contains("success"));
         metricGroupsDao = new MetricGroupsDao();
         metricGroupFromDb = metricGroupsDao.getMetricGroupByName("metricgroup junit_test_delete");
         assertEquals(null, metricGroupFromDb);
-        metricGroupRegexsDao = new MetricGroupRegexsDao();
-        metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupIdFromDb);
-        assertEquals(0, metricGroupRegexs.size());
+        metricGroupRegexesDao = new MetricGroupRegexesDao();
+        metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupIdFromDb);
+        assertEquals(0, metricGroupRegexes.size());
         metricGroupTagsDao = new MetricGroupTagsDao();
         metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroupIdFromDb);
         assertEquals(0, metricGroupTags.size());

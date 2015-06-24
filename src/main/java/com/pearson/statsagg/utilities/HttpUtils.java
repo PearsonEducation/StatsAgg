@@ -6,6 +6,7 @@ import java.io.DataOutputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.util.List;
 import java.util.Map;
@@ -22,16 +23,17 @@ public class HttpUtils {
     
     // httpRequestMethod can be "GET", "POST", "PUT", etc
     // if writing data & httpBodyCharset is not defined, then the default charset will be used
-    public static String httpRequest(String url, Map<String,String> headerProperties, String httpBody, String httpBodyCharset, String httpRequestMethod, int numRetries) {
+    public static String httpRequest(String url, Map<String,String> headerProperties, String httpBody, String httpBodyCharset, 
+            String httpRequestMethod, int numRetries, boolean logErrorResponse) {
         Charset charsetToUse = StringUtilities.getCharsetFromString(httpBodyCharset);
         
         byte[] httpBodyBytes = null;
         if ((httpBody != null) && (charsetToUse != null)) httpBodyBytes = httpBody.getBytes(charsetToUse);
-        return httpRequest(url, headerProperties, httpBodyBytes, httpRequestMethod, numRetries);
+        return httpRequest(url, headerProperties, httpBodyBytes, httpRequestMethod, numRetries, logErrorResponse);
     }
     
     // httpRequestMethod can be "GET", "POST", "PUT", etc
-    public static String httpRequest(String url, Map<String,String> headerProperties, byte[] httpBody, String httpRequestMethod, int numRetries) {
+    public static String httpRequest(String url, Map<String,String> headerProperties, byte[] httpBody, String httpRequestMethod, int numRetries, boolean logErrorResponse) {
         
         if (url == null) {
             logger.warn(("Url cannot be null"));
@@ -53,7 +55,7 @@ public class HttpUtils {
         InputStreamReader inputStreamReader = null;
         BufferedReader bufferedReader = null;
         String httpResponse = null;
-        boolean isHttpRequestSuccess = false;
+        boolean isHttpRequestSuccess = false, didEncounterError = false;
         
         for (int i = -1; (i < numRetries) && !isHttpRequestSuccess; i++) {
             try {
@@ -77,10 +79,26 @@ public class HttpUtils {
                     dataOutputStream.write(httpBody);
                 }
 
-                inputStreamReader = new InputStreamReader(httpUrlConnection.getInputStream());
+                try {
+                    inputStreamReader = new InputStreamReader(httpUrlConnection.getInputStream());
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    
+                    didEncounterError = true;
+                    
+                    if (inputStreamReader != null) {
+                        try {inputStreamReader.close();} 
+                        catch (Exception e2) {logger.error(e2.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e2));}
+                    }
+                
+                    inputStreamReader = new InputStreamReader(httpUrlConnection.getErrorStream());
+                    if (logErrorResponse) logger.error("HTTP_error_response_body:\"" + StringUtilities.removeNewlinesFromString(httpResponse) + "\"");
+                }
+                
                 bufferedReader = new BufferedReader(inputStreamReader);
                 httpResponse = CharStreams.toString(bufferedReader);
-                isHttpRequestSuccess = true;
+                if (!didEncounterError) isHttpRequestSuccess = true;
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -131,7 +149,8 @@ public class HttpUtils {
         return httpResponse;
     }
     
-    public static boolean httpRequestBatch(String url, Map<String,String> headerProperties, List<String> httpBodies, String httpBodyCharset, String httpRequestMethod, int numRetries) {
+    public static boolean httpRequestBatch(String url, Map<String,String> headerProperties, List<String> httpBodies, String httpBodyCharset, 
+            String httpRequestMethod, int numRetries, boolean logErrorResponse) {
         
         if ((httpBodies == null) || httpBodies.isEmpty() || (url == null) || (numRetries < 0))  {
             return false;
@@ -140,14 +159,15 @@ public class HttpUtils {
         boolean isAllRequestsSuccess = true;
 
         for (String httpBody : httpBodies) {
-            String httpResponse = httpRequest(url, headerProperties, httpBody, httpBodyCharset, httpRequestMethod, numRetries);
+            String httpResponse = httpRequest(url, headerProperties, httpBody, httpBodyCharset, httpRequestMethod, numRetries, logErrorResponse);
             if (httpResponse == null) isAllRequestsSuccess = false;
         }
 
         return isAllRequestsSuccess;
     }
     
-    public static boolean httpRequestBatch(String url, Map<String,String> headerProperties, List<byte[]> httpBodies, String httpRequestMethod, int numRetries) {
+    public static boolean httpRequestBatch(String url, Map<String,String> headerProperties, List<byte[]> httpBodies, 
+            String httpRequestMethod, int numRetries, boolean logErrorResponse) {
         
         if ((httpBodies == null) || httpBodies.isEmpty() || (url == null) || (numRetries < 0))  {
             return false;
@@ -156,7 +176,7 @@ public class HttpUtils {
         boolean isAllRequestsSuccess = true;
 
         for (byte[] httpBody : httpBodies) {
-            String httpResponse = httpRequest(url, headerProperties, httpBody, httpRequestMethod, numRetries);
+            String httpResponse = httpRequest(url, headerProperties, httpBody, httpRequestMethod, numRetries, logErrorResponse);
             if (httpResponse == null) isAllRequestsSuccess = false;
         }
 
@@ -195,4 +215,22 @@ public class HttpUtils {
         return usernameAndPassword;
     }
 
+    public static String urlEncode(String urlSnippet, String characterEncoding) {
+        
+        if (urlSnippet == null) {
+            return null;
+        }
+        
+        String encodedUrlSnippet = "";
+        
+        try {
+            encodedUrlSnippet = URLEncoder.encode(urlSnippet, characterEncoding);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return encodedUrlSnippet;
+    }
+    
 }

@@ -15,38 +15,38 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
+public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroupRegexsDao.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupRegexesDao.class.getName());
    
-    private final String tableName_ = "METRIC_GROUP_REGEXS";
+    private final String tableName_ = "METRIC_GROUP_REGEXES";
     
-    public MetricGroupRegexsDao(){}
+    public MetricGroupRegexesDao(){}
             
-    public MetricGroupRegexsDao(boolean closeConnectionAfterOperation) {
+    public MetricGroupRegexesDao(boolean closeConnectionAfterOperation) {
         databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
     }
     
-    public MetricGroupRegexsDao(DatabaseInterface databaseInterface) {
+    public MetricGroupRegexesDao(DatabaseInterface databaseInterface) {
         super(databaseInterface);
     }
     
     public boolean dropTable() {
-        return dropTable(MetricGroupRegexsSql.DropTable_MetricGroupRegexs);
+        return dropTable(MetricGroupRegexesSql.DropTable_MetricGroupRegexes);
     }
     
     public boolean createTable() {
         List<String> databaseCreationSqlStatements = new ArrayList<>();
         
         if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateTable_MetricGroupRegexs_MySQL);
+            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateTable_MetricGroupRegexes_MySQL);
         }
         else {
-            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateTable_MetricGroupRegexs_Derby);
-            databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateIndex_MetricGroupRegexs_PrimaryKey);
+            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateTable_MetricGroupRegexes_Derby);
+            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateIndex_MetricGroupRegexes_PrimaryKey);
         }
         
-        databaseCreationSqlStatements.add(MetricGroupRegexsSql.CreateIndex_MetricGroupRegexs_ForeignKey_MetricGroupId);
+        databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateIndex_MetricGroupRegexes_ForeignKey_MetricGroupId);
         
         return createTable(databaseCreationSqlStatements);
     }
@@ -55,7 +55,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     public MetricGroupRegex getDatabaseObject(MetricGroupRegex metricGroupRegex) {
         if (metricGroupRegex == null) return null;
         
-        return getDatabaseObject(MetricGroupRegexsSql.Select_MetricGroupRegex_ByPrimaryKey, 
+        return getDatabaseObject(MetricGroupRegexesSql.Select_MetricGroupRegex_ByPrimaryKey, 
                 metricGroupRegex.getId()); 
     }
         
@@ -63,7 +63,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     public boolean insert(MetricGroupRegex metricGroupRegex) {
         if (metricGroupRegex == null) return false;
         
-        return insert(MetricGroupRegexsSql.Insert_MetricGroupRegex, 
+        return insert(MetricGroupRegexesSql.Insert_MetricGroupRegex, 
                 metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
     }
     
@@ -71,7 +71,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     public boolean update(MetricGroupRegex metricGroupRegex) {
         if (metricGroupRegex == null) return false;
 
-        return update(MetricGroupRegexsSql.Update_MetricGroupRegex_ByPrimaryKey, 
+        return update(MetricGroupRegexesSql.Update_MetricGroupRegex_ByPrimaryKey, 
                 metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
     }
 
@@ -79,7 +79,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     public boolean delete(MetricGroupRegex metricGroupRegex) {
         if (metricGroupRegex == null) return false;
         
-        return delete(MetricGroupRegexsSql.Delete_MetricGroupRegex_ByPrimaryKey, 
+        return delete(MetricGroupRegexesSql.Delete_MetricGroupRegex_ByPrimaryKey, 
                 metricGroupRegex.getId()); 
     }
     
@@ -119,20 +119,20 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     }
     
     public MetricGroupRegex getMetricGroupRegex(int id) {
-        return getDatabaseObject(MetricGroupRegexsSql.Select_MetricGroupRegex_ByPrimaryKey, 
+        return getDatabaseObject(MetricGroupRegexesSql.Select_MetricGroupRegex_ByPrimaryKey, 
                 id); 
     }  
     
-    public Map<Integer,List<MetricGroupRegex>> getAllMetricGroupRegexsByMetricGroupId() {
-        List<MetricGroupRegex> metricGroupRegexs = getAllDatabaseObjectsInTable();
+    public Map<Integer,List<MetricGroupRegex>> getAllMetricGroupRegexesByMetricGroupId() {
+        List<MetricGroupRegex> metricGroupRegexes = getAllDatabaseObjectsInTable();
         
-        if ((metricGroupRegexs == null) || metricGroupRegexs.isEmpty()) {
+        if ((metricGroupRegexes == null) || metricGroupRegexes.isEmpty()) {
             return new HashMap<>();
         }
         
         Map<Integer,List<MetricGroupRegex>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
 
-        for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+        for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
             Integer metricGroupId = metricGroupRegex.getMgId();
             
             if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
@@ -149,7 +149,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
         return databaseObjectsInTableByMetricGroupId;
     }
     
-    public List<MetricGroupRegex> getMetricGroupRegexsByMetricGroupId(int metricGroupId) {
+    public List<MetricGroupRegex> getMetricGroupRegexesByMetricGroupId(int metricGroupId) {
         
         try {
 
@@ -157,7 +157,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
                 return null;
             }
 
-            databaseInterface_.createPreparedStatement(MetricGroupRegexsSql.Select_MetricGroupRegexs_ByMetricGroupId, 100);
+            databaseInterface_.createPreparedStatement(MetricGroupRegexesSql.Select_MetricGroupRegexes_ByMetricGroupId, 100);
             databaseInterface_.addPreparedStatementParameters(metricGroupId);
             databaseInterface_.executePreparedStatement();
             
@@ -165,15 +165,15 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
                 return null;
             }
 
-            List<MetricGroupRegex> metricGroupRegexs = new ArrayList<>();
+            List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
             ResultSet resultSet = databaseInterface_.getResults();
 
             while (resultSet.next()) {
                 MetricGroupRegex databaseObject = processSingleResultAllColumns(resultSet);
-                metricGroupRegexs.add(databaseObject);
+                metricGroupRegexes.add(databaseObject);
             }
 
-            return metricGroupRegexs;
+            return metricGroupRegexes;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -186,7 +186,7 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
     }
     
     public boolean deleteByMetricGroupId(int id) {
-        return delete(MetricGroupRegexsSql.Delete_MetricGroupRegex_ByMetricGroupId, 
+        return delete(MetricGroupRegexesSql.Delete_MetricGroupRegex_ByMetricGroupId, 
                 id); 
     }
     
@@ -198,12 +198,12 @@ public class MetricGroupRegexsDao extends DatabaseObjectDao<MetricGroupRegex> {
 
         List<String> patterns = null;
                 
-        List<MetricGroupRegex> metricGroupRegexs = getMetricGroupRegexsByMetricGroupId(metricGroupId);
+        List<MetricGroupRegex> metricGroupRegexes = getMetricGroupRegexesByMetricGroupId(metricGroupId);
 
-        if (metricGroupRegexs != null) {
+        if (metricGroupRegexes != null) {
             patterns = new ArrayList<>();
             
-            for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+            for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                 if (metricGroupRegex.getPattern() != null) {
                     patterns.add(metricGroupRegex.getPattern());
                 }

@@ -97,13 +97,13 @@ function generateForgetMetricsPreviewLink() {
 }
 
 function generateMergedRegexMetricsPreview_Match() {
-    var MatchRegexParameter = "MatchRegexs=" + encodeURIComponent(document.getElementById("MatchRegexs").value);
+    var MatchRegexParameter = "MatchRegexes=" + encodeURIComponent(document.getElementById("MatchRegexes").value);
     var uriEncodedLink = "MergedRegexMetricsPreview?" + MatchRegexParameter;
     document.getElementById("MergedRegexMetricsPreview_Match").setAttribute("href", uriEncodedLink);
 }
 
 function generateMergedRegexMetricsPreview_Blacklist() {
-    var BlacklistRegexParameter = "BlacklistRegexs=" + encodeURIComponent(document.getElementById("BlacklistRegexs").value);
+    var BlacklistRegexParameter = "BlacklistRegexes=" + encodeURIComponent(document.getElementById("BlacklistRegexes").value);
     var uriEncodedLink = "MergedRegexMetricsPreview?" + BlacklistRegexParameter;
     document.getElementById("MergedRegexMetricsPreview_Blacklist").setAttribute("href", uriEncodedLink);
 }
