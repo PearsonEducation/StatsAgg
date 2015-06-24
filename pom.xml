@@ -131,7 +131,13 @@
             <version>3.1.0</version>
             <scope>test</scope>
         </dependency>
-        
+        <dependency>
+            <groupId>com.pearson.StatsAgg</groupId>
+            <artifactId>StatsAgg</artifactId>
+            <version>1.4-beta</version>
+            <scope>test</scope>
+            <type>war</type>
+        </dependency>
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
@@ -170,6 +176,13 @@
             <version>0.8.0.RELEASE</version>
         </dependency>
         
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+
         <!--
         <dependency>
             <groupId>com.zaxxer</groupId>

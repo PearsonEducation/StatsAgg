@@ -14,13 +14,13 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Prashant Kumar
  */
-@WebServlet(name="AlertsList", urlPatterns={"/api/alerts"})
+@WebServlet(name="AlertsList", urlPatterns={"/api/alertslist"})
 public class Alerts extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Alerts.class.getName());
     
     public static final String PAGE_NAME = "AlertsList";
-
+ 
     /**
      * Returns a short description of the servlet.
      *
@@ -39,12 +39,21 @@ public class Alerts extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        getAlertsJson(request, response);
+        logger.debug("doGet");
+        try {    
+            JSONObject json = getAlertsJson(request, new AlertsDao());       
+            PrintWriter out = null;
+            response.setContentType("application/json");
+            out = response.getWriter();
+            out.println(json);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }     
     }
-    
-    protected  void getAlertsJson(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("getAlertsJson");
-        
+
+     public JSONObject getAlertsJson(HttpServletRequest request, AlertsDao alertsDao) {
+        logger.debug("getAlertJson");
         JSONObject errorMsg = null;
         JSONObject alertsJson = null;
         int pageNumber = 0, pageSize = 0;
@@ -57,29 +66,17 @@ public class Alerts extends HttpServlet {
             if (request.getParameter(Common.pageSize) != null) {
                 pageSize = Integer.parseInt(request.getParameter(Common.pageSize));
             }
-
-            AlertsDao alertsDao = new AlertsDao();
+            
+            //AlertsDao alertsDao = new AlertsDao();
             alertsJson = alertsDao.getAlerts(pageNumber*pageSize, pageSize);
-        } 
-        catch (Exception e) {
+        } catch (Exception e) {
+            logger.debug("error caught!");
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Common.error, Common.errorMsg);
-        }   
-        
-        try {
-            PrintWriter out = null;
-            response.setContentType("application/json");
-            out = response.getWriter();
-            
-            if (alertsJson != null) out.println(alertsJson);
-            else if (errorMsg != null) out.println(errorMsg);
-            else logger.error("Alerts API had no valid JSON to output.");
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }   
-        
+        if (alertsJson != null) return alertsJson;
+        else if (errorMsg != null) return errorMsg;
+        else return null;
     }
-    
 }
