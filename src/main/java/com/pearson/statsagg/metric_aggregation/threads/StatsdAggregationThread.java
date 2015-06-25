@@ -1,5 +1,8 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
+import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
+import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -128,16 +131,13 @@ public class StatsdAggregationThread implements Runnable {
             Common.updateAlertMetricRecentValues(statsdMetricsAggregatedMerged);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart;                 
 
-            // send to graphite via tcp
-            if (SendMetricsToGraphiteThread.isAnyGraphiteOutputModuleEnabled()) SendMetricsToGraphiteThread.sendMetricsToGraphiteEndpoints(statsdMetricsAggregatedMerged, threadId_);
-
-            // send to opentsdb via telnet
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbTelnetOutputModuleEnabled()) SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbTelnetEndpoints(statsdMetricsAggregatedMerged, threadId_);
+            // send metrics to output modules
+            SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregatedMerged, threadId_);
+            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregatedMerged, false, threadId_);
+            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregatedMerged, false, threadId_);
+            SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
             
-            // send to opentsdb via http
-            if (SendMetricsToOpenTsdbThread.isAnyOpenTsdbHttpOutputModuleEnabled()) SendMetricsToOpenTsdbThread.sendMetricsToOpenTsdbHttpEndpoints(statsdMetricsAggregatedMerged, threadId_);
-            
-            // total time for this thread took to aggregate the statsd metrics
+            // total time for this thread took to aggregate the metrics
             long timeAggregationTimeElasped = System.currentTimeMillis() - timeAggregationTimeStart - waitInMsCounter;
             String aggregationRate = "0";
             if (timeAggregationTimeElasped > 0) {
@@ -162,12 +162,8 @@ public class StatsdAggregationThread implements Runnable {
                     + ", AggNewAndOldMetricCount=" + statsdMetricsAggregatedMerged.size() 
                     + ", ForgetMetricsTime=" + forgetStatsdMetricsTimeElasped;
             
-            if (statsdMetricsAggregatedMerged.isEmpty()) {
-                logger.debug(aggregationStatistics);
-            }
-            else {
-                logger.info(aggregationStatistics);
-            }
+            if (statsdMetricsAggregatedMerged.isEmpty()) logger.debug(aggregationStatistics);
+            else logger.info(aggregationStatistics);
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
                 for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregatedMerged) {

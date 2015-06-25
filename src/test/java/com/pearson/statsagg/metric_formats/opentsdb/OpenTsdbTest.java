@@ -152,7 +152,7 @@ public class OpenTsdbTest {
         openTsdbMetrics.add(parsedMetric1);
         openTsdbMetrics.add(parsedMetric2);
         
-        String json = OpenTsdbMetric.getOpenTsdbJson(openTsdbMetrics);
+        String json = OpenTsdbMetric.getOpenTsdbJson(openTsdbMetrics, false);
         String expectedJson = "[{\"metric\":\"global.opentsdb.tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1203.1,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502000,\"value\":1203.2,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]";
         assertEquals(expectedJson, json);
     }

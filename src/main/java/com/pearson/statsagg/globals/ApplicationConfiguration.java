@@ -8,6 +8,7 @@ import com.pearson.statsagg.utilities.StackTrace;
 import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.codec.binary.Base64;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -30,6 +31,7 @@ public class ApplicationConfiguration {
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
     private static final List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules_ = new ArrayList<>();
     private static final List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules_ = new ArrayList<>();
+    private static final List<InfluxdbV1HttpOutputModule> influxdbV1HttpOutputModules_ = new ArrayList<>();
 
     private static boolean statsdTcpListenerEnabled_ = false;
     private static int statsdTcpListenerPort_ = VALUE_NOT_SET_CODE;
@@ -78,11 +80,6 @@ public class ApplicationConfiguration {
     private static boolean statsdTimerSendZeroOnInactive_ = false;
     private static boolean statsdGaugeSendPreviousValue_ = false;
     private static boolean statsdSetSendZeroOnInactive_ = false;
-    private static boolean graphiteAggregatorSendPreviousValue_ = false;
-    private static boolean graphitePassthroughSendPreviousValue_ = false;      
-    private static boolean openTsdbSendPreviousValue_ = false;  
-    private static boolean influxdbSendPreviousValue_ = false;  
-
     private static StatsdNthPercentiles statsdNthPercentiles_ = null;
     private static List<StatsdHistogramConfiguration> statsdHistogramConfigurations_ = null;
     private static boolean statsdUseLegacyNameSpacing_ = false;
@@ -91,6 +88,7 @@ public class ApplicationConfiguration {
     private static String influxdbDefaultDatabaseName_;
     private static String influxdbDefaultDatabaseUsername_;
     private static String influxdbDefaultDatabasePassword_;
+    private static String influxdbDefaultDatabaseHttpBasicAuthValue_;
     
     private static boolean alertRoutineEnabled_ = false;
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
@@ -136,14 +134,17 @@ public class ApplicationConfiguration {
             flushTimeAgg_ = applicationConfiguration_.safeGetInteger("flush_time_agg", 10000);
             debugModeEnabled_ = applicationConfiguration_.safeGetBoolean("debug_mode_enabled", false);
             
-            // graphite configuration
+            // graphite output configuration
             graphiteOutputModules_.addAll(readGraphiteOutputModules());
 
-            // opentsdb configuration
+            // opentsdb telnet output configuration
             openTsdbTelnetOutputModules_.addAll(readOpenTsdbTelnetOutputModules());
             
-            // opentsdb configuration
+            // opentsdb http output configuration
             openTsdbHttpOutputModules_.addAll(readOpenTsdbHttpOutputModules());
+            
+            // opentsdb configuration
+            influxdbV1HttpOutputModules_.addAll(readInfluxdbV1HttpOutputModules());
             
             // listener config
             statsdTcpListenerEnabled_ = applicationConfiguration_.safeGetBoolean("statsd_tcp_listener_enabled", true);
@@ -189,18 +190,12 @@ public class ApplicationConfiguration {
             openTsdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("opentsdb_metric_name_prefix_value", "opentsdb");
             influxdbMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("influxdb_metric_name_prefix_enabled", false);
             influxdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("influxdb_metric_name_prefix_value", "influxdb");
-            
-            // send previous data config
+
+            // statsd specific variables
             statsdCounterSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_counter_send_0_on_inactive", true);
             statsdTimerSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_timer_send_0_on_inactive", true);
             statsdGaugeSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("statsd_gauge_send_previous_value", true);
             statsdSetSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_set_send_0_on_inactive", true);
-            graphiteAggregatorSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_aggregator_send_previous_value", false);
-            graphitePassthroughSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("graphite_passthrough_send_previous_value", false);
-            openTsdbSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("opentsdb_send_previous_value", false);
-            influxdbSendPreviousValue_ = applicationConfiguration_.safeGetBoolean("influxdb_send_previous_value", false);
-
-            // statsd specific variables
             statsdNthPercentiles_ = new StatsdNthPercentiles(applicationConfiguration_.safeGetString("statsd_nth_percentiles", "90"));
             statsdHistogramConfigurations_ = readStatsdHistogramConfiguration(applicationConfiguration_.safeGetString("statsd_histograms", null));
             statsdUseLegacyNameSpacing_ = applicationConfiguration_.safeGetBoolean("statsd_use_legacy_name_spacing", false);
@@ -210,6 +205,8 @@ public class ApplicationConfiguration {
             influxdbDefaultDatabaseName_ = applicationConfiguration_.safeGetString("influxdb_default_database_name", "statsagg");
             influxdbDefaultDatabaseUsername_ = applicationConfiguration_.safeGetString("influxdb_default_database_username", "statsagg");
             influxdbDefaultDatabasePassword_ = applicationConfiguration_.safeGetString("influxdb_default_database_password", "statsagg");
+            if ((influxdbDefaultDatabaseUsername_ != null) && (influxdbDefaultDatabasePassword_ != null)) influxdbDefaultDatabaseHttpBasicAuthValue_ = "Basic " + Base64.encodeBase64String((influxdbDefaultDatabaseUsername_ + ":" + influxdbDefaultDatabasePassword_).getBytes("UTF-8"));
+            else influxdbDefaultDatabaseHttpBasicAuthValue_ = null;
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.safeGetBoolean("alert_routine_enabled", true);
@@ -352,6 +349,42 @@ public class ApplicationConfiguration {
         return openTsdbHttpOutputModules;
     }
     
+    private static List<InfluxdbV1HttpOutputModule> readInfluxdbV1HttpOutputModules() {
+        
+        List<InfluxdbV1HttpOutputModule> influxdbV1HttpOutputModules = new ArrayList<>();
+        
+        for (int i = 0; i < 1000; i++) {
+            String influxdbV1HttpOutputModuleKey = "influxdb_v1_output_module_" + (i + 1);
+            String influxdbV1HttpOutputModuleValue = applicationConfiguration_.safeGetString(influxdbV1HttpOutputModuleKey, null);
+            
+            if (influxdbV1HttpOutputModuleValue == null) continue;
+            
+            try {
+                CSVReader reader = new CSVReader(new StringReader(influxdbV1HttpOutputModuleValue));
+                List<String[]> csvValuesArray = reader.readAll();
+
+                if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
+                    String[] csvValues = csvValuesArray.get(0);
+
+                    if (csvValues.length == 4) {                                
+                        boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
+                        String url = csvValues[1];
+                        int numSendRetryAttempts = Integer.valueOf(csvValues[2]);
+                        int maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
+                        
+                        InfluxdbV1HttpOutputModule influxdbV1HttpOutputModule = new InfluxdbV1HttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, maxMetricsPerMessage);
+                        influxdbV1HttpOutputModules.add(influxdbV1HttpOutputModule);
+                    }
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
+        return influxdbV1HttpOutputModules;
+    }
+    
     private static List<StatsdHistogramConfiguration> readStatsdHistogramConfiguration(String unparsedStatsdHistogramConfigurations) {
         List<StatsdHistogramConfiguration> statsdHistogramConfigurations = StatsdHistogramConfiguration.getStatsdHistogramConfigurations(unparsedStatsdHistogramConfigurations);
         return statsdHistogramConfigurations;
@@ -424,6 +457,11 @@ public class ApplicationConfiguration {
         else return new ArrayList<>(openTsdbHttpOutputModules_);
     }
     
+    public static List<InfluxdbV1HttpOutputModule> getInfluxdbV1HttpOutputModules() {
+        if (influxdbV1HttpOutputModules_ == null) return null;
+        else return new ArrayList<>(influxdbV1HttpOutputModules_);
+    }
+  
     public static boolean isStatsdTcpListenerEnabled() {
         return statsdTcpListenerEnabled_;
     }
@@ -604,22 +642,6 @@ public class ApplicationConfiguration {
         return statsdSetSendZeroOnInactive_;
     }
     
-    public static boolean isGraphiteAggregatorSendPreviousValue() {
-        return graphiteAggregatorSendPreviousValue_;
-    }
-    
-    public static boolean isGraphitePassthroughSendPreviousValue() {
-        return graphitePassthroughSendPreviousValue_;
-    }
-
-    public static boolean isOpenTsdbSendPreviousValue() {
-        return openTsdbSendPreviousValue_;
-    }
-    
-    public static boolean isInfluxdbSendPreviousValue() {
-        return influxdbSendPreviousValue_;
-    }
-    
     public static StatsdNthPercentiles getStatsdNthPercentiles() {
         return statsdNthPercentiles_;
     }
@@ -647,7 +669,11 @@ public class ApplicationConfiguration {
     public static String getInfluxdbDefaultDatabasePassword() {
         return influxdbDefaultDatabasePassword_;
     }
-    
+
+    public static String getInfluxdbDefaultDatabaseHttpBasicAuthValue() {
+        return influxdbDefaultDatabaseHttpBasicAuthValue_;
+    }
+
     public static boolean isAlertRoutineEnabled() {
         return alertRoutineEnabled_;
     }

@@ -4,8 +4,14 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.globals.OpenTsdbHttpOutputModule;
+import com.pearson.statsagg.globals.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,6 +66,111 @@ public class SendToOpenTsdbThreadPoolManager {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+    }
+    
+    public static boolean isAnyOpenTsdbTelnetOutputModuleEnabled() {
+        
+        List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+        if (openTsdbTelnetOutputModules == null) return false;
+        
+        for (OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule : openTsdbTelnetOutputModules) {
+            if (openTsdbTelnetOutputModule.isOutputEnabled()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public static List<OpenTsdbTelnetOutputModule> getEnabledOpenTsdbTelnetOutputModules() {
+        
+        List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+        if (openTsdbTelnetOutputModules == null) return new ArrayList<>();
+        
+        List<OpenTsdbTelnetOutputModule> enabledOpenTsdbOutputModules = new ArrayList<>();
+        
+        for (OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule : openTsdbTelnetOutputModules) {
+            if (openTsdbTelnetOutputModule.isOutputEnabled()) {
+                enabledOpenTsdbOutputModules.add(openTsdbTelnetOutputModule);
+            }
+        }
+        
+        return enabledOpenTsdbOutputModules;
+    }
+    
+    public static boolean isAnyOpenTsdbHttpOutputModuleEnabled() {
+        
+        List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = ApplicationConfiguration.getOpenTsdbHttpOutputModules();
+        if (openTsdbHttpOutputModules == null) return false;
+        
+        for (OpenTsdbHttpOutputModule openTsdbHttpOutputModule : openTsdbHttpOutputModules) {
+            if (openTsdbHttpOutputModule.isOutputEnabled()) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
+    public static List<OpenTsdbHttpOutputModule> getEnabledOpenTsdbHttpOutputModules() {
+        
+        List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = ApplicationConfiguration.getOpenTsdbHttpOutputModules();
+        if (openTsdbHttpOutputModules == null) return new ArrayList<>();
+        
+        List<OpenTsdbHttpOutputModule> enabledOpenTsdbOutputModules = new ArrayList<>();
+        
+        for (OpenTsdbHttpOutputModule openTsdbHttpOutputModule : openTsdbHttpOutputModules) {
+            if (openTsdbHttpOutputModule.isOutputEnabled()) {
+                enabledOpenTsdbOutputModules.add(openTsdbHttpOutputModule);
+            }
+        }
+        
+        return enabledOpenTsdbOutputModules;
+    }
+    
+    public static void sendMetricsToAllOpenTsdbTelnetOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String threadId) {
+        
+        try {
+            List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
+            if (openTsdbTelnetOutputModules == null) return;
+                    
+            for (OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule : openTsdbTelnetOutputModules) {
+                if (!openTsdbTelnetOutputModule.isOutputEnabled()) continue;
+                
+                SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, sanitizeMetrics, 
+                        openTsdbTelnetOutputModule.getHost(), openTsdbTelnetOutputModule.getPort(), 
+                        openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
+                
+                SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToTelnetOpenTsdbThread);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+    }
+    
+    public static void sendMetricsToAllOpenTsdbHttpOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String threadId) {
+        
+        try {
+            List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = ApplicationConfiguration.getOpenTsdbHttpOutputModules();
+            if (openTsdbHttpOutputModules == null) return;
+                    
+            for (OpenTsdbHttpOutputModule openTsdbHttpOutputModule : openTsdbHttpOutputModules) {
+                if (!openTsdbHttpOutputModule.isOutputEnabled()) continue;
+                
+                URL url = new URL(openTsdbHttpOutputModule.getUrl());
+                
+                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, sanitizeMetrics, url, 
+                       openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
+                
+                SendToOpenTsdbThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
     }
     
 }

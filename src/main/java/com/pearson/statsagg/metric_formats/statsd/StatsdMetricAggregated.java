@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -54,18 +55,29 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
 
         return stringBuilder.toString();
     }
-    
     @Override
     public String getOpenTsdbTelnetFormatString() {
+        return getOpenTsdbTelnetFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
+        String bucket = sanitizeMetrics ? OpenTsdbMetric.getOpenTsdbFormattedMetric(bucket_) : bucket_;
+        
+        stringBuilder.append(bucket).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
 
         return stringBuilder.toString();
     }
-        
+    
     @Override
     public String getOpenTsdbJsonFormatString() {
+        return getOpenTsdbJsonFormatString(false);
+    }  
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
         
         if ((bucket_ == null) || bucket_.isEmpty()) return null;
         if (getTimestampInMilliseconds() < 0) return null;
@@ -75,7 +87,9 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
    
         openTsdbJson.append("{");
 
-        openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(bucket_)).append("\",");
+        if (sanitizeMetrics) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbFormattedMetric(bucket_))).append("\",");
+        else openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(bucket_)).append("\",");
+        
         openTsdbJson.append("\"timestamp\":").append(getTimestampInMilliseconds()).append(",");
         openTsdbJson.append("\"value\":").append(getMetricValueString()).append(",");
 

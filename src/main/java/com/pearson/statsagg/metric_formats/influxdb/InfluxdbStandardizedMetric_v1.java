@@ -2,6 +2,7 @@ package com.pearson.statsagg.metric_formats.influxdb;
 
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
@@ -18,9 +19,9 @@ import org.slf4j.LoggerFactory;
  * 
  * This object is intended to be compatible with the InfluxDB format used in InfluxDB v0.6x, v0.7x, v0.8x
  */
-public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
+public class InfluxdbStandardizedMetric_v1 implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
-    private static final Logger logger = LoggerFactory.getLogger(InfluxdbStatsAggMetric_v1.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(InfluxdbStandardizedMetric_v1.class.getName());
 
     private long hashKey_ = -1;
     
@@ -38,7 +39,7 @@ public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdb
     private final ArrayList<String> columns_;
     private final ArrayList<Object> point_;
     
-    public InfluxdbStatsAggMetric_v1(String metricKey, String metricDatabase, String metricPrefix, String metricPrefixPeriodDelimited, 
+    public InfluxdbStandardizedMetric_v1(String metricKey, String metricDatabase, String metricPrefix, String metricPrefixPeriodDelimited, 
             String metricName, String metricValueName, BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds,
             ArrayList<String> columns, ArrayList<Object> point) {
         this.metricKey_ = metricKey;
@@ -71,10 +72,17 @@ public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdb
 
     @Override
     public String getOpenTsdbTelnetFormatString() {
+        return getOpenTsdbTelnetFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
         StringBuilder stringBuilder = new StringBuilder();
         
+        String metricName = sanitizeMetrics ? OpenTsdbMetric.getOpenTsdbFormattedMetric(metricName_) : metricName_;
+        
         if ((metricPrefixPeriodDelimited_ != null) && !metricPrefixPeriodDelimited_.isEmpty()) stringBuilder.append(metricPrefixPeriodDelimited_);
-        stringBuilder.append(metricDatabase_).append(".").append(metricName_);
+        stringBuilder.append(metricDatabase_).append(".").append(metricName);
         if ((metricValueName_ != null) && !metricValueName_.isEmpty()) stringBuilder.append(".").append(metricValueName_);
         
         stringBuilder.append(" ").append(getMetricTimestampInMilliseconds()).append(" ").append(getMetricValueString());
@@ -84,6 +92,11 @@ public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdb
     
     @Override
     public String getOpenTsdbJsonFormatString() {
+        return getOpenTsdbJsonFormatString(false);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
                         
         StringBuilder metricName = new StringBuilder();
         if ((metricPrefixPeriodDelimited_ != null) && !metricPrefixPeriodDelimited_.isEmpty()) metricName.append(metricPrefixPeriodDelimited_);
@@ -138,40 +151,40 @@ public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdb
     }
 
     /*
-    For every unique metric key, get the InfluxdbStatsAggMetric_v1 with the most recent 'metric timestamp'. 
+    For every unique metric key, get the InfluxdbStandardizedMetric_v1 with the most recent 'metric timestamp'. 
     
-    In the event that multiple InfluxdbStatsAggMetrics share the same 'metric key' and 'metric timestamp', 
+    In the event that multiple InfluxdbStandardizedMetrics share the same 'metric key' and 'metric timestamp', 
     then 'metric received timestamp' is used as a tiebreaker. 
     
     In the event that multiple InfluxdbMetrics also share the same 'metric received timestamp', 
-    then this method will return the first InfluxdbStatsAggMetric_v1 that it scanned that met these criteria
+    then this method will return the first InfluxdbStandardizedMetric_v1 that it scanned that met these criteria
     */
-    public static Map<String,InfluxdbStatsAggMetric_v1> getMostRecentInfluxdbStatsAggMetricByMetricKey(List<InfluxdbStatsAggMetric_v1> influxdbStatsAggMetrics) {
+    public static Map<String,InfluxdbStandardizedMetric_v1> getMostRecentInfluxdbStandardizedMetricByMetricKey(List<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics) {
         
-        if ((influxdbStatsAggMetrics == null) || influxdbStatsAggMetrics.isEmpty()) {
+        if ((influxdbStandardizedMetrics == null) || influxdbStandardizedMetrics.isEmpty()) {
             return new HashMap<>();
         }
 
-        Map<String, InfluxdbStatsAggMetric_v1> mostRecentInfluxdbStatsAggMetricsByMetricKey = new HashMap<>();
+        Map<String, InfluxdbStandardizedMetric_v1> mostRecentInfluxdbStandardizedMetricsByMetricKey = new HashMap<>();
 
-        for (InfluxdbStatsAggMetric_v1 influxdbStatsAggMetric : influxdbStatsAggMetrics) {
+        for (InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric : influxdbStandardizedMetrics) {
             try {
-                boolean doesAlreadyContainMetricKey = mostRecentInfluxdbStatsAggMetricsByMetricKey.containsKey(influxdbStatsAggMetric.getMetricKey());
+                boolean doesAlreadyContainMetricKey = mostRecentInfluxdbStandardizedMetricsByMetricKey.containsKey(influxdbStandardizedMetric.getMetricKey());
 
                 if (doesAlreadyContainMetricKey) {
-                    InfluxdbStatsAggMetric_v1 currentMostRecentInfluxdbStatsAggMetric = mostRecentInfluxdbStatsAggMetricsByMetricKey.get(influxdbStatsAggMetric.getMetricKey());
+                    InfluxdbStandardizedMetric_v1 currentMostRecentInfluxdbStandardizedMetric = mostRecentInfluxdbStandardizedMetricsByMetricKey.get(influxdbStandardizedMetric.getMetricKey());
 
-                    if (influxdbStatsAggMetric.getMetricTimestampInMilliseconds() > currentMostRecentInfluxdbStatsAggMetric.getMetricTimestampInMilliseconds()) {
-                        mostRecentInfluxdbStatsAggMetricsByMetricKey.put(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric);
+                    if (influxdbStandardizedMetric.getMetricTimestampInMilliseconds() > currentMostRecentInfluxdbStandardizedMetric.getMetricTimestampInMilliseconds()) {
+                        mostRecentInfluxdbStandardizedMetricsByMetricKey.put(influxdbStandardizedMetric.getMetricKey(), influxdbStandardizedMetric);
                     }
-                    else if (influxdbStatsAggMetric.getMetricTimestampInMilliseconds() == currentMostRecentInfluxdbStatsAggMetric.getMetricTimestampInMilliseconds()) {
-                        if (influxdbStatsAggMetric.getMetricReceivedTimestampInMilliseconds() > currentMostRecentInfluxdbStatsAggMetric.getMetricReceivedTimestampInMilliseconds()) {
-                            mostRecentInfluxdbStatsAggMetricsByMetricKey.put(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric);
+                    else if (influxdbStandardizedMetric.getMetricTimestampInMilliseconds() == currentMostRecentInfluxdbStandardizedMetric.getMetricTimestampInMilliseconds()) {
+                        if (influxdbStandardizedMetric.getMetricReceivedTimestampInMilliseconds() > currentMostRecentInfluxdbStandardizedMetric.getMetricReceivedTimestampInMilliseconds()) {
+                            mostRecentInfluxdbStandardizedMetricsByMetricKey.put(influxdbStandardizedMetric.getMetricKey(), influxdbStandardizedMetric);
                         }
                     }
                 }
                 else {
-                    mostRecentInfluxdbStatsAggMetricsByMetricKey.put(influxdbStatsAggMetric.getMetricKey(), influxdbStatsAggMetric);
+                    mostRecentInfluxdbStandardizedMetricsByMetricKey.put(influxdbStandardizedMetric.getMetricKey(), influxdbStandardizedMetric);
                 }
             }
             catch (Exception e) {
@@ -179,7 +192,7 @@ public class InfluxdbStatsAggMetric_v1 implements GraphiteMetricFormat, OpenTsdb
             }
         }
 
-        return mostRecentInfluxdbStatsAggMetricsByMetricKey;
+        return mostRecentInfluxdbStandardizedMetricsByMetricKey;
     }
     
     public long getHashKey() {

@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -124,8 +124,8 @@ public class MetricGroupDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
 
-            MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-            List<MetricGroupRegex> metricGroupRegexs =  metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroup.getId());
+            MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+            List<MetricGroupRegex> metricGroupRegexes =  metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
                   
             MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
             List<MetricGroupTag> metricGroupTags =  metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
@@ -146,9 +146,9 @@ public class MetricGroupDetails extends HttpServlet {
             else outputString.append("<br><br>");
             
             boolean didOutputMatchRegex = false;
-            if ((metricGroupRegexs != null) && !metricGroupRegexs.isEmpty()) {
+            if ((metricGroupRegexes != null) && !metricGroupRegexes.isEmpty()) {
                 int i = 1;
-                for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                     if (!metricGroupRegex.isBlacklistRegex()) {
                         outputString.append("<b>Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
                         i++;
@@ -159,9 +159,9 @@ public class MetricGroupDetails extends HttpServlet {
             
             if (didOutputMatchRegex) outputString.append("<br>");
             
-            if ((metricGroupRegexs != null) && !metricGroupRegexs.isEmpty()) {
+            if ((metricGroupRegexes != null) && !metricGroupRegexes.isEmpty()) {
                 int i = 1;
-                for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+                for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                     if (metricGroupRegex.isBlacklistRegex()) {
                         outputString.append("<b>Blacklist Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
                         i++;
@@ -169,7 +169,7 @@ public class MetricGroupDetails extends HttpServlet {
                 }
             }
             
-            if ((metricGroupRegexs == null) || metricGroupRegexs.isEmpty()) outputString.append("<br>");
+            if ((metricGroupRegexes == null) || metricGroupRegexes.isEmpty()) outputString.append("<br>");
             
             if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
                 int i = 1;

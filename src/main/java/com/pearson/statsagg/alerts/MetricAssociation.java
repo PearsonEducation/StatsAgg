@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
@@ -48,7 +48,7 @@ public class MetricAssociation {
         List<Integer> metricGroupIds = applyMetricGroupGlobalVariableChanges();
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
         
-        updateMergedRegexsForMetricGroups(metricGroupIds);
+        updateMergedRegexesForMetricGroups(metricGroupIds);
         
         // run the association routine against all metric-groups/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
@@ -85,8 +85,8 @@ public class MetricAssociation {
                     }
 
                     GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
-                    GlobalVariables.mergedMatchRegexsForMetricGroups.remove(metricGroupId);
-                    GlobalVariables.mergedBlacklistRegexsForMetricGroups.remove(metricGroupId);
+                    GlobalVariables.mergedMatchRegexesForMetricGroups.remove(metricGroupId);
+                    GlobalVariables.mergedBlacklistRegexesForMetricGroups.remove(metricGroupId);
                     newAndAlteredMetricGroupIds.add(metricGroupId);
                 }
                 else if ((metricGroupChangeCode != null) && metricGroupChangeCode.equals(MetricGroupsLogic.REMOVE)) {
@@ -94,14 +94,14 @@ public class MetricAssociation {
                     for (String metricKey : metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated) GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.put(metricKey, false);
                     
                     GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
-                    GlobalVariables.mergedMatchRegexsForMetricGroups.remove(metricGroupId);
-                    GlobalVariables.mergedBlacklistRegexsForMetricGroups.remove(metricGroupId);
+                    GlobalVariables.mergedMatchRegexesForMetricGroups.remove(metricGroupId);
+                    GlobalVariables.mergedBlacklistRegexesForMetricGroups.remove(metricGroupId);
                 }
                 
                 GlobalVariables.metricGroupChanges.remove(metricGroupId);
             }
             
-            updateMergedRegexsForMetricGroups(newAndAlteredMetricGroupIds);
+            updateMergedRegexesForMetricGroups(newAndAlteredMetricGroupIds);
             
             MetricGroupsDao metricGrouspDao = new MetricGroupsDao();
             allMetricGroupIds = metricGrouspDao.getAllMetricGroupIds();
@@ -130,48 +130,48 @@ public class MetricAssociation {
         return allMetricGroupIds;
     }
 
-    // update GlobalVariables.mergedMatchRegexsForMetricGroups & GlobalVariables.mergedBlacklistRegexsForMetricGroups with the latest merged regexs
-    private static void updateMergedRegexsForMetricGroups(List<Integer> metricGroupIds) {
+    // update GlobalVariables.mergedMatchRegexesForMetricGroups & GlobalVariables.mergedBlacklistRegexesForMetricGroups with the latest merged regexes
+    private static void updateMergedRegexesForMetricGroups(List<Integer> metricGroupIds) {
 
         if (metricGroupIds == null) {
             return;
         }
         
         for (Integer metricGroupId : metricGroupIds) {
-            String mergedMetricGroupMatchRegex = GlobalVariables.mergedMatchRegexsForMetricGroups.get(metricGroupId);
-            String mergedMetricGroupBlacklistRegex = GlobalVariables.mergedBlacklistRegexsForMetricGroups.get(metricGroupId);
-            List<MetricGroupRegex> metricGroupRegexs = null;
+            String mergedMetricGroupMatchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
+            String mergedMetricGroupBlacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
+            List<MetricGroupRegex> metricGroupRegexes = null;
             
             if ((mergedMetricGroupMatchRegex == null) || (mergedMetricGroupBlacklistRegex == null)) {
-                MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-                metricGroupRegexs = metricGroupRegexsDao.getMetricGroupRegexsByMetricGroupId(metricGroupId);
+                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+                metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupId);
             }
                 
             if (mergedMetricGroupMatchRegex == null) {
-                mergedMetricGroupMatchRegex = createMergedMetricGroupRegex(metricGroupRegexs, REGEX_TYPE_MATCH);
-                GlobalVariables.mergedMatchRegexsForMetricGroups.put(metricGroupId, mergedMetricGroupMatchRegex);
+                mergedMetricGroupMatchRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_MATCH);
+                GlobalVariables.mergedMatchRegexesForMetricGroups.put(metricGroupId, mergedMetricGroupMatchRegex);
             }
             
             if (mergedMetricGroupBlacklistRegex == null) {
-                mergedMetricGroupBlacklistRegex = createMergedMetricGroupRegex(metricGroupRegexs, REGEX_TYPE_BLACKLIST);
-                GlobalVariables.mergedBlacklistRegexsForMetricGroups.put(metricGroupId, mergedMetricGroupBlacklistRegex);
+                mergedMetricGroupBlacklistRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_BLACKLIST);
+                GlobalVariables.mergedBlacklistRegexesForMetricGroups.put(metricGroupId, mergedMetricGroupBlacklistRegex);
             }
         }
         
     }
     
     /* 
-     This method merges every regex associated with a single metric group into a single regex (using '|' as the glue between regexs).
+     This method merges every regex associated with a single metric group into a single regex (using '|' as the glue between regexes).
      */
-    private static String createMergedMetricGroupRegex(List<MetricGroupRegex> metricGroupRegexs, byte regexType) {
+    private static String createMergedMetricGroupRegex(List<MetricGroupRegex> metricGroupRegexes, byte regexType) {
 
-        if (metricGroupRegexs == null) {
+        if (metricGroupRegexes == null) {
             return null;
         }
 
         List<String> regexPatterns = new ArrayList<>();
 
-        for (MetricGroupRegex metricGroupRegex : metricGroupRegexs) {
+        for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
             if ((metricGroupRegex.isBlacklistRegex() != null) && (metricGroupRegex.getPattern() != null)) {
                 if (metricGroupRegex.isBlacklistRegex() && (regexType == REGEX_TYPE_BLACKLIST)) regexPatterns.add(metricGroupRegex.getPattern());
                 else if (!metricGroupRegex.isBlacklistRegex() && (regexType == REGEX_TYPE_MATCH)) regexPatterns.add(metricGroupRegex.getPattern());
@@ -263,7 +263,7 @@ public class MetricAssociation {
         }
         
         try {
-            String matchRegex = GlobalVariables.mergedMatchRegexsForMetricGroups.get(metricGroupId);
+            String matchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
             if (matchRegex == null) return;
 
             Pattern matchPattern = getPatternFromRegexString(matchRegex);
@@ -274,7 +274,7 @@ public class MetricAssociation {
                 boolean isMetricKeyAssociatedWithMetricGroup = false;
 
                 if (isMatchRegexMatch) {
-                    String blacklistRegex = GlobalVariables.mergedBlacklistRegexsForMetricGroups.get(metricGroupId);
+                    String blacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
                     Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
 
                     if (blacklistPattern != null) {
@@ -325,7 +325,7 @@ public class MetricAssociation {
 
         for (Integer metricGroupId : metricGroupIds) {
             try {
-                String matchRegex = GlobalVariables.mergedMatchRegexsForMetricGroups.get(metricGroupId);
+                String matchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
                 if (matchRegex == null) continue;
 
                 Pattern matchPattern = getPatternFromRegexString(matchRegex);
@@ -336,7 +336,7 @@ public class MetricAssociation {
                     boolean isMetricKeyAssociatedWithMetricGroup = false;
 
                     if (isMatchRegexMatch) {
-                        String blacklistRegex = GlobalVariables.mergedBlacklistRegexsForMetricGroups.get(metricGroupId);
+                        String blacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
                         Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
                         
                         if (blacklistPattern != null) {

@@ -66,7 +66,7 @@ public class InfluxdbMetric_v1Test {
 
         long currentTimeInMs = System.currentTimeMillis();
         List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson("statsagg_db", json_, "user", "pass", null, 
-                InfluxdbMetric_v1.TIMESTAMP_PRECISION_MILLISECONDS, "global-local-", "global.local.", currentTimeInMs);
+                "ms", "global-local-", "global.local.", currentTimeInMs);
         
         String influxdbJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbMetrics);
         System.out.println(influxdbJson);

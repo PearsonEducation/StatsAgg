@@ -1,28 +1,32 @@
 StatsAgg 1.4
  * Document metric prefixes behavior
  * Document quirks in each output db
- * Finish blacklist metric-group regexs
+ * Document - remove any references to 'send previous value'
+ * Document - StatsAgg is not a proxy
+ * Document OpenTSDB "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
+ * Finish blacklist metric-group regexes
    * Document
+   * Preview of final results
  * Move separator character out of graphite-aggregator aggregate method
- * updateAlertMetricRecentValues -- turn metricTimestampsAndValues into a list ???
- * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Support 'no timestamp' on Graphite metrics
- * Optimize/Improve Graphite metric formatter
-   * test
- * Native InfluxDB support (v0.6x - v0.8x)
-   * Output
+ * Optimize/Improve Graphite sanitizer & OpenTSDB sanitizer
+   * unit tests
+   * alert status w/ OpenTSDB not working right
+   * alert status catered to each database storage engine
  * Support output via OpenTSDB HTTP/JSON
-   * Document "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
-   * Bug -- Graphite & InfluxDB metrics won't output with OpenTSDB HTTP/JSON
- * Test cross-format metric output (graphite->opentsdb,influx), (opentsdb->influx,graphite), (influx->opentsdb,graphite)
- * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
+ * Test cross-format metric output (graphite->OpenTSDB,influx), (OpenTSDB->influx,graphite), (influx->OpenTSDB,graphite)
+ * Advanced options
+   * Make optional output HTTP error response bodies to log file
+   * Optional sanitize of Graphite & OpenTSDB metrics on outputting
 
 Short/Medium term
+ * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Debug mode for "details" pages (include additional details)
+ * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
  * Advanced options
    * (optional) Limit metric-key length displayed in StatsAgg WebUI
    * (optional) Limit metric group association count

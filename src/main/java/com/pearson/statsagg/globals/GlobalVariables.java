@@ -12,7 +12,6 @@ import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbStatsAggMetric_v1;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
@@ -68,10 +67,6 @@ public class GlobalVariables {
 
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,GraphiteMetric> graphiteAggregatedMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,GraphiteMetric> graphitePassthroughMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,OpenTsdbMetric> openTsdbMetricsMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
-    public final static ConcurrentHashMap<String,InfluxdbStatsAggMetric_v1> influxdbStatsAggMetricsV1MostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);
 
     // k=MetricKey, v=Gauge (kept in sync with the database)
     public final static ConcurrentHashMap<String,Gauge> statsdGaugeCache = new ConcurrentHashMap<>(16, 0.75f, 3);
@@ -94,11 +89,11 @@ public class GlobalVariables {
     // k=MetricKey, v="Boolean for "is this metric key associated with ANY metric group"?
     public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyMetricGroup = new ConcurrentHashMap<>(); 
     
-    // k=MetricGroupId, v=string representing a single, merged, match regex statement that is composed of the metric group's associated regexs
-    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexsForMetricGroups = new ConcurrentHashMap<>(); 
+    // k=MetricGroupId, v=string representing a single, merged, match regex statement that is composed of the metric group's associated regexes
+    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexesForMetricGroups = new ConcurrentHashMap<>(); 
     
-    // k=MetricGroupId, v=string representing a single, merged, blacklist regex statement that is composed of the metric group's associated regexs
-    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexsForMetricGroups = new ConcurrentHashMap<>(); 
+    // k=MetricGroupId, v=string representing a single, merged, blacklist regex statement that is composed of the metric group's associated regexes
+    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexesForMetricGroups = new ConcurrentHashMap<>(); 
     
     // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedList(ArrayList<MetricTimestampAndValue>()))
     public final static ConcurrentHashMap<String,List<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 

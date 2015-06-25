@@ -185,10 +185,6 @@ public class CleanupThread implements Runnable {
         // removing values from statsdGaugeCache & remove gauges from the db is handled in the 'cleanupGauges' method
         
         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(metricKey);
-        GlobalVariables.graphiteAggregatedMetricsMostRecentValue.remove(metricKey);
-        GlobalVariables.graphitePassthroughMetricsMostRecentValue.remove(metricKey);
-        GlobalVariables.openTsdbMetricsMostRecentValue.remove(metricKey);
-        
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.remove(metricKey);

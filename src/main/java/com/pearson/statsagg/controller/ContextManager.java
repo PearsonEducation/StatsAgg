@@ -36,7 +36,7 @@ import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.database.gauges.GaugesDao;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexsDao;
+import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database.metric_last_seen.MetricLastSeen;
 import com.pearson.statsagg.database.metric_last_seen.MetricLastSeenDao;
@@ -487,8 +487,8 @@ public class ContextManager implements ServletContextListener {
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         boolean isMetricGroupsCreateSuccess = metricGroupsDao.createTable();
         
-        MetricGroupRegexsDao metricGroupRegexsDao = new MetricGroupRegexsDao();
-        boolean isMetricGroupRegexsCreateSuccess = metricGroupRegexsDao.createTable();
+        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
+        boolean isMetricGroupRegexesCreateSuccess = metricGroupRegexesDao.createTable();
         
         MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
         boolean isMetricGroupTagsCreateSuccess = metricGroupTagsDao.createTable();
@@ -505,7 +505,7 @@ public class ContextManager implements ServletContextListener {
         boolean isSchemaCreateSuccess = isMetricLastSeenDaoCreateSuccess 
                 && isGaugesCreateSuccess 
                 && isMetricGroupsCreateSuccess 
-                && isMetricGroupRegexsCreateSuccess
+                && isMetricGroupRegexesCreateSuccess
                 && isMetricGroupTagsCreateSuccess
                 && isNotificationGroupsCreateSuccess
                 && isAlertsCreateSuccess 

@@ -1,9 +1,12 @@
-StatsAgg 1.4
- * Added support for receiving InfluxDB metrics
+StatsAgg 1.4  - released 2015-0x-xx
+ * Added support for receiving & outputting InfluxDB metrics
    * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported
+   * The metric format used in InfluxDB 0.9x will be supported in the next StatsAgg release
  * Metric groups can now 'blacklist' metrics via regular expressions. When a metric is 'blacklisted' in a metric group, it will not represent itself as being a match for the metric group (and therefore cannot be alerted on).
  * Added support output via OpenTSDB HTTP/JSON
    * Previously, StatsAgg could only output to OpenTSDB via telnet
+ * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
+ * Removed the 'send previous metric' feature for Graphite, OpenTSDB, and InfluxDB metrics. It was recommended to be disabled, the data wasn't persisted, and it was hard to maintain, and no one used it. 
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
  
