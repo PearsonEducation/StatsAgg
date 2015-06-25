@@ -4,8 +4,11 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.database.alerts.AlertsSql;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -231,6 +234,61 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
             databaseInterface_.cleanupAutomatic();
         } 
         
+    }
+
+    public JSONObject getMetricGroups(int offset, int pageSize) {
+        logger.debug("getMetricGroups");
+        List<Object> parametersList = new ArrayList<>(2);
+        
+        JSONArray metricGroupsList = new JSONArray();
+        JSONObject metricGroupsJson = new JSONObject();
+        int alertsCount = 0;
+        
+        try {
+            if (!isConnectionValid()) {
+                return null;
+            }
+            
+            if ((offset == 0) && (pageSize == 0)) {
+                metricGroupsJson.put("metricgroups", metricGroupsList);
+                metricGroupsJson.put("count", alertsCount);
+                return metricGroupsJson;
+            }
+            
+            parametersList.add(offset);
+            parametersList.add(pageSize);
+            databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroups_ByPageNumberAndPageSize_Derby, pageSize);
+            databaseInterface_.addPreparedStatementParameters(parametersList);
+
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                logger.debug("Invalid resultset");
+                return null;
+            }
+            
+            ResultSet resultSet = databaseInterface_.getResults();
+            
+            while(resultSet.next()) {
+                JSONObject alert = new JSONObject();
+                alert.put("name", resultSet.getString("NAME"));
+                alert.put("id", resultSet.getString("ID"));
+                metricGroupsList.add(alert);
+                alertsCount++;
+            }
+            
+            metricGroupsJson.put("metricgroups", metricGroupsList);
+            metricGroupsJson.put("count", alertsCount);
+            
+            return metricGroupsJson;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
     }
     
 }

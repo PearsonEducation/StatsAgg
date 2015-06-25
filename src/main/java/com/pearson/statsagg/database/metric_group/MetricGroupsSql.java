@@ -78,4 +78,7 @@ public class MetricGroupsSql {
                     "DELETE FROM METRIC_GROUPS " +
                     "WHERE ID = ?";
     
+    protected final static String Select_MetricGroups_ByPageNumberAndPageSize_Derby = 
+                    "SELECT ID, NAME FROM METRIC_GROUPS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    
 }
