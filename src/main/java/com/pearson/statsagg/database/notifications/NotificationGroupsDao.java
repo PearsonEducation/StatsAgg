@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database.DatabaseObjectDao;
-import com.pearson.statsagg.database.metric_group.MetricGroupsSql;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashMap;
