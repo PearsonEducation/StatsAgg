@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * @author prashant4nov
+ * @author Prashant Kumar (prashant4nov)
  */
 public class AlertsTest extends Mockito {
     private static JSONObject mockAlertsJson = new JSONObject();

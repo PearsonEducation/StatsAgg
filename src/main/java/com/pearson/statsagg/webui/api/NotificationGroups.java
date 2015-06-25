@@ -1,6 +1,7 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -14,12 +15,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Prashant Kumar (prashant4nov)
  */
-@WebServlet(name="MetricGroupsList", urlPatterns={"/api/metricgroups"})
-public class MetricGroups extends HttpServlet {
+@WebServlet(name="NotificationGroupsJson", urlPatterns={"/api/notificationgroups"})
+public class NotificationGroups extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroups.class.getName());
     
-    public static final String PAGE_NAME = "MetricGroupsList";
+    public static final String PAGE_NAME = "NotificationGroupsList";
  
     /**
      * Returns a short description of the servlet.
@@ -41,7 +42,7 @@ public class MetricGroups extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {    
-            JSONObject json = getMetricGroupsJson(request, new MetricGroupsDao());       
+            JSONObject json = getNotificationGroupsJson(request, new NotificationGroupsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -52,10 +53,10 @@ public class MetricGroups extends HttpServlet {
         }     
     }
 
-     public JSONObject getMetricGroupsJson(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
-        logger.debug("getMetricGroupsJson");
+     public JSONObject getNotificationGroupsJson(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
+        logger.debug("getNotificationGroupsJson");
         JSONObject errorMsg = null;
-        JSONObject metricGroupsJson = null;
+        JSONObject notificationGroupsJson = null;
         int pageNumber = 0, pageSize = 0;
         
         try {
@@ -67,13 +68,13 @@ public class MetricGroups extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Common.pageSize));
             }
             
-            metricGroupsJson = metricGroupsDao.getMetricGroups(pageNumber*pageSize, pageSize);
+            notificationGroupsJson = notificationGroupsDao.getNotificationGroups(pageNumber*pageSize, pageSize);
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Common.error, Common.errorMsg);
         }
-        if (metricGroupsJson != null) return metricGroupsJson;
+        if (notificationGroupsJson != null) return notificationGroupsJson;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }

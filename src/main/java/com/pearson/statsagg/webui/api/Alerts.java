@@ -12,7 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author Prashant Kumar
+ * @author Prashant Kumar (prashant4nov)
  */
 @WebServlet(name="AlertsList", urlPatterns={"/api/alertslist"})
 public class Alerts extends HttpServlet {
