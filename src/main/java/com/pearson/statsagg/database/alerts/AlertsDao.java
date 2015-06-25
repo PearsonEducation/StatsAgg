@@ -514,9 +514,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         return distinctNotificationGroupIds;
     }
     
-     public JSONObject getAlerts(int offset, int pageSize) {
-        // needs input check
-         
+     public JSONObject getAlerts(int offset, int pageSize) {        
         logger.debug("getAlerts");
         List<Object> parametersList = new ArrayList<>(2);
         
@@ -543,7 +541,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             databaseInterface_.executePreparedStatement();
             
             if (!databaseInterface_.isResultSetValid()) {
-                logger.error("Invalid resultset");
+                logger.debug("Invalid resultset");
                 return null;
             }
             
@@ -570,5 +568,4 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             databaseInterface_.cleanupAutomatic();
         } 
     }
-    
 }
