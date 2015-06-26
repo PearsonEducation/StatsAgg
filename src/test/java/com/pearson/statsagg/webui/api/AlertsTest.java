@@ -64,7 +64,7 @@ public class AlertsTest extends Mockito {
     }
 
     @Test
-    public void testgetAlertsJson() throws Exception {
+    public void testGetAlertsJson() throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");

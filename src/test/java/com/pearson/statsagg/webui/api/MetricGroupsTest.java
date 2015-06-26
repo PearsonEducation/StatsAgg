@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 UKUMAP5.
+ * Copyright 2015 prashant kumar (prashant4nov).
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -64,7 +64,7 @@ public class MetricGroupsTest extends Mockito{
     }
 
     @Test
-    public void testgetMetricGroupsJson() throws Exception {
+    public void testGetMetricGroupsJson() throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");
