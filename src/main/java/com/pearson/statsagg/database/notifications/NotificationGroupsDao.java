@@ -317,7 +317,7 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
                 alertsCount++;
             }
             
-            notificationGroupsJson.put("metricgroups", notificationGroupsList);
+            notificationGroupsJson.put("notificationgroups", notificationGroupsList);
             notificationGroupsJson.put("count", alertsCount);
             
             return notificationGroupsJson;
