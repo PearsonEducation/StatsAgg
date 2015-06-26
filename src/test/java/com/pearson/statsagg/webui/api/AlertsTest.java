@@ -49,6 +49,7 @@ public class AlertsTest extends Mockito {
         mockAlert.put("id", "1");
         mockAlertsList.add(mockAlert);
         
+        mockAlert = new JSONObject();
         mockAlert.put("name", "xyz");
         mockAlert.put("id", "2");
         mockAlertsList.add(mockAlert);

@@ -15,7 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -35,29 +35,29 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-public class MetricGroupsTest extends Mockito{
-    private static final JSONObject mockMetricGroupsJson = new JSONObject();
-    private static MetricGroupsDao metricGroupsDao;
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
+public class NotificationGroupsTest extends Mockito{
+    private static final JSONObject mockNotificationGroupsJson = new JSONObject();
+    private static NotificationGroupsDao notificationGroupsDao;
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroups.class.getName());
 
     @BeforeClass
     public static void setUp() {
-        JSONArray mockMetricGroupsList = new JSONArray();
-        JSONObject mockMetric = new JSONObject();
+        JSONArray mockNotificationGroupsList = new JSONArray();
+        JSONObject mockNotification = new JSONObject();
         
-        mockMetric.put("name", "abcd");
-        mockMetric.put("id", "1");
-        mockMetricGroupsList.add(mockMetric);
+        mockNotification.put("name", "abcd");
+        mockNotification.put("id", "1");
+        mockNotificationGroupsList.add(mockNotification);
         
-        mockMetric = new JSONObject();
-        mockMetric.put("name", "xyz");
-        mockMetric.put("id", "2");
-        mockMetricGroupsList.add(mockMetric);
+        mockNotification = new JSONObject();
+        mockNotification.put("name", "xyz");
+        mockNotification.put("id", "2");
+        mockNotificationGroupsList.add(mockNotification);
              
-        mockMetricGroupsJson.put("metricgroups", mockMetricGroupsList);
-        mockMetricGroupsJson.put("count", 2);
-        metricGroupsDao = mock(MetricGroupsDao.class);
-        when(metricGroupsDao.getMetricGroups(10, 2)).thenReturn(mockMetricGroupsJson);
+        mockNotificationGroupsJson.put("metricgroups", mockNotificationGroupsList);
+        mockNotificationGroupsJson.put("count", 2);
+        notificationGroupsDao = mock(NotificationGroupsDao.class);
+        when(notificationGroupsDao.getNotificationGroups(10, 2)).thenReturn(mockNotificationGroupsJson);
     }
     
     @After
@@ -65,16 +65,16 @@ public class MetricGroupsTest extends Mockito{
     }
 
     @Test
-    public void testGetMetricGroupsJson() throws Exception {
+    public void testGetNotificationGroupsJson() throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");
 
-        MetricGroups metricGroups = new MetricGroups();
-        JSONObject result = metricGroups.getMetricGroupsJson(request, metricGroupsDao);
+        NotificationGroups notificationGroups = new NotificationGroups();
+        JSONObject result = notificationGroups.getNotificationGroupsJson(request, notificationGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");
-        assertEquals(mockMetricGroupsJson, result);
+        assertEquals(mockNotificationGroupsJson, result);
     }   
 }
