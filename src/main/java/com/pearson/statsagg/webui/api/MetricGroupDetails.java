@@ -15,8 +15,8 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.database.notifications.NotificationGroup;
+import com.pearson.statsagg.database.metric_group.MetricGroup;
+import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -31,11 +31,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-@WebServlet(name="NotificationGroupDetails", urlPatterns={"/api/notificationgroup"})
-public class NotificationGroupDetails extends HttpServlet {
+@WebServlet(name="MetricGroupDetails", urlPatterns={"/api/metricgroup"})
+public class MetricGroupDetails extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupDetails.class.getName());
-    public static final String PAGE_NAME = "NotificationGroupDetails";
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupDetails.class.getName());
+    public static final String PAGE_NAME = "MetricGroupDetails";
     
     /**
      * Returns a short description of the servlet.
@@ -57,7 +57,7 @@ public class NotificationGroupDetails extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {    
-            JSONObject json = getNotificationGroup(request, new NotificationGroupsDao());       
+            JSONObject json = getMetricGroup(request, new MetricGroupsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -68,33 +68,33 @@ public class NotificationGroupDetails extends HttpServlet {
         }
     }
 
-    private JSONObject getNotificationGroup(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
-        logger.debug("getNotificationGroup");
+    private JSONObject getMetricGroup(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
+        logger.debug("getMetricGroup");
         logger.debug(PAGE_NAME);
-        JSONObject notificationGroupDetails = new JSONObject();
-        int notificationGroupId = 0;
+        JSONObject metricGroupDetails = new JSONObject();
+        int metricGroupId = 0;
         try {
             if (request.getParameter(Common.id) != null) {
-              notificationGroupId = Integer.parseInt(request.getParameter(Common.id));
+              metricGroupId = Integer.parseInt(request.getParameter(Common.id));
             }
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
-            if (notificationGroup != null) {
-              if (notificationGroup.getId() != null) {
-                notificationGroupDetails.put("id", notificationGroup.getId());
+            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+            if (metricGroup != null) {
+              if (metricGroup.getId() != null) {
+                metricGroupDetails.put("id", metricGroup.getId());
               }
-              if (notificationGroup.getName() != null) {
-                notificationGroupDetails.put("name", notificationGroup.getName());
+              if (metricGroup.getName() != null) {
+                metricGroupDetails.put("name", metricGroup.getName());
               }
-              if (notificationGroup.getEmailAddresses() != null) {
-                notificationGroupDetails.put("email_addresses", notificationGroup.getEmailAddresses());
+              if (metricGroup.getDescription()!= null) {
+                metricGroupDetails.put("description", metricGroup.getDescription());
               }
             } else {
-                notificationGroupDetails.put(Common.error, Common.noResult);
+                metricGroupDetails.put(Common.error, Common.noResult);
             }
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            notificationGroupDetails.put(Common.error, Common.errorMsg);
+            metricGroupDetails.put(Common.error, Common.errorMsg);
         }
-        return notificationGroupDetails;
+        return metricGroupDetails;
     }
 }
