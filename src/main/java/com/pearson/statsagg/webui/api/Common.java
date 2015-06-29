@@ -9,5 +9,7 @@ public class Common {
     public final static String pageSize = "page_size";
     public final static String error = "error";
     public final static String errorMsg = "Invalid request parameters.";
+    public final static String noResult = "No results found!";
+    public final static String notificationGroupId = "id";
 
 }

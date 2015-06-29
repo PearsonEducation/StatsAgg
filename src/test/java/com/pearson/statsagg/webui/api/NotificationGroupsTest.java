@@ -71,7 +71,7 @@ public class NotificationGroupsTest extends Mockito{
         when(request.getParameter("page_number")).thenReturn("5");
 
         NotificationGroups notificationGroups = new NotificationGroups();
-        JSONObject result = notificationGroups.getNotificationGroupsJson(request, notificationGroupsDao);
+        JSONObject result = notificationGroups.getNotificationGroups(request, notificationGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");

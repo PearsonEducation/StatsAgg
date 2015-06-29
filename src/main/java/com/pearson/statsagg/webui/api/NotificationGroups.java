@@ -42,7 +42,7 @@ public class NotificationGroups extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {    
-            JSONObject json = getNotificationGroupsJson(request, new NotificationGroupsDao());       
+            JSONObject json = getNotificationGroups(request, new NotificationGroupsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -53,7 +53,7 @@ public class NotificationGroups extends HttpServlet {
         }     
     }
 
-     public JSONObject getNotificationGroupsJson(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
+     public JSONObject getNotificationGroups(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroupsJson");
         JSONObject errorMsg = null;
         JSONObject notificationGroupsJson = null;
