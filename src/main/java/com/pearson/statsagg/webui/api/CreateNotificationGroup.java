@@ -62,13 +62,14 @@ public class CreateNotificationGroup extends HttpServlet {
             return;
         }
         JSONObject json = new JSONObject();
+        response.setContentType("application/json");
         PrintWriter out = null;
         
         try {
             String result = parseAndAlterNotificationGroup(request);
             json.put("response", result);
             out = response.getWriter();
-            out.println(result);
+            out.println(json);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
