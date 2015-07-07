@@ -28,7 +28,6 @@ public class GlobalVariables {
     public static String graphitePassthroughPrefix = "";
     public static String openTsdbPrefix = "";
     public static String influxdbPrefix = "";
-    public static String influxdbPeriodDelimitedPrefix = "";
         
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;

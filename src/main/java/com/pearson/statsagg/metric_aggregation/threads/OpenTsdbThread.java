@@ -1,8 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -78,10 +76,12 @@ public class OpenTsdbThread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
             
             // send metrics to output modules
-            SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(openTsdbMetrics, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(openTsdbMetrics, false, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(openTsdbMetrics, false, threadId_);
-            SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(openTsdbMetrics, threadId_);
+            if (!openTsdbMetrics.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(openTsdbMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(openTsdbMetrics, false, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(openTsdbMetrics, false, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(openTsdbMetrics, threadId_);
+            }
             
             // total time for this thread took to get & send the metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;

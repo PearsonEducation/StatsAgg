@@ -568,4 +568,5 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             databaseInterface_.cleanupAutomatic();
         } 
     }
+     
 }

@@ -4,12 +4,9 @@ package com.pearson.statsagg.metric_formats.opentsdb;
  * @author Jeffrey Schmidt
  */
 public interface OpenTsdbMetricFormat {
-
-    public String getOpenTsdbTelnetFormatString();
     
-    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics);
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric);
     
-    public String getOpenTsdbJsonFormatString();
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric);
     
-    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics);
 }

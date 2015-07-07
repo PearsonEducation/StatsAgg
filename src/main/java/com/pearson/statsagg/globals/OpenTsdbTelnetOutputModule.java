@@ -14,12 +14,16 @@ public class OpenTsdbTelnetOutputModule {
     private final String host_;
     private final int port_;
     private final int numSendRetryAttempts_;
+    private final boolean sanitizeMetrics_;
+    private final String uniqueId_;
     
-    public OpenTsdbTelnetOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts) {
+    public OpenTsdbTelnetOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, boolean sanitizeMetrics, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.host_ = host;
         this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
+        this.sanitizeMetrics_ = sanitizeMetrics;
+        this.uniqueId_ = uniqueId;
     }
     
     public boolean isOutputEnabled() {
@@ -36,6 +40,14 @@ public class OpenTsdbTelnetOutputModule {
 
     public int getNumSendRetryAttempts() {
         return numSendRetryAttempts_;
+    }
+    
+    public boolean isSanitizeMetrics() {
+        return sanitizeMetrics_;
+    }
+    
+    public String getUniqueId() {
+        return uniqueId_;
     }
     
 }

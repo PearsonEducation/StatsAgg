@@ -39,13 +39,25 @@ public class OpenTsdbTest {
      */
     @Test
     public void testGetGraphiteFormatString() {
-        String unparsedMetric1 = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
+        String unparsedMetric1 = "tcollector.reader..lines_collected@-\\/#$%^_123AaZz09... 1424566500 1203.3  tag2=mix  tag1#$%^=meow#$%^";
         OpenTsdbMetric parsedMetric1 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric1, "", 1366998400999L);
-        assertEquals("tcollector.reader.lines_collected 1203.3 1424566500", parsedMetric1.getGraphiteFormatString());     
         
+        // unsanitized, without substitution
+        assertEquals(("tcollector.reader..lines_collected@-\\/#$%^_123AaZz09... 1203.3 1424566500"), parsedMetric1.getGraphiteFormatString(false, false));
+
+        // sanitized, without substitution
+        assertEquals(("tcollector.reader.lines_collected@-\\/#$%^_123AaZz09. 1203.3 1424566500"), parsedMetric1.getGraphiteFormatString(true, false));
+
+        // sanitized, with substitution
+        assertEquals(("tcollector.reader.lines_collected@-||#$Pct^_123AaZz09. 1203.3 1424566500"), parsedMetric1.getGraphiteFormatString(true,  true));
+        
+        // unsanitized, with substitution
+        assertEquals(("tcollector.reader..lines_collected@-||#$Pct^_123AaZz09... 1203.3 1424566500"), parsedMetric1.getGraphiteFormatString(false,  true));
+        
+        // millisecond timestamp
         String unparsedMetric2 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
         OpenTsdbMetric parsedMetric2 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric2, "", 1366998400999L);
-        assertEquals("tcollector.reader.lines_collected 12 1424566500", parsedMetric2.getGraphiteFormatString());  
+        assertEquals("tcollector.reader.lines_collected 12 1424566500", parsedMetric2.getGraphiteFormatString(false, false));  
     }
     
     /**
@@ -53,13 +65,24 @@ public class OpenTsdbTest {
      */
     @Test
     public void testGetOpenTsdbTelnetFormatString() {
+        // second timestamp
         String unparsedMetric1 = "tcollector.reader.lines_collected 1424566500 1203.3  tag2=mix  tag1=meow";
         OpenTsdbMetric parsedMetric1 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric1, "", 1366998400999L);
-        assertEquals("tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix", parsedMetric1.getOpenTsdbTelnetFormatString());     
+        assertEquals("tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix", parsedMetric1.getOpenTsdbTelnetFormatString(false));     
         
+        // millisecond timestamp
         String unparsedMetric2 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
         OpenTsdbMetric parsedMetric2 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric2, "", 1366998400999L);
-        assertEquals("tcollector.reader.lines_collected 1424566500123 12 tag1=meow tag2=mix", parsedMetric2.getOpenTsdbTelnetFormatString());  
+        assertEquals("tcollector.reader.lines_collected 1424566500123 12 tag1=meow tag2=mix", parsedMetric2.getOpenTsdbTelnetFormatString(false));  
+        
+        String unparsedMetric3 = "tcollector.reader.lines_collected@#$%^_123AaZz09 1424566500123 12  tag2=mix  tag1$#^=meow$#^";
+        OpenTsdbMetric parsedMetric3 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric3, "", 1366998400999L);
+        
+        // unsanitized 
+        assertEquals("tcollector.reader.lines_collected@#$%^_123AaZz09 1424566500123 12 tag1$#^=meow$#^ tag2=mix", parsedMetric3.getOpenTsdbTelnetFormatString(false));
+        
+        // sanitized
+        assertEquals("tcollector.reader.lines_collected_123AaZz09 1424566500123 12 tag1=meow tag2=mix", parsedMetric3.getOpenTsdbTelnetFormatString(true));  
     }
     
     /**
@@ -67,13 +90,20 @@ public class OpenTsdbTest {
      */
     @Test
     public void testGetOpenTsdbJsonFormatString() {
+        // second timestamp
         String unparsedMetric1 = "tcollector.reader.lines_collected 1524566500 1203.3  tag2=mix  tag1=meow";
         OpenTsdbMetric parsedMetric1 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric1, "", 1366998400999L);
-        assertEquals("{\"metric\":\"tcollector.reader.lines_collected\",\"timestamp\":1524566500,\"value\":1203.3,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}", parsedMetric1.getOpenTsdbJsonFormatString());     
+        assertEquals("{\"metric\":\"tcollector.reader.lines_collected\",\"timestamp\":1524566500,\"value\":1203.3,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}", parsedMetric1.getOpenTsdbJsonFormatString(false));     
         
-        String unparsedMetric2 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
+        // millisecond timestamp
+        String unparsedMetric2 = "tcollector.reader.lines_collected@#$%^_123AaZz09 1424566500123 12  tag2=mix  tag1$#^=meow$#^";
         OpenTsdbMetric parsedMetric2 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric2, "", 1366998400999L);
-        assertEquals("{\"metric\":\"tcollector.reader.lines_collected\",\"timestamp\":1424566500123,\"value\":12,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}", parsedMetric2.getOpenTsdbJsonFormatString());  
+
+        // unsanitized
+        assertEquals("{\"metric\":\"tcollector.reader.lines_collected@#$%^_123AaZz09\",\"timestamp\":1424566500123,\"value\":12,\"tags\":{\"tag1$#^\":\"meow$#^\",\"tag2\":\"mix\"}}", parsedMetric2.getOpenTsdbJsonFormatString(false));  
+    
+        // sanitized
+        assertEquals("{\"metric\":\"tcollector.reader.lines_collected_123AaZz09\",\"timestamp\":1424566500123,\"value\":12,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}", parsedMetric2.getOpenTsdbJsonFormatString(true)); 
     }
     
     /**
@@ -85,9 +115,9 @@ public class OpenTsdbTest {
         OpenTsdbMetric parsedMetric1 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric1, "", 1366998400999L);
         assertEquals("{\"name\":\"tcollector.reader.lines_collected\",\"columns\":[\"value\",\"time\",\"tag1\",\"tag2\"],\"points\":[[1203.3,1424566500000,\"meow\",\"mix\"]]}", parsedMetric1.getInfluxdbV1JsonFormatString());     
         
-        String unparsedMetric2 = "tcollector.reader.lines_collected 1524566500123 12  tag2=mix  tag1=meow";
+        String unparsedMetric2 = "tcollector.reader.lines_collected@#$%^_123AaZz09 1524566500123 12  tag2=mix  tag1@#$%^_123AaZz09=meow@#$%^_123AaZz09";
         OpenTsdbMetric parsedMetric2 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric2, "", 1366998400999L);
-        assertEquals("{\"name\":\"tcollector.reader.lines_collected\",\"columns\":[\"value\",\"time\",\"tag1\",\"tag2\"],\"points\":[[12,1524566500123,\"meow\",\"mix\"]]}", parsedMetric2.getInfluxdbV1JsonFormatString());  
+        assertEquals("{\"name\":\"tcollector.reader.lines_collected@#$%^_123AaZz09\",\"columns\":[\"value\",\"time\",\"tag1@#$%^_123AaZz09\",\"tag2\"],\"points\":[[12,1524566500123,\"meow@#$%^_123AaZz09\",\"mix\"]]}", parsedMetric2.getInfluxdbV1JsonFormatString());  
     }
     
     /**
@@ -105,8 +135,8 @@ public class OpenTsdbTest {
         assertTrue(parsedMetric.getMetricTimestamp() == 1424566500L);
         assertTrue(parsedMetric.getMetricKey().equals("tcollector.reader.lines_collected : tag1=meow tag2=mix"));
         assertTrue(parsedMetric.getMetricTimestampInMilliseconds() == 1424566500000L);
-        assertEquals(parsedMetric.getGraphiteFormatString(), "tcollector.reader.lines_collected 1203.3 1424566500");
-        assertEquals(parsedMetric.getOpenTsdbTelnetFormatString(), "tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix");
+        assertEquals(parsedMetric.getGraphiteFormatString(false, false), "tcollector.reader.lines_collected 1203.3 1424566500");
+        assertEquals(parsedMetric.getOpenTsdbTelnetFormatString(false), "tcollector.reader.lines_collected 1424566500 1203.3 tag1=meow tag2=mix");
         assertEquals(parsedMetric.getTags().size(), 2);
         
         int tagCount = 0;

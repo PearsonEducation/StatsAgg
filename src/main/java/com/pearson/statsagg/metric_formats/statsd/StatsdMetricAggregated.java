@@ -2,6 +2,7 @@ package com.pearson.statsagg.metric_formats.statsd;
 
 import java.math.BigDecimal;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
@@ -46,38 +47,31 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
 
         return stringBuilder.toString();
     }
-    
+
     @Override
-    public String getGraphiteFormatString() {
+    public String getGraphiteFormatString(boolean sanitizeMetric, boolean substituteCharacters) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(bucket_).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
+        String metricPath = GraphiteMetric.getGraphiteSanitizedString(bucket_, sanitizeMetric, substituteCharacters);
+
+        stringBuilder.append(metricPath).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
 
         return stringBuilder.toString();
     }
+
     @Override
-    public String getOpenTsdbTelnetFormatString() {
-        return getOpenTsdbTelnetFormatString(false);
-    }
-    
-    @Override
-    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        String bucket = sanitizeMetrics ? OpenTsdbMetric.getOpenTsdbFormattedMetric(bucket_) : bucket_;
+        String metric = sanitizeMetric ? OpenTsdbMetric.getOpenTsdbSanitizedString(bucket_) : bucket_;
         
-        stringBuilder.append(bucket).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
+        stringBuilder.append(metric).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
 
         return stringBuilder.toString();
     }
     
     @Override
-    public String getOpenTsdbJsonFormatString() {
-        return getOpenTsdbJsonFormatString(false);
-    }  
-    
-    @Override
-    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric) {
         
         if ((bucket_ == null) || bucket_.isEmpty()) return null;
         if (getTimestampInMilliseconds() < 0) return null;
@@ -87,7 +81,7 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
    
         openTsdbJson.append("{");
 
-        if (sanitizeMetrics) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbFormattedMetric(bucket_))).append("\",");
+        if (sanitizeMetric) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbSanitizedString(bucket_))).append("\",");
         else openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(bucket_)).append("\",");
         
         openTsdbJson.append("\"timestamp\":").append(getTimestampInMilliseconds()).append(",");

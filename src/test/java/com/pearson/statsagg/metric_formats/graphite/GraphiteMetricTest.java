@@ -3,7 +3,6 @@ package com.pearson.statsagg.metric_formats.graphite;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -20,6 +19,7 @@ public class GraphiteMetricTest {
     private GraphiteMetric graphiteMetric1_;
     private GraphiteMetric graphiteMetric2_;
     private GraphiteMetric graphiteMetric3_;
+    private GraphiteMetric graphiteMetric4_;
     
     public GraphiteMetricTest() {
     }
@@ -37,6 +37,7 @@ public class GraphiteMetricTest {
         graphiteMetric1_ = new GraphiteMetric("test.metric.path", new BigDecimal("12345.1230"), 1382848111, 1382848222222L);
         graphiteMetric2_ = new GraphiteMetric("test.metric.path?><!@#$!", new BigDecimal("12345.000"), 123, 1234L);
         graphiteMetric3_ = new GraphiteMetric("test.metric.path", new BigDecimal("12345.123"), 1382848111, 1382848222222L); // same as metric1
+        graphiteMetric4_ = new GraphiteMetric("test.metric.path@-\\/#$%^_123AaZz09...", new BigDecimal("12345.000"), 123, 1234L);
     }
     
     @After
@@ -69,13 +70,20 @@ public class GraphiteMetricTest {
      */
     @Test
     public void testGetGraphiteFormatString() {
-        String graphiteFormatString = "test.metric.path 12345.123 1382848111";
-        System.out.println(graphiteMetric1_.getGraphiteFormatString());
-        assertEquals(graphiteMetric1_.getGraphiteFormatString(), graphiteFormatString);
+        // simple test -- includes decimals in value
+        assertEquals(("test.metric.path 12345.123 1382848111"), graphiteMetric1_.getGraphiteFormatString(false, false));
         
-        graphiteFormatString = "test.metric.path?><!@#$! 12345 123";
-        System.out.println(graphiteMetric2_.getGraphiteFormatString());
-        assertEquals(graphiteMetric2_.getGraphiteFormatString(), graphiteFormatString);
+        // unsanitized, without substitution
+        assertEquals(("test.metric.path@-\\/#$%^_123AaZz09... 12345 123"), graphiteMetric4_.getGraphiteFormatString(false, false));
+
+        // sanitized, without substitution
+        assertEquals(("test.metric.path@-\\/#$%^_123AaZz09. 12345 123"), graphiteMetric4_.getGraphiteFormatString(true, false));
+  
+        // sanitized, with substitution
+        assertEquals(("test.metric.path@-||#$Pct^_123AaZz09. 12345 123"), graphiteMetric4_.getGraphiteFormatString(true, true));
+        
+        // unsanitized, with substitution
+        assertEquals(("test.metric.path@-||#$Pct^_123AaZz09... 12345 123"), graphiteMetric4_.getGraphiteFormatString(false, true));
     }
 
     /**
@@ -84,10 +92,10 @@ public class GraphiteMetricTest {
     @Test
     public void testGetOpenTsdbTelnetFormatString() {
         String openTsdbFormatString1 = "test.metric.path 1382848111 12345.123 Format=Graphite";
-        assertEquals(graphiteMetric1_.getOpenTsdbTelnetFormatString(), openTsdbFormatString1);     
+        assertEquals(graphiteMetric1_.getOpenTsdbTelnetFormatString(false), openTsdbFormatString1);     
         
         String openTsdbFormatString2 = "test.metric.path?><!@#$! 123 12345 Format=Graphite";
-        assertEquals(graphiteMetric2_.getOpenTsdbTelnetFormatString(), openTsdbFormatString2);        
+        assertEquals(graphiteMetric2_.getOpenTsdbTelnetFormatString(false), openTsdbFormatString2);        
     }
     
     /**
@@ -96,10 +104,13 @@ public class GraphiteMetricTest {
     @Test
     public void testGetOpenTsdbJsonFormatString() {
         String openTsdbFormatString1 = "{\"metric\":\"test.metric.path\",\"timestamp\":1382848111,\"value\":12345.123,\"tags\":{\"Format\":\"Graphite\"}}";
-        assertEquals(graphiteMetric1_.getOpenTsdbJsonFormatString(), openTsdbFormatString1);     
+        assertEquals(graphiteMetric1_.getOpenTsdbJsonFormatString(false), openTsdbFormatString1);     
         
         String openTsdbFormatString2 = "{\"metric\":\"test.metric.path?><!@#$!\",\"timestamp\":123,\"value\":12345,\"tags\":{\"Format\":\"Graphite\"}}";
-        assertEquals(graphiteMetric2_.getOpenTsdbJsonFormatString(), openTsdbFormatString2);        
+        assertEquals(graphiteMetric2_.getOpenTsdbJsonFormatString(false), openTsdbFormatString2);      
+        
+        String openTsdbFormatString3 = "{\"metric\":\"test.metric.path\",\"timestamp\":123,\"value\":12345,\"tags\":{\"Format\":\"Graphite\"}}";
+        assertEquals(graphiteMetric2_.getOpenTsdbJsonFormatString(true), openTsdbFormatString3);    
     }
     
     /**
@@ -153,33 +164,6 @@ public class GraphiteMetricTest {
         }
         
         assertTrue(expectedGraphiteMetrics.size() == resultGraphiteMetrics.size());
-    }
-
-    /**
-     * Test of getMostRecentGraphiteMetricByMetricPath method, of class GraphiteMetric.
-     */
-    @Test
-    public void testGetMostRecentGraphiteMetricByMetricPath() {
-
-        List<GraphiteMetric> input = new ArrayList<>();
-        
-        GraphiteMetric graphiteMetric1 = new GraphiteMetric("test.metric.path1", new BigDecimal("12345.1"),  1382848111, Long.valueOf("1382848222222").longValue());
-        GraphiteMetric graphiteMetric2 = new GraphiteMetric("test.metric.path1", new BigDecimal("12345"),    1382848113, Long.valueOf("1382848222220").longValue());
-        GraphiteMetric graphiteMetric3 = new GraphiteMetric("test.metric.path1", new BigDecimal("12345.23"), 1382848112, Long.valueOf("1382848222223").longValue());
-        GraphiteMetric graphiteMetric4 = new GraphiteMetric("test.metric.path2", new BigDecimal("12345.2"),  1382848111, 1382848222222L);   
-        GraphiteMetric graphiteMetric5 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345.1"),  1382848111, 1382848222222L);
-        GraphiteMetric graphiteMetric6 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345"),    1382848112, 1382848222220L);
-        GraphiteMetric graphiteMetric7 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345.23"), 1382848112, 1382848222223L);
-        GraphiteMetric graphiteMetric8 = new GraphiteMetric("test.metric.path3", new BigDecimal("12345.23"), 1382848110, 1382848222224L);
-        
-        input.add(graphiteMetric1); input.add(graphiteMetric2); input.add(graphiteMetric3); input.add(graphiteMetric4); 
-        input.add(graphiteMetric5); input.add(graphiteMetric6); input.add(graphiteMetric7); input.add(graphiteMetric8);
-        
-        Map<String, GraphiteMetric> result = GraphiteMetric.getMostRecentGraphiteMetricByMetricPath(input);
-        
-        assertTrue(result.values().contains(graphiteMetric2));
-        assertTrue(result.values().contains(graphiteMetric4));
-        assertTrue(result.values().contains(graphiteMetric7));
     }
 
     /**

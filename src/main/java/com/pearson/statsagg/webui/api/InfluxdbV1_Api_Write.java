@@ -4,10 +4,6 @@ import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
-import static com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1.TIMESTAMP_PRECISION_MICROSECONDS;
-import static com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1.TIMESTAMP_PRECISION_MILLISECONDS;
-import static com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1.TIMESTAMP_PRECISION_SECONDS;
-import static com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1.TIMESTAMP_PRECISION_UNKNOWN;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import java.util.List;
@@ -108,8 +104,7 @@ public class InfluxdbV1_Api_Write extends HttpServlet {
             String requestUri = request.getRequestURI();
             String database = (requestUri == null) ? null : StringUtils.substringBetween(requestUri, "/db/", "/series");
 
-            parseMetrics(database, json, username, password, httpAuth, timePrecision, GlobalVariables.influxdbPrefix, 
-                    GlobalVariables.influxdbPeriodDelimitedPrefix, metricsReceivedTimestampInMilliseconds);
+            parseMetrics(database, json, username, password, httpAuth, timePrecision, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
 
             out = response.getWriter();
         }
@@ -123,11 +118,11 @@ public class InfluxdbV1_Api_Write extends HttpServlet {
         }
     }
 
-    public static void parseMetrics(String database, String inputJson, String username, String password, String httpAuth, String timePrecision,
-            String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
+    public static void parseMetrics(String database, String inputJson, String username, String password, 
+            String httpAuth, String timePrecision, String namePrefix, long metricsReceivedTimestampInMilliseconds) {
                 
         List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson(database, inputJson, username, password, httpAuth, 
-                timePrecision, namePrefix, namePrefixPeriodDelimited, metricsReceivedTimestampInMilliseconds);
+                timePrecision, namePrefix, metricsReceivedTimestampInMilliseconds);
 
         for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();

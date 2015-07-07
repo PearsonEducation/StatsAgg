@@ -1,18 +1,3 @@
-/*
- * Copyright 2015 Jeffrey Schmidt.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.pearson.statsagg.metric_formats.statsd;
 
 import java.math.BigDecimal;
@@ -56,10 +41,20 @@ public class StatsdMetricAggregatedTest {
         long currentTime = System.currentTimeMillis();
         int currentTimeInSeconds = (int) (currentTime / 1000);
         
-        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated.counterMetric", 
+        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated..counterMetric@-\\/#$%^_123AaZz09.", 
                 new BigDecimal("1.2222000000"), currentTime, StatsdMetricAggregated.COUNTER_TYPE);
         
-        assertEquals(("aggregated.counterMetric 1.2222 " + currentTimeInSeconds), statsdMetricAggregated.getGraphiteFormatString());
+        // unsanitized, without substitution
+        assertEquals(("aggregated..counterMetric@-\\/#$%^_123AaZz09. 1.2222 " + currentTimeInSeconds), statsdMetricAggregated.getGraphiteFormatString(false, false));
+
+        // sanitized, without substitution
+        assertEquals(("aggregated.counterMetric@-\\/#$%^_123AaZz09. 1.2222 " + currentTimeInSeconds), statsdMetricAggregated.getGraphiteFormatString(true, false));
+
+        // sanitized, with substitution
+        assertEquals(("aggregated.counterMetric@-||#$Pct^_123AaZz09. 1.2222 " + currentTimeInSeconds), statsdMetricAggregated.getGraphiteFormatString(true, true));
+
+        // unsanitized, with substitution
+        assertEquals(("aggregated..counterMetric@-||#$Pct^_123AaZz09. 1.2222 " + currentTimeInSeconds), statsdMetricAggregated.getGraphiteFormatString(false, true));
     }
 
     /**
@@ -69,10 +64,14 @@ public class StatsdMetricAggregatedTest {
     public void testGetOpenTsdbTelnetFormatString() {
         long currentTime = System.currentTimeMillis();
         
-        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated.counterMetric", 
+        StatsdMetricAggregated statsdMetricAggregated1 = new StatsdMetricAggregated("aggregated.counterMetric@#$%^_123AaZz09", 
                 new BigDecimal("1.2222000000"), currentTime, StatsdMetricAggregated.COUNTER_TYPE);
+           
+        // unsanitized
+        assertEquals(("aggregated.counterMetric@#$%^_123AaZz09 " + currentTime + " 1.2222 " + "Format=StatsD"), statsdMetricAggregated1.getOpenTsdbTelnetFormatString(false));
         
-        assertEquals(("aggregated.counterMetric " + currentTime + " 1.2222 " + "Format=StatsD"), statsdMetricAggregated.getOpenTsdbTelnetFormatString());
+        // sanitized
+        assertEquals(("aggregated.counterMetric_123AaZz09 " + currentTime + " 1.2222 " + "Format=StatsD"), statsdMetricAggregated1.getOpenTsdbTelnetFormatString(true));
     }
     
     /**
@@ -82,11 +81,16 @@ public class StatsdMetricAggregatedTest {
     public void testGetOpenTsdbJsonFormatString() {
         long currentTime = System.currentTimeMillis();
         
-        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated.counterMetric", 
+        StatsdMetricAggregated statsdMetricAggregated1 = new StatsdMetricAggregated("aggregated.counterMetric@#$%^_123AaZz09", 
                 new BigDecimal("1.2222000000"), currentTime, StatsdMetricAggregated.COUNTER_TYPE);
-                
-        assertEquals("{\"metric\":\"aggregated.counterMetric\",\"timestamp\":" + currentTime + ",\"value\":1.2222,\"tags\":{\"Format\":\"StatsD\"}}", 
-                statsdMetricAggregated.getOpenTsdbJsonFormatString());
+        
+        // unsanitized   
+        assertEquals("{\"metric\":\"aggregated.counterMetric@#$%^_123AaZz09\",\"timestamp\":" + currentTime + ",\"value\":1.2222,\"tags\":{\"Format\":\"StatsD\"}}", 
+                statsdMetricAggregated1.getOpenTsdbJsonFormatString(false));
+        
+        // sanitized
+        assertEquals("{\"metric\":\"aggregated.counterMetric_123AaZz09\",\"timestamp\":" + currentTime + ",\"value\":1.2222,\"tags\":{\"Format\":\"StatsD\"}}", 
+                statsdMetricAggregated1.getOpenTsdbJsonFormatString(true));
     }
     
     /**
@@ -96,10 +100,10 @@ public class StatsdMetricAggregatedTest {
     public void testGetInfluxdbV1JsonFormatString() {
         long currentTime = System.currentTimeMillis();
         
-        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated.counterMetric", 
+        StatsdMetricAggregated statsdMetricAggregated = new StatsdMetricAggregated("aggregated.counterMetric@#$%^_123AaZz09", 
                 new BigDecimal("1.2222000000"), currentTime, StatsdMetricAggregated.COUNTER_TYPE);
                 
-        assertEquals("{\"name\":\"aggregated.counterMetric\",\"columns\":[\"value\",\"time\"],\"points\":[[1.2222," + currentTime + "]]}", statsdMetricAggregated.getInfluxdbV1JsonFormatString());
+        assertEquals("{\"name\":\"aggregated.counterMetric@#$%^_123AaZz09\",\"columns\":[\"value\",\"time\"],\"points\":[[1.2222," + currentTime + "]]}", statsdMetricAggregated.getInfluxdbV1JsonFormatString());
     }
     
 }

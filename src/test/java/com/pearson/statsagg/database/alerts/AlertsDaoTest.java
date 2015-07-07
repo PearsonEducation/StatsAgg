@@ -37,7 +37,6 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,7 +44,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant4nov
  */
-public class AlertsDaoTest extends Mockito {
+public class AlertsDaoTest  {
     
    // private AlertsDao alertsDao; 
     private static final JSONObject mockAlertsJson = new JSONObject();

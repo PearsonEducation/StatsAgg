@@ -1,8 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -76,10 +74,12 @@ public class GraphitePassthroughThread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
 
             // send to metrics output modules
-            SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetrics, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetrics, false, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetrics, false, threadId_);
-            SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(graphiteMetrics, threadId_);
+            if (!graphiteMetrics.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetrics, false, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetrics, false, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(graphiteMetrics, threadId_);
+            }
             
             // total time for this thread took to get & send the metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;

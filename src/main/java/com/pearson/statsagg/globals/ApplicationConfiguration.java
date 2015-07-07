@@ -110,6 +110,9 @@ public class ApplicationConfiguration {
 
     private static final List<HttpLink> customActionUrls_ = new ArrayList<>();
     
+    private static int outputModuleMaxConnectTime = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxReadTime = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxTotalOutputThreads = VALUE_NOT_SET_CODE;
     
     public static boolean initialize(InputStream configurationInputStream, boolean isUsingDefaultSettings) {
         
@@ -231,6 +234,11 @@ public class ApplicationConfiguration {
             // website custominzation variables
             customActionUrls_.addAll(readCustomActionUrls());
                     
+            // advanced
+            outputModuleMaxConnectTime = applicationConfiguration_.safeGetInteger("output_module_max_connect_time", 3000);
+            outputModuleMaxReadTime = applicationConfiguration_.safeGetInteger("output_module_max_read_time", 120000);
+            outputModuleMaxTotalOutputThreads = applicationConfiguration_.safeGetInteger("output_module_max_total_output_threads", 25);
+            
             return true;
         }
         catch (Exception e) {
@@ -261,10 +269,21 @@ public class ApplicationConfiguration {
                         String host = csvValues[1];
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
+                        
                         int maxMetricsPerMessage = 1000;
                         if (csvValues.length > 4) maxMetricsPerMessage = Integer.valueOf(csvValues[4]);
                         
-                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, numSendRetryAttempts, maxMetricsPerMessage);
+                        boolean sanitizeMetrics = false;
+                        if (csvValues.length > 5) sanitizeMetrics = Boolean.valueOf(csvValues[5]);
+                        
+                        boolean substituteCharacters = false;
+                        if (csvValues.length > 6) substituteCharacters = Boolean.valueOf(csvValues[6]);
+                        
+                        String uniqueId = "Graphite-" + (i+1);
+                        
+                        GraphiteOutputModule graphiteOutputModule = new GraphiteOutputModule(isOutputEnabled, host, port, 
+                                numSendRetryAttempts, maxMetricsPerMessage, sanitizeMetrics, substituteCharacters, uniqueId);
+                        
                         graphiteOutputModules.add(graphiteOutputModule);
                     }
                 }
@@ -294,13 +313,20 @@ public class ApplicationConfiguration {
                 if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
                     String[] csvValues = csvValuesArray.get(0);
 
-                    if (csvValues.length == 4) {                                
+                    if (csvValues.length >= 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
                         String host = csvValues[1];
                         int port = Integer.valueOf(csvValues[2]);
                         int numSendRetryAttempts = Integer.valueOf(csvValues[3]);
                         
-                        OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule = new OpenTsdbTelnetOutputModule(isOutputEnabled, host, port, numSendRetryAttempts);
+                        boolean sanitizeMetrics = false;
+                        if (csvValues.length > 4) sanitizeMetrics = Boolean.valueOf(csvValues[4]);
+                        
+                        String uniqueId = "OpenTSDB-Telnet-" + (i+1);
+                        
+                        OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule = new OpenTsdbTelnetOutputModule(isOutputEnabled, host, port, 
+                                numSendRetryAttempts, sanitizeMetrics, uniqueId);
+                        
                         openTsdbTelnetOutputModules.add(openTsdbTelnetOutputModule);
                     }
                 }
@@ -330,13 +356,19 @@ public class ApplicationConfiguration {
                 if ((csvValuesArray != null) && !csvValuesArray.isEmpty() && (csvValuesArray.get(0) != null)) {
                     String[] csvValues = csvValuesArray.get(0);
 
-                    if (csvValues.length == 4) {                                
+                    if (csvValues.length >= 4) {                                
                         boolean isOutputEnabled = Boolean.valueOf(csvValues[0]);
                         String url = csvValues[1];
                         int numSendRetryAttempts = Integer.valueOf(csvValues[2]);
                         int maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
                         
-                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, maxMetricsPerMessage);
+                        boolean sanitizeMetrics = false;
+                        if (csvValues.length > 4) sanitizeMetrics = Boolean.valueOf(csvValues[4]);
+                        
+                        String uniqueId = "OpenTSDB-HTTP-" + (i+1);
+                        
+                        OpenTsdbHttpOutputModule openTsdbHttpOutputModule = new OpenTsdbHttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, 
+                                maxMetricsPerMessage, sanitizeMetrics, uniqueId);
                         openTsdbHttpOutputModules.add(openTsdbHttpOutputModule);
                     }
                 }
@@ -372,7 +404,11 @@ public class ApplicationConfiguration {
                         int numSendRetryAttempts = Integer.valueOf(csvValues[2]);
                         int maxMetricsPerMessage = Integer.valueOf(csvValues[3]);
                         
-                        InfluxdbV1HttpOutputModule influxdbV1HttpOutputModule = new InfluxdbV1HttpOutputModule(isOutputEnabled, url, numSendRetryAttempts, maxMetricsPerMessage);
+                        String uniqueId = "InfluxDB-V1-" + (i+1);
+
+                        InfluxdbV1HttpOutputModule influxdbV1HttpOutputModule = new InfluxdbV1HttpOutputModule(isOutputEnabled, url, 
+                                numSendRetryAttempts, maxMetricsPerMessage, uniqueId);
+                        
                         influxdbV1HttpOutputModules.add(influxdbV1HttpOutputModule);
                     }
                 }
@@ -744,6 +780,18 @@ public class ApplicationConfiguration {
 
     public static List<HttpLink> getCustomActionUrls() {
         return customActionUrls_;
+    }
+
+    public static int getOutputModuleMaxConnectTime() {
+        return outputModuleMaxConnectTime;
+    }
+
+    public static int getOutputModuleMaxReadTime() {
+        return outputModuleMaxReadTime;
+    }
+
+    public static int getOutputModuleMaxTotalOutputThreads() {
+        return outputModuleMaxTotalOutputThreads;
     }
 
 }

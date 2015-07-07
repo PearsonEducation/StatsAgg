@@ -12,10 +12,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendEmail_ThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.metric_last_seen.MetricLastSeen;
@@ -128,10 +126,10 @@ public class AlertThread implements Runnable {
                 
                 // generate alert statuses for output, and send to enabled output modules
                 List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
-                SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
-                SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, true, threadId_);
-                SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, true, threadId_);
-                SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(alertStatusMetricsForGraphite, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, true, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, true, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(alertStatusMetricsForGraphite, threadId_);
             }
         }
 
@@ -899,7 +897,7 @@ public class AlertThread implements Runnable {
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
                 EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, false, statsAggLocation_);
-                SendEmailThreadPoolManager.executeThread(emailThread);
+                SendEmail_ThreadPoolManager.executeThread(emailThread);
             }
 
             doUpdateAlertInDb = true;
@@ -912,7 +910,7 @@ public class AlertThread implements Runnable {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
                     EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, false, statsAggLocation_);
-                    SendEmailThreadPoolManager.executeThread(emailThread);
+                    SendEmail_ThreadPoolManager.executeThread(emailThread);
                 }
             }
             
@@ -932,7 +930,7 @@ public class AlertThread implements Runnable {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
-                        SendEmailThreadPoolManager.executeThread(emailThread);
+                        SendEmail_ThreadPoolManager.executeThread(emailThread);
                     }
                     
                     alert.setCautionAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
@@ -1002,7 +1000,7 @@ public class AlertThread implements Runnable {
             if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
                 EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, false, statsAggLocation_);
-                SendEmailThreadPoolManager.executeThread(emailThread);
+                SendEmail_ThreadPoolManager.executeThread(emailThread);
             }
             
             doUpdateAlertInDb = true;
@@ -1015,7 +1013,7 @@ public class AlertThread implements Runnable {
                 if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
                     EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, false, statsAggLocation_);
-                    SendEmailThreadPoolManager.executeThread(emailThread);
+                    SendEmail_ThreadPoolManager.executeThread(emailThread);
                 }
             }
             
@@ -1035,7 +1033,7 @@ public class AlertThread implements Runnable {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);
-                        SendEmailThreadPoolManager.executeThread(emailThread);
+                        SendEmail_ThreadPoolManager.executeThread(emailThread);
                     }
                     
                     alert.setDangerAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
@@ -1655,26 +1653,16 @@ public class AlertThread implements Runnable {
             StringBuilder graphiteFormattedAlertName = new StringBuilder();
             if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
             if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
-            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteFormattedMetricPath(alert.getName(), true));
+            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteSanitizedString(alert.getName(), true, true));
             graphiteFormattedAlertName.append("~~").append(alert.getId());
             
-            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
-                alertGraphiteMetricValue = new BigDecimal(3);
-            }
-            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
-                alertGraphiteMetricValue = new BigDecimal(2);
-            }
-            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) {
-                alertGraphiteMetricValue = new BigDecimal(1);
-            }
-            else {
-                alertGraphiteMetricValue = BigDecimal.ZERO;
-            }
+            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(3);
+            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(2);
+            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(1);
+            else alertGraphiteMetricValue = BigDecimal.ZERO;
             
             // correct for duplicate names by adding a '+' sign to the end of the alert name
-            while(alertStatusGraphiteMetricNames.contains(graphiteFormattedAlertName.toString())) {
-                graphiteFormattedAlertName.append("+");
-            }
+            while(alertStatusGraphiteMetricNames.contains(graphiteFormattedAlertName.toString())) graphiteFormattedAlertName.append("+");
             
             String graphiteFormattedAlertName_Final = graphiteFormattedAlertName.toString();
             alertStatusGraphiteMetricNames.add(graphiteFormattedAlertName_Final);

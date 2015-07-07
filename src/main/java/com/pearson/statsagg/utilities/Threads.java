@@ -15,7 +15,7 @@ public class Threads {
     private static final Logger logger = LoggerFactory.getLogger(Threads.class.getName());
     
     public static void sleepMilliseconds(long milliseconds) {
-        sleepMilliseconds(milliseconds, true);
+        sleepMilliseconds(milliseconds, false);
     }
     
     public static void sleepMilliseconds(long milliseconds, boolean logSleepTime) {
@@ -37,7 +37,7 @@ public class Threads {
     }
     
     public static void sleepSeconds(int seconds) {
-        sleepSeconds(seconds, true);
+        sleepSeconds(seconds, false);
     }
     
     public static void sleepSeconds(int seconds, boolean logSleepTime) {
@@ -59,7 +59,7 @@ public class Threads {
     }
     
     public static void sleepSeconds(double seconds) {
-        sleepSeconds(seconds, true);
+        sleepSeconds(seconds, false);
     }
     
     public static void sleepSeconds(double seconds, boolean logSleepTime) {
@@ -81,7 +81,7 @@ public class Threads {
     }
     
     public static void sleepMinutes(int minutes) {
-        sleepMinutes(minutes, true);
+        sleepMinutes(minutes, false);
     }
     
     public static void sleepMinutes(int minutes, boolean logSleepTime) {
@@ -103,7 +103,7 @@ public class Threads {
     }
     
     public static void sleepMinutes(double minutes) {
-        sleepMinutes(minutes, true);
+        sleepMinutes(minutes, false);
     }
     
     public static void sleepMinutes(double minutes, boolean logSleepTime) {
@@ -132,14 +132,14 @@ public class Threads {
         
         try {
             ExecutorService threadExecutor = Executors.newFixedThreadPool(nThreadPoolSize);
-            for (int i = 0; i < threads.size(); i++) {
-                threadExecutor.execute((Runnable) threads.get(i));
+            for (Object thread : threads) {
+                threadExecutor.execute((Runnable) thread);
             }
 
             threadExecutor.shutdown();
-            boolean didTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
+            boolean didFinishWithoutTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
             
-            if (!didTimeout) {
+            if (!didFinishWithoutTimeout) {
                 try {
                     threadExecutor.shutdownNow();
                 }
@@ -169,14 +169,15 @@ public class Threads {
         
         try {
             ExecutorService threadExecutor = Executors.newCachedThreadPool();
-            for (int i = 0; i < threads.size(); i++) {
-                threadExecutor.execute((Runnable) threads.get(i));
+            
+            for (Object thread : threads) {
+                threadExecutor.execute((Runnable) thread);
             }
 
             threadExecutor.shutdown();
-            boolean didTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
+            boolean didFinishWithoutTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
             
-            if (!didTimeout) {
+            if (!didFinishWithoutTimeout) {
                 try {
                     threadExecutor.shutdownNow();
                 }
@@ -198,36 +199,58 @@ public class Threads {
 
     }
     
-    public static void shutdownThreadExecutor(ExecutorService threadExecutor, Integer timeoutTime, TimeUnit timeoutTimeunit) {
+    public static void shutdownThreadExecutor(ExecutorService threadExecutor, Integer timeoutTime, TimeUnit timeoutTimeunit, 
+            boolean forceShutdownIfTimeoutReached, boolean waitForeverForForceShutdownToFinish) {
 
-        if (threadExecutor == null) return;
-        if ((timeoutTime == null) || (timeoutTime <= 0)) timeoutTime = 1;
-        if (timeoutTimeunit == null) timeoutTimeunit = TimeUnit.MILLISECONDS;
+        if (threadExecutor == null) {
+            logger.error("ThreadExecutor cannot be null");
+            return;
+        }
+        
+        if ((timeoutTime == null) || (timeoutTime <= 0)) {
+            logger.error("TimeoutTime cannot be null or less than 0");
+            return;
+        }
+        
+        if (timeoutTimeunit == null) {
+            logger.error("Timeout-Timeunit cannot be null");
+            return;
+        }
 
+        boolean didFinishWithoutTimeout = false;
+        
         try {
             threadExecutor.shutdown();
-            boolean didTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
-            
-            if (!didTimeout) {
+            didFinishWithoutTimeout = threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        if (forceShutdownIfTimeoutReached) {
+            try {
+                if (!didFinishWithoutTimeout) {
+                    try {
+                        threadExecutor.shutdownNow();
+                    }
+                    catch (Exception e) {
+                        logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    }
+                }    
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+
+            if (waitForeverForForceShutdownToFinish) {
                 try {
-                    threadExecutor.shutdownNow();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
-                
-                try {
-                    threadExecutor.awaitTermination(timeoutTime, timeoutTimeunit);
+                    threadExecutor.awaitTermination(99999999, TimeUnit.DAYS);
                 }
                 catch (Exception e) {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
     }
     
 }

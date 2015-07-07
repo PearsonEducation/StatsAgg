@@ -15,13 +15,20 @@ public class GraphiteOutputModule {
     private final int port_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
-
-    public GraphiteOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, int maxMetricsPerMessage) {
+    private final boolean sanitizeMetrics_;
+    private final boolean substituteCharacters_;
+    private final String uniqueId_;
+    
+    public GraphiteOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, 
+            int maxMetricsPerMessage, boolean sanitizeMetrics, boolean substituteCharacters, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.host_ = host;
         this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
+        this.sanitizeMetrics_ = sanitizeMetrics;
+        this.substituteCharacters_ = substituteCharacters;
+        this.uniqueId_ = uniqueId;
     }
     
     public boolean isOutputEnabled() {
@@ -43,5 +50,17 @@ public class GraphiteOutputModule {
     public int getMaxMetricsPerMessage() {
         return maxMetricsPerMessage_;
     }
+    
+    public boolean isSanitizeMetrics() {
+        return sanitizeMetrics_;
+    }
 
+    public boolean isSubstituteCharacters() {
+        return substituteCharacters_;
+    }
+    
+    public String getUniqueId() {
+        return uniqueId_;
+    }
+    
 }

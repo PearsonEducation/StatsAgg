@@ -14,12 +14,14 @@ public class InfluxdbV1HttpOutputModule {
     private final String url_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
+    private final String uniqueId_;
     
-    public InfluxdbV1HttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage) {
+    public InfluxdbV1HttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.url_ = url;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
+        this.uniqueId_ = uniqueId;
     }
 
     public boolean isOutputEnabled() {
@@ -36,6 +38,10 @@ public class InfluxdbV1HttpOutputModule {
 
     public int getMaxMetricsPerMessage() {
         return maxMetricsPerMessage_;
+    }
+    
+    public String getUniqueId() {
+        return uniqueId_;
     }
     
 }

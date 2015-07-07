@@ -10,11 +10,12 @@ import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
+import com.pearson.statsagg.utilities.HttpRequest;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class SendMetricsToInfluxdbV1Thread implements Runnable {
+public class SendMetricsToInfluxdbV1Thread extends SendMetricsToOutputModuleThread {
     
     private static final Logger logger = LoggerFactory.getLogger(SendMetricsToInfluxdbV1Thread.class.getName());
         
@@ -23,46 +24,64 @@ public class SendMetricsToInfluxdbV1Thread implements Runnable {
     private final URL influxdbBaseUrl_;
     private final String defaultDatabaseHttpAuthValue_;
     private final String defaultDatabaseName_;
+    private final int connectTimeoutInMs_;
+    private final int readTimeoutInMs_;
     private final int numSendRetries_;
     private final int maxMetricsPerMessage_;
     private final boolean isNativeInfluxdbMetrics;
-    private final String threadId_;
     
+    private HttpRequest currentHttpRequest_ = null;
+
     /* 
     When using this constructor, running this thread will output to the 'default' InfluxDB database name, username, and password (specified in the application configuration)
     Generally speaking, this is intended to be used for Graphite, StatsD, and OpenTSDB formatted metrics
     */
     public SendMetricsToInfluxdbV1Thread(List<? extends InfluxdbMetricFormat_v1> influxdbMetrics, URL influxdbBaseUrl, 
-            String defaultDatabaseName, String defaultDatabaseHttpAuthValue, int numSendRetries, int maxMetricsPerMessage, String threadId) {
+            String defaultDatabaseName, String defaultDatabaseHttpAuthValue, 
+            int connectTimeoutInMs, int readTimeoutInMs, int numSendRetries, int maxMetricsPerMessage, String threadId) {
         this.nativeInfluxdbMetrics_ = null;
         this.influxdbMetrics_ = influxdbMetrics;
         this.influxdbBaseUrl_ = influxdbBaseUrl;
         this.defaultDatabaseName_ = defaultDatabaseName;
         this.defaultDatabaseHttpAuthValue_ = defaultDatabaseHttpAuthValue;
+        this.connectTimeoutInMs_ = connectTimeoutInMs;
+        this.readTimeoutInMs_ = readTimeoutInMs;
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.isNativeInfluxdbMetrics = false;
         this.threadId_ = threadId;
+        
+        if (influxdbBaseUrl_ != null) this.outputEndpoint_ = influxdbBaseUrl_.toExternalForm();
     }
     
     /* 
     When using this constructor, running this thread will output to the InfluxDB that was originally received (and stored in a InfluxdbMetric_v1 object)
     Only 'native' InfluxDB metrics can use this constructor (InfluxdbMetric_v1 objects)
     */
-    public SendMetricsToInfluxdbV1Thread(List<InfluxdbMetric_v1> influxdbMetrics, URL influxdbBaseUrl, int numSendRetries, String threadId) {
+    public SendMetricsToInfluxdbV1Thread(List<InfluxdbMetric_v1> influxdbMetrics, URL influxdbBaseUrl, 
+            int connectTimeoutInMs, int readTimeoutInMs, int numSendRetries, String threadId) {
         this.nativeInfluxdbMetrics_ = influxdbMetrics;
         this.influxdbMetrics_ = null;
         this.influxdbBaseUrl_ = influxdbBaseUrl;
         this.defaultDatabaseName_ = null;
         this.defaultDatabaseHttpAuthValue_ = null;
+        this.connectTimeoutInMs_ = connectTimeoutInMs;
+        this.readTimeoutInMs_ = readTimeoutInMs;
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = -1;
         this.isNativeInfluxdbMetrics = true;
         this.threadId_ = threadId;
+        
+        if (influxdbBaseUrl_ != null) this.outputEndpoint_ = influxdbBaseUrl_.toExternalForm();
     }
     
     @Override
     public void run() {
+        
+        if (isShuttingDown_) {
+            isFinished_ = true;
+            return;
+        }
         
         if (isNativeInfluxdbMetrics && ((nativeInfluxdbMetrics_ == null) || nativeInfluxdbMetrics_.isEmpty())) return;
         if (!isNativeInfluxdbMetrics && ((influxdbMetrics_ == null) || influxdbMetrics_.isEmpty())) return;
@@ -71,20 +90,128 @@ public class SendMetricsToInfluxdbV1Thread implements Runnable {
         boolean isSendSuccess;
         
         if (isNativeInfluxdbMetrics) {
-            isSendSuccess = sendMetricsToInfluxdb_HTTP(nativeInfluxdbMetrics_, influxdbBaseUrl_.toExternalForm(), numSendRetries_);
+            isSendSuccess = sendNativeInfluxdbMetricsToInfluxdb_HTTP();
         }
         else {
             Map<String,String> influxdbHttpHeaderProperties = getInfluxdbHttpHeaderProperties(defaultDatabaseHttpAuthValue_);
-            isSendSuccess = sendMetricsToInfluxdb_HTTP(influxdbMetrics_, influxdbBaseUrl_.toExternalForm(), influxdbHttpHeaderProperties, 
-                    defaultDatabaseName_, defaultDatabaseHttpAuthValue_, numSendRetries_, maxMetricsPerMessage_);
+            isSendSuccess = sendNonNativeMetricsToInfluxdb_HTTP(influxdbHttpHeaderProperties);
         }
 
         long sendToInfluxdbTimeElasped = System.currentTimeMillis() - sendToInfluxdbTimeStart;
 
-        String outputString = "ThreadId=" + threadId_ + ", Destination=\"" + influxdbBaseUrl_.toExternalForm() + 
+        String outputString = "ThreadId=" + threadId_ + ", Destination=\"" + outputEndpoint_ + 
                             "\", SendToInfluxdbHttpSuccess=" + isSendSuccess + ", SendToInfluxdbTime=" + sendToInfluxdbTimeElasped;                 
 
         logger.info(outputString);
+        
+        isFinished_ = true;
+    }
+    
+    @Override
+    public void shutdown() {
+        logger.warn("ThreadId=" + threadId_ + ", Destination=\"" + outputEndpoint_ + "\", Action=ForceShutdown");
+        isShuttingDown_ = true;
+        
+        try {
+            if (currentHttpRequest_ != null) {
+                currentHttpRequest_.setContinueRetrying(false);
+                currentHttpRequest_.closeResources();
+                currentHttpRequest_ = null;
+            }
+        }
+        catch (Exception e) {}
+    }
+
+    @Override
+    public boolean isFinished() {
+        return isFinished_;
+    }
+    
+    /*
+    Merges several metrics together & sends to InfluxDB in larger, multi-metric, HTTP POSTs.
+    This assumes that all metrics are not native InfluxDB metrics (ex -- Graphite, OpenTSDB, etc).
+    */
+    private boolean sendNonNativeMetricsToInfluxdb_HTTP(Map<String,String> influxdbHttpHeaderProperties) {
+              
+        if ((influxdbMetrics_ == null) || influxdbMetrics_.isEmpty()) {
+            return true;
+        } 
+        
+        if ((influxdbBaseUrl_ == null) || (maxMetricsPerMessage_ <= 0) || (numSendRetries_ < 0) || (connectTimeoutInMs_ < 0) || (readTimeoutInMs_ < 0) || isShuttingDown_) {
+            return false;
+        } 
+        
+        boolean isAllSendSuccess = true;
+        
+        List influxdbMetricsList = influxdbMetrics_;
+        List<List<? extends InfluxdbMetricFormat_v1>> partitionedList = Lists.partition(influxdbMetricsList, maxMetricsPerMessage_);
+        
+        for (List influxdbStandardizedMetricsPartitionedList : partitionedList) {
+            if (isShuttingDown_) {
+                isAllSendSuccess = false;
+                continue;
+            }
+            
+            String influxdbMetricJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbStandardizedMetricsPartitionedList);
+            
+            if (influxdbMetricJson != null) {
+                String influxdbFullUrl = createInfluxdbUrl(outputEndpoint_, defaultDatabaseName_);
+                
+                HttpRequest httpRequest = new HttpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, 
+                        "UTF-8", "POST", connectTimeoutInMs_, readTimeoutInMs_, numSendRetries_, true);
+                currentHttpRequest_ = httpRequest;
+                String response = httpRequest.makeRequest();
+                
+                if (response == null) isAllSendSuccess = false;
+            }
+            else {
+                isAllSendSuccess = false;
+            }
+        }
+        
+        return isAllSendSuccess;
+    }
+    
+    /*
+    Sends each InfluxDB metric to InfluxDB as separate HTTP POSTs.
+    */
+    private boolean sendNativeInfluxdbMetricsToInfluxdb_HTTP() {
+              
+        if ((nativeInfluxdbMetrics_ == null) || nativeInfluxdbMetrics_.isEmpty()) {
+            return true;
+        } 
+        
+        if ((influxdbBaseUrl_ == null) || (numSendRetries_ < 0) || (connectTimeoutInMs_ < 0) || (readTimeoutInMs_ < 0) || isShuttingDown_) {
+            return false;
+        } 
+        
+        boolean isAllSendSuccess = true;
+
+        for (InfluxdbMetric_v1 influxdbMetric : nativeInfluxdbMetrics_) {
+            if (isShuttingDown_) {
+                isAllSendSuccess = false;
+                continue;
+            }
+            
+            String influxdbMetricJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbMetric);
+            
+            if (influxdbMetricJson != null) {
+                String influxdbFullUrl = createInfluxdbUrl(influxdbMetric, outputEndpoint_);
+                Map<String,String> influxdbHttpHeaderProperties = getInfluxdbHttpHeaderProperties(influxdbMetric);
+                
+                HttpRequest httpRequest = new HttpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, 
+                        "UTF-8", "POST", connectTimeoutInMs_, readTimeoutInMs_, numSendRetries_, true);
+                currentHttpRequest_ = httpRequest;
+                String response = httpRequest.makeRequest();
+                
+                if (response == null) isAllSendSuccess = false;
+            }
+            else {
+                isAllSendSuccess = false;
+            }
+        }
+        
+        return isAllSendSuccess;
     }
     
     /*
@@ -173,74 +300,6 @@ public class SendMetricsToInfluxdbV1Thread implements Runnable {
         influxdbHttpHeaderProperties.put("Charset", "UTF-8");
         
         return influxdbHttpHeaderProperties;
-    }
-    
-    /*
-    Merges several metrics together & sends to InfluxDB in larger, multi-metric, HTTP POSTs.
-    This assumes that all metrics are not native InfluxDB metrics (ex -- Graphite, OpenTSDB, etc).
-    */
-    public static boolean sendMetricsToInfluxdb_HTTP(List<? extends InfluxdbMetricFormat_v1> influxdbMetrics, String baseUrl, 
-            Map<String,String> influxdbHttpHeaderProperties, String defaultDatabaseName, String defaultDatabaseHttpAuthValue, int numSendRetries, int maxMetricsPerMessage) {
-              
-        if ((influxdbMetrics == null) || influxdbMetrics.isEmpty()) {
-            return true;
-        } 
-        
-        if ((baseUrl == null) || (maxMetricsPerMessage <= 0) || (numSendRetries < 0)) {
-            return false;
-        } 
-        
-        boolean isAllSendSuccess = true;
-        
-        List influxdbMetricsList = influxdbMetrics;
-        List<List<? extends InfluxdbMetricFormat_v1>> partitionedList = Lists.partition(influxdbMetricsList, maxMetricsPerMessage);
-        
-        for (List influxdbStandardizedMetricsPartitionedList : partitionedList) {
-            String influxdbMetricJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbStandardizedMetricsPartitionedList);
-            
-            if (influxdbMetricJson != null) {
-                String influxdbFullUrl = createInfluxdbUrl(baseUrl, defaultDatabaseName);
-                String response = HttpUtils.httpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, "UTF-8", "POST", numSendRetries, true);
-                if (response == null) isAllSendSuccess = false;
-            }
-            else {
-                isAllSendSuccess = false;
-            }
-        }
-        
-        return isAllSendSuccess;
-    }
-    
-    /*
-    Sends each InfluxDB metric to InfluxDB as separate HTTP POSTs.
-    */
-    public static boolean sendMetricsToInfluxdb_HTTP(List<InfluxdbMetric_v1> influxdbMetrics, String baseUrl, int numSendRetries) {
-              
-        if ((influxdbMetrics == null) || influxdbMetrics.isEmpty()) {
-            return true;
-        } 
-        
-        if ((baseUrl == null) || (numSendRetries < 0)) {
-            return false;
-        } 
-        
-        boolean isAllSendSuccess = true;
-
-        for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
-            String influxdbMetricJson = InfluxdbMetric_v1.getInfluxdbJson(influxdbMetric);
-            
-            if (influxdbMetricJson != null) {
-                String influxdbFullUrl = createInfluxdbUrl(influxdbMetric, baseUrl);
-                Map<String,String> influxdbHttpHeaderProperties = getInfluxdbHttpHeaderProperties(influxdbMetric);
-                String response = HttpUtils.httpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, "UTF-8", "POST", numSendRetries, true);
-                if (response == null) isAllSendSuccess = false;
-            }
-            else {
-                isAllSendSuccess = false;
-            }
-        }
-        
-        return isAllSendSuccess;
     }
     
 }

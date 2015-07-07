@@ -1,4 +1,4 @@
-package com.pearson.statsagg.controller.threads;
+package com.pearson.statsagg.controller.thread_managers;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -12,12 +12,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class SendEmailThreadPoolManager {
+public class SendEmail_ThreadPoolManager {
     
-    private static final Logger logger = LoggerFactory.getLogger(SendEmailThreadPoolManager.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SendEmail_ThreadPoolManager.class.getName());
     
     private static final Object lock_ = new Object();
-    private static ExecutorService threadExecutor_ = Executors.newCachedThreadPool();
+    private static ExecutorService threadExecutor_ = null;
     
     public static void start() {
         synchronized(lock_) {
