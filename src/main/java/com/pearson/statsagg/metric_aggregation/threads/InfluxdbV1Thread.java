@@ -80,8 +80,8 @@ public class InfluxdbV1Thread implements Runnable {
             
             // send metrics to output modules
             if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics, threadId_);
-            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, false, threadId_);
-            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, false, threadId_);
+            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, threadId_);
             if (!influxdbMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_Native(influxdbMetrics, threadId_);
                         
             // total time for this thread took to get & send the metrics

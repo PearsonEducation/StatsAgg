@@ -194,7 +194,8 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             for (GraphiteOutputModule graphiteOutputModule : graphiteOutuputModules) {
                 if (!graphiteOutputModule.isOutputEnabled()) continue;
                 
-                SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, true, true,
+                SendMetricsToGraphiteThread sendMetricsToGraphiteThread = new SendMetricsToGraphiteThread(graphiteMetrics, 
+                        graphiteOutputModule.isSanitizeMetrics(), graphiteOutputModule.isSubstituteCharacters(),
                         graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),  
                         graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
             
@@ -237,7 +238,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
         return enabledOpenTsdbOutputModules;
     }
     
-    public static void sendMetricsToAllOpenTsdbTelnetOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String threadId) {
+    public static void sendMetricsToAllOpenTsdbTelnetOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String threadId) {
         
         try {
             List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = ApplicationConfiguration.getOpenTsdbTelnetOutputModules();
@@ -246,7 +247,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             for (OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule : openTsdbTelnetOutputModules) {
                 if (!openTsdbTelnetOutputModule.isOutputEnabled()) continue;
                 
-                SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, sanitizeMetrics, 
+                SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbTelnetOutputModule.isSanitizeMetrics(), 
                         openTsdbTelnetOutputModule.getHost(), openTsdbTelnetOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),
                         ApplicationConfiguration.getOutputModuleMaxReadTime(), openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
                                 
@@ -289,7 +290,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
         return enabledOpenTsdbOutputModules;
     }
     
-    public static void sendMetricsToAllOpenTsdbHttpOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String threadId) {
+    public static void sendMetricsToAllOpenTsdbHttpOutputModules(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, String threadId) {
         
         try {
             List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = ApplicationConfiguration.getOpenTsdbHttpOutputModules();
@@ -300,7 +301,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                 
                 URL url = new URL(openTsdbHttpOutputModule.getUrl());
                 
-                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, sanitizeMetrics, url, 
+                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbHttpOutputModule.isSanitizeMetrics(), url, 
                         ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
                         openTsdbHttpOutputModule.getNumSendRetryAttempts(),openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                                 

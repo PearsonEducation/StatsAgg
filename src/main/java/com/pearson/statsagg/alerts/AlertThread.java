@@ -127,8 +127,8 @@ public class AlertThread implements Runnable {
                 // generate alert statuses for output, and send to enabled output modules
                 List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, true, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, true, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(alertStatusMetricsForGraphite, threadId_);
             }
         }
