@@ -16,11 +16,15 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.webui.MetricGroupsLogic;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
+import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -38,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class MetricGroupsTest extends Mockito{
     private static final JSONObject mockMetricGroupsJson = new JSONObject();
     private static MetricGroupsDao metricGroupsDao;
+    private static MetricGroupsLogic metricGroupsLogic_ = new MetricGroupsLogic();
     private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
 
     @BeforeClass
@@ -46,12 +51,12 @@ public class MetricGroupsTest extends Mockito{
         JSONObject mockMetric = new JSONObject();
         
         mockMetric.put("name", "abcd");
-        mockMetric.put("id", "1");
+        mockMetric.put("id", "3");
         mockMetricGroupsList.add(mockMetric);
         
         mockMetric = new JSONObject();
         mockMetric.put("name", "xyz");
-        mockMetric.put("id", "2");
+        mockMetric.put("id", "4");
         mockMetricGroupsList.add(mockMetric);
              
         mockMetricGroupsJson.put("metricgroups", mockMetricGroupsList);
@@ -63,7 +68,7 @@ public class MetricGroupsTest extends Mockito{
     @After
     public void tearDown() {
     }
-
+    
     @Test
     public void testGetMetricGroupsJson() throws Exception {
         HttpServletRequest request = mock(HttpServletRequest.class);

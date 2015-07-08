@@ -16,11 +16,15 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
+import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -38,6 +42,7 @@ import org.slf4j.LoggerFactory;
 public class NotificationGroupsTest extends Mockito{
     private static final JSONObject mockNotificationGroupsJson = new JSONObject();
     private static NotificationGroupsDao notificationGroupsDao;
+    private static NotificationGroupsLogic notificationGroupsLogic_ = new NotificationGroupsLogic();
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroups.class.getName());
 
     @BeforeClass
@@ -62,6 +67,17 @@ public class NotificationGroupsTest extends Mockito{
     
     @After
     public void tearDown() {
+    }
+   
+    @AfterClass
+    public static void tearDownClass() {
+
+        String result = notificationGroupsLogic_.deleteRecordInDatabase("abcd");
+        assertTrue(result.contains("success") || result.contains("Notification group not found"));
+        result = notificationGroupsLogic_.deleteRecordInDatabase("xyz");
+        assertTrue(result.contains("success") || result.contains("Notification group not found"));
+
+        DatabaseConnections.disconnectAndShutdown();
     }
 
     @Test

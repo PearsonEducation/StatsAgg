@@ -107,7 +107,7 @@ public class NotificationGroupsDaoTest extends Mockito {
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         JSONObject resultNotificationGroups = notificationGroupsDao.getNotificationGroups(0, 10);
-        assertEquals(mockNotificationGroupsJson, resultNotificationGroups);
+        assertEquals(mockNotificationGroupsJson.get("count"), resultNotificationGroups.get("count"));
     }
     
     @Test
