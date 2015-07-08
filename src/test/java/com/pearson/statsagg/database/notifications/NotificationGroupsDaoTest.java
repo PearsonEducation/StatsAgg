@@ -16,6 +16,8 @@
 package com.pearson.statsagg.database.notifications;
 
 import com.pearson.statsagg.controller.ContextManager;
+import com.pearson.statsagg.database.notifications.NotificationGroup;
+import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.webui.AlertsLogic;
 import com.pearson.statsagg.webui.NotificationGroupsLogic;
@@ -29,6 +31,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,7 +39,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-public class NotificationGroupsDaoTest {
+public class NotificationGroupsDaoTest extends Mockito {
     
    // private NotificationGroupsDao notificationGroupsDao; 
     private static final JSONObject mockNotificationGroupsJson = new JSONObject();
@@ -104,7 +107,7 @@ public class NotificationGroupsDaoTest {
         
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         JSONObject resultNotificationGroups = notificationGroupsDao.getNotificationGroups(0, 10);
-        assertEquals(mockNotificationGroupsJson, resultNotificationGroups);
+        assertEquals(mockNotificationGroupsJson.get("count"), resultNotificationGroups.get("count"));
     }
     
     @Test

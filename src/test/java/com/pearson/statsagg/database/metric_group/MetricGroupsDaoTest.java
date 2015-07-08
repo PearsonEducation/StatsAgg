@@ -18,10 +18,15 @@ package com.pearson.statsagg.database.metric_group;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database.notifications.NotificationGroup;
+import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.webui.AlertsLogic;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
+import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.TreeSet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -32,6 +37,7 @@ import static org.junit.Assert.assertTrue;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-public class MetricGroupsDaoTest {
+public class MetricGroupsDaoTest extends Mockito {
     
    // private MetricGroupsDao metricGroupsDao; 
     private static final JSONObject mockMetricGroupsJson = new JSONObject();
@@ -126,7 +132,7 @@ public class MetricGroupsDaoTest {
         
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         JSONObject resultMetricGroups = metricGroupsDao.getMetricGroups(0, 10);
-        assertEquals(mockMetricGroupsJson, resultMetricGroups);
+        assertEquals(mockMetricGroupsJson.get("count"), resultMetricGroups.get("count"));
     }
     
     @Test
