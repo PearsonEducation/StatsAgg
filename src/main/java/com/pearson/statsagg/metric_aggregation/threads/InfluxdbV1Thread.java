@@ -1,8 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -81,10 +79,10 @@ public class InfluxdbV1Thread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
             
             // send metrics to output modules
-            SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, false, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, false, threadId_);
-            SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_Native(influxdbMetrics, threadId_);
+            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, threadId_);
+            if (!influxdbMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_Native(influxdbMetrics, threadId_);
                         
             // total time for this thread took to get & send the metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;

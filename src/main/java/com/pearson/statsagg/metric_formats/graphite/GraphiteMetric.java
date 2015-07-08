@@ -2,16 +2,13 @@ package com.pearson.statsagg.metric_formats.graphite;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.slf4j.Logger;
@@ -110,39 +107,31 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         
         return stringBuilder.toString();
     }
-    
+
     @Override
-    public String getGraphiteFormatString() {
+    public String getGraphiteFormatString(boolean sanitizeMetric, boolean substituteCharacters) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        stringBuilder.append(metricPath_).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
+        String metricPath = GraphiteMetric.getGraphiteSanitizedString(metricPath_, sanitizeMetric, substituteCharacters);
+        
+        stringBuilder.append(metricPath).append(" ").append(getMetricValueString()).append(" ").append(getMetricTimestampInSeconds());
 
         return stringBuilder.toString();
     }
     
     @Override
-    public String getOpenTsdbTelnetFormatString() {
-        return getOpenTsdbTelnetFormatString(false);
-    }
-    
-    @Override
-    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetrics) {
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric) {
         StringBuilder stringBuilder = new StringBuilder();
         
-        String metricPath = sanitizeMetrics ? OpenTsdbMetric.getOpenTsdbFormattedMetric(metricPath_) : metricPath_;
+        String metric = sanitizeMetric ? OpenTsdbMetric.getOpenTsdbSanitizedString(metricPath_) : metricPath_;
         
-        stringBuilder.append(metricPath).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
+        stringBuilder.append(metric).append(" ").append(getMetricTimestampInSeconds()).append(" ").append(getMetricValueString()).append(" Format=Graphite");
 
         return stringBuilder.toString();
     }
     
     @Override
-    public String getOpenTsdbJsonFormatString() {
-        return getOpenTsdbJsonFormatString(false);
-    }
-    
-    @Override
-    public String getOpenTsdbJsonFormatString(boolean sanitizeMetrics) {
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric) {
                 
         if ((metricPath_ == null) || metricPath_.isEmpty()) return null;
         if (getMetricTimestampInSeconds() < 0) return null;
@@ -152,7 +141,7 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
         openTsdbJson.append("{");
 
-        if (sanitizeMetrics) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbFormattedMetric(metricPath_))).append("\",");
+        if (sanitizeMetric) openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(OpenTsdbMetric.getOpenTsdbSanitizedString(metricPath_))).append("\",");
         else openTsdbJson.append("\"metric\":\"").append(StringEscapeUtils.escapeJson(metricPath_)).append("\",");
         
         openTsdbJson.append("\"timestamp\":").append(getMetricTimestampInSeconds()).append(",");
@@ -194,48 +183,63 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         return influxdbJson.toString();
     }
     
-    public static String getGraphiteFormattedMetricPath(String metricPath, boolean substituteCharacters) {
+    /*
+    @param  unsanitizedInput  The input is expected to be a Graphite 'metric path'.
+    
+    @param  sanitizeMetric  When set to true, all input will have back-to-back '.' characters merged into a single '.'.
+    Example: "lol...lol" -> "lol.lol"
+    
+    @param  'substituteCharacters'  When set to true: a few special characters will be turned into characters that Graphite can handle. 
+    % -> Pct
+    (){}[]/\ -> |
+    */
+    public static String getGraphiteSanitizedString(String unsanitizedInput, boolean sanitizeMetric, boolean substituteCharacters) {
 
-        if (metricPath == null) {
-            return null;
-        }
-
-        StringBuilder formattedGraphiteMetricPath = new StringBuilder();
+        if (unsanitizedInput == null) return null;
+        if (!sanitizeMetric && !substituteCharacters) return unsanitizedInput;
+        
+        StringBuilder sanitizedInput = new StringBuilder();
  
-        for (char character : metricPath.toCharArray()) {
+        char[] unsanitizedInputChars = unsanitizedInput.toCharArray();
+        
+        for (int i = 0; i < unsanitizedInputChars.length; i++) {
+            char character = unsanitizedInputChars[i];
             
-            if ((character >= 'a') && (character <= 'z')) {
-                formattedGraphiteMetricPath.append(character);
-                continue;
-            }
-            
-            if ((character >= 'A') && (character <= 'Z')) {
-                formattedGraphiteMetricPath.append(character);
-                continue;
-            }
-            
-            if ((character == '-') || (character == '_') || (character == '.')) {
-                formattedGraphiteMetricPath.append(character);
-                continue;
+            if (sanitizeMetric && (character == '.')) {
+                int iPlusOne = i + 1;
+                
+                if (((iPlusOne < unsanitizedInputChars.length) && (unsanitizedInputChars[iPlusOne] != '.')) || (iPlusOne == unsanitizedInputChars.length)) {
+                    sanitizedInput.append(character);
+                    continue;
+                }
             }
 
             if (substituteCharacters) {
-                if (character == '%') formattedGraphiteMetricPath.append("Pct");
-                if (character == ' ') formattedGraphiteMetricPath.append("_");
-                if (character == '\\') formattedGraphiteMetricPath.append("|");
-                if (character == '[') formattedGraphiteMetricPath.append("|");
-                if (character == ']') formattedGraphiteMetricPath.append("|");
-                if (character == '{') formattedGraphiteMetricPath.append("|");
-                if (character == '}') formattedGraphiteMetricPath.append("|");
-                if (character == '(') formattedGraphiteMetricPath.append("|");
-                if (character == ')') formattedGraphiteMetricPath.append("|");
-            }
-        }
+                if (character == '%') {
+                    sanitizedInput.append("Pct");
+                    continue;
+                }
+                
+                if (character == ' ') {
+                    sanitizedInput.append("_");
+                    continue;
+                }
+                
+                if ((character == '\\') || (character == '/') || 
+                        (character == '[') || (character == ']') || 
+                        (character == '{') || (character == '}') ||
+                        (character == '(') || (character == ')')) {
+                    sanitizedInput.append("|");
+                    continue;
+                }
 
-        String formattedGraphiteMetricPath_String = formattedGraphiteMetricPath.toString();
-        while (formattedGraphiteMetricPath_String.contains("..")) formattedGraphiteMetricPath_String = StringUtils.replace(formattedGraphiteMetricPath_String, "..", ".");
+            }
+            
+            if (sanitizeMetric && (character != '.')) sanitizedInput.append(character);
+            else if (!sanitizeMetric) sanitizedInput.append(character);
+        }
         
-        return formattedGraphiteMetricPath_String;
+        return sanitizedInput.toString();
     }
     
     public static GraphiteMetric parseGraphiteMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
@@ -322,51 +326,6 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         }
         
         return graphiteMetrics;
-    }
-    
-    /*
-    For every unique metric path, get the GraphiteMetric with the most recent 'metric timestamp'. 
-    
-    In the event that multiple GraphiteMetrics share the same 'metric path' and 'metric timestamp', 
-    then 'metric received timestamp' is used as a tiebreaker. 
-    
-    In the event that multiple GraphiteMetrics also share the same 'metric received timestamp', 
-    then this method will return the first GraphiteMetric that it scanned that met these criteria
-    */
-    public static Map<String,GraphiteMetric> getMostRecentGraphiteMetricByMetricPath(List<GraphiteMetric> graphiteMetrics) {
-        
-        if (graphiteMetrics == null || graphiteMetrics.isEmpty()) {
-            return new HashMap<>();
-        }
-        
-        Map<String,GraphiteMetric> mostRecentGraphiteMetricsByMetricPath = new HashMap<>();
-        
-        for (GraphiteMetric graphiteMetric : graphiteMetrics) {
-            try {
-                boolean doesAlreadyContainMetricPath = mostRecentGraphiteMetricsByMetricPath.containsKey(graphiteMetric.getMetricPath());
-
-                if (doesAlreadyContainMetricPath) {
-                    GraphiteMetric currentMostRecentGraphiteMetric = mostRecentGraphiteMetricsByMetricPath.get(graphiteMetric.getMetricPath());
-
-                    if (graphiteMetric.getMetricTimestampInMilliseconds() > currentMostRecentGraphiteMetric.getMetricTimestampInMilliseconds()) {
-                        mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
-                    }
-                    else if (graphiteMetric.getMetricTimestampInMilliseconds() == currentMostRecentGraphiteMetric.getMetricTimestampInMilliseconds()) {
-                        if (graphiteMetric.getMetricReceivedTimestampInMilliseconds() > currentMostRecentGraphiteMetric.getMetricReceivedTimestampInMilliseconds()) {
-                            mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
-                        }
-                    }
-                }
-                else {
-                    mostRecentGraphiteMetricsByMetricPath.put(graphiteMetric.getMetricPath(), graphiteMetric);
-                }
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-        }
-
-        return mostRecentGraphiteMetricsByMetricPath;
     }
 
     public long getHashKey() {

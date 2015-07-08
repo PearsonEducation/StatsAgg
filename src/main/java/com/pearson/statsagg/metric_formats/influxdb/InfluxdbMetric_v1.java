@@ -37,7 +37,6 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     private final byte timePrecisionCode_;
     
     private final String namePrefix_;
-    private final String namePrefixPeriodDelimited_;
     private final String name_;
     private final ArrayList<String> columns_;
     private final ArrayList<ArrayList<Object>> points_;
@@ -46,7 +45,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     private ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics_ = null;
 
     public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecisionCode,
-            String namePrefix, String namePrefixPeriodDelimited, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
+            String namePrefix, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
             long metricsReceivedTimestampInMilliseconds) {
         this.database_ = database;
         this.username_ = username;
@@ -54,7 +53,6 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         this.basicAuth_ = basicAuth;
         this.timePrecisionCode_ = timePrecisionCode;
         this.namePrefix_ = namePrefix;
-        this.namePrefixPeriodDelimited_ = namePrefixPeriodDelimited;
         this.name_ = name;
         this.columns_ = columns;
         this.points_ = points;
@@ -66,29 +64,12 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         }
         
         this.metricsReceivedTimestampInMilliseconds_ = metricsReceivedTimestampInMilliseconds;
-        createInfluxdbStandardizedMetrics(namePrefix, namePrefixPeriodDelimited);
+        createInfluxdbStandardizedMetrics(namePrefix);
 
         if (this.influxdbStandardizedMetrics_ != null) this.influxdbStandardizedMetrics_.trimToSize();
     }
-    
-    public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecisionCode,   
-            String namePrefix, String namePrefixPeriodDelimited, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
-            long metricsReceivedTimestampInMilliseconds, ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics) {
-        this.database_ = database;
-        this.username_ = username;
-        this.password_ = password;
-        this.basicAuth_ = basicAuth;
-        this.timePrecisionCode_ = timePrecisionCode;
-        this.namePrefix_ = namePrefix;
-        this.namePrefixPeriodDelimited_ = namePrefixPeriodDelimited;
-        this.name_ = name;
-        this.columns_ = columns;
-        this.points_ = points;
-        this.metricsReceivedTimestampInMilliseconds_ = metricsReceivedTimestampInMilliseconds;
-        this.influxdbStandardizedMetrics_ = influxdbStandardizedMetrics;
-    }
-    
-    private void createInfluxdbStandardizedMetrics(String namePrefix, String namePrefixPeriodDelimited) {
+
+    private void createInfluxdbStandardizedMetrics(String namePrefix) {
         
         if ((name_ == null) || (columns_ == null) || (points_ == null) || columns_.isEmpty() || points_.isEmpty()) return;
 
@@ -102,13 +83,11 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             String metricKeyStringFields = getSortedStringFieldsForMetricKey(columns_, point);
 
             ArrayList<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetricsFromNumericPointValues = getInfluxdbStandardizedMetricsFromNumericPointValues(columns_,  
-                    point, namePrefix, namePrefixPeriodDelimited, metricKeyStringFields, time);
+                    point, namePrefix, metricKeyStringFields, time);
             if (influxdbStandardizedMetricsFromNumericPointValues != null) influxdbStandardizedMetrics.addAll(influxdbStandardizedMetricsFromNumericPointValues);
 
             if (influxdbStandardizedMetrics.isEmpty()) {
-                InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = getInfluxdbStandardizedMetricFromStringFieldsOnly(point, 
-                        namePrefix, namePrefixPeriodDelimited, metricKeyStringFields, time);
-                
+                InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = getInfluxdbStandardizedMetricFromStringFieldsOnly(point, namePrefix, metricKeyStringFields, time);
                 if (influxdbStandardizedMetricsFromNumericPointValues != null) influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
             }
             
@@ -152,7 +131,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     }
     
     private ArrayList<InfluxdbStandardizedMetric_v1> getInfluxdbStandardizedMetricsFromNumericPointValues(ArrayList<String> columns, ArrayList<Object> point, 
-            String namePrefix, String namePrefixPeriodDelimited, String metricKeyStringFields, long time) {
+            String namePrefix, String metricKeyStringFields, long time) {
         
         if ((columns == null) || (point == null) || (columns.size() != point.size()) || point.isEmpty()) {
             return new ArrayList<>();
@@ -186,8 +165,9 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                 metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
             }
 
-            InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, column,
-                    metricValue, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point);
+            InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, 
+                    name_, column, metricValue, metricTimestamp, metricTimestampPrecision,
+                    metricsReceivedTimestampInMilliseconds_, columns_, point);
             influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             
             influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
@@ -197,7 +177,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     }
     
     private InfluxdbStandardizedMetric_v1 getInfluxdbStandardizedMetricFromStringFieldsOnly(ArrayList<Object> point, 
-            String namePrefix, String namePrefixPeriodDelimited, String metricKeyStringFields, long time) {
+            String namePrefix, String metricKeyStringFields, long time) {
         
         if ((metricKeyStringFields == null) || metricKeyStringFields.isEmpty()) {
             return null;
@@ -220,7 +200,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             metricTimestampPrecision = TIMESTAMP_PRECISION_MILLISECONDS;
         }
 
-        InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, namePrefixPeriodDelimited, name_, 
+        InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric = new InfluxdbStandardizedMetric_v1(metricKey.toString(), database_, namePrefix, name_, 
                 null, BigDecimal.ONE, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point);
         influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
@@ -402,7 +382,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     }
 
     public static List<InfluxdbMetric_v1> parseInfluxdbMetricJson(String database, String inputJson, String username, String password, String basicAuth, 
-            String timePrecision, String namePrefix, String namePrefixPeriodDelimited, long metricsReceivedTimestampInMilliseconds) {
+            String timePrecision, String namePrefix, long metricsReceivedTimestampInMilliseconds) {
 
         if ((inputJson == null) || inputJson.isEmpty() || (database == null) || (database.isEmpty())) {
             return new ArrayList<>();
@@ -454,7 +434,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                 byte timePrecisionCode = getTimePrecisionCodeFromTimePrecisionString(timePrecision);
 
                 InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, basicAuth, timePrecisionCode, 
-                        namePrefix, namePrefixPeriodDelimited, name, columns, points, metricsReceivedTimestampInMilliseconds);
+                        namePrefix, name, columns, points, metricsReceivedTimestampInMilliseconds);
                 
                 influxdbMetrics.add(influxdbMetric);
             }
@@ -496,10 +476,6 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
 
     public String getNamePrefix() {
         return namePrefix_;
-    }
-
-    public String getNamePrefixPeriodDelimited() {
-        return namePrefixPeriodDelimited_;
     }
 
     public String getName() {

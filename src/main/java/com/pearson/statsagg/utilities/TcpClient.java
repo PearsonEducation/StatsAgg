@@ -3,6 +3,7 @@ package com.pearson.statsagg.utilities;
 import java.io.BufferedWriter;
 import java.io.DataOutputStream;
 import java.io.OutputStreamWriter;
+import java.net.InetSocketAddress;
 import java.net.Socket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,14 +17,17 @@ public final class TcpClient {
     
     private final String host_;
     private final int port_;
+    private final int socketConnectionTimeoutInMs_;
     
     private Socket socket_ = null;
     private BufferedWriter bufferedWriter_ = null;
+    
     private DataOutputStream dataOutputStream_ = null;
             
-    public TcpClient(String host, int port, boolean connectImmediately) {
+    public TcpClient(String host, int port, boolean connectImmediately, int socketConnectionTimeoutInMs) {
         this.host_ = host;
         this.port_ = port;
+        this.socketConnectionTimeoutInMs_ = socketConnectionTimeoutInMs;
         
         if (connectImmediately) {
             connect();
@@ -40,7 +44,8 @@ public final class TcpClient {
         boolean isConnectSuccess;
         
         try {
-            socket_ = new Socket(host_, port_);
+            socket_ = new Socket();
+            socket_.connect(new InetSocketAddress(host_, port_), socketConnectionTimeoutInMs_);
             dataOutputStream_ = new DataOutputStream(socket_.getOutputStream());
             bufferedWriter_ = new BufferedWriter(new OutputStreamWriter(dataOutputStream_));
             

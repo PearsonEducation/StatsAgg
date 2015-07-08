@@ -4,6 +4,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,7 @@ public abstract class InvokerThread implements Runnable {
                 lockObject_.notifyAll();
             }
             
-            threadExecutor_.shutdown();
-            threadExecutor_.awaitTermination(getThreadExecutorShutdownWaitTime(), TimeUnit.MILLISECONDS);
+            Threads.shutdownThreadExecutor(threadExecutor_, getThreadExecutorShutdownWaitTime(), TimeUnit.MILLISECONDS, true, false);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

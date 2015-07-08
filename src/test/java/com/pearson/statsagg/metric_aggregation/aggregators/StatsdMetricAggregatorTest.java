@@ -251,12 +251,12 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "6"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "20"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "6"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "20"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4"); matchCount++;}
             assertEquals(StatsdMetricAggregated.TIMER_TYPE, statsdMetricAggregated.getMetricTypeKey());
         }
         
@@ -342,23 +342,23 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.median ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "524.5"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "21"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_ps ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2.1"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.std ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "260.5603337"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.median ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "524.5"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "21"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_ps ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2.1"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.std ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "260.5603337"); matchCount++;}
             
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
 
             assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
             assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
@@ -390,8 +390,8 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.histogram")) matchCount++;
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.histogram")) matchCount++;
         }
         
         assertEquals(0, matchCount);
@@ -418,7 +418,7 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_0_1")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_1")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_1_21")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
@@ -449,7 +449,7 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_0_1")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_1")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_1_21")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
@@ -480,7 +480,7 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
             if (statsdMetricAggregated.getBucket().endsWith("timerMetric.histogram.bin_inf")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
         }
         
@@ -494,16 +494,16 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.median ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "524.5"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_ps ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0.8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.std ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "260.5603337"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.median ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "524.5"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_ps ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0.8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.std ")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "260.5603337"); matchCount++;}
             
             assertEquals(timestampAverage, statsdMetricAggregated.getMetricTimestampInMilliseconds());
             assertEquals(timestampAverage, statsdMetricAggregated.getMetricReceivedTimestampInMilliseconds());
@@ -522,13 +522,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
         }
         
         assertEquals(11, statsdMetricsAggregated.size());
@@ -543,13 +543,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "837.6666667"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2513"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2155997"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "675"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "837.6666667"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2513"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2155997"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "675"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -564,13 +564,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
         }
         
         assertEquals(9, statsdMetricsAggregated.size());
@@ -585,13 +585,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
         }
         
         assertEquals(9, statsdMetricsAggregated.size());
@@ -606,13 +606,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
         }
         
         assertEquals(9, statsdMetricsAggregated.size());
@@ -627,13 +627,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "14400"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "14400"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -648,13 +648,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -669,13 +669,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -690,13 +690,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "350"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1400"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "574472"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "496"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "350"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1400"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "574472"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "496"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -711,13 +711,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "496"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "7"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3472"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2048242"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "844"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "496"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "7"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3472"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "2048242"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "844"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -732,13 +732,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
         }
         
         assertEquals(14, statsdMetricsAggregated.size());
@@ -753,13 +753,13 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
 
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.mean_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "558.25"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.count_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "8"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "4466"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.sum_squares_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3036278"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.lower_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains("timerMetric.upper_" + nthPctShort)) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "994"); matchCount++;}
         }
 
         assertEquals(14, statsdMetricsAggregated.size());
@@ -773,28 +773,28 @@ public class StatsdMetricAggregatorTest {
         int matchCount = 0;
         
         for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            //System.out.println(statsdMetricAggregated.getGraphiteFormatString());
+            //System.out.println(statsdMetricAggregated.getGraphiteFormatString(false, false));
             
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".mean_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".count_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_squares_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "14400"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".lower_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".upper_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".mean_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".count_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "1"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_squares_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "14400"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".lower_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".upper_" + "12_5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "120"); matchCount++;}
             
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".mean_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".count_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_squares_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".lower_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".upper_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".mean_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".count_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_squares_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".lower_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".upper_" + "5")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
             
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".mean_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".count_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".sum_squares_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".lower_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
-            if (statsdMetricAggregated.getGraphiteFormatString().contains(".upper_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".mean_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "301.3333333"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".count_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "3"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "904"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".sum_squares_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "328456"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".lower_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "0"); matchCount++;}
+            if (statsdMetricAggregated.getGraphiteFormatString(false, false).contains(".upper_" + "40")) {assertEquals(statsdMetricAggregated.getMetricValue().toString(), "450"); matchCount++;}
 
         }
         

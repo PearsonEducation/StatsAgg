@@ -1,6 +1,9 @@
 StatsAgg 1.4
  * Document metric prefixes behavior
+   * For InfluxDB metrics represented as Graphite and/or OpenTSDB metrics, metric prefix comes before DB
+   * Periods as delimiters in all output modules (seems to be industry standard)
  * Document quirks in each output db
+ * Document HTTP output connects for 5sec, and waits for 60sec for a response
  * Document - remove any references to 'send previous value'
  * Document - StatsAgg is not a proxy
  * Document OpenTSDB "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
@@ -8,18 +11,15 @@ StatsAgg 1.4
    * Document
    * Preview of final results
  * Move separator character out of graphite-aggregator aggregate method
- * Support 'no timestamp' on Graphite metrics
- * Optimize/Improve Graphite sanitizer & OpenTSDB sanitizer
-   * unit tests
-   * alert status w/ OpenTSDB not working right
-   * alert status catered to each database storage engine
- * Support output via OpenTSDB HTTP/JSON
- * Test cross-format metric output (graphite->OpenTSDB,influx), (OpenTSDB->influx,graphite), (influx->OpenTSDB,graphite)
+ * Limit total time spent in output module?
+ * Alert status output not catered to each database storage engine
+ * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
    * Make optional output HTTP error response bodies to log file
-   * Optional sanitize of Graphite & OpenTSDB metrics on outputting
 
 Short/Medium term
+ * InfluxDB 0.9+ support
+ * Support 'no timestamp' on Graphite metrics
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine
@@ -31,7 +31,7 @@ Short/Medium term
    * (optional) Limit metric-key length displayed in StatsAgg WebUI
    * (optional) Limit metric group association count
    * (optional) Limit max # datapoints for in memory for a single metric-key
-   * (optional) Maximum concurrently running output-threads
+   * (optional) Maximum concurrently running output-threads on a per output-module basis
    * (optional) Incoming metric rate limits
    * (optional) Output-thread timeout
    * Cleanup metrics after... (currently hardcoded to 24hrs)

@@ -16,10 +16,17 @@
 package com.pearson.statsagg.database.metric_group;
 
 import com.pearson.statsagg.controller.ContextManager;
+import com.pearson.statsagg.database.metric_group.MetricGroup;
+import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database.notifications.NotificationGroup;
+import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.webui.AlertsLogic;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
+import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.io.InputStream;
+import java.math.BigDecimal;
+import java.sql.Timestamp;
 import java.util.TreeSet;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -44,6 +51,7 @@ public class MetricGroupsDaoTest extends Mockito {
     private static final JSONObject mockMetricGroupsJson = new JSONObject();
     private static final Logger logger = LoggerFactory.getLogger(AlertsLogic.class.getName());
     private final MetricGroup metricGroup_ = null;
+    private static final String metricGroupName_ = "JUnit - MetricGroup for AlertsLogicTest";
     private final MetricGroupsLogic metricGroupsLogic_ = new MetricGroupsLogic();
     
     @BeforeClass
@@ -56,13 +64,13 @@ public class MetricGroupsDaoTest extends Mockito {
         JSONArray mockMetricGroupsList = new JSONArray();
         JSONObject mockMetric = new JSONObject();
         
-        mockMetric.put("name", "metric test group 1");
+        mockMetric.put("name", "metricgroup junit_test 1");
         mockMetric.put("id", "1");
         mockMetricGroupsList.add(mockMetric);
         
         mockMetric = new JSONObject();
         
-        mockMetric.put("name", "metric test group 2");
+        mockMetric.put("name", "metricgroup junit_test 2");
         mockMetric.put("id", "2");
         mockMetricGroupsList.add(mockMetric);
              
@@ -77,29 +85,23 @@ public class MetricGroupsDaoTest extends Mockito {
     
     @Before
     public void setUp() {
-
+        
     }
     
     @After
     public void tearDown() {
         // delete a metric group that was inserted into the database from a previous test. verify that it was deleted.
-        String result = metricGroupsLogic_.deleteRecordInDatabase("metric test group 1");
+        String result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test 1");
         assertTrue(result.contains("success") || result.contains("Metric group not found"));
         
         // delete a metric group that was inserted into the database from a previous test. verify that it was deleted.
-        result = metricGroupsLogic_.deleteRecordInDatabase("metric test group 2");
-        assertTrue(result.contains("success") || result.contains("Metric group not found"));
-        
-        result = metricGroupsLogic_.deleteRecordInDatabase("metric test group 2");
-        assertTrue(result.contains("success") || result.contains("Metric group not found"));
-        
-        result = metricGroupsLogic_.deleteRecordInDatabase("metric test group 2");
+        result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test 2");
         assertTrue(result.contains("success") || result.contains("Metric group not found"));
     }
 
     @Test
     public void testGetMetricGroups() {
-        MetricGroup metricGroup1 = new MetricGroup(-1, "metric test group 1", "this is a junit test 1");
+        MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test 1", "this is a junit test 1");
         TreeSet<String> matchRegexes1 = new TreeSet<>();
         matchRegexes1.add(".*junit_1_1.*");
         matchRegexes1.add(".*junit_1_2.*");
@@ -112,7 +114,7 @@ public class MetricGroupsDaoTest extends Mockito {
         assertTrue(result.contains("Success"));
        
         // create a second metric group & insert it into the db. also check to see if inserting blacklist regexes works.
-        MetricGroup metricGroup2 = new MetricGroup(-1, "metric test group 2", "this is a junit test 2");
+        MetricGroup metricGroup2 = new MetricGroup(-1, "metricgroup junit_test 2", "this is a junit test 2");
         TreeSet<String> matchRegexes2 = new TreeSet<>();
         matchRegexes2.add(".*junit_2_2.*");
         matchRegexes2.add(".*junit_2_1.*");
@@ -125,13 +127,12 @@ public class MetricGroupsDaoTest extends Mockito {
         tags2.add("tag2_2");
         tags2.add("tag2_3");
         
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2);
+        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2, metricGroup2.getName());
         assertTrue(result.contains("Success"));
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
+        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         JSONObject resultMetricGroups = metricGroupsDao.getMetricGroups(0, 10);
-        assertEquals(mockMetricGroupsJson.get("count"), resultMetricGroups.get("count"));
-        metricGroupsDao.close();
+        assertEquals(mockMetricGroupsJson, resultMetricGroups);
     }
     
     @Test

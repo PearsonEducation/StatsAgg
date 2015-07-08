@@ -1,8 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToInfluxdbV1ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToOpenTsdbThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -132,10 +130,12 @@ public class StatsdAggregationThread implements Runnable {
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart;                 
 
             // send metrics to output modules
-            SendToGraphiteThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregatedMerged, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregatedMerged, false, threadId_);
-            SendToOpenTsdbThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregatedMerged, false, threadId_);
-            SendToInfluxdbV1ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
+            if (!statsdMetricsAggregatedMerged.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregatedMerged, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregatedMerged, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregatedMerged, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
+            }
             
             // total time for this thread took to aggregate the metrics
             long timeAggregationTimeElasped = System.currentTimeMillis() - timeAggregationTimeStart - waitInMsCounter;

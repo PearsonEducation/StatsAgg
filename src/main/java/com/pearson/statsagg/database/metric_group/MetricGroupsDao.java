@@ -192,7 +192,6 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         
     }
     
-    
     public List<String> getMetricGroupNames(String filter, int resultSetLimit) {
         
         try {

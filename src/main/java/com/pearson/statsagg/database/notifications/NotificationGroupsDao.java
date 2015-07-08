@@ -330,4 +330,5 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
             databaseInterface_.cleanupAutomatic();
         } 
     }    
+    
 }

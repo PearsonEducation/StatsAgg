@@ -1,5 +1,7 @@
 package com.pearson.statsagg.controller;
 
+import com.pearson.statsagg.controller.thread_managers.SendEmail_ThreadPoolManager;
+import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import com.pearson.statsagg.controller.threads.InvokerThread;
 import com.pearson.statsagg.controller.threads.GraphitePassthroughInvokerThread;
 import com.pearson.statsagg.controller.threads.StatsdAggregationInvokerThread;
@@ -29,8 +31,6 @@ import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
-import com.pearson.statsagg.controller.threads.SendEmailThreadPoolManager;
-import com.pearson.statsagg.controller.threads.SendToGraphiteThreadPoolManager;
 import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.gauges.Gauge;
@@ -114,7 +114,7 @@ public class ContextManager implements ServletContextListener {
         
         shutdownInvokerThreads();
         
-        shutdownSendToGraphiteThreadPool();
+        shutdownSendToOutputModuleThreadPoolManager();
                 
         shutdownSendEmailThreadPool();
         
@@ -165,13 +165,13 @@ public class ContextManager implements ServletContextListener {
         // start the thread pool that is responsible for sending alert emails 
         startSendEmailThreadPool();
         
-        // start the thread pool that is responsible for threads sending metrics to graphite 
-        startSendToGraphiteThreadPool();
+        // start the thread pool that is responsible for threads sending metrics to the various output modules 
+        startSendToOutputModuleThreadPoolManager();
         
         // set last alert executed routine timestamp to '0', which indicates to the rest of the program that it has never been executed
         GlobalVariables.alertRountineLastExecutedTimestamp.set(0);
         
-        // starts the thread that calls the statsd & graphite aggregation routines on a timer (specified in the application config file)
+        // starts the threads that calls the aggregation routines on a timer (specified in the application config file)
         statsdAggregationInvokerThread_ = new StatsdAggregationInvokerThread();
         Thread statsdAggregationInvokerThread = new Thread(statsdAggregationInvokerThread_);
         statsdAggregationInvokerThread.start();
@@ -558,20 +558,16 @@ public class ContextManager implements ServletContextListener {
     
     public static void createInfluxdbMetricPrefix() {
         StringBuilder prefixBuilder = new StringBuilder();
-        StringBuilder prefixBuilder_Influxdb = new StringBuilder();
 
         if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled() && (ApplicationConfiguration.getGlobalMetricNamePrefixValue() != null)) {
             prefixBuilder.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
-            prefixBuilder_Influxdb.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue());
         }
         
         if (ApplicationConfiguration.isInfluxdbMetricNamePrefixEnabled() && (ApplicationConfiguration.getInfluxdbMetricNamePrefixValue() != null)) {
             prefixBuilder.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue()).append(".");
-            prefixBuilder_Influxdb.append(ApplicationConfiguration.getInfluxdbMetricNamePrefixValue());
         }
 
-        GlobalVariables.influxdbPeriodDelimitedPrefix = prefixBuilder.toString();
-        GlobalVariables.influxdbPrefix = prefixBuilder_Influxdb.toString();
+        GlobalVariables.influxdbPrefix = prefixBuilder.toString();
     }
     
     private static long readMetricLastSeenFromDatabaseAndAddToGlobalVariables() {
@@ -717,12 +713,12 @@ public class ContextManager implements ServletContextListener {
         return isStartupSuccess;
     }
     
-    private void startSendToGraphiteThreadPool() {
-        SendToGraphiteThreadPoolManager.start();
+    private void startSendToOutputModuleThreadPoolManager() {
+        SendMetricsToOutputModule_ThreadPoolManager.start();
     }
     
     private void startSendEmailThreadPool() {
-        SendEmailThreadPoolManager.start();
+        SendEmail_ThreadPoolManager.start();
     }
     
     private void shutdownServerListeners() {
@@ -825,19 +821,15 @@ public class ContextManager implements ServletContextListener {
         logger.info("Finish - shutting down invoker threads");
     }
     
-    private void shutdownSendToGraphiteThreadPool() {
-        logger.info("Start - shutting down 'send to graphite' thread pool");
-        
-        SendToGraphiteThreadPoolManager.shutdown();
-        
-        logger.info("Finish - shutting down 'send to graphite' thread pool");
+    private void shutdownSendToOutputModuleThreadPoolManager() {
+        logger.info("Start - shutting down 'send to output modules' thread pool");
+        SendMetricsToOutputModule_ThreadPoolManager.shutdown();
+        logger.info("Finish - shutting down 'send to output modules' thread pool");
     }
     
     private void shutdownSendEmailThreadPool() {
         logger.info("Start - shutting down 'send email' thread pool");
-        
-        SendEmailThreadPoolManager.shutdown();
-        
+        SendEmail_ThreadPoolManager.shutdown();
         logger.info("Finish - shutting down 'send email' thread pool");
     }
         

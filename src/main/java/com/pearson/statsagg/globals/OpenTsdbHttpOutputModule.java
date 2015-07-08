@@ -14,12 +14,16 @@ public class OpenTsdbHttpOutputModule {
     private final String url_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
+    private final boolean sanitizeMetrics_;
+    private final String uniqueId_;
     
-    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage) {
+    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage, boolean sanitizeMetrics, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
         this.url_ = url;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
+        this.sanitizeMetrics_ = sanitizeMetrics;
+        this.uniqueId_ = uniqueId;
     }
 
     public boolean isOutputEnabled() {
@@ -36,6 +40,14 @@ public class OpenTsdbHttpOutputModule {
 
     public int getMaxMetricsPerMessage() {
         return maxMetricsPerMessage_;
+    }
+
+    public boolean isSanitizeMetrics() {
+        return sanitizeMetrics_;
+    }
+    
+    public String getUniqueId() {
+        return uniqueId_;
     }
     
 }
