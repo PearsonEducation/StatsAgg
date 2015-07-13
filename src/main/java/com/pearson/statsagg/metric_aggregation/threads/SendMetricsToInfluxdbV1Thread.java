@@ -159,10 +159,17 @@ public class SendMetricsToInfluxdbV1Thread extends SendMetricsToOutputModuleThre
                 
                 HttpRequest httpRequest = new HttpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, 
                         "UTF-8", "POST", connectTimeoutInMs_, readTimeoutInMs_, numSendRetries_, true);
-                currentHttpRequest_ = httpRequest;
-                String response = httpRequest.makeRequest();
                 
-                if (response == null) isAllSendSuccess = false;
+                currentHttpRequest_ = httpRequest;
+                httpRequest.makeRequest();
+                
+                if (httpRequest.didEncounterConnectionError() && httpRequest.didHitRetryAttemptLimit() && !httpRequest.isHttpRequestSuccess()) {
+                    isAllSendSuccess = false;
+                    logger.error("Aborting InfluxDB V1 output. Couldn't connect to InfluxDB HTTP endpoint. Endpoint=\"" + outputEndpoint_ + "\"");
+                    break;
+                }
+                
+                if (!httpRequest.isHttpRequestSuccess()) isAllSendSuccess = false;
             }
             else {
                 isAllSendSuccess = false;
@@ -201,10 +208,17 @@ public class SendMetricsToInfluxdbV1Thread extends SendMetricsToOutputModuleThre
                 
                 HttpRequest httpRequest = new HttpRequest(influxdbFullUrl, influxdbHttpHeaderProperties, influxdbMetricJson, 
                         "UTF-8", "POST", connectTimeoutInMs_, readTimeoutInMs_, numSendRetries_, true);
-                currentHttpRequest_ = httpRequest;
-                String response = httpRequest.makeRequest();
                 
-                if (response == null) isAllSendSuccess = false;
+                currentHttpRequest_ = httpRequest;
+                httpRequest.makeRequest();
+                
+                if (httpRequest.didEncounterConnectionError() && httpRequest.didHitRetryAttemptLimit() && !httpRequest.isHttpRequestSuccess()) {
+                    isAllSendSuccess = false;
+                    logger.error("Aborting InfluxDB V1 output. Couldn't connect to InfluxDB HTTP endpoint. Endpoint=\"" + outputEndpoint_ + "\"");
+                    break;
+                }
+                
+                if (!httpRequest.isHttpRequestSuccess()) isAllSendSuccess = false;
             }
             else {
                 isAllSendSuccess = false;
@@ -255,7 +269,7 @@ public class SendMetricsToInfluxdbV1Thread extends SendMetricsToOutputModuleThre
 
         // create the influxdb url query string parameters
         if ((influxdbMetric.getUsername() != null) || (influxdbMetric.getPassword() != null) || 
-                (influxdbMetric.getTimePrecisionCode() != InfluxdbMetric_v1.TIMESTAMP_PRECISION_UNKNOWN)) {
+                (influxdbMetric.getTimePrecisionCode() != com.pearson.statsagg.metric_formats.influxdb.Common.TIMESTAMP_PRECISION_UNKNOWN)) {
             influxdbUrl.append("?");
         }
 
@@ -264,11 +278,11 @@ public class SendMetricsToInfluxdbV1Thread extends SendMetricsToOutputModuleThre
         if (influxdbMetric.getPassword() != null) influxdbUrl.append("p=").append(HttpUtils.urlEncode(influxdbMetric.getPassword(), "UTF-8"));
 
         if (((influxdbMetric.getUsername() != null) || (influxdbMetric.getPassword() != null)) && 
-                (influxdbMetric.getTimePrecisionCode() != InfluxdbMetric_v1.TIMESTAMP_PRECISION_UNKNOWN)) {
+                (influxdbMetric.getTimePrecisionCode() != com.pearson.statsagg.metric_formats.influxdb.Common.TIMESTAMP_PRECISION_UNKNOWN)) {
             influxdbUrl.append("&");
         }
 
-        if (influxdbMetric.getTimePrecisionCode() != InfluxdbMetric_v1.TIMESTAMP_PRECISION_UNKNOWN) {
+        if (influxdbMetric.getTimePrecisionCode() != com.pearson.statsagg.metric_formats.influxdb.Common.TIMESTAMP_PRECISION_UNKNOWN) {
             String timePrecisionString = InfluxdbMetric_v1.getTimePrecisionStringFromTimePrecisionCode(influxdbMetric.getTimePrecisionCode());
             if (timePrecisionString != null) influxdbUrl.append("time_precision=").append(timePrecisionString);
         }

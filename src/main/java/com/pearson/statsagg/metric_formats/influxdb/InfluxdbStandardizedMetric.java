@@ -16,9 +16,9 @@ import org.slf4j.LoggerFactory;
  * 
  * This object is intended to be compatible with the InfluxDB format used in InfluxDB v0.6x, v0.7x, v0.8x
  */
-public class InfluxdbStandardizedMetric_v1 implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
+public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
-    private static final Logger logger = LoggerFactory.getLogger(InfluxdbStandardizedMetric_v1.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(InfluxdbStandardizedMetric.class.getName());
 
     private long hashKey_ = -1;
     
@@ -35,7 +35,7 @@ public class InfluxdbStandardizedMetric_v1 implements GraphiteMetricFormat, Open
     private final ArrayList<String> columns_;
     private final ArrayList<Object> point_;
     
-    public InfluxdbStandardizedMetric_v1(String metricKey, String metricDatabase, String metricPrefix, 
+    public InfluxdbStandardizedMetric(String metricKey, String metricDatabase, String metricPrefix, 
             String metricName, String metricValueName, BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds,
             ArrayList<String> columns, ArrayList<Object> point) {
         this.metricKey_ = metricKey;

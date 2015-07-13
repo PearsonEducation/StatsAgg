@@ -84,7 +84,7 @@ public class GraphiteAggregationThread implements Runnable {
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetricsAggregated, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetricsAggregated, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetricsAggregated, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(graphiteMetricsAggregated, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(graphiteMetricsAggregated, threadId_);
             }
             
             // total time for this thread took to aggregate the metrics

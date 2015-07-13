@@ -5,7 +5,6 @@ import java.util.Calendar;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.DateAndTime;
-import java.io.File;
 import java.io.InputStream;
 import org.junit.After;
 import org.junit.AfterClass;

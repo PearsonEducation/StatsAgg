@@ -4,7 +4,6 @@ import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database.DatabaseObjectDao;
-import com.pearson.statsagg.database.alerts.AlertsSql;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.json.simple.JSONArray;

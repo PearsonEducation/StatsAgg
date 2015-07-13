@@ -28,7 +28,7 @@ import static org.junit.Assert.*;
  *
  * @author Jeffrey Schmidt
  */
-public class InfluxdbStandardizedMetric_v1Test {
+public class InfluxdbStandardizedMetric_Test {
     
     private String json1_ = "" +
                 "[\n" +
@@ -53,11 +53,11 @@ public class InfluxdbStandardizedMetric_v1Test {
             "  }\n" +
             "]";    
     
-    private InfluxdbStandardizedMetric_v1 influxdbMetric1;
-    private InfluxdbStandardizedMetric_v1 influxdbMetric2;
-    private InfluxdbStandardizedMetric_v1 influxdbMetric3;
+    private InfluxdbStandardizedMetric influxdbMetric1;
+    private InfluxdbStandardizedMetric influxdbMetric2;
+    private InfluxdbStandardizedMetric influxdbMetric3;
 
-    public InfluxdbStandardizedMetric_v1Test() {
+    public InfluxdbStandardizedMetric_Test() {
     }
     
     @BeforeClass
@@ -91,7 +91,7 @@ public class InfluxdbStandardizedMetric_v1Test {
     }
 
     /**
-     * Test of getGraphiteFormatString method, of class InfluxdbStandardizedMetric_v1.
+     * Test of getGraphiteFormatString method, of class InfluxdbStandardizedMetric.
      */
     @Test
     public void testGetGraphiteFormatString() {
@@ -115,7 +115,7 @@ public class InfluxdbStandardizedMetric_v1Test {
     }
 
     /**
-     * Test of getOpenTsdbTelnetFormatString method, of class InfluxdbStandardizedMetric_v1.
+     * Test of getOpenTsdbTelnetFormatString method, of class InfluxdbStandardizedMetric.
      */
     @Test
     public void testGetOpenTsdbTelnetFormatString() {
@@ -137,7 +137,7 @@ public class InfluxdbStandardizedMetric_v1Test {
     }
 
     /**
-     * Test of getOpenTsdbJsonFormatString method, of class InfluxdbStandardizedMetric_v1.
+     * Test of getOpenTsdbJsonFormatString method, of class InfluxdbStandardizedMetric.
      */
     @Test
     public void testGetOpenTsdbJsonFormatString() {

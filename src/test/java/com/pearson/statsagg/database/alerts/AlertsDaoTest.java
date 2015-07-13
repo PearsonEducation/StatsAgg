@@ -41,7 +41,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author prashant4nov
  */
 public class AlertsDaoTest  {
@@ -181,4 +180,5 @@ public class AlertsDaoTest  {
         resultAlerts = new AlertsDao().getAlerts(115600, 34);
         assertEquals(mockAlertsJsonNoAlert, resultAlerts);
     }
+    
 }

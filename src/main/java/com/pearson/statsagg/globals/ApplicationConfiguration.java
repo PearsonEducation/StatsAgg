@@ -94,8 +94,8 @@ public class ApplicationConfiguration {
     private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
     private static boolean alertSendEmailEnabled_ = false;  
     private static int alertMaxMetricsInEmail_ = VALUE_NOT_SET_CODE;
-    private static boolean alertOutputAlertStatusToGraphite_ = false;
-    private static String alertOutputAlertStatusToGraphiteMetricPrefix_ = null;
+    private static boolean alertOutputStatus_ = false;
+    private static String alertOutputStatusMetricPrefix_ = null;
     private static String alertStatsAggLocation_ = null;
     private static long alertWaitTimeAfterRestart_ = VALUE_NOT_SET_CODE;
     private static String alertSmtpHost_ = null;
@@ -110,9 +110,10 @@ public class ApplicationConfiguration {
 
     private static final List<HttpLink> customActionUrls_ = new ArrayList<>();
     
-    private static int outputModuleMaxConnectTime = VALUE_NOT_SET_CODE;
-    private static int outputModuleMaxReadTime = VALUE_NOT_SET_CODE;
-    private static int outputModuleMaxTotalOutputThreads = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxConnectTime_ = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxReadTime_ = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxConcurrentThreads_ = VALUE_NOT_SET_CODE;
+    private static int outputModuleMaxConcurrentThreadsForSingleModule_ = VALUE_NOT_SET_CODE;
     
     public static boolean initialize(InputStream configurationInputStream, boolean isUsingDefaultSettings) {
         
@@ -216,8 +217,8 @@ public class ApplicationConfiguration {
             alertRoutineInterval_ = applicationConfiguration_.safeGetInteger("alert_routine_interval", 5000);
             alertSendEmailEnabled_ = applicationConfiguration_.safeGetBoolean("alert_send_email_enabled", false);
             alertMaxMetricsInEmail_ = applicationConfiguration_.safeGetInteger("alert_max_metrics_in_email", 100);
-            alertOutputAlertStatusToGraphite_ = applicationConfiguration_.safeGetBoolean("alert_output_alert_status_to_graphite", true);
-            alertOutputAlertStatusToGraphiteMetricPrefix_ = applicationConfiguration_.safeGetString("alert_output_alert_status_to_graphite_metric_prefix", "StatsAgg-Alerts");
+            alertOutputStatus_ = applicationConfiguration_.safeGetBoolean("alert_output_status", true);
+            alertOutputStatusMetricPrefix_ = applicationConfiguration_.safeGetString("alert_output_status_metric_prefix", "StatsAgg-Alerts");
             alertStatsAggLocation_ = applicationConfiguration_.safeGetString("alert_statsagg_location", "");
             alertWaitTimeAfterRestart_ = applicationConfiguration_.safeGetInteger("alert_wait_time_after_restart", 120000);
                     
@@ -235,10 +236,11 @@ public class ApplicationConfiguration {
             customActionUrls_.addAll(readCustomActionUrls());
                     
             // advanced
-            outputModuleMaxConnectTime = applicationConfiguration_.safeGetInteger("output_module_max_connect_time", 3000);
-            outputModuleMaxReadTime = applicationConfiguration_.safeGetInteger("output_module_max_read_time", 120000);
-            outputModuleMaxTotalOutputThreads = applicationConfiguration_.safeGetInteger("output_module_max_total_output_threads", 25);
-            
+            outputModuleMaxConnectTime_ = applicationConfiguration_.safeGetInteger("output_module_max_connect_time", 3000);
+            outputModuleMaxReadTime_ = applicationConfiguration_.safeGetInteger("output_module_max_read_time", 120000);
+            outputModuleMaxConcurrentThreads_ = applicationConfiguration_.safeGetInteger("output_module_max_concurrent_threads", 25);
+            outputModuleMaxConcurrentThreadsForSingleModule_ = applicationConfiguration_.safeGetInteger("output_module_max_concurrent_threads_for_single_module", 10);
+
             return true;
         }
         catch (Exception e) {
@@ -726,12 +728,12 @@ public class ApplicationConfiguration {
         return alertMaxMetricsInEmail_;
     }
     
-    public static boolean isAlertOutputAlertStatusToGraphite() {
-        return alertOutputAlertStatusToGraphite_;
+    public static boolean isAlertOutputStatus() {
+        return alertOutputStatus_;
     }
 
-    public static String getAlertOutputAlertStatusToGraphiteMetricPrefix() {
-        return alertOutputAlertStatusToGraphiteMetricPrefix_;
+    public static String getAlertOutputStatusMetricPrefix() {
+        return alertOutputStatusMetricPrefix_;
     }
 
     public static String getAlertStatsAggLocation() {
@@ -783,15 +785,19 @@ public class ApplicationConfiguration {
     }
 
     public static int getOutputModuleMaxConnectTime() {
-        return outputModuleMaxConnectTime;
+        return outputModuleMaxConnectTime_;
     }
 
     public static int getOutputModuleMaxReadTime() {
-        return outputModuleMaxReadTime;
+        return outputModuleMaxReadTime_;
     }
 
-    public static int getOutputModuleMaxTotalOutputThreads() {
-        return outputModuleMaxTotalOutputThreads;
+    public static int getOutputModuleMaxConcurrentThreads() {
+        return outputModuleMaxConcurrentThreads_;
+    }
+
+    public static int getOutputModuleMaxConcurrentThreadsForSingleModule() {
+        return outputModuleMaxConcurrentThreadsForSingleModule_;
     }
 
 }

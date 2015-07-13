@@ -22,6 +22,9 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTag;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
@@ -125,11 +128,7 @@ public class AlertThread implements Runnable {
                 alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
                 
                 // generate alert statuses for output, and send to enabled output modules
-                List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForGraphite, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForGraphite, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(alertStatusMetricsForGraphite, threadId_);
+                sendAlertStatusesToOutputModules(alerts);
             }
         }
 
@@ -212,6 +211,26 @@ public class AlertThread implements Runnable {
         
         // updates all global variables related to the alert-routine
         updateAlertGlobalVariables();
+    }
+    
+    private void sendAlertStatusesToOutputModules(List<Alert> alerts) {
+        
+        if (SendMetricsToOutputModule_ThreadPoolManager.isAnyGraphiteOutputModuleEnabled()) {
+            List<GraphiteMetric> alertStatusMetricsForGraphite = generateAlertStatusMetricsForGraphite(alerts);
+            SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(alertStatusMetricsForGraphite, threadId_);
+        }
+
+        if (SendMetricsToOutputModule_ThreadPoolManager.isAnyOpenTsdbTelnetOutputModuleEnabled() || SendMetricsToOutputModule_ThreadPoolManager.isAnyOpenTsdbHttpOutputModuleEnabled()) {
+            List<OpenTsdbMetric> alertStatusMetricsForOpenTsdb = generateAlertStatusMetricsForOpenTsdb(alerts);
+            SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(alertStatusMetricsForOpenTsdb, threadId_);
+            SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(alertStatusMetricsForOpenTsdb, threadId_);
+        }       
+
+        if (SendMetricsToOutputModule_ThreadPoolManager.isAnyInfluxdbV1HttpOutputModuleEnabled()) {
+            List<InfluxdbMetric_v1> alertStatusMetricsForInfluxdb = generateAlertStatusMetricsForInfluxdbV1(alerts);
+            SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_Native(alertStatusMetricsForInfluxdb, threadId_);
+        }
+        
     }
     
     private void removeDisabledActiveAvailabilityAlerts(List<Alert> alerts) {
@@ -1642,35 +1661,113 @@ public class AlertThread implements Runnable {
         
         long timestamp = System.currentTimeMillis();
 
-        List<GraphiteMetric> alertStatusGraphiteMetrics = new ArrayList<>();
-        Set<String> alertStatusGraphiteMetricNames = new HashSet<>();
+        List<GraphiteMetric> alertStatusMetrics = new ArrayList<>();
+        Set<String> alertStatusMetricNames = new HashSet<>();
 
         for (Alert alert : alerts) {
             if ((alert.getName() == null) || (alert.getId() == null)) continue;
             
-            BigDecimal alertGraphiteMetricValue;
+            StringBuilder formattedAlertName = new StringBuilder();
+            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) formattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            if (ApplicationConfiguration.isAlertOutputStatus()) formattedAlertName.append(ApplicationConfiguration.getAlertOutputStatusMetricPrefix()).append(".");
+            formattedAlertName.append(GraphiteMetric.getGraphiteSanitizedString(alert.getName(), true, true));
+            formattedAlertName.append("~~").append(alert.getId());
+            while(alertStatusMetricNames.contains(formattedAlertName.toString())) formattedAlertName.append("+"); // correct for duplicate names by adding a '+' sign to the end of the alert name
+            String formattedAlertName_Final = formattedAlertName.toString();
+            alertStatusMetricNames.add(formattedAlertName_Final);
+            
+            BigDecimal alertStatusValue;
+            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(3);
+            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(2);
+            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(1);
+            else alertStatusValue = BigDecimal.ZERO;
 
-            StringBuilder graphiteFormattedAlertName = new StringBuilder();
-            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) graphiteFormattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
-            if (ApplicationConfiguration.isAlertOutputAlertStatusToGraphite()) graphiteFormattedAlertName.append(ApplicationConfiguration.getAlertOutputAlertStatusToGraphiteMetricPrefix()).append(".");
-            graphiteFormattedAlertName.append(GraphiteMetric.getGraphiteSanitizedString(alert.getName(), true, true));
-            graphiteFormattedAlertName.append("~~").append(alert.getId());
-            
-            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(3);
-            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(2);
-            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertGraphiteMetricValue = new BigDecimal(1);
-            else alertGraphiteMetricValue = BigDecimal.ZERO;
-            
-            // correct for duplicate names by adding a '+' sign to the end of the alert name
-            while(alertStatusGraphiteMetricNames.contains(graphiteFormattedAlertName.toString())) graphiteFormattedAlertName.append("+");
-            
-            String graphiteFormattedAlertName_Final = graphiteFormattedAlertName.toString();
-            alertStatusGraphiteMetricNames.add(graphiteFormattedAlertName_Final);
-            GraphiteMetric graphiteMetric = new GraphiteMetric(graphiteFormattedAlertName_Final, alertGraphiteMetricValue, timestamp, timestamp);
-            alertStatusGraphiteMetrics.add(graphiteMetric);
+            GraphiteMetric graphiteMetric = new GraphiteMetric(formattedAlertName_Final, alertStatusValue, timestamp, timestamp);
+            alertStatusMetrics.add(graphiteMetric);
         }
         
-        return alertStatusGraphiteMetrics;
+        return alertStatusMetrics;
+    }
+    
+    public List<OpenTsdbMetric> generateAlertStatusMetricsForOpenTsdb(List<Alert> alerts) {
+        
+        if ((alerts == null) || alerts.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        long timestamp = System.currentTimeMillis();
+
+        List<OpenTsdbMetric> alertStatusMetrics = new ArrayList<>();
+        Set<String> alertStatusMetricNames = new HashSet<>();
+
+        for (Alert alert : alerts) {
+            if ((alert.getName() == null) || (alert.getId() == null)) continue;
+            
+            StringBuilder formattedAlertName = new StringBuilder();
+            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) formattedAlertName.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            if (ApplicationConfiguration.isAlertOutputStatus()) formattedAlertName.append(ApplicationConfiguration.getAlertOutputStatusMetricPrefix()).append(".");
+            formattedAlertName.append(OpenTsdbMetric.getOpenTsdbSanitizedString(alert.getName()));
+            while(alertStatusMetricNames.contains(formattedAlertName.toString())) formattedAlertName.append("-"); // correct for duplicate names by adding a '-' sign to the end of the alert name
+            String formattedAlertName_Final = formattedAlertName.toString();
+            alertStatusMetricNames.add(formattedAlertName_Final);
+
+            BigDecimal alertStatusValue;
+            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(3);
+            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(2);
+            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(1);
+            else alertStatusValue = BigDecimal.ZERO;
+            
+            List<OpenTsdbTag> tags = new ArrayList<>();
+            tags.add(new OpenTsdbTag("AlertId=" + alert.getId()));
+            
+            OpenTsdbMetric openTsdbMetric = new OpenTsdbMetric(formattedAlertName_Final, timestamp, alertStatusValue, tags, true, timestamp);
+            alertStatusMetrics.add(openTsdbMetric);
+        }
+        
+        return alertStatusMetrics;
+    }
+    
+    public List<InfluxdbMetric_v1> generateAlertStatusMetricsForInfluxdbV1(List<Alert> alerts) {
+        
+        if ((alerts == null) || alerts.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        long timestamp = System.currentTimeMillis();
+
+        List<InfluxdbMetric_v1> alertStatusMetrics = new ArrayList<>();
+
+        for (Alert alert : alerts) {
+            if ((alert.getName() == null) || (alert.getId() == null)) continue;
+            
+            StringBuilder namePrefix = new StringBuilder();
+            if (ApplicationConfiguration.isGlobalMetricNamePrefixEnabled()) namePrefix.append(ApplicationConfiguration.getGlobalMetricNamePrefixValue()).append(".");
+            if (ApplicationConfiguration.isAlertOutputStatus()) namePrefix.append(ApplicationConfiguration.getAlertOutputStatusMetricPrefix()).append(".");
+            
+            BigDecimal alertStatusValue;
+            if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId()) && activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(3);
+            else if (activeDangerAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(2);
+            else if (activeCautionAlertMetricKeysByAlertId_.containsKey(alert.getId())) alertStatusValue = new BigDecimal(1);
+            else alertStatusValue = BigDecimal.ZERO;
+            
+            ArrayList<String> columns = new ArrayList<>();
+            columns.add("AlertId");
+            columns.add("StatusCode");
+            
+            ArrayList<ArrayList<Object>> points = new ArrayList<>();
+            ArrayList<Object> point = new ArrayList<>();
+            point.add(alert.getId().toString());
+            point.add(alertStatusValue.longValue());
+            points.add(point);
+
+            InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(ApplicationConfiguration.getInfluxdbDefaultDatabaseName(), 
+                    ApplicationConfiguration.getInfluxdbDefaultDatabaseUsername(), ApplicationConfiguration.getInfluxdbDefaultDatabasePassword(), null,
+                    com.pearson.statsagg.metric_formats.influxdb.Common.TIMESTAMP_PRECISION_MILLISECONDS, 
+                    namePrefix.toString(), alert.getName(), columns, points, timestamp);
+            alertStatusMetrics.add(influxdbMetric);
+        }
+        
+        return alertStatusMetrics;
     }
     
 }

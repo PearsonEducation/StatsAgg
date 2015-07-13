@@ -14,6 +14,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
+ * 
+ * This class can be used to make arbitrary HTTP requests. 
+ * This class is NOT thread-safe, so you can't use it to make multiple concurrent requests. However, you can use it to make sequential requests.
  */
 public class HttpRequest {
     
@@ -34,6 +37,8 @@ public class HttpRequest {
     private InputStreamReader inputStreamReader_ = null;
     private BufferedReader bufferedReader_ = null;
     private String httpResponse_ = null;
+    private boolean didEncounterConnectionError_ = false;
+    private boolean isHttpRequestSuccess_ = false;
     
     private boolean continueRetrying_ = true;
     
@@ -67,6 +72,7 @@ public class HttpRequest {
     }
             
     // httpRequestMethod can be "GET", "POST", "PUT", etc
+    // returns the body of the http response (if there is one). if there was no response, or there was an error, this returns null
     public String makeRequest() {
         
         if (url_ == null) {
@@ -94,10 +100,14 @@ public class HttpRequest {
             return null;
         }
         
-        boolean isHttpRequestSuccess = false, didEncounterError = false;
+        httpResponse_ = null;
+        didEncounterConnectionError_ = false;
+        isHttpRequestSuccess_ = false;
         
-        for (retryAttemptCounter_ = -1; (retryAttemptCounter_ < numRetries_) && !isHttpRequestSuccess && continueRetrying_; retryAttemptCounter_++) {
+        for (retryAttemptCounter_ = -1; (retryAttemptCounter_ < numRetries_) && !isHttpRequestSuccess_ && continueRetrying_; retryAttemptCounter_++) {
             try {
+                boolean didEncounterError = false;
+                
                 URL connectionUrl = new URL(url_);
                 httpUrlConnection_ = (HttpURLConnection) connectionUrl.openConnection();
                 httpUrlConnection_.setConnectTimeout(connectTimeoutInMs_);
@@ -116,6 +126,18 @@ public class HttpRequest {
                     }
                     
                     httpUrlConnection_.setDoOutput(true);
+                }
+                
+                try {
+                    httpUrlConnection_.connect();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    didEncounterConnectionError_ = true;
+                    continue;
+                }
+                
+                if (httpRequestMethod_.equalsIgnoreCase("POST") || httpRequestMethod_.equalsIgnoreCase("PUT")) {
                     dataOutputStream_ = new DataOutputStream(httpUrlConnection_.getOutputStream());
                     dataOutputStream_.write(httpBody_);
                     dataOutputStream_.flush();
@@ -140,7 +162,7 @@ public class HttpRequest {
                 
                 bufferedReader_ = new BufferedReader(inputStreamReader_);
                 httpResponse_ = CharStreams.toString(bufferedReader_);
-                if (!didEncounterError) isHttpRequestSuccess = true;
+                if (!didEncounterError) isHttpRequestSuccess_ = true;
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -231,6 +253,10 @@ public class HttpRequest {
         return isAllRequestsSuccess;
     }
     
+    public boolean didHitRetryAttemptLimit() {
+        return retryAttemptCounter_ == numRetries_;
+    }
+    
     public int getRetryAttemptCounter() {
         return retryAttemptCounter_;
     }
@@ -253,6 +279,14 @@ public class HttpRequest {
 
     public String getHttpResponse() {
         return httpResponse_;
+    }
+
+    public boolean didEncounterConnectionError() {
+        return didEncounterConnectionError_;
+    }
+
+    public boolean isHttpRequestSuccess() {
+        return isHttpRequestSuccess_;
     }
 
     public boolean isContinueRetrying() {

@@ -134,7 +134,7 @@ public class StatsdAggregationThread implements Runnable {
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregatedMerged, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregatedMerged, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregatedMerged, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
             }
             
             // total time for this thread took to aggregate the metrics

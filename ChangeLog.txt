@@ -1,6 +1,6 @@
 StatsAgg 1.4  - released 2015-0x-xx
  * Added support for receiving & outputting InfluxDB metrics
-   * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported
+   * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported (just in time for it to be depreciated)
    * The metric format used in InfluxDB 0.9x will be supported in the next StatsAgg release
  * Added support for 'sanitizing' Graphite & OpenTSDB metrics on output. This setting is unique to each output module.
  * Metric groups can now 'blacklist' metrics via regular expressions. When a metric is 'blacklisted' in a metric group, it will not represent itself as being a match for the metric group (and therefore cannot be alerted on).
@@ -8,10 +8,19 @@ StatsAgg 1.4  - released 2015-0x-xx
    * Previously, StatsAgg could only output to OpenTSDB via telnet
  * Improved shutdown time & safety
  * For output modules, added configurable connection timeouts & read timeouts
- * Added the (configurable) ability to limit the maximum number of output modules.
-   * If one tries to initiate output to more output modules than is allowed, a warning will be thrown and the output request will be discarded.
- * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
+ * Improved timeout & retry behavior for all output modules
+ * Added the (configurable) ability to limit the maximum number of concurrently outputting output modules (spanning all output modules).
+   * If one tries to initiate and output module when the maximum number of concurrently output modules already running, then a warning will be thrown and the output request will be discarded.
+   * This helps safeguard StatsAgg from output endpoints that are experiencing availability or performance issues.
+ * Added the ability to limit the maximum number of currently outputting output modules for specific output modules (ex -- OpenTSDB HTTP #2).
+   * If one tries to initiate and output module when the maximum number of concurrently output modules already running (of that specific output module), then a warning will be thrown and the output request will be discarded.
+   * This helps safeguard StatsAgg from output endpoints that are experiencing availability or performance issues.
  * Removed the 'send previous metric' feature for Graphite, OpenTSDB, and InfluxDB metrics. It was recommended to be disabled, the data wasn't persisted, and it was hard to maintain, and no one used it. 
+ * The application configuration fields 'alert_output_alert_status_to_graphite' & 'alert_output_alert_status_to_graphite_metric_prefix' have been renamed to reflect that StatsAgg supports outputting to many database technologies.
+   * alert_output_alert_status_to_graphite -> alert_output_status 
+   * alert_output_alert_status_to_graphite_metric_prefix -> alert_output_status_metric_prefix
+   * If you have customized these fields, then you will have to rename the relevant field(s) in your application.properties file
+ * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
  

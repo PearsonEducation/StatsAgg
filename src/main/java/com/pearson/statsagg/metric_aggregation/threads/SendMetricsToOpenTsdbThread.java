@@ -198,9 +198,17 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
             if (openTsdbMetricJson != null) {
                 HttpRequest httpRequest = new HttpRequest(outputEndpoint_, OPENTSDB_HTTP_HEADER_PROPERTIES, openTsdbMetricJson, 
                         "UTF-8", "POST", connectTimeoutInMs_, readTimeoutInMs_, numSendRetries_, true);
-                String response = httpRequest.makeRequest();
+                
                 currentHttpRequest_ = httpRequest;
-                if (response == null) isAllSendSuccess = false;
+                httpRequest.makeRequest();
+                
+                if (httpRequest.didEncounterConnectionError() && httpRequest.didHitRetryAttemptLimit() && !httpRequest.isHttpRequestSuccess()) {
+                    isAllSendSuccess = false;
+                    logger.error("Aborting OpenTSDB HTTP output. Couldn't connect to OpenTSDB endpoint. Endpoint=\"" + outputEndpoint_ + "\"");
+                    break;
+                }
+                
+                if (!httpRequest.isHttpRequestSuccess()) isAllSendSuccess = false;
             }
             else {
                 isAllSendSuccess = false;

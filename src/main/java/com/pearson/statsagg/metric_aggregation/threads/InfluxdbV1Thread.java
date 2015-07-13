@@ -9,7 +9,7 @@ import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbStandardizedMetric_v1;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbStandardizedMetric;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.HashSet;
 import java.util.Set;
@@ -64,7 +64,7 @@ public class InfluxdbV1Thread implements Runnable {
             long createMetricsTimeStart = System.currentTimeMillis();
             List[] influxdbMetrics_OriginalAndStandardized = getCurrentInfluxdbMetricsAndRemoveMetricsFromGlobal();
             List<InfluxdbMetric_v1> influxdbMetrics = influxdbMetrics_OriginalAndStandardized[0];
-            List<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics = influxdbMetrics_OriginalAndStandardized[1];
+            List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics = influxdbMetrics_OriginalAndStandardized[1];
             removeMetricKeysFromInfluxdbStandardizedMetricsList(influxdbStandardizedMetrics, metricKeysToForget);
             long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
                     
@@ -82,7 +82,7 @@ public class InfluxdbV1Thread implements Runnable {
             if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics, threadId_);
             if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, threadId_);
             if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, threadId_);
-            if (!influxdbMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_Native(influxdbMetrics, threadId_);
+            if (!influxdbMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_Native(influxdbMetrics, threadId_);
                         
             // total time for this thread took to get & send the metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
@@ -104,7 +104,7 @@ public class InfluxdbV1Thread implements Runnable {
             else logger.info(aggregationStatistics);
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric : influxdbStandardizedMetrics) {
+                for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics) {
                     logger.info("InfluxDB metric= " + influxdbStandardizedMetric.toString());
                 }
             }
@@ -117,7 +117,7 @@ public class InfluxdbV1Thread implements Runnable {
     
     // gets influxdb metrics for this thread 
     // also removes metrics from the global influxdb metrics map (since they are being operated on by this thread)
-    // in the returned list, [0] is the 'InfluxdbMetric_v1' version of the metrics, and [1] is the 'InfluxdbStandardizedMetric_v1' version of the metrics
+    // in the returned list, [0] is the 'InfluxdbMetric_v1' version of the metrics, and [1] is the 'InfluxdbStandardizedMetric' version of the metrics
     private List[] getCurrentInfluxdbMetricsAndRemoveMetricsFromGlobal() {
 
         if (GlobalVariables.influxdbV1Metrics == null) {
@@ -126,7 +126,7 @@ public class InfluxdbV1Thread implements Runnable {
         
         List[] influxdbMetrics_OriginalAndStandardized = new List[2];
         List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList(GlobalVariables.influxdbV1Metrics.size());
-        List<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics = new ArrayList(GlobalVariables.influxdbV1Metrics.size());
+        List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics = new ArrayList(GlobalVariables.influxdbV1Metrics.size());
         influxdbMetrics_OriginalAndStandardized[0] = influxdbMetrics;
         influxdbMetrics_OriginalAndStandardized[1] = influxdbStandardizedMetrics;
         
@@ -137,7 +137,7 @@ public class InfluxdbV1Thread implements Runnable {
                 
                 if ((influxdbMetric.getInfluxdbStandardizedMetrics() == null) || influxdbMetric.getInfluxdbStandardizedMetrics().isEmpty()) continue;
 
-                for (InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric : influxdbMetric.getInfluxdbStandardizedMetrics()) {
+                for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbMetric.getInfluxdbStandardizedMetrics()) {
                     influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
                 }
             }
@@ -146,15 +146,15 @@ public class InfluxdbV1Thread implements Runnable {
         return influxdbMetrics_OriginalAndStandardized;
     }
     
-    public static void removeMetricKeysFromInfluxdbStandardizedMetricsList(List<InfluxdbStandardizedMetric_v1> influxdbStandardizedMetrics, Set<String> metricKeysToRemove) {
+    public static void removeMetricKeysFromInfluxdbStandardizedMetricsList(List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics, Set<String> metricKeysToRemove) {
         
         if ((influxdbStandardizedMetrics == null) || influxdbStandardizedMetrics.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
             return;
         }
         
-        Map<String,InfluxdbStandardizedMetric_v1> metricsMap = new HashMap<>();
+        Map<String,InfluxdbStandardizedMetric> metricsMap = new HashMap<>();
         
-        for (InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric : influxdbStandardizedMetrics) {
+        for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics) {
             String metricKey = influxdbStandardizedMetric.getMetricKey();
             if (metricKey != null) metricsMap.put(metricKey, influxdbStandardizedMetric);
         }

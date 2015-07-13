@@ -80,7 +80,7 @@ public class OpenTsdbThread implements Runnable {
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(openTsdbMetrics, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(openTsdbMetrics, threadId_);
                 SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(openTsdbMetrics, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbHttpOutputModules_NonNative(openTsdbMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(openTsdbMetrics, threadId_);
             }
             
             // total time for this thread took to get & send the metrics

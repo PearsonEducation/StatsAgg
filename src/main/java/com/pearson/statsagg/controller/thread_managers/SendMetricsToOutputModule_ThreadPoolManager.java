@@ -17,8 +17,8 @@ import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -35,18 +35,20 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
     
     private static final Logger logger = LoggerFactory.getLogger(SendMetricsToOutputModule_ThreadPoolManager.class.getName());
     
-    private static final Object lock_ = new Object();
+    private static final Object startupAndShutdownLock_ = new Object();
+    private static final Object outputModuleThreadTrackerLock_ = new Object();
     private static ExecutorService threadExecutor_ = null;
     private static final AtomicBoolean isOpenForBusiness = new AtomicBoolean(false);
     
     private static final AtomicLong threadIdGenerator = new AtomicLong(0);
-    private static final Map<Long,SendMetricsToOutputModule> sendMetricsToOutputModuleThreads = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<Long,SendMetricsToOutputModule> sendMetricsToOutputModuleThreads = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String,List<Long>> outputModuleThreadTracker = new ConcurrentHashMap<>();
     private static final AtomicBoolean continueRunningCleanup = new AtomicBoolean(false);
     
     private static Thread cleanupOutputThreads_Thread = null;
     
     public static void start() {
-        synchronized(lock_) {
+        synchronized(startupAndShutdownLock_) {
             if ((threadExecutor_ == null) || ((!threadExecutor_.isShutdown()) && (!threadExecutor_.isTerminated()))) {
                 threadExecutor_ = Executors.newCachedThreadPool();
                 isOpenForBusiness.set(true);
@@ -62,7 +64,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
     }
     
     public static void shutdown() {
-        synchronized(lock_) {
+        synchronized(startupAndShutdownLock_) {
             if (threadExecutor_ == null) {
                 return;
             }
@@ -85,29 +87,44 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
         }
     }
 
-    public static void executeThread(SendMetricsToOutputModuleThread sendMetricsToOutputModuleThread) {
+    public static void executeThread(SendMetricsToOutputModuleThread sendMetricsToOutputModuleThread, String outputModuleId) {
         
         if (sendMetricsToOutputModuleThread == null) return;
         
         try {
-            if (sendMetricsToOutputModuleThreads.size() >= ApplicationConfiguration.getOutputModuleMaxTotalOutputThreads()) {
+            if (sendMetricsToOutputModuleThreads.size() >= ApplicationConfiguration.getOutputModuleMaxConcurrentThreads()) {
                 logger.warn("Can't output because too many output threads are already running. ThreadId=\"" + sendMetricsToOutputModuleThread.getThreadId() + "\", "
                         + "OutputEndpoint=\"" + sendMetricsToOutputModuleThread.getOutputEndpoint() + "\"");
                 
                 return;
             }
             
-            if (isOpenForBusiness.get() && (threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) {
-                Thread sendMetricsToOutputModuleThread_Thread = new Thread(sendMetricsToOutputModuleThread);
+            synchronized(outputModuleThreadTrackerLock_) {
+                outputModuleThreadTracker.putIfAbsent(outputModuleId, Collections.synchronizedList(new ArrayList<Long>()));
+                List<Long> threadIdsAssociatedWithOutputModule = outputModuleThreadTracker.get(outputModuleId);
                 
-                threadExecutor_.execute(sendMetricsToOutputModuleThread_Thread);                
+                if (threadIdsAssociatedWithOutputModule.size() >= ApplicationConfiguration.getOutputModuleMaxConcurrentThreadsForSingleModule()) {
+                    logger.warn("Can't output because too many instances of a particular output module are already running. "
+                            + "ThreadId=\"" + sendMetricsToOutputModuleThread.getThreadId() + "\", "
+                            + "OutputEndpoint=\"" + sendMetricsToOutputModuleThread.getOutputEndpoint() + "\", "
+                            + "OutputModuleId=\"" + outputModuleId + "\"");
 
-                SendMetricsToOutputModule sendToOutputModule = new SendMetricsToOutputModule(sendMetricsToOutputModuleThread, sendMetricsToOutputModuleThread_Thread);
-                Long threadId = threadIdGenerator.getAndIncrement();
-                sendMetricsToOutputModuleThreads.put(threadId, sendToOutputModule);
-            }
-            else {
-                logger.warn("The thread pool is not in a state that can execute the requested thread.");
+                    return;
+                }
+                
+                if (isOpenForBusiness.get() && (threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) {
+                    Thread sendMetricsToOutputModuleThread_Thread = new Thread(sendMetricsToOutputModuleThread);
+
+                    threadExecutor_.execute(sendMetricsToOutputModuleThread_Thread);                
+
+                    SendMetricsToOutputModule sendToOutputModule = new SendMetricsToOutputModule(sendMetricsToOutputModuleThread, sendMetricsToOutputModuleThread_Thread);
+                    Long threadId = threadIdGenerator.getAndIncrement();
+                    threadIdsAssociatedWithOutputModule.add(threadId);
+                    sendMetricsToOutputModuleThreads.put(threadId, sendToOutputModule);
+                }
+                else {
+                    logger.warn("The thread pool is not in a state that can execute the requested thread.");
+                }
             }
         }
         catch (Exception e) {
@@ -136,8 +153,16 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                     
                     if ((sendMetricsToOutputModuleThread != null) && (sendMetricsToOutputModuleThread.isFinished() || sendMetricsToOutputModuleThread.isShuttingDown())) {
                         if ((sendMetricsToOutputModuleThread_Thread != null) && !sendMetricsToOutputModuleThread_Thread.isAlive()) {
+                            // remove the thread from the global track list of "how many total output modules are running"
                             sendMetricsToOutputModuleThreads.remove(threadId);
                             numThreadsCleanedUp++;
+                            
+                            // remove the thread from the per-output-module list of "how many of 'this particular' output modules are running"
+                            for (String outputModuleId : outputModuleThreadTracker.keySet()) {
+                                List<Long> threadIdsAssociatedWithOutputModule = outputModuleThreadTracker.get(outputModuleId);
+                                if (threadIdsAssociatedWithOutputModule == null) continue;
+                                threadIdsAssociatedWithOutputModule.remove(threadId);
+                            }
                         }
                     }
                 }
@@ -199,7 +224,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                         graphiteOutputModule.getHost(), graphiteOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),  
                         graphiteOutputModule.getNumSendRetryAttempts(), graphiteOutputModule.getMaxMetricsPerMessage(), threadId);
             
-                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToGraphiteThread);
+                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToGraphiteThread, graphiteOutputModule.getUniqueId());
             }
         }
         catch (Exception e) {
@@ -251,7 +276,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                         openTsdbTelnetOutputModule.getHost(), openTsdbTelnetOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),
                         ApplicationConfiguration.getOutputModuleMaxReadTime(), openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
                                 
-                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToTelnetOpenTsdbThread);
+                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToTelnetOpenTsdbThread, openTsdbTelnetOutputModule.getUniqueId());
             }
         }
         catch (Exception e) {
@@ -303,9 +328,9 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                 
                 SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbHttpOutputModule.isSanitizeMetrics(), url, 
                         ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
-                        openTsdbHttpOutputModule.getNumSendRetryAttempts(),openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
+                        openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                                 
-                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread);
+                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread, openTsdbHttpOutputModule.getUniqueId());
             }
         }
         catch (Exception e) {
@@ -348,7 +373,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
     Use this method to output 'non-native' InfluxDB metrics. 'Non-native' InfluxDB metrics are metrics that were NOT originally received by the InfluxDB listener.
     Ex -- Graphite, OpenTSDB, etc
     */
-    public static void sendMetricsToAllInfluxdbHttpOutputModules_NonNative(List<? extends InfluxdbMetricFormat_v1> influxdbMetrics, String threadId) {
+    public static void sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(List<? extends InfluxdbMetricFormat_v1> influxdbMetrics, String threadId) {
         
         try {
             List<InfluxdbV1HttpOutputModule> influxdbHttpOutputModules = ApplicationConfiguration.getInfluxdbV1HttpOutputModules();
@@ -364,7 +389,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                         ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
                         influxdbHttpOutputModule.getNumSendRetryAttempts(), influxdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                                 
-                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpInfluxdbThread);
+                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpInfluxdbThread, influxdbHttpOutputModule.getUniqueId());
             }
         }
         catch (Exception e) {
@@ -376,7 +401,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
     /* 
     Use this method to output 'native' InfluxDB metrics. 'Native' InfluxDB metrics are metrics that were originally received by the InfluxDB listener.
     */
-    public static void sendMetricsToAllInfluxdbHttpOutputModules_Native(List<InfluxdbMetric_v1> influxdbMetrics, String threadId) {
+    public static void sendMetricsToAllInfluxdbV1HttpOutputModules_Native(List<InfluxdbMetric_v1> influxdbMetrics, String threadId) {
         
         try {
             List<InfluxdbV1HttpOutputModule> influxdbHttpOutputModules = ApplicationConfiguration.getInfluxdbV1HttpOutputModules();
@@ -391,7 +416,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                         ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(), 
                         influxdbHttpOutputModule.getNumSendRetryAttempts(), threadId);
                 
-                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpInfluxdbThread);
+                SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpInfluxdbThread, influxdbHttpOutputModule.getUniqueId());
             }
         }
         catch (Exception e) {

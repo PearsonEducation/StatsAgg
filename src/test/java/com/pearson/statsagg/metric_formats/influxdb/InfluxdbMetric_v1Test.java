@@ -73,10 +73,10 @@ public class InfluxdbMetric_v1Test {
         System.out.println(influxdbJson);
         assertEquals(influxdbJson, expectedResult);
         
-        InfluxdbStandardizedMetric_v1 influxdbStandardizedMetric_v1 = influxdbMetrics.get(0).getInfluxdbStandardizedMetrics().get(0);
+        InfluxdbStandardizedMetric influxdbStandardizedMetric_v1 = influxdbMetrics.get(0).getInfluxdbStandardizedMetrics().get(0);
         assertEquals(influxdbStandardizedMetric_v1.getMetricKey(), "statsagg_db : global.local.metric_name_1 : column1 : \"column3\"=\"meta  1\" \"column4\"=\"meta  2\"");
         assertEquals(influxdbStandardizedMetric_v1.getMetricReceivedTimestampInMilliseconds(), currentTimeInMs);
-        assertEquals(influxdbStandardizedMetric_v1.getMetricTimestampPrecision(), InfluxdbMetric_v1.TIMESTAMP_PRECISION_MILLISECONDS);
+        assertEquals(influxdbStandardizedMetric_v1.getMetricTimestampPrecision(), Common.TIMESTAMP_PRECISION_MILLISECONDS);
         assertEquals(influxdbStandardizedMetric_v1.getMetricTimestamp(), 999991);
         assertEquals(influxdbStandardizedMetric_v1.getMetricTimestampInSeconds(), 999);
         assertEquals(influxdbStandardizedMetric_v1.getMetricPrefix(), "global.local.");

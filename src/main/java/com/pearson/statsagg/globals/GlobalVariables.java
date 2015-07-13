@@ -12,6 +12,7 @@ import com.pearson.statsagg.database.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v2;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
@@ -63,6 +64,7 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<Long,GraphiteMetric> graphitePassthroughMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,OpenTsdbMetric> openTsdbMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,InfluxdbMetric_v1> influxdbV1Metrics = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Long,InfluxdbMetric_v2> influxdbV2Metrics = new ConcurrentHashMap<>();
 
     // k=MetricKey, v="Aggregated metric object"
     public final static ConcurrentHashMap<String,StatsdMetricAggregated> statsdMetricsAggregatedMostRecentValue = new ConcurrentHashMap<>(16, 0.75f, 3);

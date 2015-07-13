@@ -7,22 +7,24 @@ StatsAgg 1.4
  * Document - remove any references to 'send previous value'
  * Document - StatsAgg is not a proxy
  * Document OpenTSDB "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
+ * Document that graphite agg timestamp is averaged
+ * InfluxDB - default to MS when time is specified, but precision is not
+ * Add in notification group columns (for additional notification group types)
  * Finish blacklist metric-group regexes
    * Document
    * Preview of final results
  * Move separator character out of graphite-aggregator aggregate method
- * Limit total time spent in output module?
- * Alert status output not catered to each database storage engine
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
    * Make optional output HTTP error response bodies to log file
 
 Short/Medium term
  * InfluxDB 0.9+ support
+ * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
  * Support 'no timestamp' on Graphite metrics
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
- * Multi-thread StatsD aggregation routine
+ * Multi-thread StatsD aggregation routine & Graphite aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Debug mode for "details" pages (include additional details)
@@ -31,9 +33,7 @@ Short/Medium term
    * (optional) Limit metric-key length displayed in StatsAgg WebUI
    * (optional) Limit metric group association count
    * (optional) Limit max # datapoints for in memory for a single metric-key
-   * (optional) Maximum concurrently running output-threads on a per output-module basis
    * (optional) Incoming metric rate limits
-   * (optional) Output-thread timeout
    * Cleanup metrics after... (currently hardcoded to 24hrs)
    
 Long-term / Wishlist / Brainstorming
