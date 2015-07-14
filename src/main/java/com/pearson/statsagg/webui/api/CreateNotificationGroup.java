@@ -21,7 +21,6 @@ import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -50,8 +49,8 @@ public class CreateNotificationGroup extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
             processPostRequest(request, response);
-        } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(CreateNotificationGroup.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (IOException e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
 
@@ -67,6 +66,8 @@ public class CreateNotificationGroup extends HttpServlet {
     
     protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
       logger.debug("create notification request");
+      if ((request == null) || (response == null)) 
+        return;
       String line = null;
       StringBuilder requestData = new StringBuilder();
       BufferedReader reader = request.getReader();
@@ -77,8 +78,7 @@ public class CreateNotificationGroup extends HttpServlet {
       JSONObject notificationData = new JSONObject();
       notificationData = (JSONObject) JSONValue.parse(requestData.toString());
     
-      if ((request == null) || (response == null)) 
-        return;
+
       
         JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
