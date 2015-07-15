@@ -131,13 +131,7 @@
             <version>3.1.0</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.pearson.StatsAgg</groupId>
-            <artifactId>StatsAgg</artifactId>
-            <version>1.4-beta</version>
-            <scope>test</scope>
-            <type>war</type>
-        </dependency>
+
         <dependency>
             <groupId>javax</groupId>
             <artifactId>javaee-web-api</artifactId>
