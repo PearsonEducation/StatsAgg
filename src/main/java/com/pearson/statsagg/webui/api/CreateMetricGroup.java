@@ -51,11 +51,7 @@ public class CreateMetricGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        try {
-            processPostRequest(request, response);
-        } catch (IOException ex) {
-            logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
-        }
+        processPostRequest(request, response);
     }
 
     /**
@@ -68,28 +64,18 @@ public class CreateMetricGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        
+    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+        BufferedReader reader = null;
+        com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
         if ((request == null) || (response == null)) {
             return;
         }
-        
-        String line = null;
-        StringBuilder requestData = new StringBuilder();
-        BufferedReader reader = request.getReader();
-
-        while ((line = reader.readLine()) != null)
-          requestData.append(line);
-      
-        JSONObject metricData = new JSONObject();
-        metricData = (JSONObject) JSONValue.parse(requestData.toString());
-
+        JSONObject metricData = Helper.getRequestData(request);
         JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
         PrintWriter out = null;
-        
         try {
-            String result = parseMetricGroup(metricData);
+            String result = createMetricGroup.parseMetricGroup(metricData);
             responseMsg.put("response", result);
             out = response.getWriter();
             out.println(responseMsg);
@@ -97,116 +83,10 @@ public class CreateMetricGroup extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {            
+        finally {
             if (out != null) {
                 out.close();
             }
         }
-    }
-    
-    private String parseMetricGroup(JSONObject metricData) {
-        
-        if (metricData == null) {
-            return null;
-        }
-        
-        String returnString;
-        
-        MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(metricData);
-        String oldName = null;
-        if (metricData.get("old_name") != null) {
-          oldName = (String) metricData.get("old_name");
-        }
-        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(metricData, "match_regex");
-        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(metricData, "blacklist_regex");
-        TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(metricData, "tags");
-        
-        // insert/update records in the database
-        if ((metricGroup != null) && (metricGroup.getName() != null)) {
-            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            returnString = metricGroupsLogic.alterRecordInDatabase(metricGroup, matchRegexes, blacklistRegexes, tags, oldName);
-            
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
-                GlobalVariables.alertInvokerThread.runAlertThread(true, false);
-            }
-        }
-        else {
-            returnString = "Failed to add metric group. Reason=\"Field validation failed.\"";
-            logger.warn(returnString);
-        }
-        
-        return returnString;
-    }
-    
-    private MetricGroup getMetricGroupFromMetricGroupParameters(JSONObject metricData) {
-        
-        if (metricData == null) {
-            return null;
-        }
-        
-        boolean didEncounterError = false;
-        
-        MetricGroup metricGroup = new MetricGroup();
-
-        try {
-            String parameter;
-
-            parameter = (String) metricData.get("name");
-            String trimmedName = parameter.trim();
-            metricGroup.setName(trimmedName);
-            metricGroup.setUppercaseName(trimmedName.toUpperCase());
-            if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
-
-            parameter = (String) metricData.get("description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                metricGroup.setDescription(description);
-            }
-            else metricGroup.setDescription("");
-        }
-        catch (Exception e) {
-            didEncounterError = true;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-            
-        if (didEncounterError) {
-            metricGroup = null;
-        }
-        
-        return metricGroup;
-    }
-    
-    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(JSONObject metricData, String parameterName) {
-        
-        if ((metricData == null) || (parameterName == null)) {
-            return null;
-        }
-        
-        boolean didEncounterError = false;
-        TreeSet<String> parameterValues = new TreeSet<>();
-
-        try {
-            String parameter = (String) metricData.get(parameterName);
-            
-            if (parameter != null) {
-                Scanner scanner = new Scanner(parameter);
-                
-                while (scanner.hasNext()) {
-                    parameterValues.add(scanner.nextLine().trim());
-                }
-            }
-        }
-        catch (Exception e) {
-            didEncounterError = true;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-            
-        if (didEncounterError) parameterValues = null;
-        
-        return parameterValues;
-    }
-    
+    }    
 }

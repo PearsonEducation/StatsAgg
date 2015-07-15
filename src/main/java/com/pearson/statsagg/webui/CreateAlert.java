@@ -685,7 +685,7 @@ public class CreateAlert extends HttpServlet {
         return htmlBody.toString();
     }
 
-    private String parseAndAlterAlert(HttpServletRequest request) {
+    public String parseAndAlterAlert(Object request) {
         
         if (request == null) {
             return null;
@@ -694,7 +694,7 @@ public class CreateAlert extends HttpServlet {
         String returnString;
         
         Alert alert = getAlertFromAlertParameters(request);
-        String oldName = request.getParameter("Old_Name");
+        String oldName = Common.getObjectParameter(request, "Old_Name");
 
         // insert/update/delete records in the database
         if ((alert != null) && (alert.getName() != null)) {
@@ -713,7 +713,7 @@ public class CreateAlert extends HttpServlet {
         return returnString;
     }
     
-    private Alert getAlertFromAlertParameters(HttpServletRequest request) {
+    public static Alert getAlertFromAlertParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -726,13 +726,14 @@ public class CreateAlert extends HttpServlet {
         try {
             String parameter;
 
-            parameter = request.getParameter("Name");
+            parameter = Common.getObjectParameter(request, "Name");
+            //parameter = request.getParameter("Name");
             String trimmedName = parameter.trim();
             alert.setName(trimmedName);
             alert.setUppercaseName(trimmedName.toUpperCase());
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
             
-            parameter = request.getParameter("Description");
+            parameter = Common.getObjectParameter(request, "Description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -742,7 +743,7 @@ public class CreateAlert extends HttpServlet {
             }
             else alert.setDescription("");
                 
-            parameter = request.getParameter("MetricGroupName");
+            parameter = Common.getObjectParameter(request, "MetricGroupName");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -753,31 +754,31 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("Enabled");
+            parameter = Common.getObjectParameter(request, "Enabled");
             if ((parameter != null) && parameter.contains("on")) alert.setIsEnabled(true);
             else alert.setIsEnabled(false);
 
-            parameter = request.getParameter("CautionEnabled");
+            parameter = Common.getObjectParameter(request, "CautionEnabled");
             if ((parameter != null) && parameter.contains("on")) alert.setIsCautionEnabled(true);
             else alert.setIsCautionEnabled(false);
             
-            parameter = request.getParameter("DangerEnabled");
+            parameter = Common.getObjectParameter(request, "DangerEnabled");
             if ((parameter != null) && parameter.contains("on")) alert.setIsDangerEnabled(true);
             else alert.setIsDangerEnabled(false);
             
-            parameter = request.getParameter("CreateAlert_Type");
+            parameter = Common.getObjectParameter(request, "CreateAlert_Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             
-            parameter = request.getParameter("AlertOnPositive");
+            parameter = Common.getObjectParameter(request, "AlertOnPositive");
             if ((parameter != null) && parameter.contains("on")) alert.setAlertOnPositive(true);
             else alert.setAlertOnPositive(false);
 
-            parameter = request.getParameter("AllowResendAlert");
+            parameter = Common.getObjectParameter(request, "AllowResendAlert");
             if ((parameter != null) && parameter.contains("on")) alert.setAllowResendAlert(true);
             else alert.setAllowResendAlert(false);
 
-            parameter = request.getParameter("SendAlertEveryNumMilliseconds");
+            parameter = Common.getObjectParameter(request, "SendAlertEveryNumMilliseconds");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -788,7 +789,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionNotificationGroupName");
+            parameter = Common.getObjectParameter(request, "CautionNotificationGroupName");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -799,7 +800,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionWindowDuration");
+            parameter = Common.getObjectParameter(request, "CautionWindowDuration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -810,7 +811,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionStopTrackingAfter");
+            parameter = Common.getObjectParameter(request, "CautionStopTrackingAfter");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -821,7 +822,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("CautionMinimumSampleCount");
+            parameter = Common.getObjectParameter(request, "CautionMinimumSampleCount");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -831,7 +832,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionOperator");
+            parameter = Common.getObjectParameter(request, "CautionOperator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -841,7 +842,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("CautionCombination");
+            parameter = Common.getObjectParameter(request, "CautionCombination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -851,7 +852,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionCombinationCount");
+            parameter = Common.getObjectParameter(request, "CautionCombinationCount");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -861,7 +862,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("CautionThreshold");
+            parameter = Common.getObjectParameter(request, "CautionThreshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -871,7 +872,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("DangerNotificationGroupName");
+            parameter = Common.getObjectParameter(request, "DangerNotificationGroupName");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -882,7 +883,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("DangerWindowDuration");
+            parameter = Common.getObjectParameter(request, "DangerWindowDuration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -893,7 +894,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("DangerStopTrackingAfter");
+            parameter = Common.getObjectParameter(request, "DangerStopTrackingAfter");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -904,7 +905,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("DangerMinimumSampleCount");
+            parameter = Common.getObjectParameter(request, "DangerMinimumSampleCount");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -914,7 +915,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("DangerOperator");
+            parameter = Common.getObjectParameter(request, "DangerOperator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -924,7 +925,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("DangerCombination");
+            parameter = Common.getObjectParameter(request, "DangerCombination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -934,7 +935,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("DangerCombinationCount");
+            parameter = Common.getObjectParameter(request, "DangerCombinationCount");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -944,7 +945,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = request.getParameter("DangerThreshold");
+            parameter = Common.getObjectParameter(request, "DangerThreshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 

@@ -74,8 +74,8 @@ public class AlertDetails extends HttpServlet {
         JSONObject alertDetails = new JSONObject();
         int alertId = 0;
         try {
-            if (request.getParameter(Common.id) != null) {
-              alertId = Integer.parseInt(request.getParameter(Common.id));
+            if (request.getParameter(Helper.id) != null) {
+              alertId = Integer.parseInt(request.getParameter(Helper.id));
             }
             Alert alert = alertsDao.getAlert(alertId);
             if (alert != null) {
@@ -116,11 +116,11 @@ public class AlertDetails extends HttpServlet {
                 alertDetails.put("danger_alert_active", alert.isDangerAlertActive());
               }
             } else {
-                alertDetails.put(Common.error, Common.noResult);
+                alertDetails.put(Helper.error, Helper.noResult);
             }
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            alertDetails.put(Common.error, Common.errorMsg);
+            alertDetails.put(Helper.error, Helper.errorMsg);
         }
         return alertDetails;
     }
