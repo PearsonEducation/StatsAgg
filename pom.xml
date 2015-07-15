@@ -161,7 +161,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.35</version>
+            <version>5.1.36</version>
         </dependency>
         
         <dependency>
@@ -243,25 +243,25 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.0.28.Final</version>
+            <version>4.0.29.Final</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>9.2.12.v20150709</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>9.2.12.v20150709</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.2.10.v20150310</version>
+            <version>9.2.12.v20150709</version>
         </dependency>
 
         <dependency>
@@ -285,7 +285,7 @@
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-email</artifactId>
-            <version>1.3.3</version>
+            <version>1.4</version>
         </dependency>      
 
         <dependency>
@@ -297,7 +297,7 @@
         <dependency>
             <groupId>io.fastjson</groupId>
             <artifactId>boon</artifactId>
-            <version>0.32</version>
+            <version>0.33</version>
         </dependency>
         
         <dependency>
