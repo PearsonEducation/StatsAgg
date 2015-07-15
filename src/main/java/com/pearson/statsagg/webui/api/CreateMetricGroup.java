@@ -19,6 +19,8 @@ import com.pearson.statsagg.database.metric_group.MetricGroup;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Scanner;
 import java.util.TreeSet;
@@ -27,6 +29,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -48,7 +51,11 @@ public class CreateMetricGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
+        try {
+            processPostRequest(request, response);
+        } catch (IOException ex) {
+            logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
+        }
     }
 
     /**
@@ -61,21 +68,31 @@ public class CreateMetricGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
         
         if ((request == null) || (response == null)) {
             return;
         }
         
-        JSONObject json = new JSONObject();
+        String line = null;
+        StringBuilder requestData = new StringBuilder();
+        BufferedReader reader = request.getReader();
+
+        while ((line = reader.readLine()) != null)
+          requestData.append(line);
+      
+        JSONObject metricData = new JSONObject();
+        metricData = (JSONObject) JSONValue.parse(requestData.toString());
+
+        JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
         PrintWriter out = null;
         
         try {
-            String result = parseMetricGroup(request);
-            json.put("response", result);
+            String result = parseMetricGroup(metricData);
+            responseMsg.put("response", result);
             out = response.getWriter();
-            out.println(json);
+            out.println(responseMsg);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -87,22 +104,22 @@ public class CreateMetricGroup extends HttpServlet {
         }
     }
     
-    private String parseMetricGroup(HttpServletRequest request) {
+    private String parseMetricGroup(JSONObject metricData) {
         
-        if (request == null) {
+        if (metricData == null) {
             return null;
         }
         
         String returnString;
         
-        MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(request);
+        MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(metricData);
         String oldName = null;
-        if (request.getParameter("old_name") != null) {
-          oldName = request.getParameter("old_name");
+        if (metricData.get("old_name") != null) {
+          oldName = (String) metricData.get("old_name");
         }
-        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "match_regex");
-        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist_regex");
-        TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(request, "tags");
+        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(metricData, "match_regex");
+        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(metricData, "blacklist_regex");
+        TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(metricData, "tags");
         
         // insert/update records in the database
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
@@ -121,9 +138,9 @@ public class CreateMetricGroup extends HttpServlet {
         return returnString;
     }
     
-    private MetricGroup getMetricGroupFromMetricGroupParameters(HttpServletRequest request) {
+    private MetricGroup getMetricGroupFromMetricGroupParameters(JSONObject metricData) {
         
-        if (request == null) {
+        if (metricData == null) {
             return null;
         }
         
@@ -134,13 +151,13 @@ public class CreateMetricGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = request.getParameter("name");
+            parameter = (String) metricData.get("name");
             String trimmedName = parameter.trim();
             metricGroup.setName(trimmedName);
             metricGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = request.getParameter("description");
+            parameter = (String) metricData.get("description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -162,9 +179,9 @@ public class CreateMetricGroup extends HttpServlet {
         return metricGroup;
     }
     
-    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(HttpServletRequest request, String parameterName) {
+    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(JSONObject metricData, String parameterName) {
         
-        if ((request == null) || (parameterName == null)) {
+        if ((metricData == null) || (parameterName == null)) {
             return null;
         }
         
@@ -172,7 +189,7 @@ public class CreateMetricGroup extends HttpServlet {
         TreeSet<String> parameterValues = new TreeSet<>();
 
         try {
-            String parameter = request.getParameter(parameterName);
+            String parameter = (String) metricData.get(parameterName);
             
             if (parameter != null) {
                 Scanner scanner = new Scanner(parameter);
@@ -191,4 +208,5 @@ public class CreateMetricGroup extends HttpServlet {
         
         return parameterValues;
     }
+    
 }

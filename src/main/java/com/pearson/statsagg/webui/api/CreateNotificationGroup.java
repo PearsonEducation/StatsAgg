@@ -18,12 +18,15 @@ package com.pearson.statsagg.webui.api;
 import com.pearson.statsagg.database.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.NotificationGroupsLogic;
+import java.io.BufferedReader;
+import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONObject;
+import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,7 +49,11 @@ public class CreateNotificationGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
+        try {
+            processPostRequest(request, response);
+        } catch (IOException e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
     }
 
     /**
@@ -59,42 +66,55 @@ public class CreateNotificationGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
-            if ((request == null) || (response == null)) {
+    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        logger.debug("create notification request");
+        if ((request == null) || (response == null)) {
             return;
         }
-        JSONObject json = new JSONObject();
+
+        String line = null;
+        StringBuilder requestData = new StringBuilder();
+        BufferedReader reader = request.getReader();
+
+        while ((line = reader.readLine()) != null) {
+            requestData.append(line);
+        }
+
+        JSONObject notificationData = new JSONObject();
+        notificationData = (JSONObject) JSONValue.parse(requestData.toString());
+
+        JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
         PrintWriter out = null;
-        
+
         try {
-            String result = parseAndAlterNotificationGroup(request);
-            json.put("response", result);
+            String result = parseAndAlterNotificationGroup(notificationData);
+            responseMsg.put("response", result);
             out = response.getWriter();
-            out.println(json);
+            out.println(responseMsg);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {            
+        finally {
             if (out != null) {
                 out.close();
             }
         }
     }
        
-    private String parseAndAlterNotificationGroup(HttpServletRequest request) {
+    private String parseAndAlterNotificationGroup(JSONObject notificationData) {
         
-        if (request == null) {
+        if (notificationData == null) {
             return null;
         }
         
         String returnString;
         
-        NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(request);
+        NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(notificationData);
         String oldName = null;
-        if (request.getParameter("old_name") != null) {
-          oldName = request.getParameter("old_name");
+        if (notificationData.get("old_name") != null) {
+          oldName = (String) notificationData.get("old_name");
         }
         // insert/update/delete records in the database
         if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
@@ -109,9 +129,9 @@ public class CreateNotificationGroup extends HttpServlet {
         return returnString;
     }
 
-    private NotificationGroup getNotificationGroupFromNotificationGroupParameters(HttpServletRequest request) {
+    private NotificationGroup getNotificationGroupFromNotificationGroupParameters(JSONObject notificationData) {
         
-        if (request == null) {
+        if (notificationData == null) {
             return null;
         }
         
@@ -122,13 +142,13 @@ public class CreateNotificationGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = request.getParameter("name");
+            parameter = (String) notificationData.get("name");
             String trimmedName = parameter.trim();
             notificationGroup.setName(trimmedName);
             notificationGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = request.getParameter("email_address");
+            parameter = (String) notificationData.get("email_address");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String emailAddresses;
@@ -149,4 +169,5 @@ public class CreateNotificationGroup extends HttpServlet {
         
         return notificationGroup;
     }   
+    
 }
