@@ -43,7 +43,7 @@ public class MetricGroupsTest extends Mockito{
     private static final JSONObject mockMetricGroupsJson = new JSONObject();
     private static MetricGroupsDao metricGroupsDao;
     private static MetricGroupsLogic metricGroupsLogic_ = new MetricGroupsLogic();
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupsList.class.getName());
 
     @BeforeClass
     public static void setUp() {
@@ -75,7 +75,7 @@ public class MetricGroupsTest extends Mockito{
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");
 
-        MetricGroups metricGroups = new MetricGroups();
+        MetricGroupsList metricGroups = new MetricGroupsList();
         JSONObject result = metricGroups.getMetricGroupsJson(request, metricGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");

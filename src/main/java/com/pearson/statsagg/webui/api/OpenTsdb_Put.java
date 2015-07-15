@@ -19,12 +19,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="OpenTsdb_Api_Put", urlPatterns={"/api/put"})
-public class OpenTsdb_Api_Put extends HttpServlet {
+@WebServlet(name="API_OpenTSDB_Put", urlPatterns={"/api/put"})
+public class OpenTsdb_Put extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(OpenTsdb_Api_Put.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OpenTsdb_Put.class.getName());
 
-    public static final String PAGE_NAME = "OpenTSDB Put API";
+    public static final String PAGE_NAME = "OpenTSDB 2.x Put API";
     
     /**
      * Handles the HTTP <code>GET</code> method.

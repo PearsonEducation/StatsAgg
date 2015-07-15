@@ -43,7 +43,7 @@ public class NotificationGroupsTest extends Mockito{
     private static final JSONObject mockNotificationGroupsJson = new JSONObject();
     private static NotificationGroupsDao notificationGroupsDao;
     private static NotificationGroupsLogic notificationGroupsLogic_ = new NotificationGroupsLogic();
-    private static final Logger logger = LoggerFactory.getLogger(NotificationGroups.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsList.class.getName());
 
     @BeforeClass
     public static void setUp() {
@@ -86,7 +86,7 @@ public class NotificationGroupsTest extends Mockito{
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");
 
-        NotificationGroups notificationGroups = new NotificationGroups();
+        NotificationGroupsList notificationGroups = new NotificationGroupsList();
         JSONObject result = notificationGroups.getNotificationGroups(request, notificationGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");

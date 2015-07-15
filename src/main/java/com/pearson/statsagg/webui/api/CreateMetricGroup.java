@@ -31,13 +31,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author prashant kumar(prashant4nov)
  */
-@WebServlet(name = "CreateMetricGroups", urlPatterns = {"/api/CreateMetricGroup"})
+@WebServlet(name = "API_CreateMetricGroup", urlPatterns = {"/api/create-metric-group"})
 public class CreateMetricGroup extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(com.pearson.statsagg.webui.CreateMetricGroup.class.getName());
-    public static final String PAGE_NAME = "Create Metric Group";
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateMetricGroup.class.getName());
+    
+    public static final String PAGE_NAME = "API_CreateMetricGroup";
     
     /**
      * Handles the HTTP <code>POST</code> method.

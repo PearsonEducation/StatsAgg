@@ -3,7 +3,7 @@ package com.pearson.statsagg.webui.api;
 import com.google.common.io.CharStreams;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v2;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import java.util.List;
@@ -18,12 +18,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="Influxdb_Api_Write", urlPatterns={"/write/*"})
-public class InfluxdbV2_Api_Write extends HttpServlet {
+@WebServlet(name="API_Influxdb_V1_Write", urlPatterns={"/db/*"})
+public class InfluxdbV1_Write extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(InfluxdbV2_Api_Write.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(InfluxdbV1_Write.class.getName());
 
-    public static final String PAGE_NAME = "InfluxDB Write API 0.9+";
+    public static final String PAGE_NAME = "InfluxDB Write API (v0.6, v0.7, v0.8)";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -96,17 +96,15 @@ public class InfluxdbV2_Api_Write extends HttpServlet {
             
             String username = request.getParameter("u");
             String password = request.getParameter("p");
-            String httpAuth = request.getHeader("Authorization");
-            String retentionPolicy = request.getParameter("rp");
-            String consistency = request.getParameter("consistency");
             String timePrecision = request.getParameter("time_precision");
+            String httpAuth = request.getHeader("Authorization");
 
             String json = CharStreams.toString(request.getReader());
             
             String requestUri = request.getRequestURI();
             String database = (requestUri == null) ? null : StringUtils.substringBetween(requestUri, "/db/", "/series");
 
-            parseMetrics(database, json, username, password,  httpAuth, retentionPolicy, consistency, timePrecision, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
+            parseMetrics(database, json, username, password, httpAuth, timePrecision, GlobalVariables.influxdbPrefix, metricsReceivedTimestampInMilliseconds);
 
             out = response.getWriter();
         }
@@ -120,20 +118,20 @@ public class InfluxdbV2_Api_Write extends HttpServlet {
         }
     }
 
-    public static void parseMetrics(String database, String metricLines, String username, String password, 
-            String httpAuth, String retentionPolicy, String consistency, String timePrecision, String namePrefix, long metricsReceivedTimestampInMilliseconds) {
+    public static void parseMetrics(String database, String inputJson, String username, String password, 
+            String httpAuth, String timePrecision, String namePrefix, long metricsReceivedTimestampInMilliseconds) {
                 
-        List<InfluxdbMetric_v2> influxdbMetrics = InfluxdbMetric_v2.parseInfluxdbMetricLines(database, metricLines, username, password, httpAuth, retentionPolicy, consistency,
+        List<InfluxdbMetric_v1> influxdbMetrics = InfluxdbMetric_v1.parseInfluxdbMetricJson(database, inputJson, username, password, httpAuth, 
                 timePrecision, namePrefix, metricsReceivedTimestampInMilliseconds);
 
-        for (InfluxdbMetric_v2 influxdbMetric : influxdbMetrics) {
+        for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             influxdbMetric.setHashKey(hashKey);
-            GlobalVariables.influxdbV2Metrics.put(influxdbMetric.getHashKey(), influxdbMetric);
+            GlobalVariables.influxdbV1Metrics.put(influxdbMetric.getHashKey(), influxdbMetric);
             if (influxdbMetric.getInfluxdbStandardizedMetrics() != null) GlobalVariables.incomingMetricsCount.addAndGet(influxdbMetric.getInfluxdbStandardizedMetrics().size());
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                logger.info("Database=\"" + database + "\", HTTP_InfluxDB_String=\"" + metricLines + "\"");
+                logger.info("Database=\"" + database + "\", HTTP_InfluxDB_String=\"" + inputJson + "\"");
             }
         }
 

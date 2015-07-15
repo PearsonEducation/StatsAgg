@@ -31,11 +31,11 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-@WebServlet(name="NotificationGroupDetails", urlPatterns={"/api/notificationgroup"})
+@WebServlet(name="API_NotificationGroupDetails", urlPatterns={"/api/notification-group-details"})
 public class NotificationGroupDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupDetails.class.getName());
-    public static final String PAGE_NAME = "NotificationGroupDetails";
+    public static final String PAGE_NAME = "API_NotificationGroupDetails";
     
     /**
      * Returns a short description of the servlet.

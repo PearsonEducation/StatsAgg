@@ -31,10 +31,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar(prashant4nov)
  */
-@WebServlet(name = "CreateNotificationGroups", urlPatterns = {"/api/CreateNotificationGroup"})
+@WebServlet(name = "API_CreateNotificationGroup", urlPatterns = {"/api/create-notification-group"})
 public class CreateNotificationGroup extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(com.pearson.statsagg.webui.CreateNotificationGroup.class.getName());
-    public static final String PAGE_NAME = "Create Notification Group";
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateNotificationGroup.class.getName());
+    
+    public static final String PAGE_NAME = "API_CreateNotificationGroup";
     
     /**
      * Handles the HTTP <code>POST</code> method.

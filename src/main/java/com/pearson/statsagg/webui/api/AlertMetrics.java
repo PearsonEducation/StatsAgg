@@ -22,12 +22,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="AlertMetrics", urlPatterns={"/api/AlertMetrics"})
+@WebServlet(name="API_AlertMetrics", urlPatterns={"/api/alert-metrics"})
 public class AlertMetrics extends HttpServlet {
    
     private static final Logger logger = LoggerFactory.getLogger(AlertMetrics.class.getName());
     
-    public static final String PAGE_NAME = "AlertMetrics";
+    public static final String PAGE_NAME = "API_AlertMetrics";
     
     /**
      * Handles the HTTP <code>GET</code> method.

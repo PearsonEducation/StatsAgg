@@ -38,7 +38,7 @@ import org.slf4j.LoggerFactory;
 public class AlertsTest extends Mockito {
     private static JSONObject mockAlertsJson = new JSONObject();
     private static AlertsDao alertsDao;
-    private static final Logger logger = LoggerFactory.getLogger(Alerts.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
 
     @BeforeClass
     public static void setUp() {
@@ -70,7 +70,7 @@ public class AlertsTest extends Mockito {
         when(request.getParameter("page_size")).thenReturn("2");
         when(request.getParameter("page_number")).thenReturn("5");
 
-        Alerts alerts = new Alerts();
+        AlertsList alerts = new AlertsList();
         JSONObject result = alerts.getAlertsJson(request, alertsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");
