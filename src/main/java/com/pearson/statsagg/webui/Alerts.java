@@ -106,7 +106,7 @@ public class Alerts extends HttpServlet {
             return;
         }
         
-        String operation = request.getParameter("Operation");
+        String operation = Common.getObjectParameter(request, "Operation");
 
         if ((operation != null) && operation.equals("Enable")) {
             String name = request.getParameter("Name");
@@ -120,7 +120,7 @@ public class Alerts extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = request.getParameter("Name");
+            String name = Common.getObjectParameter(request, "Name");
             removeAlert(name);
         }
         
@@ -225,18 +225,16 @@ public class Alerts extends HttpServlet {
         }
     }
     
-    private void removeAlert(String alertName) {
-        
-        if (alertName == null) {
-            return;
-        }
+    public String removeAlert(String alertName) {
+        String returnString = null;
         
         AlertsLogic alertsLogic = new AlertsLogic();
-        alertsLogic.deleteRecordInDatabase(alertName);
+        returnString = alertsLogic.deleteRecordInDatabase(alertName);
         
 	if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
             GlobalVariables.alertInvokerThread.runAlertThread(false, true);
         }
+        return returnString;
     }
     
     private String buildAlertsHtml() {
