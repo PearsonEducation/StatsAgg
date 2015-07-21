@@ -109,8 +109,8 @@ public class Alerts extends HttpServlet {
         String operation = Common.getObjectParameter(request, "Operation");
 
         if ((operation != null) && operation.equals("Enable")) {
-            String name = request.getParameter("Name");
-            Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
+            String name = Common.getObjectParameter(request, "Name");
+            Boolean isEnabled = Boolean.parseBoolean(Common.getObjectParameter(request, "Enabled"));
             changeAlertEnabled(name, isEnabled);
         }
         
@@ -140,15 +140,15 @@ public class Alerts extends HttpServlet {
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Alerts");
     }
 
-    private void changeAlertEnabled(String alertName, Boolean isEnabled) {
-        
+    public String changeAlertEnabled(String alertName, Boolean isEnabled) {
+        String returnString = "Successfully updated Alert Enable type.";
         if ((alertName == null) || (isEnabled == null)) {
-            return;
+            returnString = "Invalid input!";
+            return returnString;
         }
         
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(alertName);
-        
         if (alert != null) {
             alert.setIsEnabled(isEnabled);
 
@@ -172,6 +172,7 @@ public class Alerts extends HttpServlet {
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
+        return returnString;
     }
     
     private void cloneAlert(String alertName) {
