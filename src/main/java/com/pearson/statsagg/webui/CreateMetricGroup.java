@@ -262,7 +262,7 @@ public class CreateMetricGroup extends HttpServlet {
         return htmlBody.toString();
     }
     
-    private String parseMetricGroup(HttpServletRequest request) {
+    public String parseMetricGroup(Object request) {
         
         if (request == null) {
             return null;
@@ -271,7 +271,7 @@ public class CreateMetricGroup extends HttpServlet {
         String returnString;
         
         MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(request);
-        String oldName = request.getParameter("Old_Name");
+        String oldName = Common.getObjectParameter(request, "Old_Name");
         TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
         TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
         TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(request, "Tags");
@@ -293,7 +293,7 @@ public class CreateMetricGroup extends HttpServlet {
         return returnString;
     }
     
-    private MetricGroup getMetricGroupFromMetricGroupParameters(HttpServletRequest request) {
+    private MetricGroup getMetricGroupFromMetricGroupParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -306,13 +306,13 @@ public class CreateMetricGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = request.getParameter("Name");
+            parameter = Common.getObjectParameter(request, "Name");
             String trimmedName = parameter.trim();
             metricGroup.setName(trimmedName);
             metricGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = request.getParameter("Description");
+            parameter = Common.getObjectParameter(request, "Description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -334,7 +334,7 @@ public class CreateMetricGroup extends HttpServlet {
         return metricGroup;
     }
 
-    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(HttpServletRequest request, String parameterName) {
+    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(Object request, String parameterName) {
         
         if ((request == null) || (parameterName == null)) {
             return null;
@@ -344,7 +344,7 @@ public class CreateMetricGroup extends HttpServlet {
         TreeSet<String> parameterValues = new TreeSet<>();
 
         try {
-            String parameter = request.getParameter(parameterName);
+            String parameter = Common.getObjectParameter(request, parameterName);
             
             if (parameter != null) {
                 Scanner scanner = new Scanner(parameter);

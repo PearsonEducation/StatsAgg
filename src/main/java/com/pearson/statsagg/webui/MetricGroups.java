@@ -113,7 +113,7 @@ public class MetricGroups extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = request.getParameter("Name");
+            String name = Common.getObjectParameter(request, "Name");
             removeMetricGroup(name);
         }
         
@@ -179,18 +179,19 @@ public class MetricGroups extends HttpServlet {
         }
     }
     
-    private void removeMetricGroup(String metricGroupName) {
-        
+    public String removeMetricGroup(String metricGroupName) {
+        String returnString = "Metric Group Name field can't be null.";
         if (metricGroupName == null) {
-            return;
+            return returnString;
         }
         
         MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-        metricGroupsLogic.deleteRecordInDatabase(metricGroupName);
+        returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroupName);
         
         if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
             GlobalVariables.alertInvokerThread.runAlertThread(true, false);
         }
+        return returnString;
     }
     
     private String buildMetricGroupsHtml() {

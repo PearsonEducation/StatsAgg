@@ -181,7 +181,7 @@ public class CreateNotificationGroup extends HttpServlet {
         return htmlBody.toString();
     }
     
-    private String parseAndAlterNotificationGroup(HttpServletRequest request) {
+    public String parseAndAlterNotificationGroup(Object request) {
         
         if (request == null) {
             return null;
@@ -190,7 +190,7 @@ public class CreateNotificationGroup extends HttpServlet {
         String returnString;
         
         NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(request);
-        String oldName = request.getParameter("Old_Name");
+        String oldName = Common.getObjectParameter(request, "Old_Name");
         
         // insert/update/delete records in the database
         if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
@@ -205,7 +205,7 @@ public class CreateNotificationGroup extends HttpServlet {
         return returnString;
     }
     
-    private NotificationGroup getNotificationGroupFromNotificationGroupParameters(HttpServletRequest request) {
+    private NotificationGroup getNotificationGroupFromNotificationGroupParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -218,13 +218,13 @@ public class CreateNotificationGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = request.getParameter("Name");
+            parameter = Common.getObjectParameter(request, "Name");
             String trimmedName = parameter.trim();
             notificationGroup.setName(trimmedName);
             notificationGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = request.getParameter("EmailAddresses");
+            parameter = Common.getObjectParameter(request, "EmailAddresses");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String emailAddresses;

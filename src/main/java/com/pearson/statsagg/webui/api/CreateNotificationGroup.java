@@ -86,9 +86,10 @@ public class CreateNotificationGroup extends HttpServlet {
         JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
         PrintWriter out = null;
-
+   
         try {
-            String result = parseAndAlterNotificationGroup(notificationData);
+            com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.webui.CreateNotificationGroup();
+            String result = createNotificationGroup.parseAndAlterNotificationGroup(notificationData);
             responseMsg.put("response", result);
             out = response.getWriter();
             out.println(responseMsg);
@@ -102,72 +103,4 @@ public class CreateNotificationGroup extends HttpServlet {
             }
         }
     }
-       
-    private String parseAndAlterNotificationGroup(JSONObject notificationData) {
-        
-        if (notificationData == null) {
-            return null;
-        }
-        
-        String returnString;
-        
-        NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(notificationData);
-        String oldName = null;
-        if (notificationData.get("old_name") != null) {
-          oldName = (String) notificationData.get("old_name");
-        }
-        // insert/update/delete records in the database
-        if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-            NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-            returnString = notificationGroupsLogic.alterRecordInDatabase(notificationGroup, oldName);
-        }
-        else {
-            returnString = "Failed to add notification group. Reason=\"Field validation failed.\"";
-            logger.warn(returnString);
-        }
-        
-        return returnString;
-    }
-
-    private NotificationGroup getNotificationGroupFromNotificationGroupParameters(JSONObject notificationData) {
-        
-        if (notificationData == null) {
-            return null;
-        }
-        
-        boolean didEncounterError = false;
-        
-        NotificationGroup notificationGroup = new NotificationGroup();
-
-        try {
-            String parameter;
-
-            parameter = (String) notificationData.get("name");
-            String trimmedName = parameter.trim();
-            notificationGroup.setName(trimmedName);
-            notificationGroup.setUppercaseName(trimmedName.toUpperCase());
-            if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
-
-            parameter = (String) notificationData.get("email_address");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String emailAddresses;
-                if (trimmedParameter.length() > 65535) emailAddresses = trimmedParameter.substring(0, 65534);
-                else emailAddresses = trimmedParameter;
-                notificationGroup.setEmailAddresses(emailAddresses);
-            }
-            else notificationGroup.setEmailAddresses("");
-        }
-        catch (Exception e) {
-            didEncounterError = true;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-            
-        if (didEncounterError) {
-            notificationGroup = null;
-        }
-        
-        return notificationGroup;
-    }   
-    
 }

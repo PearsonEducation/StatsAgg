@@ -75,8 +75,8 @@ public class MetricGroupDetails extends HttpServlet {
         JSONObject metricGroupDetails = new JSONObject();
         int metricGroupId = 0;
         try {
-            if (request.getParameter(Common.id) != null) {
-              metricGroupId = Integer.parseInt(request.getParameter(Common.id));
+            if (request.getParameter(Helper.id) != null) {
+              metricGroupId = Integer.parseInt(request.getParameter(Helper.id));
             }
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
             if (metricGroup != null) {
@@ -90,11 +90,11 @@ public class MetricGroupDetails extends HttpServlet {
                 metricGroupDetails.put("description", metricGroup.getDescription());
               }
             } else {
-                metricGroupDetails.put(Common.error, Common.noResult);
+                metricGroupDetails.put(Helper.error, Helper.noResult);
             }
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            metricGroupDetails.put(Common.error, Common.errorMsg);
+            metricGroupDetails.put(Helper.error, Helper.errorMsg);
         }
         return metricGroupDetails;
     }

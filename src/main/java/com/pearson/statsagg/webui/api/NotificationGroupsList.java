@@ -59,19 +59,19 @@ public class NotificationGroupsList extends HttpServlet {
         int pageNumber = 0, pageSize = 0;
         
         try {
-            if (request.getParameter(Common.pageNumber) != null) {
-                pageNumber = Integer.parseInt(request.getParameter(Common.pageNumber));
+            if (request.getParameter(Helper.pageNumber) != null) {
+                pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
             }
 
-            if (request.getParameter(Common.pageSize) != null) {
-                pageSize = Integer.parseInt(request.getParameter(Common.pageSize));
+            if (request.getParameter(Helper.pageSize) != null) {
+                pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
             
             notificationGroupsJson = notificationGroupsDao.getNotificationGroups(pageNumber*pageSize, pageSize);
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
-            errorMsg.put(Common.error, Common.errorMsg);
+            errorMsg.put(Helper.error, Helper.errorMsg);
         }
         if (notificationGroupsJson != null) return notificationGroupsJson;
         else if (errorMsg != null) return errorMsg;

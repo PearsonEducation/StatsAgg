@@ -122,7 +122,7 @@ public class NotificationGroups extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = request.getParameter("Name");
+            String name = Common.getObjectParameter(request, "Name");
             removeNotificationGroup(name);
         }
         
@@ -162,14 +162,16 @@ public class NotificationGroups extends HttpServlet {
         }
     }
     
-    private void removeNotificationGroup(String notificationGroupName) {
-        
+    public String removeNotificationGroup(String notificationGroupName) {
+        String returnString = "Notification Group Name can't be null.";
         if (notificationGroupName == null) {
-            return;
+            return returnString;
         }
         
         NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-        notificationGroupsLogic.deleteRecordInDatabase(notificationGroupName);
+        returnString = notificationGroupsLogic.deleteRecordInDatabase(notificationGroupName);
+        
+        return returnString;
     }
     
     private String buildNotificationGroupsHtml() {
