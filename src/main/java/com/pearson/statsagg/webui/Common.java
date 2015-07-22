@@ -1,28 +1,39 @@
 package com.pearson.statsagg.webui;
 
-import static com.sun.corba.se.spi.presentation.rmi.StubAdapter.request;
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.pearson.statsagg.utilities.StackTrace;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant4nov (Prashant Kumar)
  */
 public class Common {
     
+    private static final Logger logger = LoggerFactory.getLogger(Common.class.getName());
+
     public static String getObjectParameter(Object object, String parameterName) {
-        if (object instanceof HttpServletRequest) {
-            HttpServletRequest httpServletRequest = (HttpServletRequest) object;
-            return (String) httpServletRequest.getParameter(parameterName);
+        
+        if ((object == null) || (parameterName == null)) {
+            return null;
         }
-        else if (object instanceof JSONObject) {
-            JSONObject jsonObject = (JSONObject) object;
-            return (String) jsonObject.get(parameterName);
+        
+        try {
+            if (object instanceof HttpServletRequest) {
+                HttpServletRequest httpServletRequest = (HttpServletRequest) object;
+                return (String) httpServletRequest.getParameter(parameterName);
+            }
+            else if (object instanceof JSONObject) {
+                JSONObject jsonObject = (JSONObject) object;
+                return (String) jsonObject.get(parameterName);
+            }
         }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         return null;
     }
+    
 }

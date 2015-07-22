@@ -839,7 +839,6 @@ public class CreateAlert extends HttpServlet {
             String parameter;
 
             parameter = Common.getObjectParameter(request, "Name");
-            //parameter = request.getParameter("Name");
             String trimmedName = parameter.trim();
             alert.setName(trimmedName);
             alert.setUppercaseName(trimmedName.toUpperCase());
@@ -923,7 +922,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionWindowDurationTimeUnit");
+            parameter = Common.getObjectParameter(request, "CautionWindowDurationTimeUnit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -933,7 +932,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("CautionStopTrackingAfter");
+            parameter = Common.getObjectParameter(request, "CautionStopTrackingAfter");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -943,7 +942,17 @@ public class CreateAlert extends HttpServlet {
                     alert.setCautionStopTrackingAfter(bigDecimalValueInSeconds.longValue());
                 }
             }
-
+            
+            parameter = Common.getObjectParameter(request, "CautionStopTrackingAfterTimeUnit");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    alert.setCautionStopTrackingAfterTimeUnit(intValue);
+                }
+            }
+            
             parameter = Common.getObjectParameter(request, "CautionMinimumSampleCount");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
@@ -1016,7 +1025,7 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = request.getParameter("DangerWindowDurationTimeUnit");
+            parameter = Common.getObjectParameter(request, "DangerWindowDurationTimeUnit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -1034,6 +1043,16 @@ public class CreateAlert extends HttpServlet {
                     BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
                     BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
                     alert.setDangerStopTrackingAfter(bigDecimalValueInSeconds.longValue());
+                }
+            }
+            
+            parameter = Common.getObjectParameter(request, "DangerStopTrackingAfterTimeUnit");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    alert.setDangerStopTrackingAfterTimeUnit(intValue);
                 }
             }
 

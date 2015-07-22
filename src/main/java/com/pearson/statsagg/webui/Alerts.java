@@ -141,14 +141,14 @@ public class Alerts extends HttpServlet {
     }
 
     public String changeAlertEnabled(String alertName, Boolean isEnabled) {
-        String returnString = "Successfully updated Alert Enable type.";
+
         if ((alertName == null) || (isEnabled == null)) {
-            returnString = "Invalid input!";
-            return returnString;
+            return "Invalid input!";
         }
         
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(alertName);
+        
         if (alert != null) {
             alert.setIsEnabled(isEnabled);
 
@@ -172,7 +172,8 @@ public class Alerts extends HttpServlet {
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
-        return returnString;
+        
+        return "Successfully enabled alert.";
     }
     
     private void cloneAlert(String alertName) {
@@ -227,6 +228,11 @@ public class Alerts extends HttpServlet {
     }
     
     public String removeAlert(String alertName) {
+        
+        if (alertName == null) {
+            return null;
+        }
+        
         String returnString = null;
         
         AlertsLogic alertsLogic = new AlertsLogic();
@@ -235,6 +241,7 @@ public class Alerts extends HttpServlet {
 	if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
             GlobalVariables.alertInvokerThread.runAlertThread(false, true);
         }
+        
         return returnString;
     }
     
