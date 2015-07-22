@@ -178,6 +178,20 @@ public class CreateAlertSuspension extends HttpServlet {
         htmlBody.append(">\n" + "</div>\n");
         
         
+        // description
+        htmlBody.append(
+            "<div class=\"form-group\">\n" +
+            "  <label class=\"label_small_margin\">Description</label>\n" +
+            "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
+
+        if ((alertSuspension != null) && (alertSuspension.getDescription() != null)) {
+            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getDescription()));
+        }
+
+        htmlBody.append("</textarea>\n");
+        htmlBody.append("</div>\n");
+        
+        
         // is enabled?
         htmlBody.append("" +
             "<div class=\"form-group\">\n" +
@@ -490,6 +504,16 @@ public class CreateAlertSuspension extends HttpServlet {
             alertSuspension.setName(trimmedName);
             alertSuspension.setUppercaseName(trimmedName.toUpperCase());
             if ((alertSuspension.getName() == null) || alertSuspension.getName().isEmpty()) didEncounterError = true;
+            
+            parameter = request.getParameter("Description");
+            if (parameter != null) {
+                String trimmedParameter = parameter.trim();
+                String description;
+                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
+                else description = trimmedParameter;
+                alertSuspension.setDescription(description);
+            }
+            else alertSuspension.setDescription("");
             
             parameter = request.getParameter("Enabled");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsEnabled(true);

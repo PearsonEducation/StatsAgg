@@ -405,7 +405,7 @@ public class AlertAssociations extends HttpServlet {
                     String metricValueString = null;
 
                     BigDecimal alertMetricValue = activeCautionAlertMetricValuesLocal.get(activeCautionAlertMetricKey + "-" + alert.getId());
-                    if (alertMetricValue != null) metricValueString = Alert.getCautionMetricValueString_WithLabel(alert, alertMetricValue);
+                    if (alertMetricValue != null) metricValueString = Alert.getMetricValueString_WithLabel(Alert.CAUTION, alert, alertMetricValue);
 
                     String forgetMetric = "";
 
@@ -534,7 +534,7 @@ public class AlertAssociations extends HttpServlet {
                     String metricValueString = null;
 
                     BigDecimal alertMetricValue = activeDangerAlertMetricValuesLocal.get(activeDangerAlertMetricKey + "-" + alert.getId());
-                    if (alertMetricValue != null) metricValueString = Alert.getDangerMetricValueString_WithLabel(alert, alertMetricValue);
+                    if (alertMetricValue != null) metricValueString = Alert.getMetricValueString_WithLabel(Alert.DANGER, alert, alertMetricValue);
 
                     String forgetMetric = "";
 

@@ -46,12 +46,12 @@ public class AlertSuspensionsDaoTest {
         Timestamp endTimeTimestamp = new Timestamp(endTime.getTimeInMillis());
         
         alertSuspension1_ = new AlertSuspension(
-                -1, "AlertSuspension JUnit 1", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "AlertSuspension JUnit 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);
         
         alertSuspension2_ = new AlertSuspension(
-                -1, "AlertSuspension JUnit 2", true, AlertSuspension.SUSPEND_BY_ALERT_ID, null, null, null,
+                -1, "AlertSuspension JUnit 2", "desc", true, AlertSuspension.SUSPEND_BY_ALERT_ID, null, null, null,
                 true, true, true, true, false, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);  
     }

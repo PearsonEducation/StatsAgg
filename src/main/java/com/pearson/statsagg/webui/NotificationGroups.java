@@ -294,8 +294,8 @@ public class NotificationGroups extends HttpServlet {
         Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(),
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
                 88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 300000, 
-                77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, null, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
-                77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000L, null, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+                77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
+                77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         String testMetricGroupName = "Notification test - metric group";
         MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),

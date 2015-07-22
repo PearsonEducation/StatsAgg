@@ -29,6 +29,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     private Integer id_ = null;
     private String name_ = null;
     private String uppercaseName_ = null;
+    private String description_ = null;
     private Boolean isEnabled_ = null;
     private Integer suspendBy_ = null;
     private Integer alertId_ = null;
@@ -54,20 +55,20 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         this.id_ = -1;
     }
     
-    public AlertSuspension(Integer id, String name, Boolean isEnabled, 
+    public AlertSuspension(Integer id, String name, String description, Boolean isEnabled, 
             Integer suspendBy, Integer alertId, String metricGroupTagsInclusive, String metricGroupTagsExclusive, Boolean isOneTime, Boolean isSuspendNotificationOnly,
             Boolean isRecurSunday, Boolean isRecurMonday, Boolean isRecurTuesday, Boolean isRecurWednesday,  
             Boolean isRecurThursday, Boolean isRecurFriday, Boolean isRecurSaturday, 
             Timestamp startDate, Timestamp startTime, Integer duration, Timestamp deleteAtTimestamp) {
         
-        this(id, name, ((name == null) ? null : name.toUpperCase()), isEnabled, 
+        this(id, name, ((name == null) ? null : name.toUpperCase()), description, isEnabled, 
              suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, isOneTime, isSuspendNotificationOnly,
              isRecurSunday, isRecurMonday, isRecurTuesday, isRecurWednesday,  
              isRecurThursday, isRecurFriday, isRecurSaturday, 
              startDate, startTime, duration, deleteAtTimestamp);
     }
     
-    public AlertSuspension(Integer id, String name, String uppercaseName, Boolean isEnabled, 
+    public AlertSuspension(Integer id, String name, String uppercaseName, String description, Boolean isEnabled, 
             Integer suspendBy, Integer alertId, String metricGroupTagsInclusive, String metricGroupTagsExclusive, Boolean isOneTime, Boolean isSuspendNotificationOnly,
             Boolean isRecurSunday, Boolean isRecurMonday, Boolean isRecurTuesday, Boolean isRecurWednesday,  
             Boolean isRecurThursday, Boolean isRecurFriday, Boolean isRecurSaturday, 
@@ -76,6 +77,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
+        this.description_ = description;
         this.isEnabled_ = isEnabled;
         this.suspendBy_ = suspendBy;
         this.alertId_ = alertId;
@@ -115,6 +117,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         alertSuspensionCopy.setId(alertSuspension.getId());
         alertSuspensionCopy.setName(alertSuspension.getName());
         alertSuspensionCopy.setUppercaseName(alertSuspension.getUppercaseName());
+        alertSuspensionCopy.setDescription(alertSuspension.getDescription());
         alertSuspensionCopy.setIsEnabled(alertSuspension.isEnabled());
         alertSuspensionCopy.setSuspendBy(alertSuspension.getSuspendBy());
         alertSuspensionCopy.setAlertId(alertSuspension.getAlertId());
@@ -150,6 +153,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
                 .append(id_, alertSuspension.getId())
                 .append(name_, alertSuspension.getName())
                 .append(uppercaseName_, alertSuspension.getUppercaseName())
+                .append(description_, alertSuspension.getDescription())
                 .append(isEnabled_, alertSuspension.isEnabled())
                 .append(suspendBy_, alertSuspension.getSuspendBy())
                 .append(alertId_, alertSuspension.getAlertId())
@@ -514,7 +518,15 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     public void setUppercaseName(String uppercaseName) {
         this.uppercaseName_ = uppercaseName;
     }
-    
+
+    public String getDescription() {
+        return description_;
+    }
+
+    public void setDescription(String description) {
+        this.description_ = description;
+    }
+
     public Boolean isEnabled() {
         return isEnabled_;
     }

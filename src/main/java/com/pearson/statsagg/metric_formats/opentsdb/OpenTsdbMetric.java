@@ -100,17 +100,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
  
         for (char character : unsanitizedInput.toCharArray()) {
             
-            if ((character >= 'a') && (character <= 'z')) {
-                sanitizedInput.append(character);
-                continue;
-            }
-            
-            if ((character >= 'A') && (character <= 'Z')) {
-                sanitizedInput.append(character);
-                continue;
-            }
-            
-            if ((character >= '0') && (character <= '9')) {
+            if (Character.isLetterOrDigit(character)) {
                 sanitizedInput.append(character);
                 continue;
             }

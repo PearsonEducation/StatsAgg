@@ -9,6 +9,7 @@ StatsAgg 1.4  - released 2015-0x-xx
  * Improved shutdown time & safety
  * For output modules, added configurable connection timeouts & read timeouts
  * Improved timeout & retry behavior for all output modules
+ * Added a description field to 'alert suspensions'. 
  * Added the (configurable) ability to limit the maximum number of concurrently outputting output modules (spanning all output modules).
    * If one tries to initiate and output module when the maximum number of concurrently output modules already running, then a warning will be thrown and the output request will be discarded.
    * This helps safeguard StatsAgg from output endpoints that are experiencing availability or performance issues.

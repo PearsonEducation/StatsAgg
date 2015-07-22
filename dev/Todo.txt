@@ -9,32 +9,40 @@ StatsAgg 1.4
  * Document OpenTSDB "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
  * Document that graphite agg timestamp is averaged
  * InfluxDB - default to MS when time is specified, but precision is not
- * Add in notification group columns (for additional notification group types)
  * Finish blacklist metric-group regexes
    * Document
    * Preview of final results
+ * Separate notification group for positive alerts
+ * 'Clear all' button for clearing/forgetting triggered availability alerts 
  * Move separator character out of graphite-aggregator aggregate method
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
    * Make optional output HTTP error response bodies to log file
 
-Short/Medium term
+StatsAgg 1.5
  * InfluxDB 0.9+ support
+ * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for individual metrics
+ * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
+ * use time unit selectors for duration fields (alerts, alert suspensions)
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
  * Support 'no timestamp' on Graphite metrics
+ * Advanced options
+   * (optional) Incoming metric rate limits
+    * Cleanup metrics after... (currently hardcoded to 24hrs)
+ 
+Short/Medium term
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
  * Control what StatsD 'timer' fields are outputted (so people can ignore the more useless ones)
  * Debug mode for "details" pages (include additional details)
+ * Alternative output API for notification groups
  * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
  * Advanced options
    * (optional) Limit metric-key length displayed in StatsAgg WebUI
    * (optional) Limit metric group association count
    * (optional) Limit max # datapoints for in memory for a single metric-key
-   * (optional) Incoming metric rate limits
-   * Cleanup metrics after... (currently hardcoded to 24hrs)
    
 Long-term / Wishlist / Brainstorming
  * StatsD forwarder

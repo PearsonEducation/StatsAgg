@@ -64,7 +64,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         if (alertSuspension == null) return false;
         
         return insert(AlertSuspensionsSql.Insert_AlertSuspension, 
-                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.isEnabled(), 
+                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.getDescription(), alertSuspension.isEnabled(), 
                 alertSuspension.getSuspendBy(), alertSuspension.getAlertId(), 
                 alertSuspension.getMetricGroupTagsInclusive(), alertSuspension.getMetricGroupTagsExclusive(),
                 alertSuspension.isOneTime(), alertSuspension.isSuspendNotificationOnly(), 
@@ -82,7 +82,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         if (alertSuspension == null) return false;
 
         return update(AlertSuspensionsSql.Update_AlertSuspension_ByPrimaryKey,
-                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.isEnabled(), 
+                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.getDescription(), alertSuspension.isEnabled(), 
                 alertSuspension.getSuspendBy(), alertSuspension.getAlertId(), 
                 alertSuspension.getMetricGroupTagsInclusive(), alertSuspension.getMetricGroupTagsExclusive(),
                 alertSuspension.isOneTime(), alertSuspension.isSuspendNotificationOnly(), 
@@ -119,6 +119,9 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             
             String uppercaseName = resultSet.getString("UPPERCASE_NAME");
             if (resultSet.wasNull()) uppercaseName = null;
+            
+            String description = resultSet.getString("DESCRIPTION");
+            if (resultSet.wasNull()) description = null;
             
             Boolean isEnabled = resultSet.getBoolean("IS_ENABLED");
             if (resultSet.wasNull()) isEnabled = null;
@@ -175,7 +178,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             if (resultSet.wasNull()) deleteAtTimestamp = null;            
             
             AlertSuspension alertSuspension = new AlertSuspension(
-                    id, name, uppercaseName, isEnabled, suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, isOneTime, isSuspendNotificationOnly, 
+                    id, name, uppercaseName, description, isEnabled, suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, isOneTime, isSuspendNotificationOnly, 
                     isRecurSunday, isRecurMonday, isRecurTuesday, isRecurWednesday, isRecurThursday, isRecurFriday, isRecurSaturday, 
                     startDate, startTime, duration, deleteAtTimestamp);
             

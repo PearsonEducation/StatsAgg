@@ -171,8 +171,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
+        $("#CautionWindowDurationTimeUnit").show();
         $("#CautionStopTrackingAfter_Label").show();
         $("#CautionStopTrackingAfter").show();
+        $("#CautionStopTrackingAfterTimeUnit").show();
         $("#CautionMinimumSampleCount_Label").hide();
         $("#CautionMinimumSampleCount").hide();
         $("#CautionOperator_Label").hide();
@@ -190,8 +192,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").show();
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
+        $("#CautionWindowDurationTimeUnit").show();
         $("#CautionStopTrackingAfter_Label").hide();
         $("#CautionStopTrackingAfter").hide();
+        $("#CautionStopTrackingAfterTimeUnit").hide();
         $("#CautionMinimumSampleCount_Label").show();
         $("#CautionMinimumSampleCount").show();
         $("#CautionOperator_Label").show();
@@ -218,8 +222,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#CautionNotificationGroupName").hide();
         $("#CautionWindowDuration_Label").hide();
         $("#CautionWindowDuration").hide();
+        $("#CautionWindowDurationTimeUnit").hide();
         $("#CautionStopTrackingAfter_Label").hide();
         $("#CautionStopTrackingAfter").hide();
+        $("#CautionStopTrackingAfterTimeUnit").hide();
         $("#CautionMinimumSampleCount_Label").hide();
         $("#CautionMinimumSampleCount").hide();
         $("#CautionOperator_Label").hide();
@@ -239,8 +245,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
+        $("#DangerWindowDurationTimeUnit").show();
         $("#DangerStopTrackingAfter_Label").show();
         $("#DangerStopTrackingAfter").show();
+        $("#DangerStopTrackingAfterTimeUnit").show();
         $("#DangerMinimumSampleCount_Label").hide();
         $("#DangerMinimumSampleCount").hide();
         $("#DangerOperator_Label").hide();
@@ -258,8 +266,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").show();
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
+        $("#DangerWindowDurationTimeUnit").show();
         $("#DangerStopTrackingAfter_Label").hide();
         $("#DangerStopTrackingAfter").hide();
+        $("#DangerStopTrackingAfterTimeUnit").hide();
         $("#DangerMinimumSampleCount_Label").show();
         $("#DangerMinimumSampleCount").show();
         $("#DangerOperator_Label").show();
@@ -286,8 +296,10 @@ function CreateAlert_Type_ShowAndHide() {
         $("#DangerNotificationGroupName").hide();
         $("#DangerWindowDuration_Label").hide();
         $("#DangerWindowDuration").hide();
+        $("#DangerWindowDurationTimeUnit").hide();
         $("#DangerStopTrackingAfter_Label").hide();
         $("#DangerStopTrackingAfter").hide();
+        $("#DangerStopTrackingAfterTimeUnit").hide();
         $("#DangerMinimumSampleCount_Label").hide();
         $("#DangerMinimumSampleCount").hide();
         $("#DangerOperator_Label").hide();

@@ -237,7 +237,13 @@ public class AlertDetails extends HttpServlet {
             if (alert.getCautionWindowDuration() != null) {
                 BigDecimal cautionWindowDurationMs = new BigDecimal(alert.getCautionWindowDuration());
                 BigDecimal cautionWindowDurationSeconds = cautionWindowDurationMs.divide(new BigDecimal(1000));
-                outputString.append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                outputString.append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString());
+                
+                if (alert.getCautionWindowDurationTimeUnit() != null) {
+                    String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit());
+                    if (cautionTimeUnitString != null) outputString.append(" ").append(cautionTimeUnitString.toLowerCase());
+                }
+                outputString.append("<br>");
             }
             else outputString.append("N/A <br>");
             
@@ -257,11 +263,11 @@ public class AlertDetails extends HttpServlet {
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Caution operator</b> = ");
-                if (alert.getCautionOperatorString(true, true) != null) outputString.append("'").append(alert.getCautionOperatorString(true, true)).append("'<br>");
+                if (alert.getOperatorString(Alert.CAUTION, true, true) != null) outputString.append("'").append(alert.getOperatorString(Alert.CAUTION, true, true)).append("'<br>");
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Caution combination</b> = ");
-                if (alert.getCautionCombinationString() != null) outputString.append(alert.getCautionCombinationString()).append("<br>");
+                if (alert.getCombinationString(Alert.CAUTION) != null) outputString.append(alert.getCombinationString(Alert.CAUTION)).append("<br>");
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Caution combination count</b> = ");
@@ -324,7 +330,13 @@ public class AlertDetails extends HttpServlet {
             if (alert.getDangerWindowDuration() != null) {
                 BigDecimal dangerWindowDurationMs = new BigDecimal(alert.getDangerWindowDuration());
                 BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
-                outputString.append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                outputString.append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString());
+                
+                if (alert.getDangerWindowDurationTimeUnit() != null) {
+                    String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit());
+                    if (dangerTimeUnitString != null) outputString.append(" ").append(dangerTimeUnitString.toLowerCase());
+                }
+                outputString.append("<br>");
             }
             else outputString.append("N/A <br>");
             
@@ -344,11 +356,11 @@ public class AlertDetails extends HttpServlet {
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Danger operator</b> = ");
-                if (alert.getDangerOperatorString(true, true) != null) outputString.append("'").append(alert.getDangerOperatorString(true, true)).append("'<br>");
+                if (alert.getOperatorString(Alert.DANGER, true, true) != null) outputString.append("'").append(alert.getOperatorString(Alert.DANGER, true, true)).append("'<br>");
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Danger combination</b> = ");
-                if (alert.getDangerCombinationString() != null) outputString.append(alert.getDangerCombinationString()).append("<br>");
+                if (alert.getCombinationString(Alert.DANGER) != null) outputString.append(alert.getCombinationString(Alert.DANGER)).append("<br>");
                 else outputString.append("N/A <br>");
 
                 outputString.append("<b>Danger combination count</b> = ");

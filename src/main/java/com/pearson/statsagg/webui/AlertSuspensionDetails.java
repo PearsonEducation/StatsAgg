@@ -128,7 +128,14 @@ public class AlertSuspensionDetails extends HttpServlet {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
             
             outputString.append("<b>ID</b> = ").append(alertSuspension.getId()).append("<br>");
- 
+            
+            outputString.append("<b>Description</b> = ");
+            if (alertSuspension.getDescription() != null) {
+                String encodedAlertDescription = StatsAggHtmlFramework.htmlEncode(alertSuspension.getDescription());
+                outputString.append(encodedAlertDescription.replaceAll("\n", "<br>")).append("<br><br>");
+            }
+            else outputString.append("<br><br>");
+            
             outputString.append("<b>Is Enabled?</b> = ");
             String isEnabled = "No";
             if ((alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) isEnabled = "Yes";

@@ -163,7 +163,7 @@ public class EmailThread implements Runnable  {
             }
             else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getCautionMinimumSampleCount()).append(" sample(s)").append("</li>");
-                body.append("<li>").append(getCautionCombinationString(alert_)).append(" ").append(alert_.getCautionOperatorString(false, true))
+                body.append("<li>").append(getCautionCombinationString(alert_)).append(" ").append(alert_.getOperatorString(Alert.CAUTION, false, true))
                         .append(" ").append(alert_.getCautionThreshold().stripTrailingZeros().toPlainString())
                         .append(" during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
             }
@@ -177,7 +177,7 @@ public class EmailThread implements Runnable  {
             }
             else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getDangerMinimumSampleCount()).append(" sample(s)").append("</li>");
-                body.append("<li>").append(getDangerCombinationString(alert_)).append(" ").append(alert_.getDangerOperatorString(false, true))
+                body.append("<li>").append(getDangerCombinationString(alert_)).append(" ").append(alert_.getOperatorString(Alert.DANGER, false, true))
                         .append(" ").append(alert_.getDangerThreshold().stripTrailingZeros().toPlainString())
                         .append(" during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>"); 
             }
@@ -198,11 +198,11 @@ public class EmailThread implements Runnable  {
                     String metricValueString_WithLabel = null;
                     if (warningLevel_ == WARNING_LEVEL_CAUTION) {
                             body.append(" = ");
-                            metricValueString_WithLabel = Alert.getCautionMetricValueString_WithLabel(alert_, alertMetricValue);
+                            metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.CAUTION, alert_, alertMetricValue);
                     }
                     else if (warningLevel_ == WARNING_LEVEL_DANGER) {
                             body.append(" = ");
-                            metricValueString_WithLabel = Alert.getDangerMetricValueString_WithLabel(alert_, alertMetricValue);
+                            metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.DANGER, alert_, alertMetricValue);
                     }
                         
                     if (metricValueString_WithLabel != null) {

@@ -350,10 +350,12 @@ public class CreateAlert extends HttpServlet {
         
         
         // caution window duration
+        htmlBody.append("<label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
+        htmlBody.append("<div>\n");
+        
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
-            "  <label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Window duration (in seconds)</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' seconds ago. Values that fall in this window are used in alert evaluation.\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X'  time units ago. Values that fall in this window are used in alert evaluation.\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
 
         if ((alert != null) && (alert.getCautionWindowDuration() != null)) {
             BigDecimal cautionWindowDurationMs = new BigDecimal(alert.getCautionWindowDuration());
@@ -362,6 +364,42 @@ public class CreateAlert extends HttpServlet {
         }
         
         htmlBody.append(">\n</div>\n");
+        
+        
+        // caution window duration time unit
+        htmlBody.append(
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <select class=\"form-control-statsagg\" name=\"CautionWindowDurationTimeUnit\" id=\"CautionWindowDurationTimeUnit\">\n");
+
+        
+        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit()) != null)) {
+            String whiteSpace = "							  ";
+            String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit());
+            
+            if (cautionTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+
+            if (cautionTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+
+            if (cautionTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+
+            if (cautionTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+        }
+        else {
+            htmlBody.append(
+                "<option>Seconds</option>\n" +
+                "<option>Minutes</option>\n" +
+                "<option>Hours</option>\n" +
+                "<option>Days</option>\n"
+            );
+        }
+        
+        htmlBody.append("</select>\n");
+        htmlBody.append("</div>\n");
+        htmlBody.append("</div>\n");
         
         
         // caution stop tracking after
@@ -399,27 +437,27 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"CautionOperator\" id=\"CautionOperator\">\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getCautionOperatorString(true, false) != null) && alert.getCautionOperatorString(true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getCautionOperatorString(true, false) != null) && alert.getCautionOperatorString(true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getCautionOperatorString(true, false) != null) && alert.getCautionOperatorString(true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getCautionOperatorString(true, false) != null) && alert.getCautionOperatorString(true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getCautionOperatorString(true, false) != null) && alert.getCautionOperatorString(true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
@@ -433,22 +471,22 @@ public class CreateAlert extends HttpServlet {
             "  <label id=\"CautionCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionCombination\" id=\"CautionCombination\">\n");
 
-        if ((alert != null) && (alert.getCautionCombinationString() != null)) {
+        if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
             String whiteSpace = "							  ";
 
-            if (alert.getCautionCombinationString().equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Any</option>\n");
 
-            if (alert.getCautionCombinationString().equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
             else htmlBody.append(whiteSpace).append("<option>All</option>\n");
 
-            if (alert.getCautionCombinationString().equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Average</option>\n");
 
-            if (alert.getCautionCombinationString().equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
             else htmlBody.append(whiteSpace).append("<option>At most</option>\n");
 
-            if (alert.getCautionCombinationString().equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
             else htmlBody.append(whiteSpace).append("<option>At least</option>\n");
         }
         else {
@@ -527,10 +565,12 @@ public class CreateAlert extends HttpServlet {
         
         
         // danger window duration
+        htmlBody.append("<label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
+        htmlBody.append("<div>\n");
+        
         htmlBody.append(   
-            "<div class=\"form-group\"> \n" +
-            "  <label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Window duration (in seconds)</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' seconds ago. Values that fall in this window are used in alert evaluation.\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\"");
+            "<div class=\"form-group col-xs-6\"> \n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' time units ago. Values that fall in this window are used in alert evaluation.\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\"");
 
         if ((alert != null) && (alert.getDangerWindowDuration() != null)) {
             BigDecimal dangerWindowDurationMs = new BigDecimal(alert.getDangerWindowDuration());
@@ -541,11 +581,48 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(">\n</div>\n");
         
         
+        // danger window duration time unit
+        htmlBody.append(
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <select class=\"form-control-statsagg\" name=\"DangerWindowDurationTimeUnit\" id=\"DangerWindowDurationTimeUnit\">\n");
+
+        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit()) != null)) {
+            String whiteSpace = "							  ";
+            String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit());
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+        }
+        else {
+            htmlBody.append(
+                "<option>Seconds</option>\n" +
+                "<option>Minutes</option>\n" +
+                "<option>Hours</option>\n" +
+                "<option>Days</option>\n"
+            );
+        }
+        
+        htmlBody.append("</select>\n");
+        htmlBody.append("</div>\n");
+        htmlBody.append("</div>\n");
+        
+        
         // danger stop tracking after
+        htmlBody.append("<label id=\"DangerStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after...</label>\n");
+        htmlBody.append("<div>\n");
+        
         htmlBody.append(   
-            "<div class=\"form-group\"> \n" +
-            "  <label id=\"DangerStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after... (in seconds)</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X seconds, stop alerting on it.\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
+            "<div class=\"form-group col-xs-6\"> \n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X time units, stop alerting on it.\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getDangerStopTrackingAfter() != null)) {
             BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
@@ -554,6 +631,41 @@ public class CreateAlert extends HttpServlet {
         }
 
         htmlBody.append(">\n</div>\n");
+        
+
+        // danger 'stop tracking after' time unit
+        htmlBody.append(
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <select class=\"form-control-statsagg\" name=\"DangerStopTrackingAfterTimeUnit\" id=\"DangerStopTrackingAfterTimeUnit\">\n");
+
+        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit()) != null)) {
+            String whiteSpace = "							  ";
+            String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit());
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+
+            if (dangerTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+        }
+        else {
+            htmlBody.append(
+                "<option>Seconds</option>\n" +
+                "<option>Minutes</option>\n" +
+                "<option>Hours</option>\n" +
+                "<option>Days</option>\n"
+            );
+        }
+        
+        htmlBody.append("</select>\n");
+        htmlBody.append("</div>\n");
+        htmlBody.append("</div>\n");
         
         
         // danger minimum sample count
@@ -576,27 +688,27 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getDangerOperatorString(true, false) != null) && alert.getDangerOperatorString(true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getDangerOperatorString(true, false) != null) && alert.getDangerOperatorString(true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getDangerOperatorString(true, false) != null) && alert.getDangerOperatorString(true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getDangerOperatorString(true, false) != null) && alert.getDangerOperatorString(true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getDangerOperatorString(true, false) != null) && alert.getDangerOperatorString(true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
@@ -610,22 +722,22 @@ public class CreateAlert extends HttpServlet {
             "  <label id=\"DangerCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
-        if ((alert != null) && (alert.getDangerCombinationString() != null)) {
+        if ((alert != null) && (alert.getCombinationString(Alert.DANGER) != null)) {
             String whiteSpace = "							  ";
 
-            if (alert.getDangerCombinationString().equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Any</option>\n");
 
-            if (alert.getDangerCombinationString().equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
             else htmlBody.append(whiteSpace).append("<option>All</option>\n");
 
-            if (alert.getDangerCombinationString().equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Average</option>\n");
 
-            if (alert.getDangerCombinationString().equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
             else htmlBody.append(whiteSpace).append("<option>At most</option>\n");
 
-            if (alert.getDangerCombinationString().equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
             else htmlBody.append(whiteSpace).append("<option>At least</option>\n");
         }
         else {
@@ -810,6 +922,16 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
+            parameter = request.getParameter("CautionWindowDurationTimeUnit");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    alert.setCautionWindowDurationTimeUnit(intValue);
+                }
+            }
+            
             parameter = request.getParameter("CautionStopTrackingAfter");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
@@ -890,6 +1012,16 @@ public class CreateAlert extends HttpServlet {
                     BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
                     BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
                     alert.setDangerWindowDuration(bigDecimalValueInSeconds.longValue());
+                }
+            }
+            
+            parameter = request.getParameter("DangerWindowDurationTimeUnit");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    alert.setDangerWindowDurationTimeUnit(intValue);
                 }
             }
 

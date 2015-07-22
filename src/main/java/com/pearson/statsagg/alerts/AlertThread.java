@@ -108,7 +108,7 @@ public class AlertThread implements Runnable {
             metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
         }
         
-        long alertRoutineTimeElasped = 0, alertSuspensionRoutineTimeElapsed = 0;
+        long alertRoutineTimeElasped = 0, alertSuspensionRoutineTimeElapsed;
         synchronized (GlobalVariables.alertRoutineLock) {
             // gets all alerts from the database.
             AlertsDao alertsDao = new AlertsDao();
@@ -883,14 +883,9 @@ public class AlertThread implements Runnable {
         long currentTimeInMs = System.currentTimeMillis();
         
         List<String> metricKeys = new ArrayList<>();
-        if (activeCautionAlertMetricKeysByAlertId_ != null) {
-            metricKeys = activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
-        }
- 
+        if (activeCautionAlertMetricKeysByAlertId_ != null)  metricKeys = activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
         boolean isCautionAlertActive = true;
-        if (metricKeys.isEmpty()) {
-            isCautionAlertActive = false;
-        }
+        if (metricKeys.isEmpty()) isCautionAlertActive = false;
         
         String newCautionActiveAlertsSet = appendActiveAlertsToSet(metricKeys, alert.getCautionActiveAlertsSet(), maxMetricsInEmail + 1);
         alert.setCautionActiveAlertsSet(newCautionActiveAlertsSet);
@@ -986,14 +981,9 @@ public class AlertThread implements Runnable {
         long currentTimeInMs = System.currentTimeMillis();
 
         List<String> metricKeys = new ArrayList<>();
-        if (activeDangerAlertMetricKeysByAlertId_ != null) {
-            metricKeys = activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
-        }
-
+        if (activeDangerAlertMetricKeysByAlertId_ != null) metricKeys = activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
         boolean isDangerAlertActive = true;
-        if (metricKeys.isEmpty()) {
-            isDangerAlertActive = false;
-        }
+        if (metricKeys.isEmpty()) isDangerAlertActive = false;
         
         String newDangerActiveAlertsSet = appendActiveAlertsToSet(metricKeys, alert.getDangerActiveAlertsSet(), maxMetricsInEmail + 1);
         alert.setDangerActiveAlertsSet(newDangerActiveAlertsSet);
@@ -1122,10 +1112,7 @@ public class AlertThread implements Runnable {
         int currentMetricKeyCount = metricKeys.size();
         
         for (String metricKey : currentActiveMetricKeys) {
-            if (currentMetricKeyCount >= limit) {
-                break;
-            }
-            
+            if (currentMetricKeyCount >= limit) break;
             metricKeys.add(metricKey.trim());
             currentMetricKeyCount++;
         }
@@ -1134,10 +1121,7 @@ public class AlertThread implements Runnable {
         
         int outputMetricKeyCount = 0;
         for (String metricKey : metricKeys) {
-            if (outputMetricKeyCount >= limit) {
-                break;
-            }
-            
+            if (outputMetricKeyCount >= limit) break;
             activeMetricKeys.append(metricKey).append("\n");
             outputMetricKeyCount++;
         }

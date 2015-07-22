@@ -75,7 +75,7 @@ public class AlertSuspensionsLogicTest {
         
         // create & insert a AlertSuspension, insert it into the db, retrieve it from the db, & compare the original & retrieved records
         AlertSuspension alertSuspension1 = new AlertSuspension(
-                -1, "alertSuspension junit name 1", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);
          
@@ -147,7 +147,7 @@ public class AlertSuspensionsLogicTest {
         
         // create & insert a AlertSuspension, insert it into the db, retrieve it from the db, & compare the original & retrieved records
         AlertSuspension alertSuspension1 = new AlertSuspension(
-                -1, "alertSuspension junit name 1", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);
         

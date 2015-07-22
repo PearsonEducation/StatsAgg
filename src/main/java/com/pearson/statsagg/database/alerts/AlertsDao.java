@@ -71,13 +71,13 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
                 alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
-                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
-                alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(),
-                alert.getCautionFirstActiveAt(),
+                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(), alert.getCautionStopTrackingAfter(),  
+                alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), 
+                alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
-                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
-                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), 
-                alert.getDangerFirstActiveAt()
+                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), alert.getDangerStopTrackingAfter(), 
+                alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), 
+                alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt()
         );
     }
     
@@ -90,13 +90,13 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                 alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
                 alert.getCautionNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(), alert.getCautionCombinationCount(),  
-                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionStopTrackingAfter(), alert.getCautionMinimumSampleCount(), 
-                alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(),
-                alert.getCautionFirstActiveAt(),
+                alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(), alert.getCautionStopTrackingAfter(),  
+                alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(), alert.getCautionAlertLastSentTimestamp(), 
+                alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(), alert.getDangerCombinationCount(),  
-                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerStopTrackingAfter(), alert.getDangerMinimumSampleCount(), 
-                alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), 
-                alert.getDangerFirstActiveAt(), 
+                alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), alert.getDangerStopTrackingAfter(), 
+                alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), alert.getDangerAlertLastSentTimestamp(), 
+                alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt(),
                 alert.getId());
     }
 
@@ -170,8 +170,14 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Long cautionWindowDuration = resultSet.getLong("CAUTION_WINDOW_DURATION");
             if (resultSet.wasNull()) cautionWindowDuration = null;
             
+            Integer cautionWindowDurationTimeUnit = resultSet.getInt("CAUTION_WINDOW_DURATION_TIME_UNIT");
+            if (resultSet.wasNull()) cautionWindowDurationTimeUnit = null;
+            
             Long cautionStopTrackingAfter = resultSet.getLong("CAUTION_STOP_TRACKING_AFTER");
             if (resultSet.wasNull()) cautionStopTrackingAfter = null;
+            
+            Integer cautionStopTrackingAfterTimeUnit = resultSet.getInt("CAUTION_STOP_TRACKING_AFTER_TIME_UNIT");
+            if (resultSet.wasNull()) cautionStopTrackingAfterTimeUnit = null;
             
             Integer cautionMinimumSampleCount = resultSet.getInt("CAUTION_MINIMUM_SAMPLE_COUNT");
             if (resultSet.wasNull()) cautionMinimumSampleCount = null;
@@ -209,9 +215,15 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Long dangerWindowDuration = resultSet.getLong("DANGER_WINDOW_DURATION");
             if (resultSet.wasNull()) dangerWindowDuration = null;
 
+            Integer dangerWindowDurationTimeUnit = resultSet.getInt("DANGER_WINDOW_DURATION_TIME_UNIT");
+            if (resultSet.wasNull()) dangerWindowDurationTimeUnit = null;
+            
             Long dangerStopTrackingAfter = resultSet.getLong("DANGER_STOP_TRACKING_AFTER");
             if (resultSet.wasNull()) dangerStopTrackingAfter = null;
             
+            Integer dangerStopTrackingAfterTimeUnit = resultSet.getInt("DANGER_STOP_TRACKING_AFTER_TIME_UNIT");
+            if (resultSet.wasNull()) dangerStopTrackingAfterTimeUnit = null;
+                    
             Integer dangerMinimumSampleCount = resultSet.getInt("DANGER_MINIMUM_SAMPLE_COUNT");
             if (resultSet.wasNull()) dangerMinimumSampleCount = null;
             
@@ -232,12 +244,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
     
             Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled,
                     alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
-                    cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, 
-                    cautionStopTrackingAfter, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet,
-                    cautionFirstActiveAt,
-                    dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, 
-                    dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet,
-                    dangerFirstActiveAt);
+                    cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, cautionWindowDuration, cautionWindowDurationTimeUnit, 
+                    cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, 
+                    isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt,
+                    dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, dangerWindowDuration, dangerWindowDurationTimeUnit,
+                    dangerStopTrackingAfter, dangerStopTrackingAfterTimeUnit, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, 
+                    isDangerAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
             
             return alert;
         }

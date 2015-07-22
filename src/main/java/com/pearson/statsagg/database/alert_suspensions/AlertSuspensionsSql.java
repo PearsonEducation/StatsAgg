@@ -18,6 +18,7 @@ public class AlertSuspensionsSql {
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
                     "NAME VARCHAR(500) NOT NULL, " + 
                     "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
+                    "DESCRIPTION CLOB(1048576) NOT NULL, " + 
                     "IS_ENABLED BOOLEAN NOT NULL, " + 
                     "SUSPEND_BY INTEGER NOT NULL, " + 
                     "ALERT_ID INTEGER, " +
@@ -43,6 +44,7 @@ public class AlertSuspensionsSql {
                     "ID INTEGER AUTO_INCREMENT PRIMARY KEY NOT NULL, " + 
                     "NAME VARCHAR(500) NOT NULL, " + 
                     "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
+                    "DESCRIPTION MEDIUMTEXT NOT NULL, " + 
                     "IS_ENABLED BOOLEAN NOT NULL, " + 
                     "SUSPEND_BY INTEGER NOT NULL, " + 
                     "ALERT_ID INTEGER, " +
@@ -106,14 +108,14 @@ public class AlertSuspensionsSql {
     
     protected final static String Insert_AlertSuspension =
                     "INSERT INTO ALERT_SUSPENSIONS " +
-                    "(NAME, UPPERCASE_NAME, IS_ENABLED, SUSPEND_BY, ALERT_ID, METRIC_GROUP_TAGS_INCLUSIVE, METRIC_GROUP_TAGS_EXCLUSIVE, IS_ONE_TIME, IS_SUSPEND_NOTIFICATION_ONLY, " + 
+                    "(NAME, UPPERCASE_NAME, DESCRIPTION, IS_ENABLED, SUSPEND_BY, ALERT_ID, METRIC_GROUP_TAGS_INCLUSIVE, METRIC_GROUP_TAGS_EXCLUSIVE, IS_ONE_TIME, IS_SUSPEND_NOTIFICATION_ONLY, " + 
                     "IS_RECUR_SUNDAY, IS_RECUR_MONDAY, IS_RECUR_TUESDAY, IS_RECUR_WEDNESDAY, IS_RECUR_THURSDAY, IS_RECUR_FRIDAY, IS_RECUR_SATURDAY, " +
                     "START_DATE, START_TIME, DURATION, DELETE_AT_TIMESTAMP) " +
-                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
+                    "VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)";
     
     protected final static String Update_AlertSuspension_ByPrimaryKey =
                     "UPDATE ALERT_SUSPENSIONS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, IS_ENABLED = ?, SUSPEND_BY = ?, ALERT_ID = ?, METRIC_GROUP_TAGS_INCLUSIVE = ?, METRIC_GROUP_TAGS_EXCLUSIVE = ?, " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ?, IS_ENABLED = ?, SUSPEND_BY = ?, ALERT_ID = ?, METRIC_GROUP_TAGS_INCLUSIVE = ?, METRIC_GROUP_TAGS_EXCLUSIVE = ?, " +
                     "IS_ONE_TIME = ?, IS_SUSPEND_NOTIFICATION_ONLY = ?, " + 
                     "IS_RECUR_SUNDAY = ?, IS_RECUR_MONDAY = ?, IS_RECUR_TUESDAY = ?, IS_RECUR_WEDNESDAY = ?, " +
                     "IS_RECUR_THURSDAY = ?, IS_RECUR_FRIDAY = ?, IS_RECUR_SATURDAY = ?, " +

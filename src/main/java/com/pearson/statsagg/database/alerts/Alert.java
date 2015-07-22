@@ -16,21 +16,29 @@ public class Alert extends DatabaseObject<Alert> {
     
     private static final Logger logger = LoggerFactory.getLogger(Alert.class.getName());
     
+    public static final int CAUTION = 61;
+    public static final int DANGER = 62;
+    
     public static final int TYPE_AVAILABILITY = 1001;
     public static final int TYPE_THRESHOLD = 1002;
     
-    public static final Integer OPERATOR_GREATER = 1;
-    public static final Integer OPERATOR_GREATER_EQUALS = 2;
-    public static final Integer OPERATOR_LESS = 3;
-    public static final Integer OPERATOR_LESS_EQUALS = 4;
-    public static final Integer OPERATOR_EQUALS = 5;
+    public static final int OPERATOR_GREATER = 1;
+    public static final int OPERATOR_GREATER_EQUALS = 2;
+    public static final int OPERATOR_LESS = 3;
+    public static final int OPERATOR_LESS_EQUALS = 4;
+    public static final int OPERATOR_EQUALS = 5;
     
-    public static final Integer COMBINATION_ANY = 101;
-    public static final Integer COMBINATION_ALL = 102;
-    public static final Integer COMBINATION_AVERAGE = 103;
-    public static final Integer COMBINATION_AT_MOST_COUNT = 105;
-    public static final Integer COMBINATION_AT_LEAST_COUNT = 106;
+    public static final int COMBINATION_ANY = 101;
+    public static final int COMBINATION_ALL = 102;
+    public static final int COMBINATION_AVERAGE = 103;
+    public static final int COMBINATION_AT_MOST_COUNT = 105;
+    public static final int COMBINATION_AT_LEAST_COUNT = 106;
      
+    public static final int TIME_UNIT_DAYS = 71;
+    public static final int TIME_UNIT_HOURS = 72;
+    public static final int TIME_UNIT_MINUTES = 73;
+    public static final int TIME_UNIT_SECONDS = 74;
+    
     private Integer id_;
     private String name_ = null;
     private String uppercaseName_ = null;
@@ -50,8 +58,10 @@ public class Alert extends DatabaseObject<Alert> {
     private Integer cautionCombination_ = null; 
     private Integer cautionCombinationCount_ = null;
     private BigDecimal cautionThreshold_ = null; 
-    private Long cautionWindowDuration_ = null;
+    private Long cautionWindowDuration_ = null;  // native timeunit is milliseconds
+    private Integer cautionWindowDurationTimeUnit_ = null;
     private Long cautionStopTrackingAfter_ = null;
+    private Integer cautionStopTrackingAfterTimeUnit_ = null;
     private Integer cautionMinimumSampleCount_ = null;
     private Boolean isCautionAlertActive_ = null;
     private Timestamp cautionAlertLastSentTimestamp_ = null;
@@ -64,8 +74,10 @@ public class Alert extends DatabaseObject<Alert> {
     private Integer dangerCombination_ = null; 
     private Integer dangerCombinationCount_ = null;
     private BigDecimal dangerThreshold_ = null; 
-    private Long dangerWindowDuration_ = null;
+    private Long dangerWindowDuration_ = null; // native timeunit is milliseconds
+    private Integer dangerWindowDurationTimeUnit_ = null;
     private Long dangerStopTrackingAfter_ = null;
+    private Integer dangerStopTrackingAfterTimeUnit_ = null;
     private Integer dangerMinimumSampleCount_ = null;
     private Boolean isDangerAlertActive_ = null;
     private Timestamp dangerAlertLastSentTimestamp_ = null;
@@ -80,30 +92,36 @@ public class Alert extends DatabaseObject<Alert> {
     public Alert(Integer id, String name, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
             Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Integer sendAlertEveryNumMilliseconds, 
             Integer cautionNotificationGroupId, Integer cautionOperator, Integer cautionCombination, Integer cautionCombinationCount, BigDecimal cautionThreshold, 
-            Long cautionWindowDuration, Long cautionStopTrackingAfter, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, Timestamp cautionAlertLastSentTimestamp, 
-            Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
+            Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit,
+            Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
+            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
             Integer dangerNotificationGroupId, Integer dangerOperator, Integer dangerCombination, Integer dangerCombinationCount, BigDecimal dangerThreshold, 
-            Long dangerWindowDuration, Long dangerStopTrackingAfter, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive, Timestamp dangerAlertLastSentTimestamp, 
-            Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
+            Long dangerWindowDuration, Integer dangerWindowDurationTimeUnit, Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit,
+            Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
+            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         
         this(id, name, ((name == null) ? null : name.toUpperCase()), description, metricGroupId, isEnabled, isCautionEnabled, 
              isDangerEnabled, alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
              cautionNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
-             cautionWindowDuration, cautionStopTrackingAfter, cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, 
-             isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt, 
+             cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit,
+             cautionMinimumSampleCount, isCautionAlertActive,  
+             cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt, 
              dangerNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount, dangerThreshold, 
-             dangerWindowDuration, dangerStopTrackingAfter, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, 
-             isDangerAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
+             dangerWindowDuration, dangerWindowDurationTimeUnit, dangerStopTrackingAfter, dangerStopTrackingAfterTimeUnit,
+             dangerMinimumSampleCount, isDangerAlertActive,  
+             dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
     }
 
     public Alert(Integer id, String name, String uppercaseName, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
             Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Integer sendAlertEveryNumMilliseconds, 
             Integer cautionNotificationGroupId, Integer cautionOperator, Integer cautionCombination, Integer cautionCombinationCount, BigDecimal cautionThreshold, 
-            Long cautionWindowDuration, Long cautionStopTrackingAfter, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, Timestamp cautionAlertLastSentTimestamp, 
-            Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
+            Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit,
+            Integer cautionMinimumSampleCount, Boolean isCautionAlertActive,  
+            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
             Integer dangerNotificationGroupId, Integer dangerOperator, Integer dangerCombination, Integer dangerCombinationCount, BigDecimal dangerThreshold, 
-            Long dangerWindowDuration, Long dangerStopTrackingAfter, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive, Timestamp dangerAlertLastSentTimestamp, 
-            Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
+            Long dangerWindowDuration, Integer dangerWindowDurationTimeUnit, Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit,
+            Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
+            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
@@ -124,7 +142,9 @@ public class Alert extends DatabaseObject<Alert> {
         this.cautionCombinationCount_ = cautionCombinationCount;
         this.cautionThreshold_ = cautionThreshold;
         this.cautionWindowDuration_ = cautionWindowDuration;
+        this.cautionWindowDurationTimeUnit_ = cautionWindowDurationTimeUnit;
         this.cautionStopTrackingAfter_ = cautionStopTrackingAfter;
+        this.cautionStopTrackingAfterTimeUnit_ = cautionStopTrackingAfterTimeUnit;
         this.cautionMinimumSampleCount_ = cautionMinimumSampleCount;
         this.isCautionAlertActive_ = isCautionAlertActive;
         if (cautionAlertLastSentTimestamp == null) this.cautionAlertLastSentTimestamp_ = null;
@@ -139,7 +159,9 @@ public class Alert extends DatabaseObject<Alert> {
         this.dangerCombinationCount_ = dangerCombinationCount;
         this.dangerThreshold_ = dangerThreshold;
         this.dangerWindowDuration_ = dangerWindowDuration;
+        this.dangerWindowDurationTimeUnit_ = dangerWindowDurationTimeUnit;
         this.dangerStopTrackingAfter_ = dangerStopTrackingAfter;
+        this.dangerStopTrackingAfterTimeUnit_ = dangerStopTrackingAfterTimeUnit;
         this.dangerMinimumSampleCount_ = dangerMinimumSampleCount;
         this.isDangerAlertActive_ = isDangerAlertActive;
         if (dangerAlertLastSentTimestamp == null) this.dangerAlertLastSentTimestamp_ = null;
@@ -177,7 +199,9 @@ public class Alert extends DatabaseObject<Alert> {
         alertCopy.setCautionCombinationCount(alert.getCautionCombinationCount());
         alertCopy.setCautionThreshold(alert.getCautionThreshold());
         alertCopy.setCautionWindowDuration(alert.getCautionWindowDuration());
+        alertCopy.setCautionWindowDurationTimeUnit(alert.getCautionWindowDurationTimeUnit());
         alertCopy.setCautionStopTrackingAfter(alert.getCautionStopTrackingAfter());
+        alertCopy.setCautionStopTrackingAfterTimeUnit(alert.getCautionStopTrackingAfterTimeUnit());
         alertCopy.setCautionMinimumSampleCount(alert.getCautionMinimumSampleCount());
         alertCopy.setIsCautionAlertActive(alert.isCautionAlertActive());
         if (alert.getCautionAlertLastSentTimestamp() == null) alertCopy.setCautionAlertLastSentTimestamp(null);
@@ -192,7 +216,9 @@ public class Alert extends DatabaseObject<Alert> {
         alertCopy.setDangerCombinationCount(alert.getDangerCombinationCount());
         alertCopy.setDangerThreshold(alert.getDangerThreshold());
         alertCopy.setDangerWindowDuration(alert.getDangerWindowDuration());
+        alertCopy.setDangerWindowDurationTimeUnit(alert.getDangerWindowDurationTimeUnit());
         alertCopy.setDangerStopTrackingAfter(alert.getDangerStopTrackingAfter());
+        alertCopy.setDangerStopTrackingAfterTimeUnit(alert.getDangerStopTrackingAfterTimeUnit());
         alertCopy.setDangerMinimumSampleCount(alert.getDangerMinimumSampleCount());
         alertCopy.setIsDangerAlertActive(alert.isDangerAlertActive());
         if (alert.getDangerAlertLastSentTimestamp() == null) alertCopy.setDangerAlertLastSentTimestamp(null);
@@ -233,7 +259,9 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(cautionCombinationCount_, alert.getCautionCombinationCount())
                 .append(isCautionThresholdValueEqual, true)
                 .append(cautionWindowDuration_, alert.getCautionWindowDuration())
+                .append(cautionWindowDurationTimeUnit_, alert.getCautionWindowDurationTimeUnit())
                 .append(cautionStopTrackingAfter_, alert.getCautionStopTrackingAfter())
+                .append(cautionStopTrackingAfterTimeUnit_, alert.getCautionStopTrackingAfterTimeUnit())
                 .append(cautionMinimumSampleCount_, alert.getCautionMinimumSampleCount())
                 .append(isCautionAlertActive_, alert.isCautionAlertActive())
                 .append(cautionAlertLastSentTimestamp_, alert.getCautionAlertLastSentTimestamp())
@@ -246,7 +274,9 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(dangerCombinationCount_, alert.getDangerCombinationCount())
                 .append(isDangerThresholdValueEqual, true)
                 .append(dangerWindowDuration_, alert.getDangerWindowDuration())
+                .append(dangerWindowDurationTimeUnit_, alert.getDangerWindowDurationTimeUnit())
                 .append(dangerStopTrackingAfter_, alert.getDangerStopTrackingAfter())
+                .append(dangerStopTrackingAfterTimeUnit_, alert.getDangerStopTrackingAfterTimeUnit())
                 .append(dangerMinimumSampleCount_, alert.getDangerMinimumSampleCount())
                 .append(isDangerAlertActive_, alert.isDangerAlertActive())
                 .append(dangerAlertLastSentTimestamp_, alert.getDangerAlertLastSentTimestamp())
@@ -515,81 +545,38 @@ public class Alert extends DatabaseObject<Alert> {
         return dangerMinimumSampleCount_ >= 1;
     }
     
-    public String getCautionOperatorString(boolean includeSymbol, boolean includeEnglish) {
+    public String getOperatorString(int alertLevel, boolean includeSymbol, boolean includeEnglish) {
         
-        if (cautionOperator_ == null) {
-            return null;
-        }
-
+        if ((alertLevel == Alert.CAUTION) && (cautionOperator_ == null)) return null;
+        if ((alertLevel == Alert.DANGER) && (dangerOperator_ == null)) return null;
+        
+        int operator = -1;
+        if (alertLevel == Alert.CAUTION) operator = cautionOperator_;
+        else if (alertLevel == Alert.DANGER) operator = dangerOperator_;
+        
         if (includeSymbol && includeEnglish) {
-            if (cautionOperator_.intValue() == OPERATOR_GREATER) return "> (greater than)";
-            else if (cautionOperator_.intValue() == OPERATOR_GREATER_EQUALS) return ">= (greater than or equal to)";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS) return "< (less than)";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS_EQUALS) return "<= (less than or equal to)";
-            else if (cautionOperator_.intValue() == OPERATOR_EQUALS) return "= (equal to)";
-            else {
-                logger.warn("Unrecognized caution operator code");
-            }
+            if (operator == OPERATOR_GREATER) return "> (greater than)";
+            else if (operator == OPERATOR_GREATER_EQUALS) return ">= (greater than or equal to)";
+            else if (operator == OPERATOR_LESS) return "< (less than)";
+            else if (operator == OPERATOR_LESS_EQUALS) return "<= (less than or equal to)";
+            else if (operator == OPERATOR_EQUALS) return "= (equal to)";
+            else logger.warn("Unrecognized operator code");
         }
         else if (includeSymbol) {
-            if (cautionOperator_.intValue() == OPERATOR_GREATER) return ">";
-            else if (cautionOperator_.intValue() == OPERATOR_GREATER_EQUALS) return ">=";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS) return "<";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS_EQUALS) return "<=";
-            else if (cautionOperator_.intValue() == OPERATOR_EQUALS) return "=";
-            else {
-                logger.warn("Unrecognized caution operator code");
-            }
+            if (operator == OPERATOR_GREATER) return ">";
+            else if (operator == OPERATOR_GREATER_EQUALS) return ">=";
+            else if (operator == OPERATOR_LESS) return "<";
+            else if (operator == OPERATOR_LESS_EQUALS) return "<=";
+            else if (operator == OPERATOR_EQUALS) return "=";
+            else logger.warn("Unrecognized operator code");
         }
         else if (includeEnglish) {
-            if (cautionOperator_.intValue() == OPERATOR_GREATER) return "greater than";
-            else if (cautionOperator_.intValue() == OPERATOR_GREATER_EQUALS) return "greater than or equal to";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS) return "less than";
-            else if (cautionOperator_.intValue() == OPERATOR_LESS_EQUALS) return "less than or equal to";
-            else if (cautionOperator_.intValue() == OPERATOR_EQUALS) return "equal to";
-            else {
-                logger.warn("Unrecognized caution operator code");
-            }
-        }
-        
-        return null;
-    }
-            
-    public String getDangerOperatorString(boolean includeSymbol, boolean includeEnglish) {
-        
-        if (dangerOperator_ == null) {
-            return null;
-        }
-
-        if (includeSymbol && includeEnglish) {
-            if (dangerOperator_.intValue() == OPERATOR_GREATER) return "> (greater than)";
-            else if (dangerOperator_.intValue() == OPERATOR_GREATER_EQUALS) return ">= (greater than or equal to)";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS) return "< (less than)";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS_EQUALS) return "<= (less than or equal to)";
-            else if (dangerOperator_.intValue() == OPERATOR_EQUALS) return "= (equal to)";
-            else {
-                logger.warn("Unrecognized danger operator code");
-            }
-        }
-        else if (includeSymbol) {
-            if (dangerOperator_.intValue() == OPERATOR_GREATER) return ">";
-            else if (dangerOperator_.intValue() == OPERATOR_GREATER_EQUALS) return ">=";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS) return "<";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS_EQUALS) return "<=";
-            else if (dangerOperator_.intValue() == OPERATOR_EQUALS) return "=";
-            else {
-                logger.warn("Unrecognized danger operator code");
-            }
-        }
-        else if (includeEnglish) {
-            if (dangerOperator_.intValue() == OPERATOR_GREATER) return "greater than";
-            else if (dangerOperator_.intValue() == OPERATOR_GREATER_EQUALS) return "greater than or equal to";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS) return "less than";
-            else if (dangerOperator_.intValue() == OPERATOR_LESS_EQUALS) return "less than or equal to";
-            else if (dangerOperator_.intValue() == OPERATOR_EQUALS) return "equal to";
-            else {
-                logger.warn("Unrecognized danger operator code");
-            }
+            if (operator == OPERATOR_GREATER) return "greater than";
+            else if (operator == OPERATOR_GREATER_EQUALS) return "greater than or equal to";
+            else if (operator == OPERATOR_LESS) return "less than";
+            else if (operator == OPERATOR_LESS_EQUALS) return "less than or equal to";
+            else if (operator == OPERATOR_EQUALS) return "equal to";
+            else logger.warn("Unrecognized operator code");
         }
         
         return null;
@@ -601,80 +588,31 @@ public class Alert extends DatabaseObject<Alert> {
             return null;
         }
         
-        if (operator.equals(">") || operator.contains("(greater than)")) {
-            return OPERATOR_GREATER;
-        }
-        else if (operator.equals(">=") || operator.contains("(greater than or equal to)")) { 
-            return OPERATOR_GREATER_EQUALS;
-        }
-        else if (operator.equals("<") || operator.contains("(less than)")) { 
-            return OPERATOR_LESS;
-        }
-        else if (operator.equals("<=") || operator.contains("(less than or equal to)")) { 
-            return OPERATOR_LESS_EQUALS;
-        }
-        else if (operator.equals("=") || operator.contains("(equal to)")) { 
-            return OPERATOR_EQUALS;
-        }
-        else {
-            logger.warn("Unrecognized operator string");
-        }
+        if (operator.equals(">") || operator.contains("(greater than)")) return OPERATOR_GREATER;
+        else if (operator.equals(">=") || operator.contains("(greater than or equal to)")) return OPERATOR_GREATER_EQUALS;
+        else if (operator.equals("<") || operator.contains("(less than)")) return OPERATOR_LESS;
+        else if (operator.equals("<=") || operator.contains("(less than or equal to)")) return OPERATOR_LESS_EQUALS;
+        else if (operator.equals("=") || operator.contains("(equal to)")) return OPERATOR_EQUALS;
+        else logger.warn("Unrecognized operator string");
         
         return null;
     }
     
-    public String getCautionCombinationString() {
+    public String getCombinationString(int alertLevel) {
         
-        if (cautionCombination_ == null) {
-            return null;
-        }
-
-         if (cautionCombination_.intValue() == COMBINATION_ANY) {
-            return "Any";
-        }
-        else if (cautionCombination_.intValue() == COMBINATION_ALL) {
-            return "All";
-        }
-        else if (cautionCombination_.intValue() == COMBINATION_AVERAGE) {
-            return "Average";
-        }
-        else if (cautionCombination_.intValue() == COMBINATION_AT_MOST_COUNT) {
-            return "At most";
-        }
-        else if (cautionCombination_.intValue() == COMBINATION_AT_LEAST_COUNT) {
-            return "At least";
-        }
-        else {
-            logger.warn("Unrecognized caution combination code");
-        }
-         
-        return null;
-    }
-
-    public String getDangerCombinationString() {
+        if ((alertLevel == Alert.CAUTION) && (cautionCombination_ == null)) return null;
+        if ((alertLevel == Alert.DANGER) && (dangerCombination_ == null)) return null;
         
-        if (dangerCombination_ == null) {
-            return null;
-        }
-
-         if (dangerCombination_.intValue() == COMBINATION_ANY) {
-            return "Any";
-        }
-        else if (dangerCombination_.intValue() == COMBINATION_ALL) {
-            return "All";
-        }
-        else if (dangerCombination_.intValue() == COMBINATION_AVERAGE) {
-            return "Average";
-        }
-        else if (dangerCombination_.intValue() == COMBINATION_AT_MOST_COUNT) {
-            return "At most";
-        }
-        else if (dangerCombination_.intValue() == COMBINATION_AT_LEAST_COUNT) {
-            return "At least";
-        }
-        else {
-            logger.warn("Unrecognized danger combination code");
-        }
+        int combination = -1;
+        if (alertLevel == Alert.CAUTION) combination = cautionCombination_;
+        else if (alertLevel == Alert.DANGER) combination = dangerCombination_;
+        
+        if (combination == COMBINATION_ANY) return "Any";
+        else if (combination == COMBINATION_ALL) return "All";
+        else if (combination == COMBINATION_AVERAGE) return "Average";
+        else if (combination == COMBINATION_AT_MOST_COUNT) return "At most";
+        else if (combination == COMBINATION_AT_LEAST_COUNT) return "At least";
+        else logger.warn("Unrecognized combination code");
          
         return null;
     }
@@ -685,55 +623,47 @@ public class Alert extends DatabaseObject<Alert> {
             return null;
         }
         
-        if (combination.equalsIgnoreCase("Any")) {
-            return COMBINATION_ANY;
-        }
-        else if (combination.equalsIgnoreCase("All")) {
-            return COMBINATION_ALL;
-        }
-        else if (combination.equalsIgnoreCase("Average")) {
-            return COMBINATION_AVERAGE;
-        }
-        else if (combination.equalsIgnoreCase("At most")) {
-            return COMBINATION_AT_MOST_COUNT;
-        }
-        else if (combination.equalsIgnoreCase("At least")) {
-            return COMBINATION_AT_LEAST_COUNT;
-        }
-        else {
-            logger.warn("Unrecognized combination string");
-        }
+        if (combination.equalsIgnoreCase("Any")) return COMBINATION_ANY;
+        else if (combination.equalsIgnoreCase("All")) return COMBINATION_ALL;
+        else if (combination.equalsIgnoreCase("Average")) return COMBINATION_AVERAGE;
+        else if (combination.equalsIgnoreCase("At most")) return COMBINATION_AT_MOST_COUNT;
+        else if (combination.equalsIgnoreCase("At least")) return COMBINATION_AT_LEAST_COUNT;
+        else logger.warn("Unrecognized combination string");
         
         return null;
     }
     
-    public static String getCautionMetricValueString_WithLabel(Alert alert, BigDecimal metricValue) {
+    public static String getTimeUnitStringFromCode(Integer timeUnitCode) {
         
-        if ((alert == null) || (metricValue == null) || (alert.getAlertType() == null)) {
+        if ((timeUnitCode == null)) {
             return null;
         }
-        
-        String outputString = null;
 
-        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
-            String metricValueString = metricValue.stripTrailingZeros().toPlainString();
-            
-            if (Objects.equals(Alert.COMBINATION_ALL, alert.getCautionCombination())) outputString = metricValueString + " (recent value)";
-            if (Objects.equals(Alert.COMBINATION_ANY, alert.getCautionCombination())) outputString = metricValueString + " (recent value)";
-            if (Objects.equals(Alert.COMBINATION_AVERAGE, alert.getCautionCombination())) outputString = metricValueString + " (avg value)";
-            if (Objects.equals(Alert.COMBINATION_AT_LEAST_COUNT, alert.getCautionCombination())) outputString = metricValueString + " (count)";
-            if (Objects.equals(Alert.COMBINATION_AT_MOST_COUNT, alert.getCautionCombination())) outputString = metricValueString + " (count)";
-        }
-        else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
-            BigDecimal metricValue_Seconds = metricValue.divide(new BigDecimal(1000));
-            String metricValueString = metricValue_Seconds.stripTrailingZeros().toPlainString();
-            outputString = metricValueString + " (seconds since last data point received)";
-        }
-        
-        return outputString;
+        if (timeUnitCode == TIME_UNIT_DAYS) return "Days";
+        else if (timeUnitCode == TIME_UNIT_HOURS) return "Hours";
+        else if (timeUnitCode == TIME_UNIT_MINUTES) return "Minutes";
+        else if (timeUnitCode == TIME_UNIT_SECONDS) return "Seconds";
+        else logger.warn("Unrecognized window duration time unit");
+         
+        return null;
     }
     
-    public static String getDangerMetricValueString_WithLabel(Alert alert, BigDecimal metricValue) {
+    public static Integer getTimeUnitCodeFromString(String timeUnit) {
+        
+        if ((timeUnit == null) || timeUnit.isEmpty()) {
+            return null;
+        }
+        
+        if (timeUnit.equalsIgnoreCase("Days")) return TIME_UNIT_DAYS;
+        else if (timeUnit.equalsIgnoreCase("Hours")) return TIME_UNIT_HOURS;
+        else if (timeUnit.equalsIgnoreCase("Minutes")) return TIME_UNIT_MINUTES;
+        else if (timeUnit.equalsIgnoreCase("Seconds")) return TIME_UNIT_SECONDS;
+        else logger.warn("Unrecognized window duration time unit code");
+        
+        return null;
+    }
+    
+    public static String getMetricValueString_WithLabel(int alertLevel, Alert alert, BigDecimal metricValue) {
         
         if ((alert == null) || (metricValue == null) || (alert.getAlertType() == null)) {
             return null;
@@ -742,13 +672,18 @@ public class Alert extends DatabaseObject<Alert> {
         String outputString = null;
 
         if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+            int combination = -1;
+            if (alertLevel == Alert.CAUTION) combination = alert.getCautionCombination();
+            else if (alertLevel == Alert.DANGER) combination = alert.getDangerCombination();
+            
             String metricValueString = metricValue.stripTrailingZeros().toPlainString();
             
-            if (Objects.equals(Alert.COMBINATION_ALL, alert.getDangerCombination())) outputString = metricValueString + " (recent value)";
-            if (Objects.equals(Alert.COMBINATION_ANY, alert.getDangerCombination())) outputString = metricValueString + " (recent value)";
-            if (Objects.equals(Alert.COMBINATION_AVERAGE, alert.getDangerCombination())) outputString = metricValueString + " (avg value)";
-            if (Objects.equals(Alert.COMBINATION_AT_LEAST_COUNT, alert.getDangerCombination())) outputString = metricValueString + " (count)";
-            if (Objects.equals(Alert.COMBINATION_AT_MOST_COUNT, alert.getDangerCombination())) outputString = metricValueString + " (count)";
+            if (Alert.COMBINATION_ALL == combination) outputString = metricValueString + " (recent value)";
+            else if (Alert.COMBINATION_ANY == combination) outputString = metricValueString + " (recent value)";
+            else if (Alert.COMBINATION_AVERAGE == combination) outputString = metricValueString + " (avg value)";
+            else if (Alert.COMBINATION_AT_LEAST_COUNT == combination) outputString = metricValueString + " (count)";
+            else if (Alert.COMBINATION_AT_MOST_COUNT == combination) outputString = metricValueString + " (count)";
+            else logger.warn("Unrecognized combination code");
         }
         else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
             BigDecimal metricValue_Seconds = metricValue.divide(new BigDecimal(1000));
@@ -902,7 +837,15 @@ public class Alert extends DatabaseObject<Alert> {
     public void setCautionWindowDuration(Long cautionWindowDuration) {
         this.cautionWindowDuration_ = cautionWindowDuration;
     }
-    
+
+    public Integer getCautionWindowDurationTimeUnit() {
+        return cautionWindowDurationTimeUnit_;
+    }
+
+    public void setCautionWindowDurationTimeUnit(Integer cautionWindowDurationTimeUnit) {
+        this.cautionWindowDurationTimeUnit_ = cautionWindowDurationTimeUnit;
+    }
+
     public Long getCautionStopTrackingAfter() {
         return cautionStopTrackingAfter_;
     }
@@ -911,6 +854,14 @@ public class Alert extends DatabaseObject<Alert> {
         this.cautionStopTrackingAfter_ = cautionStopTrackingAfter;
     }
 
+    public Integer getCautionStopTrackingAfterTimeUnit() {
+        return cautionStopTrackingAfterTimeUnit_;
+    }
+
+    public void setCautionStopTrackingAfterTimeUnit(Integer cautionStopTrackingAfterTimeUnit) {
+        this.cautionStopTrackingAfterTimeUnit_ = cautionStopTrackingAfterTimeUnit;
+    }
+    
     public Integer getCautionMinimumSampleCount() {
         return cautionMinimumSampleCount_;
     }
@@ -1010,13 +961,29 @@ public class Alert extends DatabaseObject<Alert> {
     public void setDangerWindowDuration(Long dangerWindowDuration) {
         this.dangerWindowDuration_ = dangerWindowDuration;
     }
-    
+
+    public Integer getDangerWindowDurationTimeUnit() {
+        return dangerWindowDurationTimeUnit_;
+    }
+
+    public void setDangerWindowDurationTimeUnit(Integer dangerWindowDurationTimeUnit) {
+        this.dangerWindowDurationTimeUnit_ = dangerWindowDurationTimeUnit;
+    }
+
     public Long getDangerStopTrackingAfter() {
         return dangerStopTrackingAfter_;
     }
 
     public void setDangerStopTrackingAfter(Long dangerStopTrackingAfter) {
         this.dangerStopTrackingAfter_ = dangerStopTrackingAfter;
+    }
+
+    public Integer getDangerStopTrackingAfterTimeUnit() {
+        return dangerStopTrackingAfterTimeUnit_;
+    }
+
+    public void setDangerStopTrackingAfterTimeUnit(Integer dangerStopTrackingAfterTimeUnit) {
+        this.dangerStopTrackingAfterTimeUnit_ = dangerStopTrackingAfterTimeUnit;
     }
     
     public Integer getDangerMinimumSampleCount() {
