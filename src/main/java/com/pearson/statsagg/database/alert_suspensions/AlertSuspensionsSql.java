@@ -130,4 +130,7 @@ public class AlertSuspensionsSql {
                     "DELETE FROM ALERT_SUSPENSIONS " +
                     "WHERE DELETE_AT_TIMESTAMP <= ?";
     
+    protected final static String Select_AlertSuspension_ByPageNumberAndPageSize_Derby = 
+                    "SELECT ID, NAME FROM ALERT_SUSPENSIONS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
+    
 }
