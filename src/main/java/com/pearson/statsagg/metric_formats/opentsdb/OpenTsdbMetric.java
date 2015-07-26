@@ -105,7 +105,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 continue;
             }
             
-            if ((character == '-') || (character == '_') || (character == '.') || (character == ',') || (character == '/')) {
+            if ((character == '-') || (character == '_') || (character == '.') || (character == '/')) {
                 sanitizedInput.append(character);
                 continue;
             }

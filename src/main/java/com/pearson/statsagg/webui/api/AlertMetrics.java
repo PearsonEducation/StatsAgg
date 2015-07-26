@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui.api;
 
+import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.database.alerts.Alert;
 import com.pearson.statsagg.database.alerts.AlertsDao;
 import com.pearson.statsagg.database.metric_group.MetricGroup;
@@ -148,19 +149,11 @@ public class AlertMetrics extends HttpServlet {
         
         
         json.append("\"Triggered_Caution_Metrics\":[");
-        List<String> cautionTriggeredMetricKeys;
-        synchronized(GlobalVariables.activeCautionAlertMetricValues) {cautionTriggeredMetricKeys = new ArrayList<>(GlobalVariables.activeCautionAlertMetricValues.keySet());}
-        List<String> cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
-
-        for (String metricKey : cautionTriggeredMetricKeys) {
-            String suffix = ("-" + alert.getId());
-            if (metricKey.endsWith(suffix)) cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
-        }
-
+        List<String> cautionTriggeredMetricKeys = AlertThread.getCautionTriggeredMetrics(alert);
         int i = 1;
-        for (String metricKey : cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
+        for (String metricKey : cautionTriggeredMetricKeys) {
             json.append("\"").append(StringEscapeUtils.escapeJson(metricKey)).append("\"");
-            if (i < cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
+            if (i < cautionTriggeredMetricKeys.size()) json.append(",");
             i++;
         }
         
@@ -168,19 +161,11 @@ public class AlertMetrics extends HttpServlet {
         
         
         json.append("\"Triggered_Danger_Metrics\":[");
-        List<String> dangerTriggeredMetricKeys;
-        synchronized(GlobalVariables.activeDangerAlertMetricValues) {dangerTriggeredMetricKeys = new ArrayList<>(GlobalVariables.activeDangerAlertMetricValues.keySet());}
-        List<String> dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
-
-        for (String metricKey : dangerTriggeredMetricKeys) {
-            String suffix = ("-" + alert.getId());
-            if (metricKey.endsWith(suffix)) dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
-        }
-
+        List<String> dangerTriggeredMetricKeys = AlertThread.getDangerTriggeredMetrics(alert);
         i = 1;
-        for (String metricKey : dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId) {
+        for (String metricKey : dangerTriggeredMetricKeys) {
             json.append("\"").append(StringEscapeUtils.escapeJson(metricKey)).append("\"");
-            if (i < dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.size()) json.append(",");
+            if (i < dangerTriggeredMetricKeys.size()) json.append(",");
             i++;
         }
         

@@ -36,7 +36,7 @@ import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.digest.DigestUtils;
-import org.apache.commons.lang.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -1210,6 +1210,50 @@ public class AlertThread implements Runnable {
         }
         
         return activeAlerts;
+    }
+    
+    public static List<String> getCautionTriggeredMetrics(Alert alert) {
+        
+        if (alert == null) {
+            return new ArrayList<>();
+        }
+        
+        List<String> cautionTriggeredMetricKeys;
+                
+        synchronized(GlobalVariables.activeCautionAlertMetricValues) {
+            cautionTriggeredMetricKeys = new ArrayList<>(GlobalVariables.activeCautionAlertMetricValues.keySet());
+        }
+        
+        List<String> cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
+
+        for (String metricKey : cautionTriggeredMetricKeys) {
+            String suffix = ("-" + alert.getId());
+            if (metricKey.endsWith(suffix)) cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
+        }
+        
+        return cautionTriggeredMetricKeys_NoSuffix_ScopedToAlertId;
+    }
+    
+    public static List<String> getDangerTriggeredMetrics(Alert alert) {
+        
+        if (alert == null) {
+            return new ArrayList<>();
+        }
+        
+        List<String> dangerTriggeredMetricKeys;
+        
+        synchronized(GlobalVariables.activeDangerAlertMetricValues) {
+            dangerTriggeredMetricKeys = new ArrayList<>(GlobalVariables.activeDangerAlertMetricValues.keySet());
+        }
+        
+        List<String> dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId = new ArrayList<>();
+
+        for (String metricKey : dangerTriggeredMetricKeys) {
+            String suffix = ("-" + alert.getId());
+            if (metricKey.endsWith(suffix)) dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId.add(StringUtils.removeEnd(metricKey,suffix));
+        }
+        
+        return dangerTriggeredMetricKeys_NoSuffix_ScopedToAlertId;
     }
 
     /*

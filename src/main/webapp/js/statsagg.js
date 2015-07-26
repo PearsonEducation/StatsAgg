@@ -27,17 +27,16 @@ function generateAlertPreviewLink(warningLevel) {
     var dangerEnabledParameter = "DangerEnabled=" + encodeURIComponent(document.getElementById("DangerEnabled").value);
 
     var alertTypeParameter;
-    if (document.getElementById("CreateAlert_Type_Availability").checked === true)
-        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Availability");
-    else if (document.getElementById("CreateAlert_Type_Threshold").checked === true)
-        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Threshold");
-    else
-        alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("undefined");
+    if (document.getElementById("CreateAlert_Type_Availability").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Availability");
+    else if (document.getElementById("CreateAlert_Type_Threshold").checked === true) alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("Threshold");
+    else alertTypeParameter = "CreateAlert_Type=" + encodeURIComponent("undefined");
 
     var metricGroupNameParameter = "MetricGroupName=" + encodeURIComponent(document.getElementById("MetricGroupName").value.substring(0, 500));
 
     var cautionWindowDurationParameter = "CautionWindowDuration=" + encodeURIComponent(document.getElementById("CautionWindowDuration").value);
+    var cautionWindowDurationTimeUnitParameter = "CautionWindowDurationTimeUnit=" + encodeURIComponent(document.getElementById("CautionWindowDurationTimeUnit").value);
     var cautionStopTrackingAfterParameter = "CautionStopTrackingAfter=" + encodeURIComponent(document.getElementById("CautionStopTrackingAfter").value);
+    var cautionStopTrackingAfterTimeUnitParameter = "CautionStopTrackingAfterTimeUnit=" + encodeURIComponent(document.getElementById("CautionStopTrackingAfterTimeUnit").value);
     var cautionMinimumSampleCountParameter = "CautionMinimumSampleCount=" + encodeURIComponent(document.getElementById("CautionMinimumSampleCount").value);
     var cautionOperatorParameter = "CautionOperator=" + encodeURIComponent(document.getElementById("CautionOperator").value);
     var cautionCombinationParameter = "CautionCombination=" + encodeURIComponent(document.getElementById("CautionCombination").value);
@@ -45,7 +44,9 @@ function generateAlertPreviewLink(warningLevel) {
     var cautionThresholdParameter = "CautionThreshold=" + encodeURIComponent(document.getElementById("CautionThreshold").value);
 
     var dangerWindowDurationParameter = "DangerWindowDuration=" + encodeURIComponent(document.getElementById("DangerWindowDuration").value);
+    var dangerWindowDurationTimeUnitParameter = "DangerWindowDurationTimeUnit=" + encodeURIComponent(document.getElementById("DangerWindowDurationTimeUnit").value);
     var dangerStopTrackingAfterParameter = "DangerStopTrackingAfter=" + encodeURIComponent(document.getElementById("DangerStopTrackingAfter").value);
+    var dangerStopTrackingAfterTimeUnitParameter = "DangerStopTrackingAfterTimeUnit=" + encodeURIComponent(document.getElementById("DangerStopTrackingAfterTimeUnit").value);
     var dangerMinimumSampleCountParameter = "DangerMinimumSampleCount=" + encodeURIComponent(document.getElementById("DangerMinimumSampleCount").value);
     var dangerOperatorParameter = "DangerOperator=" + encodeURIComponent(document.getElementById("DangerOperator").value);
     var dangerCombinationParameter = "DangerCombination=" + encodeURIComponent(document.getElementById("DangerCombination").value);
@@ -54,9 +55,13 @@ function generateAlertPreviewLink(warningLevel) {
 
     var uriEncodedLink = "AlertPreview?" + warningLevelParameter + "&" +
             nameParameter + "&" + descriptionParameter + "&" + cautionEnabledParameter + "&" + dangerEnabledParameter + "&" + alertTypeParameter + "&" + metricGroupNameParameter + "&" +
-            cautionWindowDurationParameter + "&" + cautionStopTrackingAfterParameter + "&" + cautionMinimumSampleCountParameter + "&" +
+            cautionWindowDurationParameter + "&" + cautionWindowDurationTimeUnitParameter + "&" + 
+            cautionStopTrackingAfterParameter + "&" + cautionStopTrackingAfterTimeUnitParameter + "&" + 
+            cautionMinimumSampleCountParameter + "&" +
             cautionOperatorParameter + "&" + cautionCombinationParameter + "&" + cautionCombinationCountParameter + "&" + cautionThresholdParameter + "&" +
-            dangerWindowDurationParameter + "&" + dangerStopTrackingAfterParameter + "&" + dangerMinimumSampleCountParameter + "&" +
+            dangerWindowDurationParameter + "&" + dangerWindowDurationTimeUnitParameter + "&" +
+            dangerStopTrackingAfterParameter + "&" + dangerStopTrackingAfterTimeUnitParameter + "&" + 
+            dangerMinimumSampleCountParameter + "&" +
             dangerOperatorParameter + "&" + dangerCombinationParameter + "&" + dangerCombinationCountParameter + "&" + dangerThresholdParameter;
 
     if (warningLevel === "Caution") {

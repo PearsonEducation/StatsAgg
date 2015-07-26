@@ -39,6 +39,11 @@ public class Alert extends DatabaseObject<Alert> {
     public static final int TIME_UNIT_MINUTES = 73;
     public static final int TIME_UNIT_SECONDS = 74;
     
+    public static final BigDecimal MILLISECONDS_PER_SECOND = new BigDecimal(1000);
+    public static final BigDecimal MILLISECONDS_PER_MINUTE = new BigDecimal(60000);
+    public static final BigDecimal MILLISECONDS_PER_HOUR = new BigDecimal(3600000);
+    public static final BigDecimal MILLISECONDS_PER_DAY = new BigDecimal(86400000);
+
     private Integer id_;
     private String name_ = null;
     private String uppercaseName_ = null;
@@ -310,7 +315,9 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(cautionCombinationCount_, alert.getCautionCombinationCount())
                 .append(isCautionThresholdValueEqual, true)
                 .append(cautionWindowDuration_, alert.getCautionWindowDuration())
+                .append(cautionWindowDurationTimeUnit_, alert.getCautionWindowDurationTimeUnit())
                 .append(cautionStopTrackingAfter_, alert.getCautionStopTrackingAfter())
+                .append(cautionStopTrackingAfterTimeUnit_, alert.getCautionStopTrackingAfterTimeUnit())
                 .append(cautionMinimumSampleCount_, alert.getCautionMinimumSampleCount())
                 .isEquals();
     }
@@ -339,7 +346,9 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(dangerCombinationCount_, alert.getDangerCombinationCount())
                 .append(isDangerThresholdValueEqual, true)
                 .append(dangerWindowDuration_, alert.getDangerWindowDuration())
+                .append(dangerWindowDurationTimeUnit_, alert.getDangerWindowDurationTimeUnit())
                 .append(dangerStopTrackingAfter_, alert.getDangerStopTrackingAfter())
+                .append(dangerStopTrackingAfterTimeUnit_, alert.getDangerStopTrackingAfterTimeUnit())
                 .append(dangerMinimumSampleCount_, alert.getDangerMinimumSampleCount())
                 .isEquals();
     }
@@ -633,16 +642,28 @@ public class Alert extends DatabaseObject<Alert> {
         return null;
     }
     
-    public static String getTimeUnitStringFromCode(Integer timeUnitCode) {
+    public static String getTimeUnitStringFromCode(Integer timeUnitCode, boolean outputLowercase) {
         
         if ((timeUnitCode == null)) {
             return null;
         }
 
-        if (timeUnitCode == TIME_UNIT_DAYS) return "Days";
-        else if (timeUnitCode == TIME_UNIT_HOURS) return "Hours";
-        else if (timeUnitCode == TIME_UNIT_MINUTES) return "Minutes";
-        else if (timeUnitCode == TIME_UNIT_SECONDS) return "Seconds";
+        if (timeUnitCode == TIME_UNIT_DAYS) {
+            if (outputLowercase) return "days";
+            return "Days";
+        }
+        else if (timeUnitCode == TIME_UNIT_HOURS) {
+            if (outputLowercase) return "hours";
+            return "Hours";
+        }
+        else if (timeUnitCode == TIME_UNIT_MINUTES) {
+            if (outputLowercase) return "minutes";
+            return "Minutes";
+        }
+        else if (timeUnitCode == TIME_UNIT_SECONDS) {
+            if (outputLowercase) return "seconds";
+            return "Seconds";
+        }
         else logger.warn("Unrecognized window duration time unit");
          
         return null;
@@ -692,6 +713,36 @@ public class Alert extends DatabaseObject<Alert> {
         }
         
         return outputString;
+    }
+    
+    public static BigDecimal getMillisecondValueForTime(BigDecimal time, Integer timeUnitCode) {
+        
+        if ((time == null) || (timeUnitCode == null)) {
+            return null;
+        }
+        
+        if (timeUnitCode == Alert.TIME_UNIT_SECONDS) return time.multiply(MILLISECONDS_PER_SECOND).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_MINUTES) return time.multiply(MILLISECONDS_PER_MINUTE).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_HOURS) return time.multiply(MILLISECONDS_PER_HOUR).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_DAYS) return time.multiply(MILLISECONDS_PER_DAY).stripTrailingZeros();
+        
+        return null;
+    }
+    
+    public static BigDecimal getValueForTimeFromMilliseconds(Long timeInMs, Integer timeUnitCode) {
+        
+        if ((timeInMs == null) || (timeUnitCode == null)) {
+            return null;
+        }
+        
+        BigDecimal timeInMs_BigDecimal = new BigDecimal(timeInMs);
+        
+        if (timeUnitCode == Alert.TIME_UNIT_SECONDS) return timeInMs_BigDecimal.divide(MILLISECONDS_PER_SECOND).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_MINUTES) return timeInMs_BigDecimal.divide(MILLISECONDS_PER_MINUTE).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_HOURS) return timeInMs_BigDecimal.divide(MILLISECONDS_PER_HOUR).stripTrailingZeros();
+        else if (timeUnitCode == Alert.TIME_UNIT_DAYS) return timeInMs_BigDecimal.divide(MILLISECONDS_PER_DAY).stripTrailingZeros();
+        
+        return null;
     }
     
     public Integer getId() {

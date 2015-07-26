@@ -55,7 +55,7 @@ public class GraphiteMetricAggregatorTest {
         graphiteMetrics.add(graphiteMetric1); graphiteMetrics.add(graphiteMetric2); graphiteMetrics.add(graphiteMetric3); graphiteMetrics.add(graphiteMetric4); 
         graphiteMetrics.add(graphiteMetric5); graphiteMetrics.add(graphiteMetric6); graphiteMetrics.add(graphiteMetric7); 
         
-        List<GraphiteMetric> aggregatedGraphiteMetrics = GraphiteMetricAggregator.aggregate(graphiteMetrics, new BigDecimal(10000));
+        List<GraphiteMetric> aggregatedGraphiteMetrics = GraphiteMetricAggregator.aggregate(graphiteMetrics, new BigDecimal(10000), ".");
 
         int matchCount = 0;
         for (GraphiteMetric aggregatedGraphiteMetric : aggregatedGraphiteMetrics) {

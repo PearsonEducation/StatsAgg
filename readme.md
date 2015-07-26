@@ -26,7 +26,7 @@ StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (o
     * Graphite (and Graphite compatible services)
     * InfluxDB (versions 0.6x, 0.7x, 0.8x  -- support for 0.9x will come in a future release)
     * OpenTSDB (via telnet & HTTP)
-    * Outputting to a storage engine is completely optional; you can send metrics into StatsAgg without having them forwarded to a metric storage solution. This also means that if you’re having issues with your metric storage solution, StatsAgg will still be available & capable of alerting off the metrics that it receives.
+    * Outputting to a storage engine is completely optional; you can send metrics into StatsAgg without having them forwarded to a metric storage solution. This also means that if you're having issues with your metric storage solution, StatsAgg will still be available & capable of alerting off the metrics that it receives.
 * A robust alerting mechanism 
     * Can alert off of any received/aggregated metric
     * Regular-expression based mechanism for tying metrics & alerts together

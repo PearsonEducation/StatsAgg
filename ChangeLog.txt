@@ -2,7 +2,7 @@ StatsAgg 1.4  - released 2015-0x-xx
  * Added support for receiving & outputting InfluxDB metrics
    * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported (just in time for it to be depreciated)
    * The metric format used in InfluxDB 0.9x will be supported in the next StatsAgg release
- * Added support for 'sanitizing' Graphite & OpenTSDB metrics on output. This setting is unique to each output module.
+ * Added support for 'sanitizing' Graphite & OpenTSDB metrics on output. This setting is unique to each output module instance.
  * Metric groups can now 'blacklist' metrics via regular expressions. When a metric is 'blacklisted' in a metric group, it will not represent itself as being a match for the metric group (and therefore cannot be alerted on).
  * Added support output via OpenTSDB HTTP/JSON
    * Previously, StatsAgg could only output to OpenTSDB via telnet
@@ -10,6 +10,7 @@ StatsAgg 1.4  - released 2015-0x-xx
  * For output modules, added configurable connection timeouts & read timeouts
  * Improved timeout & retry behavior for all output modules
  * Added a description field to 'alert suspensions'. 
+ * Added 'time unit' fields to 'Alert' & 'Alert Suspension' configurations. These apply to fields like 'duration'.
  * Added the (configurable) ability to limit the maximum number of concurrently outputting output modules (spanning all output modules).
    * If one tries to initiate and output module when the maximum number of concurrently output modules already running, then a warning will be thrown and the output request will be discarded.
    * This helps safeguard StatsAgg from output endpoints that are experiencing availability or performance issues.

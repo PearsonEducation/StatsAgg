@@ -1,27 +1,25 @@
 StatsAgg 1.4
  * Document metric prefixes behavior
-   * For InfluxDB metrics represented as Graphite and/or OpenTSDB metrics, metric prefix comes before DB
    * Periods as delimiters in all output modules (seems to be industry standard)
  * Document quirks in each output db
- * Document HTTP output connects for 5sec, and waits for 60sec for a response
- * Document - remove any references to 'send previous value'
  * Document - StatsAgg is not a proxy
- * Document OpenTSDB "tsd.http.request.enable_chunked" and "tsd.http.request.max_chunk"
- * Document that graphite agg timestamp is averaged
+ * Document HA configuration
  * InfluxDB - default to MS when time is specified, but precision is not
  * Finish blacklist metric-group regexes
    * Document
    * Preview of final results
  * Separate notification group for positive alerts
  * 'Clear all' button for clearing/forgetting triggered availability alerts 
- * Move separator character out of graphite-aggregator aggregate method
+ * Optional "don't output InfluxDB database name" for InfluxDB format -> (any other format)
+ * Time units in previews & emails
+ * Rounding for 'time unit' stuff 
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
    * Make optional output HTTP error response bodies to log file
 
 StatsAgg 1.5
  * InfluxDB 0.9+ support
- * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for individual metrics
+ * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
  * use time unit selectors for duration fields (alerts, alert suspensions)
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
@@ -31,6 +29,7 @@ StatsAgg 1.5
     * Cleanup metrics after... (currently hardcoded to 24hrs)
  
 Short/Medium term
+ * Support for KariosDB
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine

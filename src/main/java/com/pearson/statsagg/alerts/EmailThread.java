@@ -155,31 +155,37 @@ public class EmailThread implements Runnable  {
         }
         
         if (warningLevel_ == WARNING_LEVEL_CAUTION) {
-            BigDecimal cautionWindowDurationMs = new BigDecimal(alert_.getCautionWindowDuration());
-            BigDecimal cautionWindowDurationSeconds = cautionWindowDurationMs.divide(new BigDecimal(1000));
+            BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert_.getCautionWindowDuration(), alert_.getCautionWindowDurationTimeUnit());
+            String cautionWindowDurationTimeUnit = "";
+            if (alert_.getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = Alert.getTimeUnitStringFromCode(alert_.getCautionWindowDurationTimeUnit(), true);
             
             if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
-                body.append("<ul><li>No new data points were received during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
+                body.append("<ul><li>No new data points were received during the last ").append(cautionWindowDuration.stripTrailingZeros().toPlainString())
+                        .append(" ").append(cautionWindowDurationTimeUnit).append("</li></ul><br>");
             }
             else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getCautionMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getCautionCombinationString(alert_)).append(" ").append(alert_.getOperatorString(Alert.CAUTION, false, true))
                         .append(" ").append(alert_.getCautionThreshold().stripTrailingZeros().toPlainString())
-                        .append(" during the last ").append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
+                        .append(" during the last ").append(cautionWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(cautionWindowDurationTimeUnit)
+                        .append("</li></ul><br>");
             }
         }
         else if (warningLevel_ == WARNING_LEVEL_DANGER) {
-            BigDecimal dangerWindowDurationMs = new BigDecimal(alert_.getDangerWindowDuration());
-            BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
+            BigDecimal dangerWindowDuration = Alert.getValueForTimeFromMilliseconds(alert_.getDangerWindowDuration(), alert_.getDangerWindowDurationTimeUnit());
+            String dangerWindowDurationTimeUnit = "";
+            if (alert_.getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = Alert.getTimeUnitStringFromCode(alert_.getDangerWindowDurationTimeUnit(), true);
 
             if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
-                body.append("<ul><li>No new data points were received during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>");
+                body.append("<ul><li>No new data points were received during the last ").append(dangerWindowDuration.stripTrailingZeros().toPlainString())
+                        .append(" ").append(dangerWindowDurationTimeUnit).append("</li></ul><br>");
             }
             else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
                 body.append("<ul><li>A minimum of ").append(alert_.getDangerMinimumSampleCount()).append(" sample(s)").append("</li>");
                 body.append("<li>").append(getDangerCombinationString(alert_)).append(" ").append(alert_.getOperatorString(Alert.DANGER, false, true))
                         .append(" ").append(alert_.getDangerThreshold().stripTrailingZeros().toPlainString())
-                        .append(" during the last ").append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString()).append(" seconds").append("</li></ul><br>"); 
+                        .append(" during the last ").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(dangerWindowDurationTimeUnit)
+                        .append("</li></ul><br>");
             }
         }
         
@@ -197,12 +203,12 @@ public class EmailThread implements Runnable  {
                 if (alertMetricValue != null) {
                     String metricValueString_WithLabel = null;
                     if (warningLevel_ == WARNING_LEVEL_CAUTION) {
-                            body.append(" = ");
-                            metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.CAUTION, alert_, alertMetricValue);
+                        body.append(" = ");
+                        metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.CAUTION, alert_, alertMetricValue);
                     }
                     else if (warningLevel_ == WARNING_LEVEL_DANGER) {
-                            body.append(" = ");
-                            metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.DANGER, alert_, alertMetricValue);
+                        body.append(" = ");
+                        metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(Alert.DANGER, alert_, alertMetricValue);
                     }
                         
                     if (metricValueString_WithLabel != null) {

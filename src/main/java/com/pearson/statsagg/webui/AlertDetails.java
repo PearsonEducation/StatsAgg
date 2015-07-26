@@ -235,13 +235,12 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Caution window duration</b> = ");
             if (alert.getCautionWindowDuration() != null) {
-                BigDecimal cautionWindowDurationMs = new BigDecimal(alert.getCautionWindowDuration());
-                BigDecimal cautionWindowDurationSeconds = cautionWindowDurationMs.divide(new BigDecimal(1000));
-                outputString.append(cautionWindowDurationSeconds.stripTrailingZeros().toPlainString());
+                BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
+                if (cautionWindowDuration != null) outputString.append(cautionWindowDuration.stripTrailingZeros().toPlainString());
                 
                 if (alert.getCautionWindowDurationTimeUnit() != null) {
-                    String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit());
-                    if (cautionTimeUnitString != null) outputString.append(" ").append(cautionTimeUnitString.toLowerCase());
+                    String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
+                    if (cautionTimeUnitString != null) outputString.append(" ").append(cautionTimeUnitString);
                 }
                 outputString.append("<br>");
             }
@@ -250,9 +249,14 @@ public class AlertDetails extends HttpServlet {
             if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                 outputString.append("<b>Caution stop tracking after...</b> = ");
                 if (alert.getCautionStopTrackingAfter() != null) {
-                    BigDecimal cautionStopTrackingAfterMs = new BigDecimal(alert.getCautionStopTrackingAfter());
-                    BigDecimal cautionStopTrackingAfterSeconds = cautionStopTrackingAfterMs.divide(new BigDecimal(1000));
-                    outputString.append(cautionStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                    BigDecimal cautionStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
+                    if (cautionStopTrackingAfter != null) outputString.append(cautionStopTrackingAfter.stripTrailingZeros().toPlainString());
+                    
+                    if (alert.getCautionStopTrackingAfterTimeUnit() != null) {
+                        String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
+                        if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
+                    }
+                    outputString.append("<br>");
                 }
                 else outputString.append("N/A <br>");
             }          
@@ -328,13 +332,12 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Danger window duration</b> = ");
             if (alert.getDangerWindowDuration() != null) {
-                BigDecimal dangerWindowDurationMs = new BigDecimal(alert.getDangerWindowDuration());
-                BigDecimal dangerWindowDurationSeconds = dangerWindowDurationMs.divide(new BigDecimal(1000));
-                outputString.append(dangerWindowDurationSeconds.stripTrailingZeros().toPlainString());
+                BigDecimal dangerWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
+                if (dangerWindowDuration != null) outputString.append(dangerWindowDuration.stripTrailingZeros().toPlainString());
                 
                 if (alert.getDangerWindowDurationTimeUnit() != null) {
-                    String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit());
-                    if (dangerTimeUnitString != null) outputString.append(" ").append(dangerTimeUnitString.toLowerCase());
+                    String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
+                    if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
                 }
                 outputString.append("<br>");
             }
@@ -343,9 +346,14 @@ public class AlertDetails extends HttpServlet {
             if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                 outputString.append("<b>Danger stop tracking after...</b> = ");
                 if (alert.getDangerStopTrackingAfter() != null) {
-                    BigDecimal dangerStopTrackingAfterMs = new BigDecimal(alert.getDangerStopTrackingAfter());
-                    BigDecimal dangerStopTrackingAfterSeconds = dangerStopTrackingAfterMs.divide(new BigDecimal(1000));
-                    outputString.append(dangerStopTrackingAfterSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+                    BigDecimal dangerStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
+                    if (dangerStopTrackingAfter != null) outputString.append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString());
+                    
+                    if (alert.getDangerStopTrackingAfterTimeUnit() != null) {
+                        String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
+                        if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
+                    }
+                    outputString.append("<br>");
                 }
                 else outputString.append("N/A <br>");
             }

@@ -87,10 +87,14 @@ public class GraphiteMetricAggregator {
         
         BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
         
+        String aggregatedMetricsSeparator;
+        if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = ".";
+        else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
+        
         for (String metricPath : metricPathSet) {
             try {
                 List<GraphiteMetric> graphiteMetrics = graphiteMetricsByMetricPath.get(metricPath);
-                List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics, aggregationWindowLengthInMs);
+                List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics, aggregationWindowLengthInMs, aggregatedMetricsSeparator);
             
                 if ((multipleGraphiteMetricsAggregated != null) && !multipleGraphiteMetricsAggregated.isEmpty()) {
                     graphiteMetricsAggregated.addAll(multipleGraphiteMetricsAggregated);
@@ -107,9 +111,9 @@ public class GraphiteMetricAggregator {
     /* 
      * This method assumes that all of the input graphite metrics share the same metric path
      */
-    public static List<GraphiteMetric> aggregate(List<GraphiteMetric> graphiteMetrics, BigDecimal aggregationWindowLengthInMs) {
+    public static List<GraphiteMetric> aggregate(List<GraphiteMetric> graphiteMetrics, BigDecimal aggregationWindowLengthInMs, String aggregatedMetricsSeparator) {
         
-        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (aggregationWindowLengthInMs == null)) {
+        if ((graphiteMetrics == null) || graphiteMetrics.isEmpty() || (aggregationWindowLengthInMs == null) || (aggregatedMetricsSeparator == null)) {
            return new ArrayList<>(); 
         }
 
@@ -163,10 +167,6 @@ public class GraphiteMetricAggregator {
             BigDecimal medianMetricValue = MathUtilities.smartBigDecimalScaleChange(MathUtilities.computeMedianOfBigDecimals(metricValues, GRAPHITE_MATH_CONTEXT, false), GRAPHITE_SCALE, GRAPHITE_ROUNDING_MODE);
             long averagedMetricTimestamp = Math.round((double) sumMetricTimestamp / (double) metricCounter);
             long averagedMetricReceivedTimestamp = Math.round((double) sumReceivedTimestamp / (double) metricCounter);
-            
-            String aggregatedMetricsSeparator;
-            if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = ".";
-            else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
             
             if (averageMetricValue != null) {
                 GraphiteMetric graphiteMetric = new GraphiteMetric(metricPath + aggregatedMetricsSeparator + "Avg", 
