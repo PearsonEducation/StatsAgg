@@ -7,8 +7,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import com.pearson.statsagg.database.DatabaseObjectDao;
+import com.pearson.statsagg.database.alerts.AlertsSql;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -332,6 +335,62 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         }
         
         return alertSuspensions_SuspendByMetricGroupTag_ByMetricGroupTag;
+    }
+    
+     public JSONObject getAlertSuspension(int offset, int pageSize) {        
+        logger.debug("getAlerts");
+        List<Object> parametersList = new ArrayList<>(2);
+        
+        JSONArray alertSuspensionList = new JSONArray();
+        JSONObject alertSuspensionJson = new JSONObject();
+        int alertSuspensionCount = 0;
+        
+        try {
+            if (!isConnectionValid()) {
+                return null;
+            }
+            
+            if ((offset == 0) && (pageSize == 0)) {
+                alertSuspensionJson.put("alert_suspensions", alertSuspensionList);
+                alertSuspensionJson.put("count", alertSuspensionCount);
+                return alertSuspensionJson;
+            }
+            
+            parametersList.add(offset);
+            parametersList.add(pageSize);
+            databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_Derby,
+                                                       pageSize);
+            databaseInterface_.addPreparedStatementParameters(parametersList);
+
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                logger.debug("Invalid resultset");
+                return null;
+            }
+            
+            ResultSet resultSet = databaseInterface_.getResults();
+            
+            while(resultSet.next()) {
+                JSONObject alertSuspension = new JSONObject();
+                alertSuspension.put("name", resultSet.getString("NAME"));
+                alertSuspension.put("id", resultSet.getString("ID"));
+                alertSuspensionList.add(alertSuspension);
+                alertSuspensionCount++;
+            }
+            
+            alertSuspensionJson.put("alerts", alertSuspensionList);
+            alertSuspensionJson.put("count", alertSuspensionCount);
+            
+            return alertSuspensionJson;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
     }
     
 }
