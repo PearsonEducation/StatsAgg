@@ -53,20 +53,20 @@ public class AlertThreadTest {
         metricTimestampsAndValues_.add(new MetricTimestampAndValue((long) 1200, new BigDecimal("80.1"), hashKeyGen_.incrementAndGet()));     
         
         alert1_ = new Alert(1, "alert1", "alert1_description" , 11, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         alert2_ = new Alert(2, "alert2", "alert2_description" , 11, true, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null,
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null);
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null,
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         alert3_ = new Alert(3, "alert3", "alert3_description" , 11, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null,
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null,
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, true, new Timestamp(System.currentTimeMillis()), false, null, null);
   
         alert4_ = new Alert(4, "alert4", "alert4_description" , 11, true, true, true, Alert.TYPE_THRESHOLD, false, true, 300000, 
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null); 
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, 1, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, 2, Alert.TIME_UNIT_SECONDS, false, new Timestamp(System.currentTimeMillis()), false, null, null); 
     }
     
     @AfterClass
@@ -90,8 +90,8 @@ public class AlertThreadTest {
         
         for (int i = 1; i <= 7877; i++) {
             Alert alert = new Alert(i, "alert-" + i, "alert-" + i , 11, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-                1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null, 
-                1, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+                1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null, 
+                1, 2, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
             
             alerts.add(alert);
         }

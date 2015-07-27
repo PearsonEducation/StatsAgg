@@ -125,10 +125,12 @@ public class AlertDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
 
-            NotificationGroup cautionNotificationGroup = null, dangerNotificationGroup = null;
+            NotificationGroup cautionNotificationGroup = null, cautionPositiveNotificationGroup = null, dangerNotificationGroup = null, dangerPositiveNotificationGroup = null;
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
             if (alert.getCautionNotificationGroupId() != null) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+            if (alert.getCautionPositiveNotificationGroupId() != null) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
             if (alert.getDangerNotificationGroupId() != null) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+            if (alert.getDangerPositiveNotificationGroupId() != null) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
             notificationGroupsDao.close();
             
             MetricGroup metricGroup = null;
@@ -233,6 +235,14 @@ public class AlertDetails extends HttpServlet {
             }
             else outputString.append("N/A <br>");
             
+            outputString.append("<b>Caution positive notification group name</b> = ");
+            if (cautionPositiveNotificationGroup != null) {
+                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(cautionPositiveNotificationGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(cautionPositiveNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetails).append("<br>");
+            }
+            else outputString.append("N/A <br>");
+            
             outputString.append("<b>Caution window duration</b> = ");
             if (alert.getCautionWindowDuration() != null) {
                 BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
@@ -326,6 +336,14 @@ public class AlertDetails extends HttpServlet {
             if (dangerNotificationGroup != null) {
                 String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(dangerNotificationGroup.getName()) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetails).append("<br>");
+            }
+            else outputString.append("N/A <br>");
+            
+            outputString.append("<b>Danger positive notification group name</b> = ");
+            if (dangerPositiveNotificationGroup != null) {
+                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(dangerPositiveNotificationGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(dangerPositiveNotificationGroup.getName()) + "</a>";
                 outputString.append(notificationGroupDetails).append("<br>");
             }
             else outputString.append("N/A <br>");

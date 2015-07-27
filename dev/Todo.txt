@@ -3,15 +3,15 @@ StatsAgg 1.4
    * Periods as delimiters in all output modules (seems to be industry standard)
  * Document quirks in each output db
  * Document - StatsAgg is not a proxy
+ * Document new UI options (time unit, blacklist, positive alert notification groups, etc)
  * Document HA configuration
  * InfluxDB - default to MS when time is specified, but precision is not
  * Finish blacklist metric-group regexes
    * Document
    * Preview of final results
- * Separate notification group for positive alerts
  * 'Clear all' button for clearing/forgetting triggered availability alerts 
+ * Time unit on alert suspension duration
  * Optional "don't output InfluxDB database name" for InfluxDB format -> (any other format)
- * Time units in previews & emails
  * Rounding for 'time unit' stuff 
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
@@ -20,6 +20,8 @@ StatsAgg 1.4
 StatsAgg 1.5
  * InfluxDB 0.9+ support
  * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
+ * Alter buttons on 'details' pages
+ * Reduce JS code for typeahead
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
  * use time unit selectors for duration fields (alerts, alert suspensions)
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB

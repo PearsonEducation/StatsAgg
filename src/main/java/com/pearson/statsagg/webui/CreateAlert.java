@@ -335,11 +335,29 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group\" id=\"CautionNotificationGroupNameLookup\">\n" +
             "  <label id=\"CautionNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group that is associated with this alert.\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send alerts to.\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+
+            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+            }
+        }
+        
+        htmlBody.append(">\n</div>\n");
+        
+        
+        // caution positive notification group name
+        htmlBody.append(
+            "<div class=\"form-group\" id=\"CautionPositiveNotificationGroupNameLookup\">\n" +
+            "  <label id=\"CautionPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Notification positive group name</label>\n" +
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"CautionPositiveNotificationGroupName\" id=\"CautionPositiveNotificationGroupName\" ");
+
+        if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
@@ -585,11 +603,29 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group\" id=\"DangerNotificationGroupNameLookup\">\n" +
             "  <label id=\"DangerNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group that is associated with this alert.\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send alerts to.\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+
+            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+            }
+        }
+        
+        htmlBody.append(">\n</div>\n");
+        
+        
+        // danger positive notification group name
+        htmlBody.append(
+            "<div class=\"form-group\" id=\"DangerPositiveNotificationGroupNameLookup\">\n" +
+            "  <label id=\"DangerPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Notification positive group name</label>\n" +
+            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"DangerPositiveNotificationGroupName\" id=\"DangerPositiveNotificationGroupName\" ");
+
+        if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
@@ -944,6 +980,17 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
+            parameter = Common.getObjectParameter(request, "CautionPositiveNotificationGroupName");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {
+                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionPositiveNotificationGroupId(notificationGroup.getId());
+                }
+            }
+            
             parameter = Common.getObjectParameter(request, "CautionWindowDurationTimeUnit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
@@ -1044,6 +1091,17 @@ public class CreateAlert extends HttpServlet {
                     NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
                     NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
+                }
+            }
+            
+            parameter = Common.getObjectParameter(request, "DangerPositiveNotificationGroupName");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {    
+                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerPositiveNotificationGroupId(notificationGroup.getId());
                 }
             }
             

@@ -43,8 +43,8 @@ public class AlertTest {
         long currentTimeInMs = System.currentTimeMillis();
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, null, false, null, null,
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(currentTimeInMs), false, null, null);
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, null, false, null, null,
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(currentTimeInMs), false, null, null);
         
         Alert alert2 = Alert.copy(alert1);
         assertTrue(alert1.isEqual(alert2));
@@ -96,8 +96,8 @@ public class AlertTest {
     public void testIsValid_CautionOperation() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null, 
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null, 
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
         assertTrue(alert1.isValid_CautionOperation());
         
@@ -133,8 +133,8 @@ public class AlertTest {
     public void testIsValid_DangerOperation() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         assertTrue(alert1.isValid_DangerOperation());
         
@@ -170,8 +170,8 @@ public class AlertTest {
     public void testIsValid_CautionCombination() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
         assertTrue(alert1.isValid_CautionCombination());
         
@@ -223,8 +223,8 @@ public class AlertTest {
     public void testIsValid_DangerCombination() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         assertTrue(alert1.isValid_DangerCombination());
         
@@ -276,8 +276,8 @@ public class AlertTest {
     public void testIsValid_CautionWindowDuration() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
         assertTrue(alert1.isValid_CautionWindowDuration());
         
@@ -301,8 +301,8 @@ public class AlertTest {
     public void testIsValid_DangerWindowDuration() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         assertTrue(alert1.isValid_DangerWindowDuration());
         
@@ -326,8 +326,8 @@ public class AlertTest {
     public void testIsValid_CautionMinimumSampleCount() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
         assertTrue(alert1.isValid_CautionMinimumSampleCount());
         
@@ -351,8 +351,8 @@ public class AlertTest {
     public void testIsValid_DangerMinimumSampleCount() {
         
         Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            666, null, null, null, null, null, null, null, null, null, null, null, false, null, null,  
-            666, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
+            666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,  
+            666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
         assertTrue(alert1.isValid_DangerMinimumSampleCount());
         

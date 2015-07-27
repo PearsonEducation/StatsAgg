@@ -160,6 +160,11 @@ $('#CreateAlert_Type_Threshold').change(function () {
     CreateAlert_Type_ShowAndHide();
 });
 
+// On changing the 'alert on positive' box the 'Create Alert' page, show and hide certain UI elements
+$('#AlertOnPositive').change(function () {
+    CreateAlert_Type_ShowAndHide();
+});
+
 // On changing the value of the 'Combination' dropdown options on the 'Create Alert' page, show and hide certain UI elements
 $('#CautionCombination').change(function () {
     CreateAlert_Type_ShowAndHide();
@@ -173,7 +178,20 @@ function CreateAlert_Type_ShowAndHide() {
     if ($("#CreateAlert_Type_Availability").prop('checked') === true) {
         $("#CautionNoAlertTypeSelected_Label").hide();
         $("#CautionNotificationGroupName_Label").show();
+        $("#CautionNotificationGroupNameLookup").show();
         $("#CautionNotificationGroupName").show();
+        
+        if ($("#AlertOnPositive").prop('checked') === true) {
+            $("#CautionPositiveNotificationGroupName_Label").show();
+            $("#CautionPositiveNotificationGroupNameLookup").show();
+            $("#CautionPositiveNotificationGroupName").show();
+        }
+        else {
+            $("#CautionPositiveNotificationGroupName_Label").hide();
+            $("#CautionPositiveNotificationGroupNameLookup").hide();
+            $("#CautionPositiveNotificationGroupName").hide();
+        }
+    
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
         $("#CautionWindowDurationTimeUnit").show();
@@ -194,7 +212,20 @@ function CreateAlert_Type_ShowAndHide() {
     else if ($("#CreateAlert_Type_Threshold").prop('checked') === true) {
         $("#CautionNoAlertTypeSelected_Label").hide();
         $("#CautionNotificationGroupName_Label").show();
+        $("#CautionNotificationGroupNameLookup").show();
         $("#CautionNotificationGroupName").show();
+        
+        if ($("#AlertOnPositive").prop('checked') === true) {
+            $("#CautionPositiveNotificationGroupName_Label").show();
+            $("#CautionPositiveNotificationGroupNameLookup").show();
+            $("#CautionPositiveNotificationGroupName").show();
+        }
+        else {
+            $("#CautionPositiveNotificationGroupName_Label").hide();
+            $("#CautionPositiveNotificationGroupNameLookup").hide();
+            $("#CautionPositiveNotificationGroupName").hide();
+        }
+        
         $("#CautionWindowDuration_Label").show();
         $("#CautionWindowDuration").show();
         $("#CautionWindowDurationTimeUnit").show();
@@ -224,7 +255,11 @@ function CreateAlert_Type_ShowAndHide() {
     else {
         $("#CautionNoAlertTypeSelected_Label").show();
         $("#CautionNotificationGroupName_Label").hide();
+        $("#CautionNotificationGroupNameLookup").hide();
         $("#CautionNotificationGroupName").hide();
+        $("#CautionPositiveNotificationGroupName_Label").hide();
+        $("#CautionPositiveNotificationGroupNameLookup").hide();
+        $("#CautionPositiveNotificationGroupName").hide();
         $("#CautionWindowDuration_Label").hide();
         $("#CautionWindowDuration").hide();
         $("#CautionWindowDurationTimeUnit").hide();
@@ -247,7 +282,20 @@ function CreateAlert_Type_ShowAndHide() {
     if ($("#CreateAlert_Type_Availability").prop('checked') === true) {
         $("#DangerNoAlertTypeSelected_Label").hide();
         $("#DangerNotificationGroupName_Label").show();
+        $("#DangerNotificationGroupNameLookup").show();
         $("#DangerNotificationGroupName").show();
+        
+        if ($("#AlertOnPositive").prop('checked') === true) {
+            $("#DangerPositiveNotificationGroupName_Label").show();
+            $("#DangerPositiveNotificationGroupNameLookup").show();
+            $("#DangerPositiveNotificationGroupName").show();
+        }
+        else {
+            $("#DangerPositiveNotificationGroupName_Label").hide();
+            $("#DangerPositiveNotificationGroupNameLookup").hide();
+            $("#DangerPositiveNotificationGroupName").hide();
+        }
+        
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
         $("#DangerWindowDurationTimeUnit").show();
@@ -268,7 +316,20 @@ function CreateAlert_Type_ShowAndHide() {
     else if ($("#CreateAlert_Type_Threshold").prop('checked') === true) {
         $("#DangerNoAlertTypeSelected_Label").hide();
         $("#DangerNotificationGroupName_Label").show();
+        $("#DangerNotificationGroupNameLookup").show();
         $("#DangerNotificationGroupName").show();
+        
+        if ($("#AlertOnPositive").prop('checked') === true) {
+            $("#DangerPositiveNotificationGroupName_Label").show();
+            $("#DangerPositiveNotificationGroupNameLookup").show();
+            $("#DangerPositiveNotificationGroupName").show();
+        }
+        else {
+            $("#DangerPositiveNotificationGroupName_Label").hide();
+            $("#DangerPositiveNotificationGroupNameLookup").hide();
+            $("#DangerPositiveNotificationGroupName").hide();
+        }
+        
         $("#DangerWindowDuration_Label").show();
         $("#DangerWindowDuration").show();
         $("#DangerWindowDurationTimeUnit").show();
@@ -298,7 +359,11 @@ function CreateAlert_Type_ShowAndHide() {
     else {
         $("#DangerNoAlertTypeSelected_Label").show();
         $("#DangerNotificationGroupName_Label").hide();
+        $("#DangerNotificationGroupNameLookup").hide();
         $("#DangerNotificationGroupName").hide();
+        $("#DangerPositiveNotificationGroupName_Label").hide();
+        $("#DangerPositiveNotificationGroupNameLookup").hide();
+        $("#DangerPositiveNotificationGroupName").hide();
         $("#DangerWindowDuration_Label").hide();
         $("#DangerWindowDuration").hide();
         $("#DangerWindowDurationTimeUnit").hide();
@@ -706,6 +771,37 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
+    var doesCautionPositiveNotificationGroupNameLookupExist = document.getElementById('CautionPositiveNotificationGroupNameLookup');
+
+    if (doesCautionPositiveNotificationGroupNameLookupExist !== null) {
+        var NotificationGroupNameLookup_Bloodhound = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: 'Lookup?Type=NotificationGroupName&Query=%QUERY'
+        });
+
+        NotificationGroupNameLookup_Bloodhound.initialize();
+
+        $('#CautionPositiveNotificationGroupNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'NotificationGroupNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
+            }
+        );
+    }
+});
+
+$(document).ready(function () {
     var doesDangerNotificationGroupNameLookupExist = document.getElementById('DangerNotificationGroupNameLookup');
 
     if (doesDangerNotificationGroupNameLookupExist !== null) {
@@ -718,6 +814,37 @@ $(document).ready(function () {
         NotificationGroupNameLookup_Bloodhound.initialize();
 
         $('#DangerNotificationGroupNameLookup .typeahead').typeahead(
+            {
+                highlight: false,
+                hint: false
+            },
+            {
+                name: 'NotificationGroupNameLookup_Bloodhound',
+                displayKey: "Value",
+                source: NotificationGroupNameLookup_Bloodhound.ttAdapter(),
+                templates: {
+                    suggestion: function (dropdown_display) {
+                        return '<p>' + dropdown_display.HtmlValue + '</p>';
+                    }
+                }
+            }
+        );
+    }
+});
+
+$(document).ready(function () {
+    var doesDangerPositiveNotificationGroupNameLookupExist = document.getElementById('DangerPositiveNotificationGroupNameLookup');
+
+    if (doesDangerPositiveNotificationGroupNameLookupExist !== null) {
+        var NotificationGroupNameLookup_Bloodhound = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.whitespace,
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: 'Lookup?Type=NotificationGroupName&Query=%QUERY'
+        });
+
+        NotificationGroupNameLookup_Bloodhound.initialize();
+
+        $('#DangerPositiveNotificationGroupNameLookup .typeahead').typeahead(
             {
                 highlight: false,
                 hint: false

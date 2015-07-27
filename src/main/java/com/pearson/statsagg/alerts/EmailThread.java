@@ -74,8 +74,10 @@ public class EmailThread implements Runnable  {
         buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup);
         
         List<String> emailAddesses;
-        if (warningLevel_ == WARNING_LEVEL_CAUTION) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
-        else if (warningLevel_ == WARNING_LEVEL_DANGER) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerNotificationGroupId());
+        if ((warningLevel_ == WARNING_LEVEL_CAUTION) && !isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
+        else if ((warningLevel_ == WARNING_LEVEL_CAUTION) && isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionPositiveNotificationGroupId());
+        else if ((warningLevel_ == WARNING_LEVEL_DANGER) && !isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerNotificationGroupId());
+        else if ((warningLevel_ == WARNING_LEVEL_DANGER) && isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerPositiveNotificationGroupId());
         else emailAddesses = new ArrayList();
         
         if (ApplicationConfiguration.isAlertSendEmailEnabled() && !emailAddesses.isEmpty()) {
@@ -360,10 +362,7 @@ public class EmailThread implements Runnable  {
             for (String emailAddress : emailAddresses) {
                 String trimmedEmailAddress = emailAddress.trim();
                 boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
-                
-                if (isValidEmailAddress) {
-                    emailAddessesList.add(trimmedEmailAddress);
-                }
+                if (isValidEmailAddress) emailAddessesList.add(trimmedEmailAddress);
             }
         }
         
