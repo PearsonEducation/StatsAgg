@@ -1,8 +1,8 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;

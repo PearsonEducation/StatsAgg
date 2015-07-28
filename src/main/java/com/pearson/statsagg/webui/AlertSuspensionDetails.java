@@ -1,9 +1,10 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.math.BigDecimal;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -236,7 +238,16 @@ public class AlertSuspensionDetails extends HttpServlet {
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Duration</b> = ");
-            if (alertSuspension.getDuration() != null) outputString.append(alertSuspension.getDuration()).append(" minutes").append("<br>");
+            if (alertSuspension.getDuration() != null) {
+                BigDecimal duration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alertSuspension.getDuration(), alertSuspension.getDurationTimeUnit());
+                if (duration != null) outputString.append(duration.stripTrailingZeros().toPlainString());
+                
+                if (alertSuspension.getDurationTimeUnit() != null) {
+                    String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alertSuspension.getDurationTimeUnit(), true);
+                    if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
+                }
+                outputString.append("<br>");
+            }
             else outputString.append("N/A <br>");
             
             if ((alertSuspension.isOneTime() != null) && alertSuspension.isOneTime()) {

@@ -10,7 +10,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.pearson.statsagg.database.gauges.Gauge;
+import com.pearson.statsagg.database_objects.gauges.Gauge;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.globals.StatsdHistogramConfiguration;

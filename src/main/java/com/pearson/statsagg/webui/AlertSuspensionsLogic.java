@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

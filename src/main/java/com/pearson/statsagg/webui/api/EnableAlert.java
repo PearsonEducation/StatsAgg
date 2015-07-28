@@ -15,7 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.Common;
 import java.io.IOException;

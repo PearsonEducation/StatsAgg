@@ -1,9 +1,9 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;

@@ -1,12 +1,11 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.webui.AlertSuspensionsLogic;
 import com.pearson.statsagg.controller.ContextManager;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.DateAndTime;
-import java.io.File;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -77,7 +76,7 @@ public class AlertSuspensionsLogicTest {
         AlertSuspension alertSuspension1 = new AlertSuspension(
                 -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
                 true, true, true, true, true, true, true, true, true, 
-                startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);
+                startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
          
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspension1);
         assertTrue(result.contains("Success"));
@@ -149,7 +148,7 @@ public class AlertSuspensionsLogicTest {
         AlertSuspension alertSuspension1 = new AlertSuspension(
                 -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
                 true, true, true, true, true, true, true, true, true, 
-                startDateTimestamp, startTimeTimestamp, 40, endTimeTimestamp);
+                startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
         
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspension1);
         assertTrue(result.contains("Success"));

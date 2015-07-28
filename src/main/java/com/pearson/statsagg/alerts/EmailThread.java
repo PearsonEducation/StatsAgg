@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -7,11 +8,11 @@ import java.util.Calendar;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.notifications.NotificationGroup;
-import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.webui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.EmailUtils;
@@ -157,9 +158,9 @@ public class EmailThread implements Runnable  {
         }
         
         if (warningLevel_ == WARNING_LEVEL_CAUTION) {
-            BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert_.getCautionWindowDuration(), alert_.getCautionWindowDurationTimeUnit());
+            BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert_.getCautionWindowDuration(), alert_.getCautionWindowDurationTimeUnit());
             String cautionWindowDurationTimeUnit = "";
-            if (alert_.getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = Alert.getTimeUnitStringFromCode(alert_.getCautionWindowDurationTimeUnit(), true);
+            if (alert_.getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(alert_.getCautionWindowDurationTimeUnit(), true);
             
             if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 body.append("<ul><li>No new data points were received during the last ").append(cautionWindowDuration.stripTrailingZeros().toPlainString())
@@ -174,9 +175,9 @@ public class EmailThread implements Runnable  {
             }
         }
         else if (warningLevel_ == WARNING_LEVEL_DANGER) {
-            BigDecimal dangerWindowDuration = Alert.getValueForTimeFromMilliseconds(alert_.getDangerWindowDuration(), alert_.getDangerWindowDurationTimeUnit());
+            BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert_.getDangerWindowDuration(), alert_.getDangerWindowDurationTimeUnit());
             String dangerWindowDurationTimeUnit = "";
-            if (alert_.getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = Alert.getTimeUnitStringFromCode(alert_.getDangerWindowDurationTimeUnit(), true);
+            if (alert_.getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(alert_.getDangerWindowDurationTimeUnit(), true);
 
             if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 body.append("<ul><li>No new data points were received during the last ").append(dangerWindowDuration.stripTrailingZeros().toPlainString())
@@ -356,7 +357,7 @@ public class EmailThread implements Runnable  {
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
 
-        if ((notificationGroup != null) &&  (notificationGroup.getEmailAddresses() != null)) {
+        if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
             String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
             
             for (String emailAddress : emailAddresses) {

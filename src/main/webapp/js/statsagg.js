@@ -401,30 +401,33 @@ function CreateAlertSuspension_Type_ShowAndHide() {
     if ($("#CreateAlertSuspension_Type_Recurring").prop('checked') === true) {
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Div").show();
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Label_Div").show();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").show();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").show();
         $("#CreateAlertSuspension_RecurOnDays_Div").show();
         $("#CreateAlertSuspension_RecurOnDays_Label_Div").show();
+        $("#CreateAlertSuspension_Type_Spacer1").show();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").show();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").show();
         $("#CreateAlertSuspension_Duration_Div").show();
         $("#CreateAlertSuspension_Duration_Label_Div").show();
     }
     else if ($("#CreateAlertSuspension_Type_OneTime").prop('checked') === true) {
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Div").show();
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Label_Div").show();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").show();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").show();
         $("#CreateAlertSuspension_RecurOnDays_Div").hide();
         $("#CreateAlertSuspension_RecurOnDays_Label_Div").hide();
+        $("#CreateAlertSuspension_Type_Spacer1").show();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").show();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").show();
         $("#CreateAlertSuspension_Duration_Div").show();
         $("#CreateAlertSuspension_Duration_Label_Div").show();
     }
     else {
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Div").hide();
         $("#CreateAlertSuspension_DateTimePicker_StartDate_Label_Div").hide();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").hide();
-        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").hide();
         $("#CreateAlertSuspension_RecurOnDays_Div").hide();
         $("#CreateAlertSuspension_RecurOnDays_Label_Div").hide();
+        $("#CreateAlertSuspension_Type_Spacer1").hide();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Div").hide();
+        $("#CreateAlertSuspension_DateTimePicker_StartTime_Label_Div").hide();
         $("#CreateAlertSuspension_Duration_Div").hide();
         $("#CreateAlertSuspension_Duration_Label_Div").hide();
     }

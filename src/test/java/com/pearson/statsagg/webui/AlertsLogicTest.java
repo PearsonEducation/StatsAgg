@@ -1,20 +1,17 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.webui.AlertsLogic;
-import com.pearson.statsagg.webui.MetricGroupsLogic;
-import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.TreeSet;
 import com.pearson.statsagg.controller.ContextManager;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.notifications.NotificationGroup;
-import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
-import java.io.File;
 import java.io.InputStream;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -110,8 +107,8 @@ public class AlertsLogicTest {
         
         // create & insert an Alert, insert it into the db, retrieve it from the db, & check for correctness of the retrieved records
         Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
         AlertsDao alertsDao = new AlertsDao();
@@ -175,8 +172,8 @@ public class AlertsLogicTest {
         assertTrue(result.contains("success") || result.contains("Alert not found"));
         
         Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
-            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
-            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, Alert.TIME_UNIT_SECONDS, null, Alert.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
+            notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
         AlertsDao alertsDao = new AlertsDao();

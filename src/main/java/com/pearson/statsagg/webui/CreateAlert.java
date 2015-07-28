@@ -1,17 +1,18 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.notifications.NotificationGroup;
-import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
@@ -376,7 +377,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X'  time units ago. Values that fall in this window are used in alert evaluation.\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
 
         if ((alert != null) && (alert.getCautionWindowDuration() != null)) {
-            BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
+            BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
             htmlBody.append(" value=\"").append(cautionWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
         }
         
@@ -389,9 +390,9 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"CautionWindowDurationTimeUnit\" id=\"CautionWindowDurationTimeUnit\">\n");
 
         
-        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true) != null)) {
+        if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true) != null)) {
             String whiteSpace = "							  ";
-            String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
+            String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
             
             if (cautionTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
@@ -428,7 +429,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X seconds, stop alerting on it.\" name=\"CautionStopTrackingAfter\" id=\"CautionStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getCautionStopTrackingAfter() != null)) {
-            BigDecimal cautionStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
+            BigDecimal cautionStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
             htmlBody.append(" value=\"").append(cautionStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
         }
 
@@ -440,9 +441,9 @@ public class CreateAlert extends HttpServlet {
             "<div class=\"form-group col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionStopTrackingAfterTimeUnit\" id=\"CautionStopTrackingAfterTimeUnit\">\n");
 
-        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true) != null)) {
+        if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true) != null)) {
             String whiteSpace = "							  ";
-            String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
+            String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
 
             if (cautionTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
@@ -644,7 +645,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' time units ago. Values that fall in this window are used in alert evaluation.\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\"");
 
         if ((alert != null) && (alert.getDangerWindowDuration() != null)) {
-            BigDecimal dangerWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
+            BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
             htmlBody.append(" value=\"").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
         }
 
@@ -656,9 +657,9 @@ public class CreateAlert extends HttpServlet {
             "<div class=\"form-group col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerWindowDurationTimeUnit\" id=\"DangerWindowDurationTimeUnit\">\n");
 
-        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true) != null)) {
+        if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true) != null)) {
             String whiteSpace = "							  ";
-            String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
+            String dangerTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
 
             if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
@@ -695,7 +696,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X time units, stop alerting on it.\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getDangerStopTrackingAfter() != null)) {
-            BigDecimal dangerStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
+            BigDecimal dangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
             htmlBody.append(" value=\"").append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
         }
 
@@ -707,9 +708,9 @@ public class CreateAlert extends HttpServlet {
             "<div class=\"form-group col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerStopTrackingAfterTimeUnit\" id=\"DangerStopTrackingAfterTimeUnit\">\n");
 
-        if ((alert != null) && (Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true) != null)) {
+        if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true) != null)) {
             String whiteSpace = "							  ";
-            String dangerTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
+            String dangerTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
 
             if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
@@ -996,7 +997,7 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {      
-                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setCautionWindowDurationTimeUnit(intValue);
                 }
             }
@@ -1006,8 +1007,8 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {    
-                    BigDecimal time = new BigDecimal(parameterTrimmed);
-                    BigDecimal timeInMs = Alert.getMillisecondValueForTime(time, alert.getCautionWindowDurationTimeUnit());
+                    BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionWindowDurationTimeUnit());
                     alert.setCautionWindowDuration(timeInMs.longValue());                    
                 }
             }
@@ -1017,7 +1018,7 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {      
-                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setCautionStopTrackingAfterTimeUnit(intValue);
                 }
             }
@@ -1027,8 +1028,8 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {     
-                    BigDecimal time = new BigDecimal(parameterTrimmed);
-                    BigDecimal timeInMs = Alert.getMillisecondValueForTime(time, alert.getCautionStopTrackingAfterTimeUnit());
+                    BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionStopTrackingAfterTimeUnit());
                     alert.setCautionStopTrackingAfter(timeInMs.longValue());
                 }
             }
@@ -1110,7 +1111,7 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {      
-                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setDangerWindowDurationTimeUnit(intValue);
                 }
             }
@@ -1120,8 +1121,8 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {    
-                    BigDecimal time = new BigDecimal(parameterTrimmed);
-                    BigDecimal timeInMs = Alert.getMillisecondValueForTime(time, alert.getDangerWindowDurationTimeUnit());
+                    BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerWindowDurationTimeUnit());
                     alert.setDangerWindowDuration(timeInMs.longValue());
                 }
             }
@@ -1131,7 +1132,7 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {      
-                    Integer intValue = Alert.getTimeUnitCodeFromString(parameterTrimmed);
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setDangerStopTrackingAfterTimeUnit(intValue);
                 }
             }
@@ -1141,8 +1142,8 @@ public class CreateAlert extends HttpServlet {
                 String parameterTrimmed = parameter.trim();
                 
                 if (!parameterTrimmed.isEmpty()) {    
-                    BigDecimal time = new BigDecimal(parameterTrimmed);
-                    BigDecimal timeInMs = Alert.getMillisecondValueForTime(time, alert.getDangerStopTrackingAfterTimeUnit());
+                    BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerStopTrackingAfterTimeUnit());
                     alert.setDangerStopTrackingAfter(timeInMs.longValue());
                 }
             }

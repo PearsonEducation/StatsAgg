@@ -15,7 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
 import javax.servlet.http.HttpServletRequest;

@@ -1,12 +1,12 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.database.general_purpose.GeneralPurposeDao;
-import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.general_purpose.GeneralPurposeDao;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.Threads;
 import java.sql.Timestamp;

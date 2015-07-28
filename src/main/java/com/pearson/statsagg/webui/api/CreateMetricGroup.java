@@ -15,7 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.MetricGroupsLogic;

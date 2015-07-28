@@ -1,17 +1,18 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.notifications.NotificationGroup;
-import com.pearson.statsagg.database.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -245,11 +246,11 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Caution window duration</b> = ");
             if (alert.getCautionWindowDuration() != null) {
-                BigDecimal cautionWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
+                BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
                 if (cautionWindowDuration != null) outputString.append(cautionWindowDuration.stripTrailingZeros().toPlainString());
                 
                 if (alert.getCautionWindowDurationTimeUnit() != null) {
-                    String cautionTimeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
+                    String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
                     if (cautionTimeUnitString != null) outputString.append(" ").append(cautionTimeUnitString);
                 }
                 outputString.append("<br>");
@@ -259,11 +260,11 @@ public class AlertDetails extends HttpServlet {
             if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                 outputString.append("<b>Caution stop tracking after...</b> = ");
                 if (alert.getCautionStopTrackingAfter() != null) {
-                    BigDecimal cautionStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
+                    BigDecimal cautionStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
                     if (cautionStopTrackingAfter != null) outputString.append(cautionStopTrackingAfter.stripTrailingZeros().toPlainString());
                     
                     if (alert.getCautionStopTrackingAfterTimeUnit() != null) {
-                        String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
+                        String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
                         if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
                     }
                     outputString.append("<br>");
@@ -350,11 +351,11 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Danger window duration</b> = ");
             if (alert.getDangerWindowDuration() != null) {
-                BigDecimal dangerWindowDuration = Alert.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
+                BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
                 if (dangerWindowDuration != null) outputString.append(dangerWindowDuration.stripTrailingZeros().toPlainString());
                 
                 if (alert.getDangerWindowDurationTimeUnit() != null) {
-                    String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
+                    String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
                     if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
                 }
                 outputString.append("<br>");
@@ -364,11 +365,11 @@ public class AlertDetails extends HttpServlet {
             if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                 outputString.append("<b>Danger stop tracking after...</b> = ");
                 if (alert.getDangerStopTrackingAfter() != null) {
-                    BigDecimal dangerStopTrackingAfter = Alert.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
+                    BigDecimal dangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
                     if (dangerStopTrackingAfter != null) outputString.append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString());
                     
                     if (alert.getDangerStopTrackingAfterTimeUnit() != null) {
-                        String timeUnitString = Alert.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
+                        String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
                         if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
                     }
                     outputString.append("<br>");

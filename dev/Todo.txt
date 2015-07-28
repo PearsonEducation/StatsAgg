@@ -10,9 +10,7 @@ StatsAgg 1.4
    * Document
    * Preview of final results
  * 'Clear all' button for clearing/forgetting triggered availability alerts 
- * Time unit on alert suspension duration
  * Optional "don't output InfluxDB database name" for InfluxDB format -> (any other format)
- * Rounding for 'time unit' stuff 
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
  * Advanced options
    * Make optional output HTTP error response bodies to log file
@@ -31,7 +29,7 @@ StatsAgg 1.5
     * Cleanup metrics after... (currently hardcoded to 24hrs)
  
 Short/Medium term
- * Support for KariosDB
+ * Support for KariosDB?
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine

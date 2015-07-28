@@ -17,7 +17,7 @@
 
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;

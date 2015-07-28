@@ -1,13 +1,14 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -119,7 +120,8 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         AlertSuspension alertSuspension = new AlertSuspension(
                 -1, alertSuspensionName, alertSuspensionName.toUpperCase(), true, null, 1, null, null, false, true, 
                 true, true, true, true, true, true, true, 
-                new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()), 1, null);
+                new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()), 
+                60000l, DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
         try {
             String parameter;

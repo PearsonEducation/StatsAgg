@@ -1,13 +1,13 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database.DatabaseInterface;
+import com.pearson.statsagg.database_engine.DatabaseInterface;
 import java.util.TreeSet;
-import com.pearson.statsagg.database.metric_group.MetricGroup;
-import com.pearson.statsagg.database.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database.metric_group_regex.MetricGroupRegexesDao;
-import com.pearson.statsagg.database.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
+import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.HashSet;

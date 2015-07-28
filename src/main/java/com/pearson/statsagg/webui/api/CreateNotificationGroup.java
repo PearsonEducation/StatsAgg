@@ -15,7 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.io.BufferedReader;

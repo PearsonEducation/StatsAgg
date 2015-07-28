@@ -1,16 +1,18 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
-import com.pearson.statsagg.database.alerts.Alert;
-import com.pearson.statsagg.database.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import org.jsoup.Jsoup;
@@ -400,7 +402,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         htmlBody.append("</div>\n" + "</td>\n" + "</tr>\n");
         
-        htmlBody.append("<tr><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
+        htmlBody.append("<tr id=\"CreateAlertSuspension_Type_Spacer1\"><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
         
         
         // start time
@@ -422,22 +424,50 @@ public class CreateAlertSuspension extends HttpServlet {
             "      </div>\n" +
             "    </td>\n" +
             "</tr>\n");
-       
+        
         
         // duration
         htmlBody.append(
             "<tr>\n" +
-            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_Duration_Label_Div\">Duration (mins):</div></th>\n" +
+            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_Duration_Label_Div\">Duration:</div></th>\n" +
             "  <td>\n" +
-            "    <div id=\"CreateAlertSuspension_Duration_Div\">\n" +
-            "      <input class=\"form-control-statsagg\" name=\"Duration\" id=\"Duration\" ");
+            "    <div style=\" padding-top: 3px;\" id=\"CreateAlertSuspension_Duration_Div\">\n" +
+            "      <div class=\"col-xs-6\"> <input class=\"form-control-statsagg\" name=\"Duration\" id=\"Duration\" ");
                     
         if ((alertSuspension != null) && (alertSuspension.getDuration() != null)) {
-            htmlBody.append("value=\"").append(alertSuspension.getDuration()).append("\"");
+            BigDecimal duration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alertSuspension.getDuration(), alertSuspension.getDurationTimeUnit());
+            htmlBody.append(" value=\"").append(duration.stripTrailingZeros().toPlainString()).append("\"");
+        }
+        htmlBody.append("></div>\n");
+
+        
+        // duration time unit
+        htmlBody.append("<div class=\"col-xs-6\"> <select class=\"form-control-statsagg col-xs-6\" name=\"DurationTimeUnit\" id=\"DurationTimeUnit\">\n");
+
+        if ((alertSuspension != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alertSuspension.getDurationTimeUnit(), true) != null)) {
+            String whiteSpace = "							  ";
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alertSuspension.getDurationTimeUnit(), true);
+
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+        }
+        else {
+            htmlBody.append(
+                "<option>Minutes</option>\n" +
+                "<option>Hours</option>\n" +
+                "<option>Days</option>\n"
+            );
         }
         
-        htmlBody.append(">\n </div>\n </td>\n </tr>\n");
-        
+        htmlBody.append("</select></div>\n");
+        htmlBody.append("</div>\n </td>\n </tr>\n");
+
         // end column 3
         htmlBody.append("</tbody>\n </table>\n </div>\n </div>\n </div>\n");
         
@@ -598,13 +628,27 @@ public class CreateAlertSuspension extends HttpServlet {
                 alertSuspension.setStartTime(startTimeTimestamp);
             }
             
-            parameter = request.getParameter("Duration");
+            parameter = Common.getObjectParameter(request, "DurationTimeUnit");
             if (parameter != null) {
-                String durationStringTrimmed = parameter.trim();
-                Integer intValue = Integer.parseInt(durationStringTrimmed);
-                alertSuspension.setDuration(intValue);
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
+                    alertSuspension.setDurationTimeUnit(intValue);
+                }
             }
             
+            parameter = Common.getObjectParameter(request, "Duration");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {    
+                    BigDecimal time = new BigDecimal(parameterTrimmed);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alertSuspension.getDurationTimeUnit());
+                    alertSuspension.setDuration(timeInMs.longValue());
+                }
+            }
+
             if ((alertSuspension.isOneTime() != null) && alertSuspension.isOneTime() && (alertSuspension.getDuration() != null) &&
                     (alertSuspension.getStartDate() != null) && (alertSuspension.getStartTime() != null)) {
                 Calendar startTime = Calendar.getInstance();
@@ -617,7 +661,7 @@ public class CreateAlertSuspension extends HttpServlet {
                 
                 Calendar deleteDateAndTime = Calendar.getInstance();
                 deleteDateAndTime.setTimeInMillis(startDateAndTime.getTimeInMillis());
-                deleteDateAndTime.add(Calendar.MINUTE, alertSuspension.getDuration());
+                deleteDateAndTime.add(Calendar.SECOND, (int) (alertSuspension.getDuration() / 1000));
                 
                 Timestamp deleteAtTimestamp = new Timestamp(deleteDateAndTime.getTimeInMillis());
                 alertSuspension.setDeleteAtTimestamp(deleteAtTimestamp);
