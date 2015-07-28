@@ -15,8 +15,8 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;

@@ -108,7 +108,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
     @Override
     public AlertSuspension processSingleResultAllColumns(ResultSet resultSet) {
         
-        try {     
+        try {
             if ((resultSet == null) || resultSet.isClosed()) {
                 return null;
             }
@@ -340,7 +340,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
     }
     
      public JSONObject getAlertSuspension(int offset, int pageSize) {        
-        logger.debug("getAlerts");
+        logger.debug("getAlertSuspension");
         List<Object> parametersList = new ArrayList<>(2);
         
         JSONArray alertSuspensionList = new JSONArray();
