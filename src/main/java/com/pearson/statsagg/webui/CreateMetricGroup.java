@@ -208,7 +208,7 @@ public class CreateMetricGroup extends HttpServlet {
             "</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Blacklist Regular Expressions</label>\n" +
-            "  <a id=\"MergedRegexMetricsPreview_Blacklist\" name=\"MergedRegexMetricsPreview_Blacklist\" class=\"iframe cboxElement statsagg_merged_regex_metrics_preview pull-right\" href=\"#\" onclick=\"generateMergedRegexMetricsPreview_Blacklist();\">Preview Regex Matches</a>" +
+            "  <a id=\"MergedRegexMetricsPreview_Blacklist\" name=\"MergedRegexMetricsPreview_Blacklist\" class=\"iframe cboxElement statsagg_merged_regex_metrics_preview pull-right\" href=\"#\" onclick=\"generateMergedRegexMetricsPreview_Blacklist();\">Preview Regex Matches With Blacklist</a>" +
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"BlacklistRegexes\" id=\"BlacklistRegexes\" >");
 
         if ((metricGroup != null)) {

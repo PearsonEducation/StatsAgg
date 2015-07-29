@@ -163,4 +163,12 @@ public class InfluxdbStandardizedMetric_Test {
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric3.getOpenTsdbJsonFormatString(true)));   
     }
 
+    @Test
+    public void testInfluxdbMetricCreateNoTimePrecisionSpecified() {
+        List<InfluxdbMetric_v1> influxdbMetrics1 = InfluxdbMetric_v1.parseInfluxdbMetricJson("metricDb..@-\\/#$%^_123AaZz09", json1_, "user", "pass", null,
+                null, "..metricPrefix..@-\\/#$%^_123AaZz09.", 1437135662888l);
+        
+        assertEquals(influxdbMetrics1.get(0).getInfluxdbStandardizedMetrics().get(0).getMetricTimestamp(), 1436135662888123l);
+    }
+    
 }

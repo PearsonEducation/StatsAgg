@@ -1,16 +1,17 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static com.pearson.statsagg.webui.RegexTester.getRegexMatchesHtml;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupNewlineDelimitedParameterValues;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.TreeSet;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -71,15 +72,16 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
         TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
         
-        List matchRegexes_List;
+        List matchRegexes_List = null, blacklistRegexes_List = null;
         if ((matchRegexes != null) && !matchRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(matchRegexes);
-        else if ((blacklistRegexes != null) && !blacklistRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(blacklistRegexes);
-        else matchRegexes_List = new ArrayList<>();
-        
-        String mergedRegex = StringUtilities.createMergedRegex(matchRegexes_List);
-        
-        String regexMatchesHtml = getRegexMatchesHtml(mergedRegex, 1000);
-        
+        if ((blacklistRegexes != null) && !blacklistRegexes.isEmpty()) blacklistRegexes_List = new ArrayList<>(blacklistRegexes);
+
+        String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes_List);
+        String mergedBlacklistRegex = StringUtilities.createMergedRegex(blacklistRegexes_List);
+
+        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet(), mergedMatchRegex, mergedBlacklistRegex, 1001);
+        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
+            
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
 

@@ -1,12 +1,13 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import static com.pearson.statsagg.webui.RegexTester.getRegexMatchesHtml;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -65,7 +66,8 @@ public class ForgetMetricsPreview extends HttpServlet {
         
         String parameter = request.getParameter("Regex");
         if (parameter != null && !parameter.isEmpty()) parameter = parameter.trim();
-        String regexMatchesHtml = getRegexMatchesHtml(parameter, 1000);
+        Set<String> metricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet(), parameter, null, 1001);
+        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(metricKeys, 1000);
         
         try {  
             StringBuilder htmlBuilder = new StringBuilder();

@@ -155,6 +155,10 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                 metricTimestamp = time;
                 metricTimestampPrecision = timePrecisionCode_;
             }
+            else if ((time >= 0) && (timePrecisionCode_ == Common.TIMESTAMP_PRECISION_UNKNOWN)) {
+                metricTimestamp = time;
+                metricTimestampPrecision = Common.TIMESTAMP_PRECISION_MILLISECONDS;
+            }
             else {
                 metricTimestamp = metricsReceivedTimestampInMilliseconds_;
                 metricTimestampPrecision = Common.TIMESTAMP_PRECISION_MILLISECONDS;
@@ -189,6 +193,10 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         if ((time >= 0) && (timePrecisionCode_ != Common.TIMESTAMP_PRECISION_UNKNOWN)) {
             metricTimestamp = time;
             metricTimestampPrecision = timePrecisionCode_;
+        }
+        else if ((time >= 0) && (timePrecisionCode_ == Common.TIMESTAMP_PRECISION_UNKNOWN)) {
+            metricTimestamp = time;
+            metricTimestampPrecision = Common.TIMESTAMP_PRECISION_MILLISECONDS;
         }
         else {
             metricTimestamp = metricsReceivedTimestampInMilliseconds_;

@@ -35,8 +35,8 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
     private final ArrayList<String> columns_;
     private final ArrayList<Object> point_;
     
-    public InfluxdbStandardizedMetric(String metricKey, String metricDatabase, String metricPrefix, 
-            String metricName, String metricValueName, BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds,
+    public InfluxdbStandardizedMetric(String metricKey, String metricDatabase, String metricPrefix, String metricName, String metricValueName, 
+            BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds,
             ArrayList<String> columns, ArrayList<Object> point) {
         this.metricKey_ = metricKey;
         this.metricDatabase_ = metricDatabase;

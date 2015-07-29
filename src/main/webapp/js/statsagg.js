@@ -108,8 +108,9 @@ function generateMergedRegexMetricsPreview_Match() {
 }
 
 function generateMergedRegexMetricsPreview_Blacklist() {
+    var MatchRegexParameter = "MatchRegexes=" + encodeURIComponent(document.getElementById("MatchRegexes").value);
     var BlacklistRegexParameter = "BlacklistRegexes=" + encodeURIComponent(document.getElementById("BlacklistRegexes").value);
-    var uriEncodedLink = "MergedRegexMetricsPreview?" + BlacklistRegexParameter;
+    var uriEncodedLink = "MergedRegexMetricsPreview?" + BlacklistRegexParameter + "&" + MatchRegexParameter;
     document.getElementById("MergedRegexMetricsPreview_Blacklist").setAttribute("href", uriEncodedLink);
 }
 

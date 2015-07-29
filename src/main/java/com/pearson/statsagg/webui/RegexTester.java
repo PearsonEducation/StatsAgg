@@ -9,7 +9,9 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
@@ -106,7 +108,8 @@ public class RegexTester extends HttpServlet {
         
         try {
             String parameter = request.getParameter("Regex");
-            String regexMatchesHtml = getRegexMatchesHtml(parameter, 1000);
+            Set<String> metricKeys = getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet(), parameter, null, 1000);
+            String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000);
   
             StringBuilder htmlBuilder = new StringBuilder();
 
@@ -173,57 +176,88 @@ public class RegexTester extends HttpServlet {
         return htmlBody.toString();
     }
     
-    public static String getRegexMatchesHtml(String regex, int metricMatchLimit) {
+    // if metricMatchLimit < 0, then it is treated as infinite
+    public static Set<String> getRegexMatches(Set<String> metricKeys, String matchRegex, String blacklistRegex, int metricMatchLimit) {
         
-        if (regex == null) {
-            return "<b>No regex specified</b>";
+        if (matchRegex == null) {
+            return null;
         }
         
-        Pattern pattern = null;
+        Pattern matchPattern = null, blacklistPattern = null;
         
         try {
-            pattern = Pattern.compile(regex.trim());
+            matchPattern = Pattern.compile(matchRegex.trim());
+            if ((blacklistRegex != null) && !blacklistRegex.isEmpty()) blacklistPattern = Pattern.compile(blacklistRegex.trim());
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
-        List<String> matchingMetricKeys = new ArrayList<>();
-
-        if (pattern != null) {
+        Set<String> matchingMetricKeys = new HashSet<>();
+        
+        if (matchPattern != null) {
             int matchCounter = 0;
+            boolean isAnyMatchLimt = (metricMatchLimit >= 0);
             
-            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
-                Matcher matcher = pattern.matcher(metricKey);
+            for (String metricKey : metricKeys) {
+                Matcher matcher = matchPattern.matcher(metricKey);
                 
                 if (matcher.matches()) {
-                    matchingMetricKeys.add(metricKey);
-                    matchCounter++;
+                    if (blacklistPattern != null) {
+                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
+                        
+                        if (!blacklistMatcher.matches()) {
+                            matchingMetricKeys.add(metricKey);
+                            matchCounter++;
+                        }
+                    }
+                    else {
+                        matchingMetricKeys.add(metricKey);
+                        matchCounter++;
+                    }
                 }
 
-                if (matchCounter == (metricMatchLimit + 1)) {
+                if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
                     break;
                 }
             }
         }
+ 
+        return matchingMetricKeys;
+    }
+    
+    public static String getRegexMatchesHtml(Set<String> metricKeys, int metricMatchLimit) {
+        List<String> metricKeysList = null;
         
-        Collections.sort(matchingMetricKeys);
+        if (metricKeys != null) {
+            metricKeysList = new ArrayList<>(metricKeys);
+            Collections.sort(metricKeysList);
+        }
+        
+        return getRegexMatchesHtml(metricKeysList, metricMatchLimit);
+    }
+    
+    public static String getRegexMatchesHtml(List<String> metricKeys, int metricMatchLimit) {
+        
+        if (metricKeys == null) {
+            return "<b>Regex Match Count</b> = 0";
+        }
         
         StringBuilder outputString = new StringBuilder();
+                
+        String metricKeyCountString;
+        if (metricKeys.size() > metricMatchLimit) metricKeyCountString = "More than " + Integer.toString(metricMatchLimit);
+        else metricKeyCountString = Integer.toString(metricKeys.size());
         
-        String matchCountString;
-        if (matchingMetricKeys.size() > metricMatchLimit) matchCountString = "More than " + Integer.toString(metricMatchLimit);
-        else matchCountString = Integer.toString(matchingMetricKeys.size());
-        
-        outputString.append("<b>Regex Match Count</b> = ").append(matchCountString).append("<br><br>");
+        outputString.append("<b>Regex Match Count</b> = ").append(metricKeyCountString).append("<br><br>");
 
-        if (matchingMetricKeys.size() > 0) {
+        if (metricKeys.size() > 0) {
             outputString.append("<b>Matching Metrics...</b>").append("<br>");
 
             int outputCounter = 0;
             outputString.append("<ul>");
 
-            for (String metricKey : matchingMetricKeys) {
+            for (String metricKey : metricKeys) {
 
                 if (outputCounter < metricMatchLimit)  {
                     outputString.append("<li>").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</li>");
@@ -240,5 +274,5 @@ public class RegexTester extends HttpServlet {
         
         return outputString.toString();
     }
-
+    
 }
