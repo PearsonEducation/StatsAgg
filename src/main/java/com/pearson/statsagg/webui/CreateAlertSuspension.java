@@ -485,7 +485,7 @@ public class CreateAlertSuspension extends HttpServlet {
         return htmlBody.toString();
     }
     
-    private String parseAndAlterAlertSuspension(HttpServletRequest request) {
+    public String parseAndAlterAlertSuspension(Object request) {
         
         if (request == null) {
             return null;
@@ -494,7 +494,7 @@ public class CreateAlertSuspension extends HttpServlet {
         String returnString;
         
         AlertSuspension alertSuspension = getAlertSuspensionFromRequestParameters(request);
-        String oldName = request.getParameter("Old_Name");
+        String oldName = Common.getObjectParameter(request, "Old_Name");
         
         // insert/update/delete records in the database
         if (alertSuspension != null) {
@@ -515,7 +515,7 @@ public class CreateAlertSuspension extends HttpServlet {
         return returnString;
     }
     
-    private AlertSuspension getAlertSuspensionFromRequestParameters(HttpServletRequest request) {
+    private AlertSuspension getAlertSuspensionFromRequestParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -529,13 +529,13 @@ public class CreateAlertSuspension extends HttpServlet {
             String parameter;
 
             // column #1 parameters
-            parameter = request.getParameter("Name");
+            parameter = Common.getObjectParameter(request, "Name");
             String trimmedName = parameter.trim();
             alertSuspension.setName(trimmedName);
             alertSuspension.setUppercaseName(trimmedName.toUpperCase());
             if ((alertSuspension.getName() == null) || alertSuspension.getName().isEmpty()) didEncounterError = true;
             
-            parameter = request.getParameter("Description");
+            parameter = Common.getObjectParameter(request, "Description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -545,33 +545,33 @@ public class CreateAlertSuspension extends HttpServlet {
             }
             else alertSuspension.setDescription("");
             
-            parameter = request.getParameter("Enabled");
+            parameter = Common.getObjectParameter(request, "Enabled");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsEnabled(true);
             else alertSuspension.setIsEnabled(false);
 
-            parameter = request.getParameter("SuspendNotificationOnly");
+            parameter = Common.getObjectParameter(request, "SuspendNotificationOnly");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsSuspendNotificationOnly(true);
             else alertSuspension.setIsSuspendNotificationOnly(false);
  
             
             // column #2 parameters
-            parameter = request.getParameter("CreateAlertSuspension_SuspendBy");
+            parameter = Common.getObjectParameter(request, "CreateAlertSuspension_SuspendBy");
             if ((parameter != null) && parameter.contains("AlertName")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
             else if ((parameter != null) && parameter.contains("Tags")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
             else if ((parameter != null) && parameter.contains("Everything")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
             
-            parameter = request.getParameter("AlertName");
+            parameter = Common.getObjectParameter(request, "AlertName");
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlertByName(parameter);
             if (alert != null) alertSuspension.setAlertId(alert.getId());
 
-            parameter = request.getParameter("MetricGroupTagsInclusive");
+            parameter = Common.getObjectParameter(request, "MetricGroupTagsInclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
                 alertSuspension.setMetricGroupTagsInclusive(trimmedTags);
             }
             
-            parameter = request.getParameter("MetricGroupTagsExclusive");
+            parameter = Common.getObjectParameter(request, "MetricGroupTagsExclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
                 alertSuspension.setMetricGroupTagsExclusive(trimmedTags);
@@ -579,11 +579,11 @@ public class CreateAlertSuspension extends HttpServlet {
             
             
             // column #3 parameters
-            parameter = request.getParameter("CreateAlertSuspension_Type");
+            parameter = Common.getObjectParameter(request, "CreateAlertSuspension_Type");
             if ((parameter != null) && parameter.contains("Recurring")) alertSuspension.setIsOneTime(false);
             else if ((parameter != null) && parameter.contains("OneTime")) alertSuspension.setIsOneTime(true);
             
-            parameter = request.getParameter("StartDate");
+            parameter = Common.getObjectParameter(request, "StartDate");
             if (parameter != null) {
                 String startDateStringTrimmed = parameter.trim();
                 Calendar startDateCalendar = DateAndTime.getCalendarFromFormattedString(startDateStringTrimmed, "MM/dd/yyyy");
@@ -591,35 +591,35 @@ public class CreateAlertSuspension extends HttpServlet {
                 alertSuspension.setStartDate(startDateTimestamp);
             }
             
-            parameter = request.getParameter("RecurSunday");
+            parameter = Common.getObjectParameter(request, "RecurSunday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurSunday(true);
             else alertSuspension.setIsRecurSunday(false);
             
-            parameter = request.getParameter("RecurMonday");
+            parameter = Common.getObjectParameter(request, "RecurMonday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurMonday(true);
             else alertSuspension.setIsRecurMonday(false);
             
-            parameter = request.getParameter("RecurTuesday");
+            parameter = Common.getObjectParameter(request, "RecurTuesday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurTuesday(true);
             else alertSuspension.setIsRecurTuesday(false);
             
-            parameter = request.getParameter("RecurWednesday");
+            parameter = Common.getObjectParameter(request, "RecurWednesday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurWednesday(true);
             else alertSuspension.setIsRecurWednesday(false);
             
-            parameter = request.getParameter("RecurThursday");
+            parameter = Common.getObjectParameter(request, "RecurThursday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurThursday(true);
             else alertSuspension.setIsRecurThursday(false);
 
-            parameter = request.getParameter("RecurFriday");
+            parameter = Common.getObjectParameter(request, "RecurFriday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurFriday(true);
             else alertSuspension.setIsRecurFriday(false);
             
-            parameter = request.getParameter("RecurSaturday");
+            parameter = Common.getObjectParameter(request, "RecurSaturday");
             if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurSaturday(true);
             else alertSuspension.setIsRecurSaturday(false);
 
-            parameter = request.getParameter("StartTime");
+            parameter = Common.getObjectParameter(request, "StartTime");
             if (parameter != null) {
                 String startTimeStringTrimmed = parameter.trim();
                 String startTimeStringTrimmedWithDate = "01/01/1970" + " " + startTimeStringTrimmed;
