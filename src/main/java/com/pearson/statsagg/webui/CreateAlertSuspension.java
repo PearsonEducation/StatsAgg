@@ -162,7 +162,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         // column #1
         htmlBody.append("" +
-            "<div class=\"col-md-4 col-md-4-min-width-statsagg\" > \n" +
+            "<div class=\"col-md-4 statsagg_three_panel_first_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
             "    <div class=\"panel-heading\"><b>Options</b></div> \n" +
             "    <div class=\"panel-body\"> \n");
@@ -228,7 +228,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         // column #2
         htmlBody.append("" +
-            "<div class=\"col-md-4 col-md-4-min-width-statsagg\" > \n" +
+            "<div class=\"col-md-4 statsagg_three_panel_second_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
             "    <div class=\"panel-heading\"><b>Suspend by...</b>" +
             "         <a id=\"AlertSuspensionAlertAssociationsPreview\" name=\"AlertSuspensionAlertAssociationsPreview\" class=\"iframe cboxElement statsagg_alert_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateAlertSuspensionAssociationsPreviewLink();\">Preview Alert Associations</a>" + 
@@ -311,7 +311,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         // column #3
         htmlBody.append("" +
-            "<div class=\"col-md-4 col-md-4-min-width-statsagg\" > \n" +
+            "<div class=\"col-md-4 statsagg_three_panel_third_panel\" > \n" +
             "   <div class=\"panel panel-info\"> \n" +
             "       <div class=\"panel-heading\"><b>Suspension Type</b></div> \n" +
             "       <div class=\"panel-body\"> \n");
@@ -420,7 +420,7 @@ public class CreateAlertSuspension extends HttpServlet {
   
         htmlBody.append("" +
             "> \n" +
-            "        <span class=\"input-group-addon\" style=\"font-size:10px;\"><span class=\"glyphicon-calendar glyphicon\"></span></span> \n" +
+            "        <span class=\"input-group-addon\" style=\"font-size:10px;\"><span class=\"glyphicon-time glyphicon\"></span></span> \n" +
             "      </div>\n" +
             "    </td>\n" +
             "</tr>\n");

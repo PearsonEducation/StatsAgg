@@ -24,6 +24,7 @@ StatsAgg 1.4  - released 2015-0x-xx
    * alert_output_alert_status_to_graphite_metric_prefix -> alert_output_status_metric_prefix
    * If you have customized these fields, then you will have to rename the relevant field(s) in your application.properties file
  * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
+ * Updated most Java & Javascript libraries
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
  

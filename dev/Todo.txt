@@ -4,7 +4,7 @@ StatsAgg 1.4
  * Document quirks in each output db
    * InfluxDB -> Graphite 
  * Document - StatsAgg is not a proxy
- * Document new UI options (time unit, blacklist regex, positive alert notification groups, etc)
+ * Document new UI options (blacklist regex)
  * Document HA configuration
  * 'Clear all' button for clearing/forgetting triggered availability alerts 
  * Optional "don't output InfluxDB database name" for InfluxDB format -> (any other format)

@@ -161,7 +161,7 @@ public class CreateAlert extends HttpServlet {
         
         // start column 1
         htmlBody.append(
-            "<div class=\"col-md-4\">\n" +
+            "<div class=\"col-md-4 statsagg_three_panel_first_panel\">\n" +
             "  <div class=\"panel panel-default\">\n" +
             "    <div class=\"panel-heading\"><b>Core Alert Criteria</b></div>\n" +
             "    <div class=\"panel-body\">");
@@ -320,7 +320,7 @@ public class CreateAlert extends HttpServlet {
         
         // start column 2
         htmlBody.append(
-            "<div class=\"col-md-4\" id=\"CautionCriteria\" >\n" +
+            "<div class=\"col-md-4 statsagg_three_panel_second_panel\" id=\"CautionCriteria\" >\n" +
             "  <div class=\"panel panel-warning\">\n" +
             "    <div class=\"panel-heading\"><b>Caution Criteria</b> " +
             "    <a id=\"CautionPreview\" name=\"CautionPreview\" class=\"iframe cboxElement statsagg_caution_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Caution');\">Preview</a>" + 
@@ -353,7 +353,7 @@ public class CreateAlert extends HttpServlet {
         // caution positive notification group name
         htmlBody.append(
             "<div class=\"form-group\" id=\"CautionPositiveNotificationGroupNameLookup\">\n" +
-            "  <label id=\"CautionPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Notification positive group name</label>\n" +
+            "  <label id=\"CautionPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
             "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"CautionPositiveNotificationGroupName\" id=\"CautionPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
@@ -588,7 +588,7 @@ public class CreateAlert extends HttpServlet {
                
         // start column 3
         htmlBody.append(     
-            "<div class=\"col-md-4\" id=\"DangerCriteria\" >\n" +
+            "<div class=\"col-md-4 statsagg_three_panel_third_panel\" id=\"DangerCriteria\" >\n" +
             "  <div class=\"panel panel-danger\">\n" +
             "    <div class=\"panel-heading\"><b>Danger Criteria</b>" +
             "      <a id=\"DangerPreview\" name=\"DangerPreview\" class=\"iframe cboxElement statsagg_danger_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Danger');\">Preview</a>" + 
@@ -621,7 +621,7 @@ public class CreateAlert extends HttpServlet {
         // danger positive notification group name
         htmlBody.append(
             "<div class=\"form-group\" id=\"DangerPositiveNotificationGroupNameLookup\">\n" +
-            "  <label id=\"DangerPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Notification positive group name</label>\n" +
+            "  <label id=\"DangerPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
             "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"DangerPositiveNotificationGroupName\" id=\"DangerPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {

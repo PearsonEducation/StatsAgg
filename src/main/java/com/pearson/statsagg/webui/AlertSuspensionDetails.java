@@ -124,7 +124,7 @@ public class AlertSuspensionDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
             
-            outputString.append("<div class=\"col-md-4\">\n");
+            outputString.append("<div class=\"col-md-4 statsagg_three_panel_first_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
@@ -169,7 +169,7 @@ public class AlertSuspensionDetails extends HttpServlet {
             String alertSuspensionAlertAssociationsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
             outputString.append(alertSuspensionAlertAssociationsLink);  
             
-            outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
+            outputString.append("</div></div></div>").append("<div class=\"col-md-4 statsagg_three_panel_second_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Suspension Type</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Suspend by...</b> = ");
@@ -213,7 +213,7 @@ public class AlertSuspensionDetails extends HttpServlet {
                 else outputString.append("N/A <br>");     
             }
             
-            outputString.append("</div></div></div>").append("<div class=\"col-md-4\">\n");
+            outputString.append("</div></div></div>").append("<div class=\"col-md-4 statsagg_three_panel_third_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Suspension Schedule</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Suspension Type</b> = ");

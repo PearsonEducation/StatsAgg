@@ -386,15 +386,13 @@ function CreateAlert_Type_ShowAndHide() {
 
 $(function () {
     $('#CreateAlertSuspension_DateTimePicker_StartDate_Div').datetimepicker({
-        pickDate: true,
-        pickTime: false
+        format: 'L'
     });
 });
 
 $(function () {
     $('#CreateAlertSuspension_DateTimePicker_StartTime_Div').datetimepicker({
-        pickDate: false,
-        pickTime: true
+        format: 'LT'
     });
 });
 

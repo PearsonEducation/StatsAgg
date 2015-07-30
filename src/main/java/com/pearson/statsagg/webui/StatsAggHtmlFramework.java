@@ -43,8 +43,7 @@ public class StatsAggHtmlFramework {
 
         header.append("<link href=\"css/bootstrap.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/bootstrap-theme.css\" rel=\"stylesheet\">\n" +
-                    "<link href=\"css/bootstrap-datetimepicker.css\" rel=\"stylesheet\">\n" +
-                    "<link href=\"css/datepicker.css\" rel=\"stylesheet\">\n" +
+                    "<link href=\"css/bootstrap-datetimepicker.min.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/dataTables.bootstrap.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/dataTables.colVis.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/jquery.dataTables.yadcf.css\" rel=\"stylesheet\">\n" +
@@ -129,7 +128,7 @@ public class StatsAggHtmlFramework {
                 + "<script type=\"text/javascript\" src=\"js/dataTables.bootstrap.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/dataTables.colVis.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/jquery.dataTables.yadcf.js\"></script>\n"
-                + "<script type=\"text/javascript\" src=\"js/bootstrap-datetimepicker.js\"></script>\n"
+                + "<script type=\"text/javascript\" src=\"js/bootstrap-datetimepicker.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/typeahead.bundle.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/statsagg.js\"></script>\n"
         );
