@@ -80,10 +80,40 @@ public class AlertSuspensionDetails extends HttpServlet {
             AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspension(alertSuspensionId);
             if (alertSuspension != null) {
               if (alertSuspension.getAlertId()!= null) {
-                alertSuspensionDetails.put("alert_id", alertSuspension.getAlertId());
+                alertSuspensionDetails.put("AlertId", alertSuspension.getAlertId());
               }
               if (alertSuspension.getId()!= null) {
-                alertSuspensionDetails.put("id", alertSuspension.getId());
+                alertSuspensionDetails.put("Id", alertSuspension.getId());
+              }
+              if (alertSuspension.getDescription()!= null) {
+                alertSuspensionDetails.put("Description", alertSuspension.getDescription());
+              }
+              if (alertSuspension.getDuration()!= null) {
+                alertSuspensionDetails.put("Duration", alertSuspension.getDuration());
+              }
+              if (alertSuspension.getMetricGroupTagsExclusive()!= null) {
+                alertSuspensionDetails.put("MetricGroupTagsExclusive", alertSuspension.getMetricGroupTagsExclusive());
+              }
+              if (alertSuspension.getMetricGroupTagsInclusive()!= null) {
+                alertSuspensionDetails.put("MetricGroupTagsInclusive", alertSuspension.getMetricGroupTagsInclusive());
+              }
+              if (alertSuspension.getName()!= null) {
+                alertSuspensionDetails.put("Name", alertSuspension.getName());
+              }
+              if (alertSuspension.getStartDate()!= null) {
+                alertSuspensionDetails.put("StartDate", alertSuspension.getStartDate());
+              }
+              if (alertSuspension.getStartTime()!= null) {
+                alertSuspensionDetails.put("StartTime", alertSuspension.getStartTime());
+              }
+              if (alertSuspension.getSuspendBy()!= null) {
+                alertSuspensionDetails.put("SuspendBy", alertSuspension.getSuspendBy());
+              }
+              if (alertSuspension.getDeleteAtTimestamp()!= null) {
+                alertSuspensionDetails.put("DeleteAtTimestamp", alertSuspension.getDeleteAtTimestamp());
+              }
+              if (alertSuspension.getDurationTimeUnit()!= null) {
+                alertSuspensionDetails.put("DurationTimeUnit", alertSuspension.getDurationTimeUnit());
               }
             } else {
                 alertSuspensionDetails.put(Helper.error, Helper.noResult);
