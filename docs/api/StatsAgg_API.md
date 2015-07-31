@@ -6,9 +6,11 @@
 
     `/StatsAgg/api/alerts-list`
 
+
 * **Method:**
 
     `GET`
+
   
 *  **URL Params**
 
@@ -16,12 +18,14 @@
  
     `page_size=[integer] The maximum number of alerts to return per page/request.` 
  
-    `page_number=[integer] The page number containing the list of alerts.` 
+    `page_number=[integer] The page number containing the list of alerts.`
+ 
 
 
 * **Example Request:**
 
     ` /StatsAgg/api/alerts-list?page_size=2&page_number=1`
+
    
 * **Example Result:**
 
@@ -31,6 +35,7 @@
 		  "id":"21"},
 		 {"name":"too low",
 		  "id":"23"}],"count":2}```
+
 
 
 **Show Metric Groups**
@@ -104,7 +109,7 @@
 
 
 
-Show Alert Suspensions 
+**Show Alert Suspensions** 
 ----
   Returns json data containing list of alert suspensions.
 
@@ -138,7 +143,7 @@ Show Alert Suspensions
 		  "id":"2477"}],"count":2}```
 
 
-Show Alert Details 
+**Show Alert Details**
 ----
   Returns json data containing alert details.
 
@@ -166,7 +171,7 @@ Show Alert Details
     ```{"metricgroup_id":36,"danger_enabled":true,"name":"prd_actaspire_app_db_busy_connections~~too high","description":"This alert is triggered when a prd server's JVM is actively using too many JDBC connections.","danger_alert_active":false,"id":21,"danger_notificationgroup_id":1,"caution_enabled":true,"alert_type":1002,"enabled":true,"caution_notificationgroup_id":1,"caution_alert_active":false} ```
 
 
-Show Metric Group Details 
+**Show Metric Group Details** 
 ----
   Returns json data containing metric group details.
 
@@ -248,7 +253,7 @@ Show Alert Suspension Details
 
     ```{"StartDate":2015-04-01 00:00:00.0,"MetricGroupTagsExclusive":"","DurationTimeUnit":73,"Description":"","SuspendBy":2,"MetricGroupTagsInclusive":"irnprd","StartTime":1978-03-01 18:01:00.0,"Duration":54045600,"Id":24,"Name":"nonprd-non-business-hours"}```
 
-Create Metric Group 
+**Create Metric Group** 
 ----
   Creates a new Metric Group.
 
@@ -291,7 +296,7 @@ Create Metric Group
        } ```
 
 
-Create Notification Group 
+**Create Notification Group** 
 ----
   Creates a new Notification Group.
 
@@ -323,7 +328,7 @@ Create Notification Group
 
 
 
-Create Alert  
+**Create Alert**  
 ----
   Creates a new Alert.
 
@@ -436,7 +441,7 @@ Create Alert
 	"DangerThreshold": "true"}```
 
 
-Create Alert Suspension 
+**Create Alert Suspension** 
 ----
   Creates a new Alert Suspension.
 
@@ -507,7 +512,7 @@ Create Alert Suspension
 	"DurationTimeUnit": "true",
 	"Duration": "true"}```
 
-Enable Alert 
+**Enable Alert** 
 ----
   Enable Alert.
 
@@ -533,7 +538,7 @@ Enable Alert
     ` /StatsAgg/api/alert-enable?name=http_busy_threads&Enabled=true`
    
 
-Remove Alert 
+**Remove Alert** 
 ----
   Deletes an Alert from Database.
 
@@ -560,7 +565,7 @@ Remove Alert
     ```{"response": "Delete alert success. AlertName="alert_name"."}```
 
 
-Remove Metric Group 
+**Remove Metric Group** 
 ----
   Deletes a Metric Group.
 
@@ -587,7 +592,7 @@ Remove Metric Group
 
 
 
-Remove Notification Group 
+**Remove Notification Group** 
 ----
   Deletes a Notification Group.
 
@@ -612,7 +617,7 @@ Remove Notification Group
 
         {"response": "Delete notification group success. NotificationGroupName="notification_grp_name"."}
 
-Remove Alert Suspension
+**Remove Alert Suspension**
 ----
   Deletes an Alert Suspension from Database.
 
