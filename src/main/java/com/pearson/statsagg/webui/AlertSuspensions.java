@@ -180,17 +180,20 @@ public class AlertSuspensions extends HttpServlet {
         }
     }
     
-    private void removeAlertSuspension(String alertSuspensionName) {
+    public String removeAlertSuspension(String alertSuspensionName) {
         
         if (alertSuspensionName == null) {
-            return;
+            return null;
         }
         
+        String returnString = null;
         AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-        alertSuspensionsLogic.deleteRecordInDatabase(alertSuspensionName);
+        returnString = alertSuspensionsLogic.deleteRecordInDatabase(alertSuspensionName);
         
         com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
         alertSuspensions.runAlertSuspensionRoutine();
+        
+        return returnString;
     }
     
     private String buildAlertSuspensionsHtml() {

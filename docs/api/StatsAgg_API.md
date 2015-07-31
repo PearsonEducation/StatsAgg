@@ -30,8 +30,7 @@
 		[{"name":"too high",
 		  "id":"21"},
 		 {"name":"too low",
-		  "id":"23"}],"count":2}
-  ```
+		  "id":"23"}],"count":2}  ```
 
 
 **Show Metric Groups**
