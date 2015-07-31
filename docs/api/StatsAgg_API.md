@@ -14,7 +14,7 @@
 
      **Required:**
  
-    `page_size=[integer] The maximum number of alerts to return per page.` 
+    `page_size=[integer] The maximum number of alerts to return per page/request.` 
  
     `page_number=[integer] The page number containing the list of alerts.` 
 
@@ -50,9 +50,9 @@
 
      **Required:**
  
-    `page_size=[integer]`
+     `page_size=[integer] The maximum number of metric groups to return per page/request.` 
  
-    `page_number=[integer]`
+    `page_number=[integer] The page number containing the list of metric groups.` 
 
 
 * **Example Request:**
@@ -86,9 +86,9 @@
 
      **Required:**
  
-    `page_size=[integer]`
+    `page_size=[integer] The maximum number of notification groups to return per page/request.` 
  
-    `page_number=[integer]`
+    `page_number=[integer] The page number containing the list of notification groups.` 
 
 
 * **Example Request:**
@@ -123,10 +123,9 @@ Show Alert Suspensions
 
      **Required:**
  
-    `page_size=[integer]`
+    `page_size=[integer] The maximum number of Alert Suspensions to return per page/request.` 
  
-    `page_number=[integer]`
-
+    `page_number=[integer] The page number containing the list of Alert Suspensions.` 
 
 * **Example Request:**
 
@@ -225,7 +224,7 @@ Show Notification Group Details
    
 * **Example Result:**
 
-    ```{"email_addresses":"performance@xyz.com","name":"qlmq Performance","id":1}
+    ```{"name":"qlmq Performance","id":1, "email_addresses":"performance@xyz.com"}
   ```
 
 
@@ -267,19 +266,23 @@ Create Metric Group
 
 * **Method:**
 
-    `POST`
+    `POST/JSON`
   
 *  **JSON Fields**
+
+	**Required:**
  
-    `Name=[String] ` 
+    `Name=[String] A unique name for this metric group. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
+	
+	**Optional:**
 
-    `Description=[String] `
+    `Description=[String] A description of the metric group. Avoid descriptions longer than 1000000 characters.`
 
-	`MatchRegexes=[String] `
+	`MatchRegexes=[String] Regular expressions used to tie individual metrics to the metric group.`
 
-	`BlacklistRegexes=[String] `
+	`BlacklistRegexes=[String] Regular expressions used to blacklist metrics from the metric group.`
 
-	`Tags=[String] `	
+	`Tags=[String] Metric groups can be ‘tagged’. Tags allows for convenient filtering in the various tables on the StatsAgg web user-interface.`	
 
 * **Example Request:**
 
@@ -307,13 +310,17 @@ Create Notification Group
 
 * **Method:**
 
-    `POST`
+    `POST/JSON`
   
 *  **JSON Fields**
- 
-    `Name=[String] ` 
 
-    `EmailAddresses=[String] `
+	  **Required:**
+ 
+    `Name=[String] A unique name for this ‘notification group’. Other than uniqueness, the only limitation is that it must be under 500 characters long.`
+
+	**Optional:** 
+
+    `EmailAddresses=[String] A comma separated list of email addresses.`
 
 
 * **Example Request:**
@@ -339,48 +346,50 @@ Create Alert
     `POST`
   
 *  **JSON Fields**
+
+	**Required:**
  
-    `Name=[String] ` 
+    `Name=[String] A unique name for this alert. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
 
-    `Description=[String] `
+    `Description=[String] (optional) A description of the alert. Avoid descriptions longer than 1000000 characters.`
 
-	`MetricGroupName=[String] `
+	`MetricGroupName=[String] The ‘metric group’ that this alert is associated with.`
 
-	`Enabled=[Boolean] `
+	`Enabled=[Boolean] If you want the alert to be enabled right away after creation or alteration, then check this checkbox. When an alert is disabled, caution & danger alerts will not fire (they are not even evaluated).`
 
-	`CautionEnabled=[Boolean] `	
+	`CautionEnabled=[Boolean] When caution alerting is disabled, caution alerts will not trigger (they are not even evaluated).`	
 
-	`DangerEnabled=[Boolean] `	
+	`DangerEnabled=[Boolean] When danger alerting is disabled, danger alerts will not trigger (they are not even evaluated).`	
 
-	`CreateAlert_Type=[String] `	
+	`CreateAlert_Type=[String] Availability, Threshold.`	
 
-	`AlertOnPositive=[String] `	
+	`AlertOnPositive=[String] If this is checked, alerts that change states from ‘triggered’ to ‘not triggered’ will send an email notification to the notification group’s recipients.`	
 
-	`AllowResendAlert=[String] `	
+	`AllowResendAlert=[String] If this is checked, alerts that are in a ‘triggered’ state will send a new email notification to the notification group’s recipients after the specified amount of time.`	
 
-	`SendAlertEveryNumMilliseconds=[Integer] `	
+	`SendAlertEveryNumMilliseconds=[Integer] If ‘resend alert?’ is enabled, then alerts in a ‘triggered’ state will send a new email notification to the notification group’s recipients after the amount of time specified by this option.`	
 
-	`CautionNotificationGroupName=[String] `	
+	`CautionNotificationGroupName=[String] (optional) The ‘notification group’ that is associated with the alert. Alerts that are triggered will be sent to the members of this ‘notification group’.`	
 
 	`CautionPositiveNotificationGroupName=[String] `	
 
 	`CautionWindowDurationTimeUnit=[String] `	
 
-	`CautionWindowDuration=[String] `	
+	`CautionWindowDuration=[String] The ‘window duration’ is an amount of time (between ‘now’ and ‘x seconds ago’) that metrics values are allowed to be considered for alerts.`	
 
 	`CautionStopTrackingAfterTimeUnit=[String] `	
 
-	`CautionStopTrackingAfter=[String] `	
+	`CautionStopTrackingAfter=[String] For availability alerts, StatsAgg requires that you eventually ‘give up’ on tracking a metric that hasn’t had any new data points.`	
 
 	`CautionMinimumSampleCount=[String] `	
 
-	`CautionOperator=[String] `	
+	`CautionOperator=[String] The values of a metric-key are considered for threshold-based alerting when they are above/below/equal-to a certain threshold. This value controls the above/below/equal-to aspect of the alert.`	
 
-	`CautionCombination=[String] `	
+	`CautionCombination=[String] For a threshold-alert, we must decide how the values will be used for alert consideration.`	
 
-	`CautionCombinationCount=[String] `	
+	`CautionCombinationCount=[String] When one chooses a ‘combination’ of ‘at most X values’ or ‘at least X values’, a count is required. The ‘combination count’ specifies how many values are required.`	
 
-	`CautionThreshold=[String] `	
+	`CautionThreshold=[String] The ‘threshold’ is the value that is compared against when deciding whether an alert is active or not.`	
 	
 	`DangerNotificationGroupName=[String] `	
 
@@ -448,21 +457,21 @@ Create Alert Suspension
 
 * **Method:**
 
-    `POST`
+    `POST/JSON`
   
 *  **JSON Fields**
  
-    `Name=[String] ` 
+    `Name=[String] A unique name for this ‘alert suspension’. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
 
     `Description=[String] `
 
-	`Enabled=[String] `
+	`Enabled=[String] If you want the alert suspension to be enabled after creation or alteration, then check this checkbox. When an ‘alert suspension’ is disabled, the alert suspension won’t be able to suspend any caution or danger alerts.`
 
-	`SuspendNotificationOnly=[String] `
+	`SuspendNotificationOnly=[String] When checked, suspended alerts still evaluate their alert criteria (and display the caution/danger triggered status on the StatsAgg WebUI); they just don’t send out emails alerts. When unchecked, suspended alerts will not be evaluated at all. The most common approach is to have this field checked.`
 
 	`CreateAlertSuspension_SuspendBy=[String] `	
 
-	`AlertName=[String] `	
+	`AlertName=[String] (optional) If you want to suspend a single alert, then suspend it by alert name.`	
 
 	`MetricGroupTagsInclusive=[String] `	
 
@@ -523,10 +532,12 @@ Enable Alert
     `POST`
   
 *  **URL Params**
+	
+	**Required:**
  
-    `Name=[String] ` 
+    `Name=[String] Alert Name.` 
 
-    `Enabled=[Boolean] `
+    `Enabled=[Boolean] To enable the alert.`
 
 
 * **Example Request:**
@@ -548,7 +559,7 @@ Remove Alert
   
 *  **URL Params**
  
-    `Name=[String] ` 
+    `Name=[String] Name of the Alert.` 
 
 
 * **Example Request:**
@@ -576,7 +587,7 @@ Remove Metric Group
   
 *  **URL Params**
  
-    `Name=[String] ` 
+    `Name=[String] Metric Group Name.` 
 
 
 * **Example Request:**
@@ -590,9 +601,9 @@ Remove Metric Group
 
 
 
-Remove notification Group 
+Remove Notification Group 
 ----
-  Deletes a notification Group.
+  Deletes a Notification Group.
 
 * **URL**
 
@@ -604,7 +615,7 @@ Remove notification Group
   
 *  **URL Params**
  
-    `Name=[String] ` 
+    `Name=[String] Notification Group Name.` 
 
 
 * **Example Request:**
