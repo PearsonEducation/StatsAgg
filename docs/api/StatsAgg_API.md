@@ -7,9 +7,11 @@
     `/StatsAgg/api/alerts-list`
 
 
+
 * **Method:**
 
     `GET`
+
 
   
 *  **URL Params**
@@ -22,11 +24,13 @@
  
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/alerts-list?page_size=2&page_number=1`
 
    
+
 * **Example Result:**
 
     ```{
@@ -38,6 +42,7 @@
 
 
 
+
 **Show Metric Groups**
 ----
   Returns json data containing list of metric groups.
@@ -46,10 +51,14 @@
 
     `/StatsAgg/api/metric-groups`
 
+
+
 * **Method:**
 
     `GET`
   
+
+
 *  **URL Params**
 
      **Required:**
@@ -59,9 +68,12 @@
     `page_number=[integer] The page number containing the list of metric groups.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/metric-groups?page_size=2&page_number=1`
+
+
    
 * **Example Result:**
 
@@ -73,6 +85,7 @@
 		  "id":"39"}],"count":2}```
 
 
+
 **Show Notification Groups**
 ----
   Returns json data containing list of notification groups.
@@ -81,9 +94,13 @@
 
     `/StatsAgg/api/notification-groups-list`
 
+
+
 * **Method:**
 
     `GET`
+
+
   
 *  **URL Params**
 
@@ -94,9 +111,12 @@
     `page_number=[integer] The page number containing the list of notification groups.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api//StatsAgg/api/notification-groups-list?page_size=2&page_number=1`
+
+
    
 * **Example Result:**
 
@@ -109,6 +129,7 @@
 
 
 
+
 **Show Alert Suspensions** 
 ----
   Returns json data containing list of alert suspensions.
@@ -117,10 +138,14 @@
 
     `/StatsAgg/api/AlertsSuspension-list`
 
+
+
 * **Method:**
 
     `GET`
   
+
+
 *  **URL Params**
 
      **Required:**
@@ -129,10 +154,14 @@
  
     `page_number=[integer] The page number containing the list of Alert Suspensions.` 
 
+
+
 * **Example Request:**
 
     ` /StatsAgg/api/AlertsSuspension-list?page_size=2&page_number=1`
    
+
+
 * **Example Result:**
 
     ```{
@@ -143,6 +172,7 @@
 		  "id":"2477"}],"count":2}```
 
 
+
 **Show Alert Details**
 ----
   Returns json data containing alert details.
@@ -151,10 +181,14 @@
 
     `/StatsAgg/api/alert-details`
 
+
+
 * **Method:**
 
     `GET`
   
+
+
 *  **URL Params**
 
      **Required:**
@@ -162,13 +196,17 @@
     `id=[integer] Alert id.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/alert-details?id=2464`
    
+
+
 * **Example Result:**
 
     ```{"metricgroup_id":36,"danger_enabled":true,"name":"prd_actaspire_app_db_busy_connections~~too high","description":"This alert is triggered when a prd server's JVM is actively using too many JDBC connections.","danger_alert_active":false,"id":21,"danger_notificationgroup_id":1,"caution_enabled":true,"alert_type":1002,"enabled":true,"caution_notificationgroup_id":1,"caution_alert_active":false} ```
+
 
 
 **Show Metric Group Details** 
@@ -179,9 +217,13 @@
 
     `/StatsAgg/api/metric-group-details`
 
+
+
 * **Method:**
 
     `GET`
+
+
   
 *  **URL Params**
 
@@ -190,15 +232,20 @@
     `id=[integer] Metric Group id.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/metric-group-details?id=2464`
+
+
    
 * **Example Result:**
 
     ```{"name":"db_busy_connections","description":"Watches the jdbc connection usage pool.","id":36}```
 
-Show Notification Group Details 
+
+
+**Show Notification Group Details** 
 ----
   Returns json data containing notification group details.
 
@@ -206,9 +253,13 @@ Show Notification Group Details
 
     `/StatsAgg/api/notification-group-details`
 
+
+
 * **Method:**
 
     `GET`
+
+
   
 *  **URL Params**
 
@@ -217,16 +268,20 @@ Show Notification Group Details
     `id=[integer] Notification Group id.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/notification-group-details?id=2464`
+
+
    
 * **Example Result:**
 
     ```{"name":"qlmq Performance","id":1, "email_addresses":"performance@xyz.com"} ```
 
 
-Show Alert Suspension Details 
+
+**Show Alert Suspension Details** 
 ----
   Returns json data containing alert suspension details.
 
@@ -234,10 +289,14 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/alertsuspension-details`
 
+
+
 * **Method:**
 
     `GET`
   
+
+
 *  **URL Params**
 
      **Required:**
@@ -245,13 +304,18 @@ Show Alert Suspension Details
     `id=[integer] Alert Suspensions id.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/alertsuspension-details?id=2464`
    
+
+
 * **Example Result:**
 
     ```{"StartDate":2015-04-01 00:00:00.0,"MetricGroupTagsExclusive":"","DurationTimeUnit":73,"Description":"","SuspendBy":2,"MetricGroupTagsInclusive":"irnprd","StartTime":1978-03-01 18:01:00.0,"Duration":54045600,"Id":24,"Name":"nonprd-non-business-hours"}```
+
+
 
 **Create Metric Group** 
 ----
@@ -261,10 +325,14 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/create-metric-group`
 
+
+
 * **Method:**
 
     `POST/JSON`
   
+
+
 *  **JSON Fields**
 
 	**Required:**
@@ -281,6 +349,8 @@ Show Alert Suspension Details
 
 	`Tags=[String] Metric groups can be ‘tagged’. Tags allows for convenient filtering in the various tables on the StatsAgg web user-interface.`	
 
+
+
 * **Example Request:**
 
     ` /StatsAgg/api/create-metric-group`
@@ -296,6 +366,7 @@ Show Alert Suspension Details
        } ```
 
 
+
 **Create Notification Group** 
 ----
   Creates a new Notification Group.
@@ -304,9 +375,13 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/create-notification-group`
 
+
+
 * **Method:**
 
     `POST/JSON`
+
+
   
 *  **JSON Fields**
 
@@ -317,6 +392,7 @@ Show Alert Suspension Details
 	**Optional:** 
 
     `EmailAddresses=[String] A comma separated list of email addresses.`
+
 
 
 * **Example Request:**
@@ -336,9 +412,13 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/create-alert`
 
+
+
 * **Method:**
 
     `POST`
+
+
   
 *  **JSON Fields**
 
@@ -441,6 +521,7 @@ Show Alert Suspension Details
 	"DangerThreshold": "true"}```
 
 
+
 **Create Alert Suspension** 
 ----
   Creates a new Alert Suspension.
@@ -449,10 +530,15 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/create-alertsuspension`
 
+
+
 * **Method:**
 
     `POST/JSON`
+
+
   
+
 *  **JSON Fields**
  
     `Name=[String] A unique name for this ‘alert suspension’. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
@@ -492,6 +578,8 @@ Show Alert Suspension Details
 	`DurationTimeUnit=[String] `	
 
 	`Duration=[String] `
+
+
 	
 * **Example Request:**
 
@@ -512,6 +600,8 @@ Show Alert Suspension Details
 	"DurationTimeUnit": "true",
 	"Duration": "true"}```
 
+
+
 **Enable Alert** 
 ----
   Enable Alert.
@@ -520,9 +610,13 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/alert-enable`
 
+
+
 * **Method:**
 
     `POST`
+
+
   
 *  **URL Params**
 	
@@ -533,10 +627,12 @@ Show Alert Suspension Details
     `Enabled=[Boolean] To enable the alert.`
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/alert-enable?name=http_busy_threads&Enabled=true`
    
+
 
 **Remove Alert** 
 ----
@@ -546,23 +642,31 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/alert-remove`
 
+
+
 * **Method:**
 
     `POST`
+
+
   
 *  **URL Params**
  
     `Name=[String] Name of the Alert.` 
 
 
+
 * **Example Request:**
 
     ` /StatsAgg/api/alert-remove?name=alert_name`
+
+
    
 * **Example Result:**
 
 
     ```{"response": "Delete alert success. AlertName="alert_name"."}```
+
 
 
 **Remove Metric Group** 
@@ -573,9 +677,13 @@ Show Alert Suspension Details
 
     `/StatsAgg/api/metric-remove`
 
+
+
 * **Method:**
 
     `POST`
+
+
   
 *  **URL Params**
  
@@ -585,6 +693,8 @@ Show Alert Suspension Details
 * **Example Request:**
 
     ` /StatsAgg/api/metric-remove?name=metric_grp_name`
+
+
    
 * **Example Result:**
 
