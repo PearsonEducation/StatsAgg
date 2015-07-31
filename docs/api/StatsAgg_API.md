@@ -30,7 +30,7 @@
 		[{"name":"too high",
 		  "id":"21"},
 		 {"name":"too low",
-		  "id":"23"}],"count":2}  ```
+		  "id":"23"}],"count":2}```
 
 
 **Show Metric Groups**
@@ -65,8 +65,7 @@
 		[{"name":"http_busy_workers",
 		  "id":"37"},
 		 {"name":"app_db_busy_connections",
-		  "id":"39"}],"count":2}
-  ```
+		  "id":"39"}],"count":2}```
 
 
 **Show Notification Groups**
@@ -101,8 +100,7 @@
 		[{"name":"DevOps Team",
 		  "id":"10"},
 		 {"name":"AppSupport Team",
-		  "id":"11"}],"count":2}
-  ```
+		  "id":"11"}],"count":2}```
 
 
 
@@ -137,8 +135,7 @@ Show Alert Suspensions
 		[{"name":"business-hours",
 		  "id":"2464"},
 		 {"name":"hung core",
-		  "id":"2477"}],"count":2}
-  ```
+		  "id":"2477"}],"count":2}```
 
 
 Show Alert Details 
@@ -166,8 +163,7 @@ Show Alert Details
    
 * **Example Result:**
 
-    ```{"metricgroup_id":36,"danger_enabled":true,"name":"prd_actaspire_app_db_busy_connections~~too high","description":"This alert is triggered when a prd server's JVM is actively using too many JDBC connections. ","danger_alert_active":false,"id":21,"danger_notificationgroup_id":1,"caution_enabled":true,"alert_type":1002,"enabled":true,"caution_notificationgroup_id":1,"caution_alert_active":false}
-  ```
+    ```{"metricgroup_id":36,"danger_enabled":true,"name":"prd_actaspire_app_db_busy_connections~~too high","description":"This alert is triggered when a prd server's JVM is actively using too many JDBC connections.","danger_alert_active":false,"id":21,"danger_notificationgroup_id":1,"caution_enabled":true,"alert_type":1002,"enabled":true,"caution_notificationgroup_id":1,"caution_alert_active":false} ```
 
 
 Show Metric Group Details 
@@ -195,8 +191,7 @@ Show Metric Group Details
    
 * **Example Result:**
 
-    ```{"name":"db_busy_connections","description":"Watches the jdbc connection usage pool.","id":36}
-  ```
+    ```{"name":"db_busy_connections","description":"Watches the jdbc connection usage pool.","id":36}```
 
 Show Notification Group Details 
 ----
@@ -223,8 +218,7 @@ Show Notification Group Details
    
 * **Example Result:**
 
-    ```{"name":"qlmq Performance","id":1, "email_addresses":"performance@xyz.com"}
-  ```
+    ```{"name":"qlmq Performance","id":1, "email_addresses":"performance@xyz.com"} ```
 
 
 Show Alert Suspension Details 
@@ -252,8 +246,7 @@ Show Alert Suspension Details
    
 * **Example Result:**
 
-    ```{"StartDate":2015-04-01 00:00:00.0,"MetricGroupTagsExclusive":"","DurationTimeUnit":73,"Description":"","SuspendBy":2,"MetricGroupTagsInclusive":"irnprd","StartTime":1978-03-01 18:01:00.0,"Duration":54045600,"Id":24,"Name":"nonprd-non-business-hours"}
-  ```
+    ```{"StartDate":2015-04-01 00:00:00.0,"MetricGroupTagsExclusive":"","DurationTimeUnit":73,"Description":"","SuspendBy":2,"MetricGroupTagsInclusive":"irnprd","StartTime":1978-03-01 18:01:00.0,"Duration":54045600,"Id":24,"Name":"nonprd-non-business-hours"}```
 
 Create Metric Group 
 ----
@@ -295,8 +288,7 @@ Create Metric Group
 		"MatchRegexes": ".*",
         "BlacklistRegexes": "",
         "Tags": "group_1"
-       }
-  ```
+       } ```
 
 
 Create Notification Group 
@@ -327,8 +319,7 @@ Create Notification Group
     ```{
 		"Name":"notification-group",
 		"EmailAddresses":"example@test.com"
-       }
-  ```
+       } ```
 
 
 
@@ -442,8 +433,7 @@ Create Alert
 	"DangerOperator": "true",
 	"DangerCombination": "true",
 	"DangerCombinationCount": 43,
-	"DangerThreshold": "true"}
-  ```
+	"DangerThreshold": "true"}```
 
 
 Create Alert Suspension 
@@ -515,8 +505,7 @@ Create Alert Suspension
 	"RecurFriday": 5,
 	"RecurSaturday": 25,
 	"DurationTimeUnit": "true",
-	"Duration": "true"}
-  ```
+	"Duration": "true"}```
 
 Enable Alert 
 ----
@@ -568,8 +557,7 @@ Remove Alert
 * **Example Result:**
 
 
-    ```{"response": "Delete alert success. AlertName="alert_name"."}
-  ```
+    ```{"response": "Delete alert success. AlertName="alert_name"."}```
 
 
 Remove Metric Group 
@@ -595,8 +583,7 @@ Remove Metric Group
    
 * **Example Result:**
 
-    ```{"response": "Delete metric group success. MetricGroupName="metric_grp_name"."}
-  ```
+    ```{"response": "Delete metric group success. MetricGroupName="metric_grp_name"."}```
 
 
 
@@ -624,3 +611,29 @@ Remove Notification Group
 * **Example Result:**
 
         {"response": "Delete notification group success. NotificationGroupName="notification_grp_name"."}
+
+Remove Alert Suspension
+----
+  Deletes an Alert Suspension from Database.
+
+* **URL**
+
+    `/StatsAgg/api/alertsuspension-remove`
+
+* **Method:**
+
+    `POST`
+  
+*  **URL Params**
+ 
+    `Name=[String] Name of the Alert Suspension.` 
+
+
+* **Example Request:**
+
+    ` /StatsAgg/api/alertsuspension-remove?name=alert_suspension_name`
+   
+* **Example Result:**
+
+
+    ```{"response":"Delete alert suspension success. AlertSuspensionName=\"alert_suspension_name\"."}```
