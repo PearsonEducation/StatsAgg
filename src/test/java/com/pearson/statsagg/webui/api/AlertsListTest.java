@@ -74,6 +74,5 @@ public class AlertsListTest extends Mockito {
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");
         assertEquals(mockAlertsJson, result);
-    }
-    
+    }  
 }
