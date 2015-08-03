@@ -41,7 +41,7 @@ public class MetricGroupsList extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {    
-            JSONObject json = getMetricGroupsJson(request, new MetricGroupsDao());       
+            JSONObject json = getMetricGroupsList(request, new MetricGroupsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -52,10 +52,10 @@ public class MetricGroupsList extends HttpServlet {
         }     
     }
 
-     public JSONObject getMetricGroupsJson(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
-        logger.debug("getMetricGroupsJson");
+     public JSONObject getMetricGroupsList(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
+        logger.debug("getMetricGroupsList");
         JSONObject errorMsg = null;
-        JSONObject metricGroupsJson = null;
+        JSONObject metricGroupsList = null;
         int pageNumber = 0, pageSize = 0;
         
         try {
@@ -67,13 +67,13 @@ public class MetricGroupsList extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
             
-            metricGroupsJson = metricGroupsDao.getMetricGroups(pageNumber*pageSize, pageSize);
+            metricGroupsList = metricGroupsDao.getMetricGroups(pageNumber*pageSize, pageSize);
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
-        if (metricGroupsJson != null) return metricGroupsJson;
+        if (metricGroupsList != null) return metricGroupsList;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }
