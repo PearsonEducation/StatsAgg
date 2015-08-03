@@ -68,7 +68,7 @@ public class AlertSuspensionDetails extends HttpServlet {
         }
     }
 
-    private JSONObject getAlertSuspensionDetails(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
+    JSONObject getAlertSuspensionDetails(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
         logger.debug("getAlertSuspensionDetails");
         logger.debug(PAGE_NAME);
         JSONObject alertSuspensionDetails = new JSONObject();
