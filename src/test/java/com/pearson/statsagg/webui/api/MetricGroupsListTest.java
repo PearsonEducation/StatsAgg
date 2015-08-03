@@ -16,15 +16,12 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
 import javax.servlet.http.HttpServletRequest;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.After;
-import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertTrue;
 import org.junit.BeforeClass;
 import org.junit.Test;
 import org.mockito.Mockito;
@@ -39,7 +36,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-public class MetricGroupsTest extends Mockito{
+public class MetricGroupsListTest extends Mockito{
     private static final JSONObject mockMetricGroupsJson = new JSONObject();
     private static MetricGroupsDao metricGroupsDao;
     private static MetricGroupsLogic metricGroupsLogic_ = new MetricGroupsLogic();
@@ -76,7 +73,7 @@ public class MetricGroupsTest extends Mockito{
         when(request.getParameter("page_number")).thenReturn("5");
 
         MetricGroupsList metricGroups = new MetricGroupsList();
-        JSONObject result = metricGroups.getMetricGroupsJson(request, metricGroupsDao);
+        JSONObject result = metricGroups.getMetricGroupsList(request, metricGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");

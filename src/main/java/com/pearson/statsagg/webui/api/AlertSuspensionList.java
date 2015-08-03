@@ -56,7 +56,7 @@ public class AlertSuspensionList extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.info("doGet");
         try {    
-            JSONObject json = getAlertSuspensionJson(request, new AlertSuspensionsDao());       
+            JSONObject json = getAlertSuspensionList(request, new AlertSuspensionsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -67,8 +67,8 @@ public class AlertSuspensionList extends HttpServlet {
         }     
     }
     
-    public JSONObject getAlertSuspensionJson(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
-        logger.info("getAlertSuspensionJson");
+    public JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
+        logger.info("getAlertSuspensionList");
         JSONObject errorMsg = null;
         JSONObject alertSuspensionJson = null;
         int pageNumber = 0, pageSize = 0;

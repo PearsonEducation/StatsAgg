@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant kumar (prashant4nov)
  */
-public class NotificationGroupsTest extends Mockito{
+public class NotificationGroupsListTest extends Mockito{
     private static final JSONObject mockNotificationGroupsJson = new JSONObject();
     private static NotificationGroupsDao notificationGroupsDao;
     private static NotificationGroupsLogic notificationGroupsLogic_ = new NotificationGroupsLogic();
@@ -87,7 +87,7 @@ public class NotificationGroupsTest extends Mockito{
         when(request.getParameter("page_number")).thenReturn("5");
 
         NotificationGroupsList notificationGroups = new NotificationGroupsList();
-        JSONObject result = notificationGroups.getNotificationGroups(request, notificationGroupsDao);
+        JSONObject result = notificationGroups.getNotificationGroupsList(request, notificationGroupsDao);
 
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");

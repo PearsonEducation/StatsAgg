@@ -41,7 +41,7 @@ public class AlertsList extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {    
-            JSONObject json = getAlertsJson(request, new AlertsDao());       
+            JSONObject json = getAlertsList(request, new AlertsDao());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -52,10 +52,10 @@ public class AlertsList extends HttpServlet {
         }     
     }
 
-     public JSONObject getAlertsJson(HttpServletRequest request, AlertsDao alertsDao) {
-        logger.debug("getAlertJson");
+     public JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
+        logger.debug("getAlertsList");
         JSONObject errorMsg = null;
-        JSONObject alertsJson = null;
+        JSONObject alertsList = null;
         int pageNumber = 0, pageSize = 0;
         
         try {
@@ -67,13 +67,13 @@ public class AlertsList extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
             
-            alertsJson = alertsDao.getAlerts(pageNumber*pageSize, pageSize);
+            alertsList = alertsDao.getAlerts(pageNumber*pageSize, pageSize);
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
-        if (alertsJson != null) return alertsJson;
+        if (alertsList != null) return alertsList;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }
