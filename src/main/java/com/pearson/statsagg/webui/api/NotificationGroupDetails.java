@@ -68,7 +68,7 @@ public class NotificationGroupDetails extends HttpServlet {
         }
     }
 
-    private JSONObject getNotificationGroup(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
+    JSONObject getNotificationGroup(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroup");
         logger.debug(PAGE_NAME);
         JSONObject notificationGroupDetails = new JSONObject();
