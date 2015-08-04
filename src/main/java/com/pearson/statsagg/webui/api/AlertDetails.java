@@ -68,7 +68,7 @@ public class AlertDetails extends HttpServlet {
         }
     }
 
-    private JSONObject getAlertDetails(HttpServletRequest request, AlertsDao alertsDao) {
+    JSONObject getAlertDetails(HttpServletRequest request, AlertsDao alertsDao) {
         logger.debug("getAlertDetails");
         logger.debug(PAGE_NAME);
         JSONObject alertDetails = new JSONObject();
