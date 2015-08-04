@@ -18,7 +18,6 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.math.BigDecimal;
@@ -43,8 +42,7 @@ import org.slf4j.LoggerFactory;
  */
 public class AlertDetailsTest extends Mockito {
     private static AlertsDao alertsDao;
-    AlertSuspension mockAlertSuspension;
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionDetails.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertDetails.class.getName());
 
     @Before
     public void setUp() {

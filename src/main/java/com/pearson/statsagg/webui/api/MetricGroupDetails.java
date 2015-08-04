@@ -69,7 +69,7 @@ public class MetricGroupDetails extends HttpServlet {
         }
     }
 
-    private JSONObject getMetricGroup(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
+    JSONObject getMetricGroup(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
         logger.debug("getMetricGroup");
         logger.debug(PAGE_NAME);
         JSONObject metricGroupDetails = new JSONObject();
