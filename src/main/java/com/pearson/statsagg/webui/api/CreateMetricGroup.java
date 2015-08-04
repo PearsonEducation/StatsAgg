@@ -15,21 +15,14 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.MetricGroupsLogic;
 import java.io.BufferedReader;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Scanner;
-import java.util.TreeSet;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import org.json.simple.JSONObject;
-import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,7 +44,16 @@ public class CreateMetricGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
+        logger.debug("doPost");
+        try {
+          JSONObject responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateMetricGroup());
+          PrintWriter out = null;
+          response.setContentType("application/json");
+          out = response.getWriter();
+          out.println(responseMsg);
+        } catch(Exception e) {
+              logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
     }
 
     /**
@@ -64,29 +66,17 @@ public class CreateMetricGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+    JSONObject processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
         BufferedReader reader = null;
-        com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
-        if ((request == null) || (response == null)) {
-            return;
-        }
         JSONObject metricData = Helper.getRequestData(request);
         JSONObject responseMsg = new JSONObject();
-        response.setContentType("application/json");
-        PrintWriter out = null;
         try {
             String result = createMetricGroup.parseMetricGroup(metricData);
             responseMsg.put("response", result);
-            out = response.getWriter();
-            out.println(responseMsg);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {
-            if (out != null) {
-                out.close();
-            }
-        }
+        return responseMsg;
     }    
 }
