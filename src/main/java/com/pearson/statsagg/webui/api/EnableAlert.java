@@ -17,10 +17,7 @@ package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.Common;
-import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -56,17 +53,23 @@ public class EnableAlert extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
-  
+        logger.debug("doPost");
+        try {    
+            String responseMsg = processPostRequest(request, new AlertsDao());       
+            PrintWriter out = null;
+            response.setContentType("application/json");
+            out = response.getWriter();
+            out.println(responseMsg);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }  
     }
 
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+    String processPostRequest(HttpServletRequest request, AlertsDao alertsDao) {
         logger.debug("Enable/Disable alert request");
+        String returnString = null;
         try {
-            String returnString = null;
-            if ((request == null) || (response == null)) {
-                return;
-            }
             String alertName = null;
             logger.info(request.getParameter(Helper.name));
             if (request.getParameter(Helper.name) != null) {
@@ -76,14 +79,10 @@ public class EnableAlert extends HttpServlet {
             com.pearson.statsagg.webui.Alerts alert = new com.pearson.statsagg.webui.Alerts();
             returnString = alert.changeAlertEnabled(alertName, isEnabled);
             JSONObject responseMsg = new JSONObject();
-            responseMsg.put("response", returnString);
-            response.setContentType("application/json");
-            PrintWriter out = null;
-            out = response.getWriter();
-            out.println(responseMsg);
-        } catch (IOException e) {
+        } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        return returnString;
     }
     
 }
