@@ -15,7 +15,6 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -55,7 +54,7 @@ public class EnableAlert extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doPost");
         try {    
-            String responseMsg = processPostRequest(request, new AlertsDao());       
+            String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.Alerts());       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -66,7 +65,7 @@ public class EnableAlert extends HttpServlet {
         }  
     }
 
-    String processPostRequest(HttpServletRequest request, AlertsDao alertsDao) {
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Enable/Disable alert request");
         String returnString = null;
         try {
@@ -76,13 +75,11 @@ public class EnableAlert extends HttpServlet {
                 alertName = request.getParameter(Helper.name);
             }
             Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
-            com.pearson.statsagg.webui.Alerts alert = new com.pearson.statsagg.webui.Alerts();
             returnString = alert.changeAlertEnabled(alertName, isEnabled);
             JSONObject responseMsg = new JSONObject();
         } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         return returnString;
-    }
-    
+    }   
 }
