@@ -16,7 +16,7 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.utilities.StackTrace;
-import static com.pearson.statsagg.webui.api.CreateAlert.PAGE_NAME;
+import static com.pearson.statsagg.webui.api.CreateAlertSuspension.PAGE_NAME;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "API_CreateAlertSuspension", urlPatterns = {"/api/create-alertsuspension"})
 public class CreateAlertSuspension extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspension.class.getName());
     
     public static final String PAGE_NAME = "API_CreateAlertSuspension";
     

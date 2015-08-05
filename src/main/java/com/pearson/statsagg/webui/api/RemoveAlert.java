@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "API_Remove_Alert", urlPatterns = {"/api/alert-remove"})
 public class RemoveAlert extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RemoveAlert.class.getName());
     public static final String PAGE_NAME = "API_Remove_Alert";
  
     /**

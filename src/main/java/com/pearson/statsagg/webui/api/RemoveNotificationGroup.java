@@ -81,7 +81,5 @@ public class RemoveNotificationGroup extends HttpServlet {
         logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
     }
       return returnString;
-}
-
-    
+}  
 }
