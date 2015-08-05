@@ -16,7 +16,7 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.utilities.StackTrace;
-import static com.pearson.statsagg.webui.api.RemoveMetricGroup.PAGE_NAME;
+import static com.pearson.statsagg.webui.api.RemoveNotificationGroup.PAGE_NAME;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "API_Remove_Notification", urlPatterns = {"/api/notification-remove"})
 public class RemoveNotificationGroup extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RemoveNotificationGroup.class.getName());
     public static final String PAGE_NAME = "API_Remove_Notification";
     
     /**
@@ -53,33 +53,34 @@ public class RemoveNotificationGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
-  
-    }
-    
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("Remove notificationGroup request");
-        try {
-            String returnString = null;
-            if ((request == null) || (response == null)) {
-                return;
-            }
-            String metricName = null;
-            logger.info(request.getParameter(Helper.name).toString());
-            if (request.getParameter(Helper.name) != null) {
-                metricName = request.getParameter(Helper.name);
-            }
-            com.pearson.statsagg.webui.NotificationGroups notificationGroup = new com.pearson.statsagg.webui.NotificationGroups();
-            returnString = notificationGroup.removeNotificationGroup(metricName);
+        try {    
+            PrintWriter out = null;
+            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.NotificationGroups());       
             JSONObject responseMsg = new JSONObject();
             responseMsg.put("response", returnString);
             response.setContentType("application/json");
-            PrintWriter out = null;
             out = response.getWriter();
             out.println(responseMsg);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }  
+    }
+    
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.NotificationGroups notificationGroup) {
+        logger.debug("Remove notificationGroup request");
+        String returnString = null;
+        try {
+            String notificationName = null;
+            logger.info(request.getParameter(Helper.name).toString());
+            if (request.getParameter(Helper.name) != null) {
+                notificationName = request.getParameter(Helper.name);
+            }
+            returnString = notificationGroup.removeNotificationGroup(notificationName);
     } catch (Exception e) {
         logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
     }
+      return returnString;
 }
 
     
