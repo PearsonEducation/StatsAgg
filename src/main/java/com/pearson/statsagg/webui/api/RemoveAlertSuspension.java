@@ -31,7 +31,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "API_Remove_AlertSuspension", urlPatterns = {"/api/alertsuspension-remove"})
 public class RemoveAlertSuspension extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RemoveAlertSuspension.class.getName());
     public static final String PAGE_NAME = "API_Remove_AlertSuspension";
  
     /**

@@ -33,7 +33,7 @@ import org.slf4j.LoggerFactory;
 @WebServlet(name="API_AlertSuspensionList", urlPatterns={"/api/AlertsSuspension-list"})
 public class AlertSuspensionList extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionList.class.getName());
     public static final String PAGE_NAME = "API_AlertSuspensionList";
     
     /**
