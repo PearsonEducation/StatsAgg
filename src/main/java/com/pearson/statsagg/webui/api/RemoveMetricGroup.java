@@ -32,7 +32,7 @@ import org.slf4j.LoggerFactory;
  */
 @WebServlet(name = "API_Remove_Metric", urlPatterns = {"/api/metric-remove"})
 public class RemoveMetricGroup extends HttpServlet {
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RemoveMetricGroup.class.getName());
     public static final String PAGE_NAME = "API_Remove_Metric";
     
     /**
