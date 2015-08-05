@@ -15,12 +15,9 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.Common;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.logging.Level;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -56,33 +53,33 @@ public class RemoveAlert extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
-  
-    }
-
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("Remove alert request");
-        try {
-            String returnString = null;
-            if ((request == null) || (response == null)) {
-                return;
-            }
-            String alertName = null;
-            logger.info(request.getParameter(Helper.name).toString());
-            if (request.getParameter(Helper.name) != null) {
-                alertName = request.getParameter(Helper.name);
-            }
-            com.pearson.statsagg.webui.Alerts alert = new com.pearson.statsagg.webui.Alerts();
-            returnString = alert.removeAlert(alertName);
+        logger.debug("doPost");
+        try {    
+            PrintWriter out = null;
+            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.Alerts());       
             JSONObject responseMsg = new JSONObject();
             responseMsg.put("response", returnString);
             response.setContentType("application/json");
-            PrintWriter out = null;
             out = response.getWriter();
             out.println(responseMsg);
-        } catch (IOException e) {
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }  
+    }
+
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
+        logger.debug("Remove alert request");
+        String returnString = null;
+        String alertName = null;
+        try {
+            if (request.getParameter(Helper.name) != null) {
+                alertName = request.getParameter(Helper.name);
+            }
+            returnString = alert.removeAlert(alertName);
+        } catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        return returnString;
     }
-    
 }
