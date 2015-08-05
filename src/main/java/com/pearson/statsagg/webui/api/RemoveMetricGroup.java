@@ -53,34 +53,33 @@ public class RemoveMetricGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
-  
+        try {    
+            PrintWriter out = null;
+            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.MetricGroups());       
+            JSONObject responseMsg = new JSONObject();
+            responseMsg.put("response", returnString);
+            response.setContentType("application/json");
+            out = response.getWriter();
+            out.println(responseMsg);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }  
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.MetricGroups metricGroup) {
         logger.debug("Remove metricGroup request");
+        String returnString = null;
         try {
-            String returnString = null;
-            if ((request == null) || (response == null)) {
-                return;
-            }
             String metricName = null;
             logger.info(request.getParameter(Helper.name).toString());
             if (request.getParameter(Helper.name) != null) {
                 metricName = request.getParameter(Helper.name);
             }
-            com.pearson.statsagg.webui.MetricGroups metricGroup = new com.pearson.statsagg.webui.MetricGroups();
             returnString = metricGroup.removeMetricGroup(metricName);
-            JSONObject responseMsg = new JSONObject();
-            responseMsg.put("response", returnString);
-            response.setContentType("application/json");
-            PrintWriter out = null;
-            out = response.getWriter();
-            out.println(responseMsg);
-    } catch (Exception e) {
-        logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        return returnString;
     }
-}
-
-    
 }
