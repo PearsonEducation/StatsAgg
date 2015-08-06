@@ -46,7 +46,7 @@ public class CreateMetricGroup extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doPost");
         try {
-          JSONObject responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateMetricGroup());
+          String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateMetricGroup());
           PrintWriter out = null;
           response.setContentType("application/json");
           out = response.getWriter();
@@ -66,17 +66,16 @@ public class CreateMetricGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    JSONObject processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
         BufferedReader reader = null;
         JSONObject metricData = Helper.getRequestData(request);
-        JSONObject responseMsg = new JSONObject();
+        String result = null;
         try {
-            String result = createMetricGroup.parseMetricGroup(metricData);
-            responseMsg.put("response", result);
+            result = createMetricGroup.parseMetricGroup(metricData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        return responseMsg;
+        return result;
     }    
 }
