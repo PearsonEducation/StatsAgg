@@ -40,7 +40,13 @@ public class CreateAlertSuspension extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
-            processPostRequest(request, response);
+            JSONObject responseMsg = new JSONObject();
+            response.setContentType("application/json");
+            PrintWriter out = null;
+            String result = processPostRequest(request, new com.pearson.statsagg.webui.CreateAlertSuspension());
+            responseMsg.put("response", result);
+            out = response.getWriter();
+            out.println(responseMsg);
         } catch (IOException ex) {
             logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
         }
@@ -56,30 +62,16 @@ public class CreateAlertSuspension extends HttpServlet {
         return PAGE_NAME;
     }
     
-        protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        
-        if ((request == null) || (response == null)) {
-            return;
-        }
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension) throws IOException {
+        String result = null;
         JSONObject alertSuspensionData = Helper.getRequestData(request);
-        com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension = new com.pearson.statsagg.webui.CreateAlertSuspension();
         JSONObject responseMsg = new JSONObject();
-        response.setContentType("application/json");
-        PrintWriter out = null;
         try {  
-            String result = createAlertSuspension.parseAndAlterAlertSuspension(alertSuspensionData);
-            responseMsg.put("response", result);
-            out = response.getWriter();
-            out.println(responseMsg);
+            result = createAlertSuspension.parseAndAlterAlertSuspension(alertSuspensionData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {            
-            if (out != null) {
-                out.close();
-            }
-        }
+        return result;
     }
-    
 }
