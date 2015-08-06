@@ -67,7 +67,6 @@ public class CreateMetricGroup extends HttpServlet {
     }
     
     String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
-        BufferedReader reader = null;
         JSONObject metricData = Helper.getRequestData(request);
         String result = null;
         try {

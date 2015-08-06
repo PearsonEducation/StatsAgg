@@ -15,9 +15,7 @@
  */
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.NotificationGroupsLogic;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
@@ -50,7 +48,11 @@ public class CreateNotificationGroup extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
-            processPostRequest(request, response);
+            String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateNotificationGroup());
+            PrintWriter out = null;
+            response.setContentType("application/json");
+            out = response.getWriter();
+            out.println(responseMsg);
         } catch (IOException e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
@@ -66,41 +68,16 @@ public class CreateNotificationGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) throws IOException {
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) throws IOException {
         logger.debug("create notification request");
-        if ((request == null) || (response == null)) {
-            return;
-        }
-
-        String line = null;
-        StringBuilder requestData = new StringBuilder();
-        BufferedReader reader = request.getReader();
-
-        while ((line = reader.readLine()) != null) {
-            requestData.append(line);
-        }
-
-        JSONObject notificationData = new JSONObject();
-        notificationData = (JSONObject) JSONValue.parse(requestData.toString());
-
-        JSONObject responseMsg = new JSONObject();
-        response.setContentType("application/json");
-        PrintWriter out = null;
-   
+        JSONObject notificationData = Helper.getRequestData(request);
+        String result = null;   
         try {
-            com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.webui.CreateNotificationGroup();
-            String result = createNotificationGroup.parseAndAlterNotificationGroup(notificationData);
-            responseMsg.put("response", result);
-            out = response.getWriter();
-            out.println(responseMsg);
+            result = createNotificationGroup.parseAndAlterNotificationGroup(notificationData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {
-            if (out != null) {
-                out.close();
-            }
-        }
+        return result;
     }
 }
