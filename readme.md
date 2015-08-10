@@ -3,7 +3,7 @@
 ## Overview
 StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, InfluxDB-formatted metrics (0.6x-0.8x format), and StatsD-formatted metrics.
 
-StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite, StatsD) & providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows a typical deployment & use-case pattern for StatsAgg.
+StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite & StatsD), and providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows an example deployment & use-case pattern for StatsAgg.
 
 [StatsAgg component diagram](./docs/component-diagram.png)
 

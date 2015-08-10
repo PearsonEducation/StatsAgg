@@ -71,7 +71,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         return insert(AlertsSql.Insert_Alert, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
                 alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
-                alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
+                alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
                 alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
                 alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
                 alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
@@ -90,7 +90,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         return update(AlertsSql.Update_Alert_ByPrimaryKey, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
                 alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
-                alert.isAllowResendAlert(), alert.getSendAlertEveryNumMilliseconds(),
+                alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
                 alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
                 alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
                 alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
@@ -151,9 +151,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             Boolean allowResendAlert = resultSet.getBoolean("ALLOW_RESEND_ALERT");
             if (resultSet.wasNull()) allowResendAlert = null;
             
-            Integer sendAlertEveryNumMilliseconds = resultSet.getInt("SEND_ALERT_EVERY_NUM_MILLISECONDS");
-            if (resultSet.wasNull()) sendAlertEveryNumMilliseconds = null;
-
+            Long resendAlertEvery = resultSet.getLong("RESEND_ALERT_EVERY");
+            if (resultSet.wasNull()) resendAlertEvery = null;
+            
+            Integer resendAlertEveryTimeUnit = resultSet.getInt("RESEND_ALERT_EVERY_TIME_UNIT");
+            if (resultSet.wasNull()) resendAlertEveryTimeUnit = null;
+            
             Integer cautionNotificationGroupId = resultSet.getInt("CAUTION_NOTIFICATION_GROUP_ID");
             if (resultSet.wasNull()) cautionNotificationGroupId = null;
             
@@ -251,7 +254,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             if (resultSet.wasNull()) dangerFirstActiveAt = null;
     
             Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled,
-                    alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
+                    alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit, 
                     cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
                     cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, 
                     isCautionAlertActive, cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt,

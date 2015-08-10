@@ -46,8 +46,9 @@ public class Alert extends DatabaseObject<Alert> {
 
     private Boolean alertOnPositive_ = null;
     private Boolean allowResendAlert_ = null;
-    private Integer sendAlertEveryNumMilliseconds_ = null;
-
+    private Long resendAlertEvery_ = null;
+    private Integer resendAlertEveryTimeUnit_ = null;
+    
     private Integer cautionNotificationGroupId_ = null;
     private Integer cautionPositiveNotificationGroupId_ = null;
     private Integer cautionOperator_ = null;
@@ -87,7 +88,7 @@ public class Alert extends DatabaseObject<Alert> {
     }
     
     public Alert(Integer id, String name, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
-            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Integer sendAlertEveryNumMilliseconds, 
+            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, Integer resendAlertEveryTimeUnit, 
             Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
@@ -98,7 +99,7 @@ public class Alert extends DatabaseObject<Alert> {
             Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         
         this(id, name, ((name == null) ? null : name.toUpperCase()), description, metricGroupId, isEnabled, isCautionEnabled, 
-             isDangerEnabled, alertType, alertOnPositive, allowResendAlert, sendAlertEveryNumMilliseconds, 
+             isDangerEnabled, alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit,
              cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination,  
              cautionCombinationCount, cautionThreshold, cautionWindowDuration, cautionWindowDurationTimeUnit, 
              cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, isCautionAlertActive,  
@@ -110,7 +111,7 @@ public class Alert extends DatabaseObject<Alert> {
     }
 
     public Alert(Integer id, String name, String uppercaseName, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
-            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Integer sendAlertEveryNumMilliseconds, 
+            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, Integer resendAlertEveryTimeUnit, 
             Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
@@ -131,7 +132,8 @@ public class Alert extends DatabaseObject<Alert> {
         
         this.alertOnPositive_ = alertOnPositive;
         this.allowResendAlert_ = allowResendAlert;
-        this.sendAlertEveryNumMilliseconds_ = sendAlertEveryNumMilliseconds;
+        this.resendAlertEvery_ = resendAlertEvery;
+        this.resendAlertEveryTimeUnit_ = resendAlertEveryTimeUnit;
         
         this.cautionNotificationGroupId_ = cautionNotificationGroupId;
         this.cautionPositiveNotificationGroupId_ = cautionPositiveNotificationGroupId;
@@ -190,7 +192,8 @@ public class Alert extends DatabaseObject<Alert> {
 
         alertCopy.setAlertOnPositive(alert.isAlertOnPositive());
         alertCopy.setAllowResendAlert(alert.isAllowResendAlert());
-        alertCopy.setSendAlertEveryNumMilliseconds(alert.getSendAlertEveryNumMilliseconds());
+        alertCopy.setResendAlertEvery(alert.getResendAlertEvery());
+        alertCopy.setResendAlertEveryTimeUnit(alert.getResendAlertEveryTimeUnit());
 
         alertCopy.setCautionNotificationGroupId(alert.getCautionNotificationGroupId());
         alertCopy.setCautionPositiveNotificationGroupId(alert.getCautionPositiveNotificationGroupId());
@@ -253,7 +256,8 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(alertType_, alert.getAlertType())
                 .append(alertOnPositive_, alert.isAlertOnPositive())
                 .append(allowResendAlert_, alert.isAllowResendAlert())
-                .append(sendAlertEveryNumMilliseconds_, alert.getSendAlertEveryNumMilliseconds())
+                .append(resendAlertEvery_, alert.getResendAlertEvery())
+                .append(resendAlertEveryTimeUnit_, alert.getResendAlertEveryTimeUnit())
                 .append(cautionNotificationGroupId_, alert.getCautionNotificationGroupId())
                 .append(cautionPositiveNotificationGroupId_, alert.getCautionPositiveNotificationGroupId())
                 .append(cautionOperator_, alert.getCautionOperator())
@@ -640,8 +644,6 @@ public class Alert extends DatabaseObject<Alert> {
         return null;
     }
     
-
-    
     public static String getMetricValueString_WithLabel(int alertLevel, Alert alert, BigDecimal metricValue) {
         
         if ((alert == null) || (metricValue == null) || (alert.getAlertType() == null)) {
@@ -761,12 +763,20 @@ public class Alert extends DatabaseObject<Alert> {
         this.allowResendAlert_ = allowResendAlert;
     }
     
-    public Integer getSendAlertEveryNumMilliseconds() {
-        return sendAlertEveryNumMilliseconds_;
+    public Long getResendAlertEvery() {
+        return resendAlertEvery_;
     }
 
-    public void setSendAlertEveryNumMilliseconds(Integer sendAlertEveryNumMilliseconds) {
-        this.sendAlertEveryNumMilliseconds_ = sendAlertEveryNumMilliseconds;
+    public void setResendAlertEvery(Long resendAlertEvery) {
+        this.resendAlertEvery_ = resendAlertEvery;
+    }
+
+    public Integer getResendAlertEveryTimeUnit() {
+        return resendAlertEveryTimeUnit_;
+    }
+
+    public void setResendAlertEveryTimeUnit(Integer resendAlertEveryTimeUnit) {
+        this.resendAlertEveryTimeUnit_ = resendAlertEveryTimeUnit;
     }
 
     public Integer getCautionNotificationGroupId() {

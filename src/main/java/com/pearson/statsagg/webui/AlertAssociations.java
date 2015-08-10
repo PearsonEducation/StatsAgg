@@ -19,6 +19,7 @@ import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -83,11 +84,16 @@ public class AlertAssociations extends HttpServlet {
         String acknowledgeLevel = request.getParameter("AcknowledgeLevel");
         String acknowledgeChange = request.getParameter("AcknowledgeChange");
 
-        // if a user clicked on the 'acknowledge' button, change the acknowledgement status in the database
-        acknowledgeAlert(name, acknowledgeChange, acknowledgeLevel);
-
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(name);  
+        
+        // if a user clicked on the 'acknowledge' button, change the acknowledgement status in the database
+        boolean wasAcknowledgementUpdated = acknowledgeAlert(alert, acknowledgeChange, acknowledgeLevel);
+        
+        if (wasAcknowledgementUpdated) {
+            alertsDao = new AlertsDao();
+            alert = alertsDao.getAlertByName(name);  
+        }
         
         String alertAssociations = "";
         
@@ -112,7 +118,8 @@ public class AlertAssociations extends HttpServlet {
                 "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
                 "      <div class=\"pull-right \">\n");
             
-            htmlBodyBuilder.append(getAcknowledgeButtonHtml(alert, level, name));
+            htmlBodyBuilder.append(getAcknowledgeButtonHtml(alert, level));
+            htmlBodyBuilder.append(getClearAllButtonHtml(alert, level));
             
             htmlBodyBuilder.append(
                 "      </div>\n" + 
@@ -152,11 +159,18 @@ public class AlertAssociations extends HttpServlet {
         String name = request.getParameter("Name");
         String level = request.getParameter("Level");
         String forgetMetric = request.getParameter("ForgetMetric");
-
-        // if the user clicked on the X button to remove a metric, perform that action & reload the page
-        if ((forgetMetric != null) && !forgetMetric.isEmpty()) {
+        String clearAll = request.getParameter("ClearAll");
+        
+        AlertsDao alertsDao = new AlertsDao();
+        Alert alert = alertsDao.getAlertByName(name);  
+        
+        if ((forgetMetric != null) && !forgetMetric.isEmpty()) { // if the user clicked on the X button to remove a metric, perform that action & reload the page
             boolean forgetSuccess = forgetMetricAndReloadPage(forgetMetric, name, level, response);
             if (!forgetSuccess) processGetRequest(request, response);
+        }
+        else if ((clearAll != null) && !clearAll.isEmpty()) { // if the user clicked on the 'clear all' button, perform that action & reload the page
+            boolean clearSuccess = clearAllAndReloadPage(alert, level, response);
+            if (!clearSuccess) processGetRequest(request, response);
         }
         else processGetRequest(request, response);
     }
@@ -178,16 +192,47 @@ public class AlertAssociations extends HttpServlet {
         
         return true;
     }
-    
-    private void acknowledgeAlert(String alertName, String acknowledgeChange, String acknowledgeLevel) {
+            
+    private boolean clearAllAndReloadPage(Alert alert, String level, HttpServletResponse response) {
         
-        if ((alertName == null) || (acknowledgeChange == null) || (acknowledgeLevel == null)) {
-            return;
+        if ((alert == null) || (alert.getName() == null) || (level == null) || (level.isEmpty()) || (response == null)) {
+            return false;
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);  
-        if (alert == null) return;
+        HashSet<String> metricKeysToForget = new HashSet<>();
+        if (level.equalsIgnoreCase("Triggered")) {
+            metricKeysToForget.addAll(getActiveAlertMetricKeys(alert, GlobalVariables.activeCautionAlertMetricKeysByAlertId));
+            metricKeysToForget.addAll(getActiveAlertMetricKeys(alert, GlobalVariables.activeDangerAlertMetricKeysByAlertId));
+        }
+        else if (level.equalsIgnoreCase("Caution")) {
+            metricKeysToForget.addAll(getActiveAlertMetricKeys(alert, GlobalVariables.activeCautionAlertMetricKeysByAlertId));
+        }
+        else if (level.equalsIgnoreCase("Danger")) {
+            metricKeysToForget.addAll(getActiveAlertMetricKeys(alert, GlobalVariables.activeDangerAlertMetricKeysByAlertId));
+        }
+        
+        for (String metricKeyToForget : metricKeysToForget) GlobalVariables.immediateCleanupMetrics.put(metricKeyToForget, metricKeyToForget);
+        
+        logger.info("Action=AlertAssociations_ClearAllMetrics, " + "MetricKeyCount=\"" + metricKeysToForget.size() + "\"");
+
+        if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
+
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
+        
+        return true;
+    }
+    
+    /*
+    Returns false if the alert acknowledgement was not updated in the database. 
+    Returns true if the alert acknowledgement was updated in the database. 
+    */
+    private boolean acknowledgeAlert(Alert alert, String acknowledgeChange, String acknowledgeLevel) {
+        
+        if ((alert == null) || (alert.getName() == null) || (acknowledgeChange == null) || (acknowledgeLevel == null)) {
+            return false;
+        }
+        
+        boolean didSetAlertAcknowledgement = false;
         
         Boolean acknowledgeChange_Boolean = null;
         try {
@@ -196,17 +241,21 @@ public class AlertAssociations extends HttpServlet {
         catch (Exception e){}
         
         if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Caution") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
-            AlertsLogic.changeAlertCautionAcknowledge(alertName, acknowledgeChange_Boolean);
+            AlertsLogic.changeAlertCautionAcknowledge(alert.getName(), acknowledgeChange_Boolean);
+            didSetAlertAcknowledgement = true;
         }     
 
         if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive() && (acknowledgeLevel.equalsIgnoreCase("Danger") || acknowledgeLevel.equalsIgnoreCase("Triggered"))) {
-            AlertsLogic.changeAlertDangerAcknowledge(alertName, acknowledgeChange_Boolean);
+            AlertsLogic.changeAlertDangerAcknowledge(alert.getName(), acknowledgeChange_Boolean);
+            didSetAlertAcknowledgement = true;
         }    
+        
+        return didSetAlertAcknowledgement;
     }
     
-    private String getAcknowledgeButtonHtml(Alert alert, String level, String name) {
+    private String getAcknowledgeButtonHtml(Alert alert, String level) {
         
-        if ((level == null) || (alert == null) || (name == null)) {
+        if ((level == null) || (alert == null) || (alert.getName() == null)) {
             return "";
         }
         
@@ -223,23 +272,23 @@ public class AlertAssociations extends HttpServlet {
                )              
             {
                 htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=False&amp;Level=Triggered&amp;Name=").
-                        append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Triggered Alert</a>\n");
+                        append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Triggered Alert</a>\n");
             }
             else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
                     (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
                 htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=True&amp;Level=Triggered&amp;Name=").
-                        append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Triggered Alert</a>\n");
+                        append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Triggered Alert</a>\n");
             }
         }
         else if (level.equalsIgnoreCase("Caution")) {
             if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
                 if ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=True&amp;Level=Caution&amp;Name=").
-                            append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Caution Alert</a>\n");
+                            append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Caution Alert</a>\n");
                 }
                 else if (((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=False&amp;Level=Caution&amp;Name=").
-                            append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Caution Alert</a>\n");
+                            append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Caution Alert</a>\n");
                 }
             }
         }
@@ -247,11 +296,11 @@ public class AlertAssociations extends HttpServlet {
             if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
                 if ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=True&amp;Level=Danger&amp;Name=").
-                            append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Danger Alert</a>\n");
+                            append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Danger Alert</a>\n");
                 }
                 else if (((alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=False&amp;Level=Danger&amp;Name=").
-                            append(StatsAggHtmlFramework.urlEncode(name)).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Danger Alert</a>\n");
+                            append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Danger Alert</a>\n");
                 }
             }
         }
@@ -259,6 +308,20 @@ public class AlertAssociations extends HttpServlet {
         return htmlBodyBuilder.toString();
     }
 
+    private String getClearAllButtonHtml(Alert alert, String level) {
+        
+        if ((level == null) || (alert == null) || (alert.getName() == null) || (alert.getAlertType() != Alert.TYPE_AVAILABILITY)) {
+            return "";
+        }
+        
+        StringBuilder htmlBodyBuilder = new StringBuilder();
+        
+        htmlBodyBuilder.append("<a href=\"AlertAssociations?Level=").append(level).append("&amp;Name=");
+        htmlBodyBuilder.append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Clear All</a>\n");
+        
+        return htmlBodyBuilder.toString();
+    }
+    
     private String getTriggeredAlertAssociations(String alertName, String level) {
         
         if ((alertName == null) || (level == null)) {
@@ -355,26 +418,13 @@ public class AlertAssociations extends HttpServlet {
         
         StringBuilder outputString = new StringBuilder();
         
-        // make a local copy of the relevant 'active alerts' list
-        List<String> activeCautionAlertMetricKeys;
-        HashSet<String> activeCautionAlertMetricKeysLocal = new HashSet<>();
-        synchronized(GlobalVariables.activeCautionAlertMetricKeysByAlertId) {
-            activeCautionAlertMetricKeys = GlobalVariables.activeCautionAlertMetricKeysByAlertId.get(alert.getId());
-            if (activeCautionAlertMetricKeys != null) activeCautionAlertMetricKeysLocal = new HashSet<>(activeCautionAlertMetricKeys);
-        }
-        
-        // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
-        List<String> keysToRemove = new ArrayList<>();
-        for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysLocal) {
-            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeCautionAlertMetricKey)) keysToRemove.add(activeCautionAlertMetricKey);
-        }
-        activeCautionAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
-        activeCautionAlertMetricKeysLocal.removeAll(keysToRemove);
+        // gets all active caution metric-keys for this alert
+        HashSet<String> activeCautionAlertMetricKeys = getActiveAlertMetricKeys(alert, GlobalVariables.activeCautionAlertMetricKeysByAlertId);
         
         // limit the number of metrics displayed
         int i = 1;
         List<String> activeCautionAlertMetricKeysSorted_Reduced = new ArrayList<>();
-        for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeysLocal) {
+        for (String activeCautionAlertMetricKey : activeCautionAlertMetricKeys) {
             activeCautionAlertMetricKeysSorted_Reduced.add(activeCautionAlertMetricKey);
             i++;
             if (i > MAX_METRIC_KEYS_TO_DISPLAY) break;
@@ -393,9 +443,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Total Triggered Caution Metrics</b> = ").append("0");
         }
         else {
-            outputString.append("<b>Total Triggered Caution Metrics</b> = ").append(activeCautionAlertMetricKeysLocal.size()).append("<br><br>");
+            outputString.append("<b>Total Triggered Caution Metrics</b> = ").append(activeCautionAlertMetricKeys.size()).append("<br><br>");
 
-            if (activeCautionAlertMetricKeysLocal.size() > 0) {
+            if (activeCautionAlertMetricKeys.size() > 0) {
                 outputString.append("<b>Triggered Metrics...</b>").append("<br>");
 
                 int associationOutputCounter = 0;
@@ -430,10 +480,8 @@ public class AlertAssociations extends HttpServlet {
                     associationOutputCounter++;
                 }
 
-                int numAssociationsNotOutputted = activeCautionAlertMetricKeysLocal.size() - associationOutputCounter;
-                if (numAssociationsNotOutputted > 0) {
-                    outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
-                }
+                int numAssociationsNotOutputted = activeCautionAlertMetricKeys.size() - associationOutputCounter;
+                if (numAssociationsNotOutputted > 0) outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
 
                 outputString.append("</ul>");
             }
@@ -484,26 +532,13 @@ public class AlertAssociations extends HttpServlet {
         
         StringBuilder outputString = new StringBuilder();
         
-        // make a local copy of the relevant 'active alerts' list
-        List<String> activeDangerAlertMetricKeys;
-        HashSet<String> activeDangerAlertMetricKeysLocal = new HashSet<>();
-        synchronized(GlobalVariables.activeDangerAlertMetricKeysByAlertId) {
-            activeDangerAlertMetricKeys = GlobalVariables.activeDangerAlertMetricKeysByAlertId.get(alert.getId());
-            if (activeDangerAlertMetricKeys != null) activeDangerAlertMetricKeysLocal = new HashSet<>(activeDangerAlertMetricKeys);
-        }
-        
-        // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
-        List<String> keysToRemove = new ArrayList<>();
-        for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysLocal) {
-            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeDangerAlertMetricKey)) keysToRemove.add(activeDangerAlertMetricKey);
-        }
-        activeDangerAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
-        activeDangerAlertMetricKeysLocal.removeAll(keysToRemove);
+        // gets all active danger metric-keys for this alert
+        HashSet<String> activeDangerAlertMetricKeys = getActiveAlertMetricKeys(alert, GlobalVariables.activeDangerAlertMetricKeysByAlertId);
         
         // limit the number of metrics displayed
         int i = 1;
         List<String> activeDangerAlertMetricKeysSorted_Reduced = new ArrayList<>();
-        for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeysLocal) {
+        for (String activeDangerAlertMetricKey : activeDangerAlertMetricKeys) {
             activeDangerAlertMetricKeysSorted_Reduced.add(activeDangerAlertMetricKey);
             i++;
             if (i > MAX_METRIC_KEYS_TO_DISPLAY) break;
@@ -522,9 +557,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Total Triggered Danger Metrics</b> = ").append("0");
         }
         else {
-            outputString.append("<b>Total Triggered Danger Metrics</b> = ").append(activeDangerAlertMetricKeysLocal.size()).append("<br><br>");
+            outputString.append("<b>Total Triggered Danger Metrics</b> = ").append(activeDangerAlertMetricKeys.size()).append("<br><br>");
 
-            if (activeDangerAlertMetricKeysLocal.size() > 0) {
+            if (activeDangerAlertMetricKeys.size() > 0) {
                 outputString.append("<b>Triggered Metrics...</b>").append("<br>");
 
                 int associationOutputCounter = 0;
@@ -559,10 +594,8 @@ public class AlertAssociations extends HttpServlet {
                     associationOutputCounter++;
                 }
 
-                int numAssociationsNotOutputted = activeDangerAlertMetricKeysLocal.size() - associationOutputCounter;
-                if (numAssociationsNotOutputted > 0) {
-                    outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
-                }
+                int numAssociationsNotOutputted = activeDangerAlertMetricKeys.size() - associationOutputCounter;
+                if (numAssociationsNotOutputted > 0) outputString.append("<li>").append(numAssociationsNotOutputted).append(" more...").append("</li>");
 
                 outputString.append("</ul>");
             }
@@ -571,4 +604,29 @@ public class AlertAssociations extends HttpServlet {
         return outputString.toString();
     }
     
+    private static HashSet<String> getActiveAlertMetricKeys(Alert alert, ConcurrentHashMap<Integer,List<String>> alertMetricKeysByAlertId) {
+        
+        if ((alert == null) || (alertMetricKeysByAlertId == null)) {
+            return new HashSet<>();
+        }
+        
+        // make a local copy of the relevant 'active alerts' list
+        List<String> activeAlertMetricKeys;
+        HashSet<String> activeAlertMetricKeysLocal = new HashSet<>();
+        synchronized(alertMetricKeysByAlertId) {
+            activeAlertMetricKeys = alertMetricKeysByAlertId.get(alert.getId());
+            if (activeAlertMetricKeys != null) activeAlertMetricKeysLocal = new HashSet<>(activeAlertMetricKeys);
+        }
+        
+        // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
+        List<String> keysToRemove = new ArrayList<>();
+        for (String activeAlertMetricKey : activeAlertMetricKeysLocal) {
+            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeAlertMetricKey)) keysToRemove.add(activeAlertMetricKey);
+        }
+        activeAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
+        activeAlertMetricKeysLocal.removeAll(keysToRemove);
+        
+        return activeAlertMetricKeysLocal;
+    }
+
 }

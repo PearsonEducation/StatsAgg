@@ -645,7 +645,7 @@ public class CreateAlertSuspension extends HttpServlet {
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alertSuspension.getDurationTimeUnit());
-                    alertSuspension.setDuration(timeInMs.longValue());
+                    if (timeInMs != null) alertSuspension.setDuration(timeInMs.longValue());
                 }
             }
 

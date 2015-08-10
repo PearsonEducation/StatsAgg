@@ -296,21 +296,56 @@ public class CreateAlert extends HttpServlet {
 
         htmlBody.append(">\n</div>\n");
         
-        
-        // send alert every num milliseconds
-        htmlBody.append(
-            "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Resent alert every... (in seconds)</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"If 'resend alert' is enabled, how often should the alert be resent?\" name=\"SendAlertEveryNumMilliseconds\" id=\"SendAlertEveryNumMilliseconds\"");
 
-        if ((alert != null) && (alert.getSendAlertEveryNumMilliseconds() != null)) {
-            BigDecimal sendAlertEveryNumMilliseconds = new BigDecimal(alert.getSendAlertEveryNumMilliseconds());
-            BigDecimal sendAlertEveryNumSeconds = sendAlertEveryNumMilliseconds.divide(new BigDecimal(1000));
-            htmlBody.append(" value=\"").append(sendAlertEveryNumSeconds.stripTrailingZeros().toPlainString()).append("\"");
+        // resend alert every...
+        htmlBody.append("<label id=\"ResendAlertEvery_Label\" class=\"label_small_margin\">Resend alert every...</label>\n");
+        htmlBody.append("<div>\n");
+        
+        htmlBody.append(
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <input class=\"form-control-statsagg\" placeholder=\"If 'resend alert' is enabled, how often should the alert be resent?\" name=\"ResendAlertEvery\" id=\"ResendAlertEvery\" ");
+
+        if ((alert != null) && (alert.getResendAlertEvery() != null)) {
+            BigDecimal sendAlertEvery = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit());
+            htmlBody.append(" value=\"").append(sendAlertEvery.stripTrailingZeros().toPlainString()).append("\"");
         }
         
         htmlBody.append(">\n</div>\n");
+        
+        
+        // resend alert every... time unit
+        htmlBody.append(
+            "<div class=\"form-group col-xs-6\">\n" +
+            "  <select class=\"form-control-statsagg\" name=\"ResendAlertEveryTimeUnit\" id=\"ResendAlertEveryTimeUnit\">\n");
 
+        if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getResendAlertEveryTimeUnit(), true) != null)) {
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getResendAlertEveryTimeUnit(), true);
+            
+            if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append("<option>Seconds</option>\n");
+
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append("<option>Minutes</option>\n");
+
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append("<option>Hours</option>\n");
+
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append("<option>Days</option>\n");
+        }
+        else {
+            htmlBody.append(
+                "<option>Seconds</option>\n" +
+                "<option>Minutes</option>\n" +
+                "<option>Hours</option>\n" +
+                "<option>Days</option>\n"
+            );
+        }
+        
+        htmlBody.append("</select>\n");
+        htmlBody.append("</div>\n");
+        htmlBody.append("</div>\n");
+        
         // end column 1
         htmlBody.append(
             "    </div>\n" +
@@ -388,23 +423,21 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionWindowDurationTimeUnit\" id=\"CautionWindowDurationTimeUnit\">\n");
-
         
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true) != null)) {
-            String whiteSpace = "							  ";
-            String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
             
-            if (cautionTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append("<option>Seconds</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append("<option>Minutes</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append("<option>Hours</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append("<option>Days</option>\n");
         }
         else {
             htmlBody.append(
@@ -442,20 +475,19 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"CautionStopTrackingAfterTimeUnit\" id=\"CautionStopTrackingAfterTimeUnit\">\n");
 
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true) != null)) {
-            String whiteSpace = "							  ";
-            String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true);
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append("<option>Seconds</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append("<option>Minutes</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append("<option>Hours</option>\n");
 
-            if (cautionTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append("<option>Days</option>\n");
         }
         else {
             htmlBody.append(
@@ -526,22 +558,20 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"CautionCombination\" id=\"CautionCombination\">\n");
 
         if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
-            String whiteSpace = "							  ";
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
+            else htmlBody.append("<option>Any</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Any</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
+            else htmlBody.append("<option>All</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>All</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
+            else htmlBody.append("<option>Average</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Average</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
+            else htmlBody.append("<option>At most</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>At most</option>\n");
-
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>At least</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
+            else htmlBody.append("<option>At least</option>\n");
         }
         else {
             htmlBody.append(
@@ -658,20 +688,19 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"DangerWindowDurationTimeUnit\" id=\"DangerWindowDurationTimeUnit\">\n");
 
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true) != null)) {
-            String whiteSpace = "							  ";
-            String dangerTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append("<option>Seconds</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append("<option>Minutes</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append("<option>Hours</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append("<option>Days</option>\n");
         }
         else {
             htmlBody.append(
@@ -709,20 +738,19 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"DangerStopTrackingAfterTimeUnit\" id=\"DangerStopTrackingAfterTimeUnit\">\n");
 
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true) != null)) {
-            String whiteSpace = "							  ";
-            String dangerTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true);
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Seconds</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Seconds</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
+            else htmlBody.append("<option>Seconds</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append("<option selected=\"selected\">Minutes</option>\n");
+            else htmlBody.append("<option>Minutes</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Hours")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Hours</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Hours</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Hours")) htmlBody.append("<option selected=\"selected\">Hours</option>\n");
+            else htmlBody.append("<option>Hours</option>\n");
 
-            if (dangerTimeUnitString.equalsIgnoreCase("Days")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Days</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Days</option>\n");
+            if (timeUnitString.equalsIgnoreCase("Days")) htmlBody.append("<option selected=\"selected\">Days</option>\n");
+            else htmlBody.append("<option>Days</option>\n");
         }
         else {
             htmlBody.append(
@@ -793,22 +821,20 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
         if ((alert != null) && (alert.getCombinationString(Alert.DANGER) != null)) {
-            String whiteSpace = "							  ";
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
+            else htmlBody.append("<option>Any</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Any")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Any</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Any</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
+            else htmlBody.append("<option>All</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("All")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">All</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>All</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
+            else htmlBody.append("<option>Average</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Average")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Average</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>Average</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
+            else htmlBody.append("<option>At most</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At most")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At most</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>At most</option>\n");
-
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At least")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">At least</option>\n");
-            else htmlBody.append(whiteSpace).append("<option>At least</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
+            else htmlBody.append("<option>At least</option>\n");
         }
         else {
             htmlBody.append(
@@ -959,14 +985,24 @@ public class CreateAlert extends HttpServlet {
             if ((parameter != null) && parameter.contains("on")) alert.setAllowResendAlert(true);
             else alert.setAllowResendAlert(false);
 
-            parameter = Common.getObjectParameter(request, "SendAlertEveryNumMilliseconds");
+            parameter = Common.getObjectParameter(request, "ResendAlertEveryTimeUnit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
-                if (!parameterTrimmed.isEmpty()) {                
-                    BigDecimal bigDecimalValueMs = new BigDecimal(parameterTrimmed);
-                    BigDecimal bigDecimalValueInSeconds = bigDecimalValueMs.multiply(new BigDecimal(1000));
-                    alert.setSendAlertEveryNumMilliseconds(bigDecimalValueInSeconds.intValue());
+                if (!parameterTrimmed.isEmpty()) {      
+                    Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
+                    alert.setResendAlertEveryTimeUnit(intValue);
+                }
+            }
+            
+            parameter = Common.getObjectParameter(request, "ResendAlertEvery");
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                
+                if (!parameterTrimmed.isEmpty()) {    
+                    BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getResendAlertEveryTimeUnit());
+                    if (timeInMs != null) alert.setResendAlertEvery(timeInMs.longValue());                    
                 }
             }
             
@@ -1009,7 +1045,7 @@ public class CreateAlert extends HttpServlet {
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionWindowDurationTimeUnit());
-                    alert.setCautionWindowDuration(timeInMs.longValue());                    
+                    if (timeInMs != null) alert.setCautionWindowDuration(timeInMs.longValue());                    
                 }
             }
             
@@ -1030,7 +1066,7 @@ public class CreateAlert extends HttpServlet {
                 if (!parameterTrimmed.isEmpty()) {     
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionStopTrackingAfterTimeUnit());
-                    alert.setCautionStopTrackingAfter(timeInMs.longValue());
+                    if (timeInMs != null) alert.setCautionStopTrackingAfter(timeInMs.longValue());
                 }
             }
             
@@ -1123,7 +1159,7 @@ public class CreateAlert extends HttpServlet {
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerWindowDurationTimeUnit());
-                    alert.setDangerWindowDuration(timeInMs.longValue());
+                    if (timeInMs != null) alert.setDangerWindowDuration(timeInMs.longValue());
                 }
             }
             
@@ -1144,7 +1180,7 @@ public class CreateAlert extends HttpServlet {
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerStopTrackingAfterTimeUnit());
-                    alert.setDangerStopTrackingAfter(timeInMs.longValue());
+                    if (timeInMs != null) alert.setDangerStopTrackingAfter(timeInMs.longValue());
                 }
             }
            

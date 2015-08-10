@@ -940,7 +940,7 @@ public class AlertThread implements Runnable {
             if (alert.isAllowResendAlert() && (alert.getCautionAlertLastSentTimestamp() != null) && ((alert.isCautionAcknowledged() == null) || !alert.isCautionAcknowledged())) { 
                 long timeSinceLastNotificationInMs = currentTimeInMs - alert.getCautionAlertLastSentTimestamp().getTime();
                 
-                if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
+                if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
@@ -1038,7 +1038,7 @@ public class AlertThread implements Runnable {
             if (alert.isAllowResendAlert() && (alert.getDangerAlertLastSentTimestamp() != null) && ((alert.isDangerAcknowledged() == null) || !alert.isDangerAcknowledged())) { 
                 long timeSinceLastNotificationInMs = currentTimeInMs - alert.getDangerAlertLastSentTimestamp().getTime();
                 
-                if (timeSinceLastNotificationInMs >= alert.getSendAlertEveryNumMilliseconds()) {
+                if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
                     if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);

@@ -1,18 +1,3 @@
-/*
- * Copyright 2015 prashant kumar (Prashant4nov).
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
@@ -27,13 +12,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author prashant kumar (Prashant4nov)
  */
 @WebServlet(name="API_AlertSuspensionList", urlPatterns={"/api/AlertsSuspension-list"})
 public class AlertSuspensionList extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionList.class.getName());
+    
     public static final String PAGE_NAME = "API_AlertSuspensionList";
     
     /**
@@ -54,9 +39,11 @@ public class AlertSuspensionList extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        logger.info("doGet");
+        logger.debug("doGet");
+        
         try {    
             JSONObject json = getAlertSuspensionList(request, new AlertSuspensionsDao());       
+            
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -65,10 +52,12 @@ public class AlertSuspensionList extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }     
+        
     }
     
     public JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
-        logger.info("getAlertSuspensionList");
+        logger.debug("getAlertSuspensionList");
+        
         JSONObject errorMsg = null;
         JSONObject alertSuspensionJson = null;
         int pageNumber = 0, pageSize = 0;
@@ -83,11 +72,13 @@ public class AlertSuspensionList extends HttpServlet {
             }
             
             alertSuspensionJson = alertSuspensionsDao.getAlertSuspension(pageNumber*pageSize, pageSize);
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
+        
         if (alertSuspensionJson != null) return alertSuspensionJson;
         else if (errorMsg != null) return errorMsg;
         else return null;

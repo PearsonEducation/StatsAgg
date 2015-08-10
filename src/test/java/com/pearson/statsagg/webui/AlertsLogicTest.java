@@ -106,7 +106,7 @@ public class AlertsLogicTest {
         assertTrue(result.contains("success") || result.contains("Alert not found"));
         
         // create & insert an Alert, insert it into the db, retrieve it from the db, & check for correctness of the retrieved records
-        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
+        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
@@ -171,7 +171,7 @@ public class AlertsLogicTest {
         String result = alertsLogic_.deleteRecordInDatabase("alert junit name 1");
         assertTrue(result.contains("success") || result.contains("Alert not found"));
         
-        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
+        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);

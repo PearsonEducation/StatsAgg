@@ -296,7 +296,7 @@ public class NotificationGroups extends HttpServlet {
         String testAlertName = "Notification test - alert";
         Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(),
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
-                88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 300000, 
+                88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 60l, DatabaseObjectCommon.TIME_UNIT_MINUTES,
                 77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, 
                 DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
                 77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000L, 

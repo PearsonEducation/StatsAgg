@@ -187,12 +187,17 @@ public class AlertDetails extends HttpServlet {
             String isAllowResendAlert = "No";
             if ((alert.isAllowResendAlert() != null) && alert.isAllowResendAlert()) isAllowResendAlert = "Yes";
             outputString.append("<b>Resend Alert?</b> = ").append(isAllowResendAlert).append("<br>");
-            
-            outputString.append("<b>Resent alert every...</b> = ");
-            if (alert.getSendAlertEveryNumMilliseconds() != null) {
-                BigDecimal resendAlertMs = new BigDecimal(alert.getSendAlertEveryNumMilliseconds());
-                BigDecimal resendAlertSeconds = resendAlertMs.divide(new BigDecimal(1000));
-                outputString.append(resendAlertSeconds.stripTrailingZeros().toPlainString()).append(" seconds<br>");
+
+            outputString.append("<b>Resend alert every</b> = ");
+            if (alert.getResendAlertEvery() != null) {
+                BigDecimal sentAlertEvery = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit());
+                if (sentAlertEvery != null) outputString.append(sentAlertEvery.stripTrailingZeros().toPlainString());
+                
+                if (alert.getResendAlertEveryTimeUnit() != null) {
+                    String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getResendAlertEveryTimeUnit(), true);
+                    if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
+                }
+                outputString.append("<br>");
             }
             else outputString.append("N/A <br>");
             
@@ -250,8 +255,8 @@ public class AlertDetails extends HttpServlet {
                 if (cautionWindowDuration != null) outputString.append(cautionWindowDuration.stripTrailingZeros().toPlainString());
                 
                 if (alert.getCautionWindowDurationTimeUnit() != null) {
-                    String cautionTimeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
-                    if (cautionTimeUnitString != null) outputString.append(" ").append(cautionTimeUnitString);
+                    String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true);
+                    if (timeUnitString != null) outputString.append(" ").append(timeUnitString);
                 }
                 outputString.append("<br>");
             }

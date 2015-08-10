@@ -1,20 +1,3 @@
-/*
- * Copyright 2015 prashant4nov.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
@@ -37,16 +20,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author Prashant Kumar (prashant4nov)
  */
 public class AlertDetailsTest extends Mockito {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AlertDetailsTest.class.getName());
+    
     private static AlertsDao alertsDao;
-    private static final Logger logger = LoggerFactory.getLogger(AlertDetails.class.getName());
 
     @Before
     public void setUp() {
-        Alert mockAlert = new Alert(101, "alert junit 1", "alert junit 1" , 12, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000, 
+        Alert mockAlert = new Alert(101, "alert junit 1", "alert junit 1" , 12, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             13, 13, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             13, 13, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         alertsDao = mock(AlertsDao.class);
@@ -70,4 +54,5 @@ public class AlertDetailsTest extends Mockito {
         assertEquals(12, result.get("metricgroup_id"));
         assertEquals("alert junit 1", result.get("name"));
     }
+    
 }

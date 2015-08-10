@@ -339,11 +339,11 @@
  
     `Name=[String] A unique name for this metric group. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
 	
+	`MatchRegexes=[String] Regular expressions used to tie individual metrics to the metric group.`
+
 	**Optional:**
 
     `Description=[String] A description of the metric group. Avoid descriptions longer than 1000000 characters.`
-
-	`MatchRegexes=[String] Regular expressions used to tie individual metrics to the metric group.`
 
 	`BlacklistRegexes=[String] Regular expressions used to blacklist metrics from the metric group.`
 
@@ -436,23 +436,25 @@
 
 	`DangerEnabled=[Boolean] When danger alerting is disabled, danger alerts will not trigger (they are not even evaluated).`	
 
-	`CreateAlert_Type=[String] Availability, Threshold.`	
+	`CreateAlert_Type=[String] "Availability" or "Threshold"`
 
 	`AlertOnPositive=[String] If this is checked, alerts that change states from ‘triggered’ to ‘not triggered’ will send an email notification to the notification group’s recipients.`	
 
 	`AllowResendAlert=[String] If this is checked, alerts that are in a ‘triggered’ state will send a new email notification to the notification group’s recipients after the specified amount of time.`	
 
-	`SendAlertEveryNumMilliseconds=[Integer] If ‘resend alert?’ is enabled, then alerts in a ‘triggered’ state will send a new email notification to the notification group’s recipients after the amount of time specified by this option.`	
+	`ResendAlertEvery=[Integer] If ‘resend alert?’ is enabled, then alerts in a ‘triggered’ state will send a new email notification to the notification group’s recipients after the amount of time specified by this option.`	
+
+	`ResendAlertEveryTimeUnit=[String] "Seconds", "Minutes" "Hours", or "Days"'
 
 	`CautionNotificationGroupName=[String] (optional) The ‘notification group’ that is associated with the alert. Alerts that are triggered will be sent to the members of this ‘notification group’.`	
 
 	`CautionPositiveNotificationGroupName=[String] `	
 
-	`CautionWindowDurationTimeUnit=[String] `	
+	`CautionWindowDurationTimeUnit=[String] "Seconds", "Minutes" "Hours", or "Days"'`	
 
 	`CautionWindowDuration=[String] The ‘window duration’ is an amount of time (between ‘now’ and ‘x seconds ago’) that metrics values are allowed to be considered for alerts.`	
 
-	`CautionStopTrackingAfterTimeUnit=[String] `	
+	`CautionStopTrackingAfterTimeUnit=[String] "Seconds", "Minutes" "Hours", or "Days"'`	
 
 	`CautionStopTrackingAfter=[String] For availability alerts, StatsAgg requires that you eventually ‘give up’ on tracking a metric that hasn’t had any new data points.`	
 
@@ -470,7 +472,7 @@
 
 	`DangerPositiveNotificationGroupName=[String] `	
 
-	`DangerWindowDurationTimeUnit=[String] `	
+	`DangerWindowDurationTimeUnit=[String] "Seconds", "Minutes" "Hours", or "Days"'`	
 
 	`DangerWindowDuration=[String] `
 
@@ -490,17 +492,22 @@
 
 * **Example Request:**
 
-    ```   {"Name": "xyz-alert","Description": "alert new created field","MetricGroupName":"netric grp1","Enabled":"true",
+    ```   
+	{"Name": "xyz-alert",
+	"Description": "A very in-depth description about xyz-alert",
+	"MetricGroupName":"metric grp1",
+	"Enabled": "true",
 	"CautionEnabled": "true",
-	"DangerEnabled":"true",
-	"CreateAlert_Type":"true",
+	"DangerEnabled": "true",
+	"CreateAlert_Type": "true",
 	"AlertOnPositive": "true",
-	"AllowResendAlert":"true",
-    "SendAlertEveryNumMilliseconds": 5000,
-	"CautionNotificationGroupName":"notification grp",
-	"CautionPositiveNotificationGroupName": "positive notification grp1",
-	"CautionWindowDurationTimeUnit": 100,
-    "CautionWindowDuration": 10,
+	"AllowResendAlert": "true",
+    "SendAlertEvery": 60,
+    "SendAlertEveryTimeUnit": "Minutes",
+	"CautionNotificationGroupName": "notification grp 1",
+	"CautionPositiveNotificationGroupName": "notification grp 2",
+	"CautionWindowDurationTimeUnit": "Hours",
+    "CautionWindowDuration": 2,
 	"CautionStopTrackingAfterTimeUnit": 10,
 	"CautionStopTrackingAfter": 5,
 	"CautionMinimumSampleCount": 25,
@@ -508,10 +515,10 @@
 	"CautionCombination": "true",
 	"CautionCombinationCount": 20,
 	"CautionThreshold": 30,
-	"DangerNotificationGroupName": danger notification grp 1,
-	"DangerPositiveNotificationGroupName": danger positive notification grp name,
-	"DangerWindowDurationTimeUnit": 50,
-	"DangerWindowDuration": 21,
+	"DangerNotificationGroupName": "notification grp 1",
+	"DangerPositiveNotificationGroupName": "notification grp 2",
+	"DangerWindowDurationTimeUnit": "Seconds",
+	"DangerWindowDuration": 240,
 	"DangerStopTrackingAfterTimeUnit": 20,
     "DangerStopTrackingAfter": 34,
 	"DangerMinimumSampleCount": 23,
