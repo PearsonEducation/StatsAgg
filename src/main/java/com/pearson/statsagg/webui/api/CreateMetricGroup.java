@@ -1,6 +1,7 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.utilities.StackTrace;
+import java.io.BufferedReader;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -28,7 +29,16 @@ public class CreateMetricGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
+        logger.debug("doPost");
+        try {
+          String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateMetricGroup());
+          PrintWriter out = null;
+          response.setContentType("application/json");
+          out = response.getWriter();
+          out.println(responseMsg);
+        } catch(Exception e) {
+              logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
     }
 
     /**
@@ -41,31 +51,18 @@ public class CreateMetricGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
-        
-        if ((request == null) || (response == null)) {
-            return;
-        }
-        
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
         JSONObject metricData = Helper.getRequestData(request);
         JSONObject responseMsg = new JSONObject();
         response.setContentType("application/json");
         PrintWriter out = null;
         
         try {
-            com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
-            String result = createMetricGroup.parseMetricGroup(metricData);
-            responseMsg.put("response", result);
-            out = response.getWriter();
-            out.println(responseMsg);
+            result = createMetricGroup.parseMetricGroup(metricData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {
-            if (out != null) {
-                out.close();
-            }
-        }
+        return result;
     }    
 }

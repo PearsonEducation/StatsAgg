@@ -23,7 +23,6 @@ public class Helper {
     protected final static String name = "name";
     
     public static JSONObject getRequestData(HttpServletRequest request) {
-
         BufferedReader bufferedReader = null;
         JSONObject data = null;
         
@@ -45,8 +44,6 @@ public class Helper {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
-        
         return data;
     }
-    
 }

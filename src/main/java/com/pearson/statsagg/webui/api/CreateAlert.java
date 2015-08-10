@@ -23,7 +23,17 @@ public class CreateAlert extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        processPostRequest(request, response);
+        try {
+            JSONObject responseMsg = new JSONObject();
+            response.setContentType("application/json");
+            PrintWriter out = null;
+            String result = processPostRequest(request, new com.pearson.statsagg.webui.CreateAlert());
+            responseMsg.put("response", result);
+            out = response.getWriter();
+            out.println(responseMsg);
+        } catch (IOException ex) {
+            logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
+        }
     }
 
     /**
@@ -36,32 +46,16 @@ public class CreateAlert extends HttpServlet {
         return PAGE_NAME;
     }
     
-    protected void processPostRequest(HttpServletRequest request, HttpServletResponse response) {
-        
-        if ((request == null) || (response == null)) {
-            return;
-        }
-        
-        JSONObject alertData = Helper.getRequestData(request);
-        JSONObject responseMsg = new JSONObject();
-        response.setContentType("application/json");
-        PrintWriter out = null;
-        
-        try {    
-            com.pearson.statsagg.webui.CreateAlert createAlert = new com.pearson.statsagg.webui.CreateAlert();
-            String result = createAlert.parseAndAlterAlert(alertData);
-            responseMsg.put("response", result);
-            out = response.getWriter();
-            out.println(responseMsg);
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) throws IOException {
+        String result = null;
+        try {
+            JSONObject alertData = Helper.getRequestData(request);
+            result = createAlert.parseAndAlterAlert(alertData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        finally {            
-            if (out != null) {
-                out.close();
-            }
-        }
+        return result;
     }
     
 }
