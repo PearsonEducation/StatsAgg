@@ -10,7 +10,6 @@ import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-
 /**
  * @author prashant kumar(prashant4nov)
  */
@@ -31,7 +30,8 @@ public class CreateAlert extends HttpServlet {
             responseMsg.put("response", result);
             out = response.getWriter();
             out.println(responseMsg);
-        } catch (IOException ex) {
+        } 
+        catch (Exception ex) {
             logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
         }
     }
@@ -46,8 +46,9 @@ public class CreateAlert extends HttpServlet {
         return PAGE_NAME;
     }
     
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) throws IOException {
+    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) {
         String result = null;
+        
         try {
             JSONObject alertData = Helper.getRequestData(request);
             result = createAlert.parseAndAlterAlert(alertData);
@@ -55,6 +56,7 @@ public class CreateAlert extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
         return result;
     }
     

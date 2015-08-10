@@ -1,7 +1,6 @@
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.utilities.StackTrace;
-import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -36,7 +35,8 @@ public class CreateNotificationGroup extends HttpServlet {
             response.setContentType("application/json");
             out = response.getWriter();
             out.println(responseMsg);
-        } catch (IOException e) {
+        } 
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
@@ -51,15 +51,19 @@ public class CreateNotificationGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) throws IOException {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) {
         logger.debug("create notification request");
-        JSONObject notificationData = Helper.getRequestData(request);
+        
         String result = null;   
+        JSONObject notificationData = Helper.getRequestData(request);
+        
         try {
+            result = createNotificationGroup.parseAndAlterNotificationGroup(notificationData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
         return result;
     }
     

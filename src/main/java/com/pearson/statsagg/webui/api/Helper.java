@@ -7,6 +7,7 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
 /**
  * @author Jeffrey Schmidt
  */
@@ -44,6 +45,8 @@ public class Helper {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
+        
         return data;
     }
+    
 }

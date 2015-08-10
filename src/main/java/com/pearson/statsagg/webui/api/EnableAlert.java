@@ -6,12 +6,10 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author prashant4nov (Prashant Kumar)
  */
 @WebServlet(name = "API_Enable_Alert", urlPatterns = {"/api/alert-enable"})
@@ -55,6 +53,7 @@ public class EnableAlert extends HttpServlet {
     String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Enable/Disable alert request");
         String returnString = null;
+        
         try {
             String alertName = null;
             logger.debug(request.getParameter(Helper.name));
@@ -65,10 +64,12 @@ public class EnableAlert extends HttpServlet {
             
             Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
             returnString = alert.changeAlertEnabled(alertName, isEnabled);
-            JSONObject responseMsg = new JSONObject();
-        } catch (Exception e) {
+        } 
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
         return returnString;
     }   
+    
 }
