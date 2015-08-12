@@ -118,8 +118,11 @@ public class AlertAssociations extends HttpServlet {
                 "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
                 "      <div class=\"pull-right \">\n");
             
-            htmlBodyBuilder.append(getAcknowledgeButtonHtml(alert, level));
-            htmlBodyBuilder.append(getClearAllButtonHtml(alert, level));
+            String acknowledgeButtonHtml = getAcknowledgeButtonHtml(alert, level);
+            String clearAllButtonHtml = getClearAllButtonHtml(alert, level);
+            htmlBodyBuilder.append(acknowledgeButtonHtml);
+            if (!acknowledgeButtonHtml.isEmpty() && !clearAllButtonHtml.isEmpty()) htmlBodyBuilder.append("&nbsp;");
+            htmlBodyBuilder.append(clearAllButtonHtml);
             
             htmlBodyBuilder.append(
                 "      </div>\n" + 
@@ -195,7 +198,7 @@ public class AlertAssociations extends HttpServlet {
             
     private boolean clearAllAndReloadPage(Alert alert, String level, HttpServletResponse response) {
         
-        if ((alert == null) || (alert.getName() == null) || (level == null) || (level.isEmpty()) || (response == null)) {
+        if ((alert == null) || (alert.getName() == null) || (level == null) || (level.isEmpty()) || (response == null) || (alert.getAlertType() != Alert.TYPE_AVAILABILITY)) {
             return false;
         }
         
@@ -314,10 +317,18 @@ public class AlertAssociations extends HttpServlet {
             return "";
         }
         
+        if (level.equalsIgnoreCase("Triggered") && !(alert.isCautionAlertActive() || alert.isDangerAlertActive())) return "";
+        else if (level.equalsIgnoreCase("Caution") && !alert.isCautionAlertActive()) return "";
+        else if (level.equalsIgnoreCase("Danger") && !alert.isDangerAlertActive()) return "";
+        
         StringBuilder htmlBodyBuilder = new StringBuilder();
         
-        htmlBodyBuilder.append("<a href=\"AlertAssociations?Level=").append(level).append("&amp;Name=");
-        htmlBodyBuilder.append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Clear All</a>\n");
+        htmlBodyBuilder.append("<form style=\"display: inline;\" action=\"AlertAssociations\" method=\"POST\" id=\"AlertAssociations_ClearAll\" name=\"AlertAssociations_ClearAll\"> ");
+        htmlBodyBuilder.append("<input type=\"hidden\" name=\"Name\" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\">");
+        htmlBodyBuilder.append("<input type=\"hidden\" name=\"Level\" value=\"").append(level).append("\">");
+        htmlBodyBuilder.append("<input type=\"hidden\" name=\"ClearAll\" value=\"").append("True").append("\">");         
+        htmlBodyBuilder.append("<button type=\"submit\" onclick=\"return confirmAction('AlertAssociations_ClearAll', 'Are you sure you want to remove these metrics? This will completely erase the triggered metrics from StatsAgg. Other alerts may be affected.')\" class=\"btn btn-primary statsagg_page_content_font\">Clear All</button>");
+        htmlBodyBuilder.append("</form>");
         
         return htmlBodyBuilder.toString();
     }
@@ -464,7 +475,7 @@ public class AlertAssociations extends HttpServlet {
                         keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeCautionAlertMetricKey)));
                         keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
                         keysAndValues.add(new KeyValue("Level", level));
-                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + activeCautionAlertMetricKey, "AlertAssociations", 
+                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeCautionAlertMetricKey + "Caution"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
                                 "Are you sure you want to remove this metric? " +
                                 "This will completely erase the metric from StatsAgg. Other alerts may be affected.");
@@ -578,7 +589,7 @@ public class AlertAssociations extends HttpServlet {
                         keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeDangerAlertMetricKey)));
                         keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
                         keysAndValues.add(new KeyValue("Level", level));
-                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + activeDangerAlertMetricKey, "AlertAssociations", 
+                        forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeDangerAlertMetricKey + "Danger"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
                                 "Are you sure you want to remove this metric? " +
                                 "This will completely erase the metric from StatsAgg. Other alerts may be affected.");

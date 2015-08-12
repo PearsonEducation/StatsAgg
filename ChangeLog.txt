@@ -12,6 +12,7 @@ StatsAgg 1.4  - released 2015-0x-xx
  * Added a description field to 'alert suspensions'. 
  * Added 'time unit' fields to 'Alert' & 'Alert Suspension' configurations. These apply to fields like 'duration'.
  * 'Positive alert' notification groups are now a separate field of an 'Alert'.
+ * New 'Clear All' button in the WebUI on 'AlertAssociations'. This can be used to clear/remove triggered availability alert metrics en masse
  * Added the (configurable) ability to limit the maximum number of concurrently outputting output modules (spanning all output modules).
    * If one tries to initiate and output module when the maximum number of concurrently output modules already running, then a warning will be thrown and the output request will be discarded.
    * This helps safeguard StatsAgg from output endpoints that are experiencing availability or performance issues.
@@ -25,6 +26,7 @@ StatsAgg 1.4  - released 2015-0x-xx
    * If you have customized these fields, then you will have to rename the relevant field(s) in your application.properties file
  * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
  * Updated most Java & Javascript libraries
+ * Java 1.8+ is now required for StatsAgg. Java 1.7 has been end-of-life for several months, and it isn't worth maintaining backward compatibility
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
  

@@ -1,18 +1,3 @@
-/*
- * Copyright 2015 Jeffrey Schmidt.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.pearson.statsagg.metric_formats.influxdb;
 
 import java.util.List;
@@ -25,7 +10,6 @@ import org.junit.Test;
 import static org.junit.Assert.*;
 
 /**
- *
  * @author Jeffrey Schmidt
  */
 public class InfluxdbStandardizedMetric_Test {
@@ -97,19 +81,19 @@ public class InfluxdbStandardizedMetric_Test {
     public void testGetGraphiteFormatString() {
         
         // unsanitized, without substitution
-        String expected = "..metricPrefix..@-\\/#$%^_123AaZz09.metricDb..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09 123.456 1436135662";
+        String expected = "metricDb..@-\\/#$%^_123AaZz09...metricPrefix..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09 123.456 1436135662";
         assertEquals(expected, influxdbMetric1.getGraphiteFormatString(false, false));
         
         // sanitized, without substitution
-        expected = ".metricPrefix.@-\\/#$%^_123AaZz09.metricDb.@-\\/#$%^_123AaZz09.metricName.@-\\/#$%^_123AaZz09.metricColumn.@-\\/#$%^_123AaZz09 123.456 1436135662";
+        expected = "metricDb.@-\\/#$%^_123AaZz09.metricPrefix.@-\\/#$%^_123AaZz09.metricName.@-\\/#$%^_123AaZz09.metricColumn.@-\\/#$%^_123AaZz09 123.456 1436135662";
         assertEquals(expected, influxdbMetric1.getGraphiteFormatString(true, false));
         
         // unsanitized, with substitution
-        expected = "..metricPrefix..@-||#$Pct^_123AaZz09.metricDb..@-||#$Pct^_123AaZz09.metricName..@-||#$Pct^_123AaZz09.metricColumn..@-||#$Pct^_123AaZz09 123.456 1436135662";
+        expected = "metricDb..@-||#$Pct^_123AaZz09...metricPrefix..@-||#$Pct^_123AaZz09.metricName..@-||#$Pct^_123AaZz09.metricColumn..@-||#$Pct^_123AaZz09 123.456 1436135662";
         assertEquals(expected, influxdbMetric1.getGraphiteFormatString(false, true));
         
         // sanitized, with substitution
-        expected = ".metricPrefix.@-||#$Pct^_123AaZz09.metricDb.@-||#$Pct^_123AaZz09.metricName.@-||#$Pct^_123AaZz09.metricColumn.@-||#$Pct^_123AaZz09 123.456 1436135662";
+        expected = "metricDb.@-||#$Pct^_123AaZz09.metricPrefix.@-||#$Pct^_123AaZz09.metricName.@-||#$Pct^_123AaZz09.metricColumn.@-||#$Pct^_123AaZz09 123.456 1436135662";
         System.out.println(influxdbMetric1.getGraphiteFormatString(true, true));
         assertEquals(expected, influxdbMetric1.getGraphiteFormatString(true, true));
     }
@@ -120,19 +104,19 @@ public class InfluxdbStandardizedMetric_Test {
     @Test
     public void testGetOpenTsdbTelnetFormatString() {
         // unsanitized
-        String expected = "..metricPrefix..@-\\/#$%^_123AaZz09.metricDb..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09 1436135662888 123.456 metricTagKey..@-\\/#$%^_123AaZz09=metricTagValue..@-\\/#$%^_123AaZz09 key2=val2";
+        String expected = "metricDb..@-\\/#$%^_123AaZz09...metricPrefix..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09 1436135662888 123.456 metricTagKey..@-\\/#$%^_123AaZz09=metricTagValue..@-\\/#$%^_123AaZz09 key2=val2";
         assertEquals(expected, influxdbMetric1.getOpenTsdbTelnetFormatString(false));
         
         // sanitized
-        expected = "..metricPrefix..-/_123AaZz09.metricDb..-/_123AaZz09.metricName..-/_123AaZz09.metricColumn..-/_123AaZz09 1436135662888 123.456 metricTagKey..-/_123AaZz09=metricTagValue..-/_123AaZz09 key2=val2";
+        expected = "metricDb..-/_123AaZz09...metricPrefix..-/_123AaZz09.metricName..-/_123AaZz09.metricColumn..-/_123AaZz09 1436135662888 123.456 metricTagKey..-/_123AaZz09=metricTagValue..-/_123AaZz09 key2=val2";
         assertEquals(expected, influxdbMetric1.getOpenTsdbTelnetFormatString(true));
         
         // no tags
-        expected = "metricPrefix.metricDb.metricName.metricColumn 1436135662888 123.456 Format=InfluxDB";
+        expected = "metricDb.metricPrefix.metricName.metricColumn 1436135662888 123.456 Format=InfluxDB";
         assertEquals(expected, influxdbMetric2.getOpenTsdbTelnetFormatString(true));
         
         // no tags, boolean value
-        expected = "metricPrefix.metricDb.metricName.metricColumn 1436135662888 0 Format=InfluxDB";
+        expected = "metricDb.metricPrefix.metricName.metricColumn 1436135662888 0 Format=InfluxDB";
         assertEquals(expected, influxdbMetric3.getOpenTsdbTelnetFormatString(true));
     }
 
@@ -143,22 +127,22 @@ public class InfluxdbStandardizedMetric_Test {
     public void testGetOpenTsdbJsonFormatString() {
         
         // unsanitized
-        String expected = "{\"metric\":\"..metricPrefix..@-\\/#$%^_123AaZz09.metricDb..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"metricTagKey..@-\\/#$%^_123AaZz09\":\"metricTagValue..@-\\/#$%^_123AaZz09\",\"key2\":\"val2\"}}";
+        String expected = "{\"metric\":\"metricDb..@-\\/#$%^_123AaZz09...metricPrefix..@-\\/#$%^_123AaZz09.metricName..@-\\/#$%^_123AaZz09.metricColumn..@-\\/#$%^_123AaZz09\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"metricTagKey..@-\\/#$%^_123AaZz09\":\"metricTagValue..@-\\/#$%^_123AaZz09\",\"key2\":\"val2\"}}";
         System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric1.getOpenTsdbJsonFormatString(false)));
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric1.getOpenTsdbJsonFormatString(false)));
         
         // sanitized
-        expected = "{\"metric\":\"..metricPrefix..-/_123AaZz09.metricDb..-/_123AaZz09.metricName..-/_123AaZz09.metricColumn..-/_123AaZz09\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"metricTagKey..-/_123AaZz09\":\"metricTagValue..-/_123AaZz09\",\"key2\":\"val2\"}}";
+        expected = "{\"metric\":\"metricDb..-/_123AaZz09...metricPrefix..-/_123AaZz09.metricName..-/_123AaZz09.metricColumn..-/_123AaZz09\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"metricTagKey..-/_123AaZz09\":\"metricTagValue..-/_123AaZz09\",\"key2\":\"val2\"}}";
         System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric1.getOpenTsdbJsonFormatString(true)));
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric1.getOpenTsdbJsonFormatString(true)));    
         
         // no tags
-        expected = "{\"metric\":\"metricPrefix.metricDb.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"Format\":\"InfluxDB\"}}";
+        expected = "{\"metric\":\"metricDb.metricPrefix.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"Format\":\"InfluxDB\"}}";
         System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true)));
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true)));    
         
         // no tags
-        expected = "{\"metric\":\"metricPrefix.metricDb.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":0,\"tags\":{\"Format\":\"InfluxDB\"}}";
+        expected = "{\"metric\":\"metricDb.metricPrefix.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":0,\"tags\":{\"Format\":\"InfluxDB\"}}";
         System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true)));
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric3.getOpenTsdbJsonFormatString(true)));   
     }

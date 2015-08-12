@@ -35,9 +35,11 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
     private final ArrayList<String> columns_;
     private final ArrayList<Object> point_;
     
+    private boolean includeDatabaseInNonNativeOuput_ = true;
+    
     public InfluxdbStandardizedMetric(String metricKey, String metricDatabase, String metricPrefix, String metricName, String metricValueName, 
             BigDecimal metricValue, long metricTimestamp, byte metricTimestampPrecision, long metricReceivedTimestampInMilliseconds,
-            ArrayList<String> columns, ArrayList<Object> point) {
+            ArrayList<String> columns, ArrayList<Object> point, boolean includeDatabaseInNonNativeOuput) {
         this.metricKey_ = metricKey;
         this.metricDatabase_ = metricDatabase;
         this.metricPrefix_ = metricPrefix;
@@ -50,6 +52,7 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
         
         this.columns_ = columns;
         this.point_ = point;
+        this.includeDatabaseInNonNativeOuput_ = includeDatabaseInNonNativeOuput;
     }
     
     @Override
@@ -57,9 +60,10 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
         StringBuilder graphiteMetric = new StringBuilder();
         StringBuilder metricPath = new StringBuilder();
         
-        if ((metricPrefix_ != null) && !metricPrefix_.isEmpty()) metricPath.append(metricPrefix_);
-        metricPath.append(metricDatabase_).append(".").append(metricName_);
-        if ((metricValueName_ != null) && !metricValueName_.isEmpty()) metricPath.append(".").append(metricValueName_);
+        if (includeDatabaseInNonNativeOuput_ && (metricDatabase_ != null)) metricPath.append(metricDatabase_).append(".");
+        if (metricPrefix_ != null) metricPath.append(metricPrefix_);
+        if (metricName_ != null) metricPath.append(metricName_);
+        if (metricValueName_ != null) metricPath.append(".").append(metricValueName_);
 
         String metricPathString = GraphiteMetric.getGraphiteSanitizedString(metricPath.toString(), sanitizeMetric, substituteCharacters);
         
@@ -73,9 +77,10 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
         StringBuilder openTsdbTelnetMetric = new StringBuilder();
         StringBuilder metric = new StringBuilder();
         
-        if ((metricPrefix_ != null) && !metricPrefix_.isEmpty()) metric.append(metricPrefix_);
-        metric.append(metricDatabase_).append(".").append(metricName_);
-        if ((metricValueName_ != null) && !metricValueName_.isEmpty()) metric.append(".").append(metricValueName_);
+        if (includeDatabaseInNonNativeOuput_ && (metricDatabase_ != null)) metric.append(metricDatabase_).append(".");
+        if (metricPrefix_ != null) metric.append(metricPrefix_);
+        if (metricName_ != null) metric.append(metricName_);
+        if (metricValueName_ != null) metric.append(".").append(metricValueName_);
         
         String metricString = sanitizeMetric ? OpenTsdbMetric.getOpenTsdbSanitizedString(metric.toString()) : metric.toString();
         
@@ -112,9 +117,10 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
                         
         StringBuilder metric = new StringBuilder();
         
-        if ((metricPrefix_ != null) && !metricPrefix_.isEmpty()) metric.append(metricPrefix_);
-        metric.append(metricDatabase_).append(".").append(metricName_);
-        if ((metricValueName_ != null) && !metricValueName_.isEmpty()) metric.append(".").append(metricValueName_);
+        if (includeDatabaseInNonNativeOuput_ && (metricDatabase_ != null)) metric.append(metricDatabase_).append(".");
+        if (metricPrefix_ != null) metric.append(metricPrefix_);
+        if (metricName_ != null) metric.append(metricName_);
+        if (metricValueName_ != null) metric.append(".").append(metricValueName_);
         
         String metricString = sanitizeMetric ? OpenTsdbMetric.getOpenTsdbSanitizedString(metric.toString()) : metric.toString();
 
@@ -254,6 +260,14 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
 
     public ArrayList<Object> getPoint() {
         return point_;
+    }
+
+    public boolean isIncludeDatabaseInNonNativeOuput() {
+        return includeDatabaseInNonNativeOuput_;
+    }
+
+    public void setIncludeDatabaseInNonNativeOuput(boolean includeDatabaseInNonNativeOuput) {
+        this.includeDatabaseInNonNativeOuput_ = includeDatabaseInNonNativeOuput;
     }
     
 }

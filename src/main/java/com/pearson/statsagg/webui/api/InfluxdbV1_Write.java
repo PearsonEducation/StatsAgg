@@ -127,6 +127,7 @@ public class InfluxdbV1_Write extends HttpServlet {
         for (InfluxdbMetric_v1 influxdbMetric : influxdbMetrics) {
             long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
             influxdbMetric.setHashKey(hashKey);
+            influxdbMetric.setIncludeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput(ApplicationConfiguration.isInfluxdbIncludeDatabaseNameInNonNativeOutput());
             GlobalVariables.influxdbV1Metrics.put(influxdbMetric.getHashKey(), influxdbMetric);
             if (influxdbMetric.getInfluxdbStandardizedMetrics() != null) GlobalVariables.incomingMetricsCount.addAndGet(influxdbMetric.getInfluxdbStandardizedMetrics().size());
 

@@ -25,8 +25,8 @@
                 <artifactId>maven-compiler-plugin</artifactId>
                 <version>3.2</version>
                 <configuration>
-                    <source>1.7</source>
-                    <target>1.7</target>
+                    <source>1.8</source>
+                    <target>1.8</target>
                     <compilerArguments>
                         <endorseddirs>${endorsed.dir}</endorseddirs>
                     </compilerArguments>
@@ -147,6 +147,27 @@
         </dependency>
         
         <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-all</artifactId>
+            <version>1.10.19</version>
+            <scope>test</scope>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-api-mockito</artifactId>
+            <version>1.6.2</version>
+            <scope>test</scope>
+        </dependency>
+        
+	<dependency>
+            <groupId>org.powermock</groupId>
+            <artifactId>powermock-module-junit4</artifactId>
+            <version>1.6.2</version>
+            <scope>test</scope>
+	</dependency>
+        
+        <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
             <version>10.11.1.1</version>
@@ -169,27 +190,6 @@
             <artifactId>bonecp</artifactId>
             <version>0.8.0.RELEASE</version>
         </dependency>
-        
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-all</artifactId>
-            <version>1.10.19</version>
-            <scope>test</scope>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-api-mockito</artifactId>
-            <version>1.6.2</version>
-            <scope>test</scope>
-        </dependency>
-        
-	<dependency>
-            <groupId>org.powermock</groupId>
-            <artifactId>powermock-module-junit4</artifactId>
-            <version>1.6.2</version>
-            <scope>test</scope>
-	</dependency>
 
         <!--
         <dependency>
@@ -263,19 +263,19 @@
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.2.12.v20150709</version>
+            <version>9.3.2.v20150730</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.2.12.v20150709</version>
+            <version>9.3.2.v20150730</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.2.12.v20150709</version>
+            <version>9.3.2.v20150730</version>
         </dependency>
 
         <dependency>

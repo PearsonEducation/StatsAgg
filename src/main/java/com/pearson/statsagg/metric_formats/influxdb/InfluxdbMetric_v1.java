@@ -38,7 +38,8 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     private long metricsReceivedTimestampInMilliseconds_ = -1;
     
     private ArrayList<InfluxdbStandardizedMetric> influxdbStandardizedMetrics_ = null;
-
+    private Boolean includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_ = true;
+    
     public InfluxdbMetric_v1(String database, String username, String password, String basicAuth, byte timePrecisionCode,
             String namePrefix, String name, ArrayList<String> columns, ArrayList<ArrayList<Object>> points, 
             long metricsReceivedTimestampInMilliseconds) {
@@ -166,7 +167,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
 
             InfluxdbStandardizedMetric influxdbStandardizedMetric = new InfluxdbStandardizedMetric(metricKey.toString(), database_, namePrefix, 
                     name_, column, metricValue, metricTimestamp, metricTimestampPrecision,
-                    metricsReceivedTimestampInMilliseconds_, columns_, point);
+                    metricsReceivedTimestampInMilliseconds_, columns_, point, includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_);
             influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
             
             influxdbStandardizedMetrics.add(influxdbStandardizedMetric);
@@ -204,7 +205,8 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         }
 
         InfluxdbStandardizedMetric influxdbStandardizedMetric = new InfluxdbStandardizedMetric(metricKey.toString(), database_, namePrefix, name_, 
-                null, BigDecimal.ONE, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point);
+                null, BigDecimal.ONE, metricTimestamp, metricTimestampPrecision, metricsReceivedTimestampInMilliseconds_, columns_, point, 
+                includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_);
         influxdbStandardizedMetric.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
         return influxdbStandardizedMetric;
@@ -238,6 +240,16 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         }
         
         return -1;
+    }
+    
+    public void setIncludeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput(boolean includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput) {
+        this.includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_ = includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput;
+        
+        if (this.influxdbStandardizedMetrics_ == null) return;
+
+        for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics_) {
+            influxdbStandardizedMetric.setIncludeDatabaseInNonNativeOuput(includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput);
+        }
     }
     
     @Override
@@ -499,6 +511,10 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
 
     public ArrayList<InfluxdbStandardizedMetric> getInfluxdbStandardizedMetrics() {
         return influxdbStandardizedMetrics_;
+    }
+
+    public boolean isIncludeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput() {
+        return includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_;
     }
 
 }

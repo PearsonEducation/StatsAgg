@@ -75,6 +75,7 @@ public class ApplicationConfiguration {
     private static String openTsdbMetricNamePrefixValue_ = null;
     private static boolean influxdbMetricNamePrefixEnabled_ = false;
     private static String influxdbMetricNamePrefixValue_ = null;
+    private static boolean influxdbIncludeDatabaseNameInNonNativeOutput_ = false;
     
     private static boolean statsdCounterSendZeroOnInactive_ = false;
     private static boolean statsdTimerSendZeroOnInactive_ = false;
@@ -194,7 +195,8 @@ public class ApplicationConfiguration {
             openTsdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("opentsdb_metric_name_prefix_value", "opentsdb");
             influxdbMetricNamePrefixEnabled_ = applicationConfiguration_.safeGetBoolean("influxdb_metric_name_prefix_enabled", false);
             influxdbMetricNamePrefixValue_ = applicationConfiguration_.safeGetString("influxdb_metric_name_prefix_value", "influxdb");
-
+            influxdbIncludeDatabaseNameInNonNativeOutput_ = applicationConfiguration_.safeGetBoolean("influxdb_include_database_name_in_non_native_output", true);
+            
             // statsd specific variables
             statsdCounterSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_counter_send_0_on_inactive", true);
             statsdTimerSendZeroOnInactive_ = applicationConfiguration_.safeGetBoolean("statsd_timer_send_0_on_inactive", true);
@@ -663,7 +665,11 @@ public class ApplicationConfiguration {
     public static String getInfluxdbMetricNamePrefixValue() {
         return influxdbMetricNamePrefixValue_;
     }
-    
+
+    public static boolean isInfluxdbIncludeDatabaseNameInNonNativeOutput() {
+        return influxdbIncludeDatabaseNameInNonNativeOutput_;
+    }
+
     public static boolean isStatsdCounterSendZeroOnInactive() {
         return statsdCounterSendZeroOnInactive_;
     }

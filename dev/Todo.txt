@@ -1,12 +1,8 @@
 StatsAgg 1.4
- * Finish 'Clear all' button for clearing/forgetting triggered availability alerts 
- * Optional "don't output InfluxDB database name" for InfluxDB format -> (any other format)
- * Bug -- InfluxDB metric prefixes coming before database
  * Test API, cleanup API code, update API documentation
  * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
- * Advanced options
-   * Make optional output HTTP error response bodies to log file
-
+ * Update documentation images
+   
 StatsAgg 1.5
  * InfluxDB 0.9+ support
  * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
@@ -19,6 +15,7 @@ StatsAgg 1.5
  * Advanced options
    * (optional) Incoming metric rate limits
    * Cleanup metrics after... (currently hardcoded to 24hrs)
+   * Make optional output HTTP error response bodies to log file
  
 Short/Medium term
  * Support for KariosDB?
