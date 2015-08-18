@@ -84,4 +84,7 @@ public class NotificationGroupsSql {
     protected final static String Select_NotificationGroups_ByPageNumberAndPageSize_Derby = 
                     "SELECT ID, NAME FROM NOTIFICATION_GROUPS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     
+    protected final static String Select_NotificationGroups_ByPageNumberAndPageSize_MySQL = 
+                    "SELECT ID, NAME FROM NOTIFICATION_GROUPS ORDER BY ID ASC LIMIT ?,?";
+    
 }
