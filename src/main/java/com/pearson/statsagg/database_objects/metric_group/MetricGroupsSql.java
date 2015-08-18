@@ -81,4 +81,7 @@ public class MetricGroupsSql {
     protected final static String Select_MetricGroups_ByPageNumberAndPageSize_Derby = 
                     "SELECT ID, NAME FROM METRIC_GROUPS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     
+    protected final static String Select_MetricGroups_ByPageNumberAndPageSize_MySQL = 
+                    "SELECT ID, NAME FROM METRIC_GROUPS ORDER BY ID ASC LIMIT ?,?";
+    
 }
