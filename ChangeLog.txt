@@ -27,6 +27,7 @@ StatsAgg 1.4  - released 2015-0x-xx
  * I missed the memo that said the plural form of regex is 'regexes', so I changed the 'regexs' to 'regexes' everywhere in the code, database, & WebUI. 
  * Updated most Java & Javascript libraries
  * Java 1.8+ is now required for StatsAgg. Java 1.7 has been end-of-life for several months, and it isn't worth maintaining backward compatibility
+ * Initial implementation of an API layer. This will be refined/expanded on in future versions of StatsAgg. 
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.4.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
  

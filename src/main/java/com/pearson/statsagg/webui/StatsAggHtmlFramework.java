@@ -62,6 +62,16 @@ public class StatsAggHtmlFramework {
     }
     
     public String createHtmlBody(String additionalHtmlToInjectIntoBody) {
+        return createHtmlBody(additionalHtmlToInjectIntoBody, null);
+    }
+    
+    /*
+    additionalHtmlToInjectIntoBody is the raw html to insert into the framework
+    
+    additionalJavascriptsToInclude is a list of javascript files to include (on top of the usual statsagg framework). Provide the filename & path to src.
+    Example: if you included "LOL/myfile.js", StatsAgg would add "<script type="text/javascript" src="LOL/myfile.js"></script>"
+    */
+    public String createHtmlBody(String additionalHtmlToInjectIntoBody, List<String> additionalJavascriptsToInclude) {
         
         StringBuilder body = new StringBuilder();
         
@@ -132,6 +142,12 @@ public class StatsAggHtmlFramework {
                 + "<script type=\"text/javascript\" src=\"js/typeahead.bundle.min.js\"></script>\n"
                 + "<script type=\"text/javascript\" src=\"js/statsagg.js\"></script>\n"
         );
+        
+        if (additionalJavascriptsToInclude != null) {
+            for (String additionalJavascriptToInclude : additionalJavascriptsToInclude) {
+                body.append("<script type=\"text/javascript\" src=\"").append(additionalJavascriptToInclude).append("\"></script>\n");
+            }
+        }
         
         body.append("</body>\n");
         

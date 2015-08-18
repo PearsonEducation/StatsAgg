@@ -14,7 +14,9 @@ import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -86,7 +88,9 @@ public class CreateAlertSuspension extends HttpServlet {
             }        
             
             String htmlBodyContents = buildCreateAlertSuspensionHtml(alertSuspension);
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
+            List<String> additionalJavascript = new ArrayList<>();
+            additionalJavascript.add("js/statsagg_create_alert_suspension.js");
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());

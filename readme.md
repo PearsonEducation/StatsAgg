@@ -108,7 +108,7 @@ Detailed information about StatsAgg's metric format support, including examples,
 <br>
 
 ## Technology
-* StatsAgg is a Java 1.7 based webapp. It compiles into a war file, and is intended to be deployed into Apache Tomcat 7+.
+* StatsAgg is a Java 1.8 based webapp. It compiles into a war file, and is intended to be deployed into Apache Tomcat 7+.
 * StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby Embedded or MySQL 5.6+.
 * StatsAgg can run on almost any modern OS. Windows, Linux, etc.
 
@@ -133,4 +133,5 @@ Detailed information about StatsAgg's metric format support, including examples,
 * StatsD : etsy @ https://github.com/etsy/statsd/
 * Graphite : Orbitz @ http://graphite.wikidot.com/
 * OpenTSDB : http://opentsdb.net/
+* InfluxDB : http://influxdb.com/
 * Pearson Assessments, a division of Pearson Education: http://www.pearsonassessments.com/

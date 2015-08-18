@@ -436,7 +436,7 @@
 
 	`DangerEnabled=[Boolean] When danger alerting is disabled, danger alerts will not trigger (they are not even evaluated).`	
 
-	`CreateAlert_Type=[String] "Availability" or "Threshold"`
+	`Type=[String] "Availability" or "Threshold"`
 
 	`AlertOnPositive=[String] If this is checked, alerts that change states from ‘triggered’ to ‘not triggered’ will send an email notification to the notification group’s recipients.`	
 
@@ -499,7 +499,7 @@
 	"Enabled": "true",
 	"CautionEnabled": "true",
 	"DangerEnabled": "true",
-	"CreateAlert_Type": "true",
+	"Type": "Threshold",
 	"AlertOnPositive": "true",
 	"AllowResendAlert": "true",
     "SendAlertEvery": 60,

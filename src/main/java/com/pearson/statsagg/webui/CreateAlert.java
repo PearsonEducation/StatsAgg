@@ -15,6 +15,8 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -86,7 +88,9 @@ public class CreateAlert extends HttpServlet {
             }        
 
             String htmlBodyContents = buildCreateAlertHtml(alert);
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
+            List<String> additionalJavascript = new ArrayList<>();
+            additionalJavascript.add("js/statsagg_create_alert.js");
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
@@ -171,7 +175,8 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(      
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Name</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this alert.\" name=\"Name\" id=\"Name\" ");
+            "  <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A unique name for this alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
         
         if ((alert != null) && (alert.getName() != null)) {
             htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
@@ -196,9 +201,10 @@ public class CreateAlert extends HttpServlet {
         
         // metric group name
         htmlBody.append(
-            "<div class=\"form-group\" id=\"MetricGroupNameLookup\">\n" +
+            "<div class=\"form-group\" id=\"MetricGroupName_Lookup\">\n" +
             "  <label class=\"label_small_margin\">Metric group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the metric group that is associated with this alert.\" autocomplete=\"off\" name=\"MetricGroupName\" id=\"MetricGroupName\" ");
+            "  <button type=\"button\" id=\"MetricGroupName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the metric group to associate with this alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"MetricGroupName\" id=\"MetricGroupName\" ");
 
         if ((alert != null) && (alert.getMetricGroupId() != null)) {
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
@@ -217,11 +223,11 @@ public class CreateAlert extends HttpServlet {
                 
         htmlBody.append("<label class=\"label_small_margin\">Alert type:&nbsp;&nbsp;</label>\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlert_Type_Availability\" name=\"CreateAlert_Type\" value=\"Availability\" ");
+        htmlBody.append("<input type=\"radio\" id=\"Type_Availability\" name=\"Type\" value=\"Availability\" ");
         if ((alert != null) && (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Availability &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlert_Type_Threshold\" name=\"CreateAlert_Type\" value=\"Threshold\" ");
+        htmlBody.append("<input type=\"radio\" id=\"Type_Threshold\" name=\"Type\" value=\"Threshold\" ");
         if ((alert != null) && (alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_THRESHOLD)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Threshold\n");
 
@@ -299,6 +305,7 @@ public class CreateAlert extends HttpServlet {
 
         // resend alert every...
         htmlBody.append("<label id=\"ResendAlertEvery_Label\" class=\"label_small_margin\">Resend alert every...</label>\n");
+        htmlBody.append("<button type=\"button\" id=\"ResendAlertEvery_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"Specifies how long to wait before resending a notification for a triggered alert.\" style=\"margin-bottom: 1.5px;\">?</button> ");
         htmlBody.append("<div>\n");
         
         htmlBody.append(
@@ -369,9 +376,11 @@ public class CreateAlert extends HttpServlet {
         
         // caution notification group name
         htmlBody.append(
-            "<div class=\"form-group\" id=\"CautionNotificationGroupNameLookup\">\n" +
-            "  <label id=\"CautionNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send alerts to.\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
+            "<div id=\"CautionNotificationGroupName_Div\">\n" +
+            "  <div class=\"form-group\" id=\"CautionNotificationGroupName_Lookup\">\n" +
+            "    <label id=\"CautionNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
+            "    <button type=\"button\" id=\"CautionNotificationGroupName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
@@ -382,14 +391,16 @@ public class CreateAlert extends HttpServlet {
             }
         }
         
-        htmlBody.append(">\n</div>\n");
+        htmlBody.append(">\n</div></div>\n");
         
         
         // caution positive notification group name
         htmlBody.append(
-            "<div class=\"form-group\" id=\"CautionPositiveNotificationGroupNameLookup\">\n" +
-            "  <label id=\"CautionPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"CautionPositiveNotificationGroupName\" id=\"CautionPositiveNotificationGroupName\" ");
+            "<div id=\"CautionPositiveNotificationGroupName_Div\">\n" +
+            "  <div class=\"form-group\" id=\"CautionPositiveNotificationGroupName_Lookup\">\n" +
+            "    <label id=\"CautionPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
+            "    <button type=\"button\" id=\"CautionPositiveNotificationGroupName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send positive alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"CautionPositiveNotificationGroupName\" id=\"CautionPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
@@ -400,16 +411,18 @@ public class CreateAlert extends HttpServlet {
             }
         }
         
-        htmlBody.append(">\n</div>\n");
+        htmlBody.append(">\n</div></div>\n");
         
         
         // caution window duration
-        htmlBody.append("<label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
-        htmlBody.append("<div>\n");
+        htmlBody.append("<div id=\"CautionWindowDuration_Div\">\n");
+        htmlBody.append("  <label id=\"CautionWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
+        htmlBody.append("  <button type=\"button\" id=\"CautionWindowDuration_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A rolling time window between 'now' and 'X' time units ago. Values that fall in this window are used in alert evaluation.\" style=\"margin-bottom: 1.5px;\">?</button> ");
+        htmlBody.append("  <div>\n");
         
         htmlBody.append(
-            "<div class=\"form-group col-xs-6\">\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X'  time units ago. Values that fall in this window are used in alert evaluation.\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
+            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\">\n" +
+            "  <input class=\"form-control-statsagg\" name=\"CautionWindowDuration\" id=\"CautionWindowDuration\" ");
 
         if ((alert != null) && (alert.getCautionWindowDuration() != null)) {
             BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit());
@@ -421,7 +434,7 @@ public class CreateAlert extends HttpServlet {
         
         // caution window duration time unit
         htmlBody.append(
-            "<div class=\"form-group col-xs-6\">\n" +
+            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionWindowDurationTimeUnit\" id=\"CautionWindowDurationTimeUnit\">\n");
         
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionWindowDurationTimeUnit(), true) != null)) {
@@ -449,17 +462,18 @@ public class CreateAlert extends HttpServlet {
         }
         
         htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
-        htmlBody.append("</div>\n");
+        htmlBody.append("</div></div></div>\n");
         
         
         // caution stop tracking after
-        htmlBody.append("<label id=\"CautionStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after...</label>\n");
-        htmlBody.append("<div>\n");
+        htmlBody.append("<div id=\"CautionStopTrackingAfter_Div\" >\n");
+        htmlBody.append("  <label id=\"CautionStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after...</label>\n");
+        htmlBody.append("  <button type=\"button\" id=\"CautionStopTrackingAfter_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"After a metric has not been seen for X time-units, stop alerting on it.\" style=\"margin-bottom: 1.5px;\">?</button> ");
+        htmlBody.append("  <div>\n");
         
         htmlBody.append(   
-            "<div class=\"form-group col-xs-6\"> \n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X seconds, stop alerting on it.\" name=\"CautionStopTrackingAfter\" id=\"CautionStopTrackingAfter\"");
+            "<div class=\"col-xs-6\">\n" +
+            "  <input class=\"form-control-statsagg\" name=\"CautionStopTrackingAfter\" id=\"CautionStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getCautionStopTrackingAfter() != null)) {
             BigDecimal cautionStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
@@ -471,7 +485,7 @@ public class CreateAlert extends HttpServlet {
         
         // caution 'stop tracking after' time unit
         htmlBody.append(
-            "<div class=\"form-group col-xs-6\">\n" +
+            "<div class=\"col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"CautionStopTrackingAfterTimeUnit\" id=\"CautionStopTrackingAfterTimeUnit\">\n");
 
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getCautionStopTrackingAfterTimeUnit(), true) != null)) {
@@ -499,15 +513,15 @@ public class CreateAlert extends HttpServlet {
         }
         
         htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
-        htmlBody.append("</div>\n");
+        htmlBody.append("</div></div></div>\n");
         
         
         // caution minimum sample count
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionMinimumSampleCount_Div\" >\n" +
             "  <label id=\"CautionMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"An alert can only be triggered if there are at least X samples within specified the window duration.\" name=\"CautionMinimumSampleCount\" id=\"CautionMinimumSampleCount\"");
+            "  <button type=\"button\" id=\"CautionMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the window duration.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"CautionMinimumSampleCount\" id=\"CautionMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getCautionMinimumSampleCount() != null)) {
             htmlBody.append(" value=\"").append(alert.getCautionMinimumSampleCount()).append("\"");
@@ -518,8 +532,9 @@ public class CreateAlert extends HttpServlet {
         
         // caution operator
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionOperator_Div\" >\n" +
             "  <label id=\"CautionOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
+            "  <button type=\"button\" id=\"CautionOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"operator\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"CautionOperator\" id=\"CautionOperator\">\n");
 
         htmlBody.append("<option");
@@ -553,8 +568,9 @@ public class CreateAlert extends HttpServlet {
         
         // caution combination
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionCombination_Div\" >\n" +
             "  <label id=\"CautionCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
+            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"combination\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"CautionCombination\" id=\"CautionCombination\">\n");
 
         if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
@@ -589,9 +605,10 @@ public class CreateAlert extends HttpServlet {
         
         // caution combination count
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionCombinationCount_Div\" >\n" +
             "  <label id=\"CautionCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"If using a caution combination of 'at most' or 'at least', then you must specify a count.\" name=\"CautionCombinationCount\" id=\"CautionCombinationCount\" ");
+            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a caution combination of 'at most' or 'at least', then you must specify a count.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"CautionCombinationCount\" id=\"CautionCombinationCount\" ");
 
         if ((alert != null) && (alert.getCautionCombinationCount() != null)) {
             htmlBody.append(" value=\"").append(alert.getCautionCombinationCount()).append("\"");
@@ -602,9 +619,10 @@ public class CreateAlert extends HttpServlet {
         
         // caution threshold
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionThreshold_Div\" >\n" +
             "  <label id=\"CautionThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"The numeric threshold that, if crossed, will trigger the caution alert.\" name=\"CautionThreshold\" id=\"CautionThreshold\" ");
+            "  <button type=\"button\" id=\"CautionThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the caution alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"CautionThreshold\" id=\"CautionThreshold\" ");
 
         if ((alert != null) && (alert.getCautionThreshold() != null)) {
             htmlBody.append(" value=\"").append(alert.getCautionThreshold().stripTrailingZeros().toPlainString()).append("\"");
@@ -617,24 +635,26 @@ public class CreateAlert extends HttpServlet {
 
                
         // start column 3
-        htmlBody.append(     
-            "<div class=\"col-md-4 statsagg_three_panel_third_panel\" id=\"DangerCriteria\" >\n" +
+        htmlBody.append(
+            "<div class=\"col-md-4 statsagg_three_panel_second_panel\" id=\"DangerCriteria\" >\n" +
             "  <div class=\"panel panel-danger\">\n" +
-            "    <div class=\"panel-heading\"><b>Danger Criteria</b>" +
-            "      <a id=\"DangerPreview\" name=\"DangerPreview\" class=\"iframe cboxElement statsagg_danger_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Danger');\">Preview</a>" + 
+            "    <div class=\"panel-heading\"><b>Danger Criteria</b> " +
+            "    <a id=\"DangerPreview\" name=\"DangerPreview\" class=\"iframe cboxElement statsagg_danger_preview pull-right\" href=\"#\" onclick=\"generateAlertPreviewLink('Danger');\">Preview</a>" + 
             "    </div>" +
             "    <div class=\"panel-body\">");
         
         
         // warning for when no alert-type is selected
         htmlBody.append("<label id=\"DangerNoAlertTypeSelected_Label\" class=\"label_small_margin\">Please select an alert type</label>\n");
-        
+
         
         // danger notification group name
         htmlBody.append(
-            "<div class=\"form-group\" id=\"DangerNotificationGroupNameLookup\">\n" +
-            "  <label id=\"DangerNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send alerts to.\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
+            "<div id=\"DangerNotificationGroupName_Div\">\n" +
+            "  <div class=\"form-group\" id=\"DangerNotificationGroupName_Lookup\">\n" +
+            "    <label id=\"DangerNotificationGroupName_Label\" class=\"label_small_margin\">Notification group name</label>\n" +
+            "    <button type=\"button\" id=\"DangerNotificationGroupName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
@@ -645,14 +665,16 @@ public class CreateAlert extends HttpServlet {
             }
         }
         
-        htmlBody.append(">\n</div>\n");
+        htmlBody.append(">\n</div></div>\n");
         
         
         // danger positive notification group name
         htmlBody.append(
-            "<div class=\"form-group\" id=\"DangerPositiveNotificationGroupNameLookup\">\n" +
-            "  <label id=\"DangerPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
-            "  <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the exact name of the notification group to send positive alerts to.\" autocomplete=\"off\" name=\"DangerPositiveNotificationGroupName\" id=\"DangerPositiveNotificationGroupName\" ");
+            "<div id=\"DangerPositiveNotificationGroupName_Div\">\n" +
+            "  <div class=\"form-group\" id=\"DangerPositiveNotificationGroupName_Lookup\">\n" +
+            "    <label id=\"DangerPositiveNotificationGroupName_Label\" class=\"label_small_margin\">Positive notification group name</label>\n" +
+            "    <button type=\"button\" id=\"DangerPositiveNotificationGroupName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send positive alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"DangerPositiveNotificationGroupName\" id=\"DangerPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
@@ -663,33 +685,35 @@ public class CreateAlert extends HttpServlet {
             }
         }
         
-        htmlBody.append(">\n</div>\n");
+        htmlBody.append(">\n</div></div>\n");
         
         
         // danger window duration
-        htmlBody.append("<label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
-        htmlBody.append("<div>\n");
+        htmlBody.append("<div id=\"DangerWindowDuration_Div\">\n");
+        htmlBody.append("  <label id=\"DangerWindowDuration_Label\" class=\"label_small_margin\">Window duration</label>\n");
+        htmlBody.append("  <button type=\"button\" id=\"DangerWindowDuration_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A rolling time window between 'now' and 'X' time units ago. Values that fall in this window are used in alert evaluation.\" style=\"margin-bottom: 1.5px;\">?</button> ");
+        htmlBody.append("  <div>\n");
         
-        htmlBody.append(   
-            "<div class=\"form-group col-xs-6\"> \n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"A rolling time window between 'now' and 'X' time units ago. Values that fall in this window are used in alert evaluation.\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\"");
+        htmlBody.append(
+            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\">\n" +
+            "  <input class=\"form-control-statsagg\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\" ");
 
         if ((alert != null) && (alert.getDangerWindowDuration() != null)) {
-            BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
-            htmlBody.append(" value=\"").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
+            BigDecimal DangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
+            htmlBody.append(" value=\"").append(DangerWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
         }
-
+        
         htmlBody.append(">\n</div>\n");
         
         
         // danger window duration time unit
         htmlBody.append(
-            "<div class=\"form-group col-xs-6\">\n" +
+            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\" >\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerWindowDurationTimeUnit\" id=\"DangerWindowDurationTimeUnit\">\n");
-
+        
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true) != null)) {
             String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true);
-
+            
             if (timeUnitString.equalsIgnoreCase("Seconds")) htmlBody.append("<option selected=\"selected\">Seconds</option>\n");
             else htmlBody.append("<option>Seconds</option>\n");
 
@@ -712,29 +736,30 @@ public class CreateAlert extends HttpServlet {
         }
         
         htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
-        htmlBody.append("</div>\n");
+        htmlBody.append("</div></div></div>\n");
         
         
         // danger stop tracking after
-        htmlBody.append("<label id=\"DangerStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after...</label>\n");
-        htmlBody.append("<div>\n");
+        htmlBody.append("<div id=\"DangerStopTrackingAfter_Div\" >\n");
+        htmlBody.append("  <label id=\"DangerStopTrackingAfter_Label\" class=\"label_small_margin\">Stop tracking after...</label>\n");
+        htmlBody.append("  <button type=\"button\" id=\"DangerStopTrackingAfter_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"After a metric has not been seen for X time-units, stop alerting on it.\" style=\"margin-bottom: 1.5px;\">?</button> ");
+        htmlBody.append("  <div>\n");
         
         htmlBody.append(   
-            "<div class=\"form-group col-xs-6\"> \n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"After a metric has not been seen for X time units, stop alerting on it.\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
+            "<div class=\"col-xs-6\">\n" +
+            "  <input class=\"form-control-statsagg\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getDangerStopTrackingAfter() != null)) {
-            BigDecimal dangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
-            htmlBody.append(" value=\"").append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
+            BigDecimal DangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
+            htmlBody.append(" value=\"").append(DangerStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
         }
 
         htmlBody.append(">\n</div>\n");
         
-
+        
         // danger 'stop tracking after' time unit
         htmlBody.append(
-            "<div class=\"form-group col-xs-6\">\n" +
+            "<div class=\"col-xs-6\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerStopTrackingAfterTimeUnit\" id=\"DangerStopTrackingAfterTimeUnit\">\n");
 
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerStopTrackingAfterTimeUnit(), true) != null)) {
@@ -762,15 +787,15 @@ public class CreateAlert extends HttpServlet {
         }
         
         htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
-        htmlBody.append("</div>\n");
+        htmlBody.append("</div></div></div>\n");
         
         
         // danger minimum sample count
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerMinimumSampleCount_Div\" >\n" +
             "  <label id=\"DangerMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"An alert can only be triggered if there are at least X samples within specified the window duration.\" name=\"DangerMinimumSampleCount\" id=\"DangerMinimumSampleCount\"");
+            "  <button type=\"button\" id=\"DangerMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the window duration.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"DangerMinimumSampleCount\" id=\"DangerMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getDangerMinimumSampleCount() != null)) {
             htmlBody.append(" value=\"").append(alert.getDangerMinimumSampleCount()).append("\"");
@@ -779,61 +804,63 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(">\n</div>\n");
         
         
-        // danger operator 
+        // danger operator
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerOperator_Div\" >\n" +
             "  <label id=\"DangerOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
+            "  <button type=\"button\" id=\"DangerOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"operator\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
-        
+
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
         htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
-
+        htmlBody.append("</div>\n");     
+        
         
         // danger combination
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerCombination_Div\" >\n" +
             "  <label id=\"DangerCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
+            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"combination\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
-        if ((alert != null) && (alert.getCombinationString(Alert.DANGER) != null)) {
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
+        if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
             else htmlBody.append("<option>Any</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
             else htmlBody.append("<option>All</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
             else htmlBody.append("<option>Average</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
             else htmlBody.append("<option>At most</option>\n");
 
-            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
+            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
             else htmlBody.append("<option>At least</option>\n");
         }
         else {
@@ -845,36 +872,38 @@ public class CreateAlert extends HttpServlet {
                 "<option>At least</option>\n"
             );
         }
-        
-        htmlBody.append("</select>\n");
-        htmlBody.append("</div>\n");
 
+        htmlBody.append("</select>\n");
+        htmlBody.append("</div>\n");        
+        
         
         // danger combination count
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerCombinationCount_Div\" >\n" +
             "  <label id=\"DangerCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"If using a danger combination of 'at most' or 'at least', then you must specify a count.\" name=\"DangerCombinationCount\" id=\"DangerCombinationCount\"");
+            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a danger combination of 'at most' or 'at least', then you must specify a count.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"DangerCombinationCount\" id=\"DangerCombinationCount\" ");
 
         if ((alert != null) && (alert.getDangerCombinationCount() != null)) {
             htmlBody.append(" value=\"").append(alert.getDangerCombinationCount()).append("\"");
         }
-
+        
         htmlBody.append(">\n</div>\n");
 
         
         // danger threshold
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerThreshold_Div\" >\n" +
             "  <label id=\"DangerThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"The numeric threshold that, if crossed, will trigger the danger alert.\" name=\"DangerThreshold\" id=\"DangerThreshold\"");
+            "  <button type=\"button\" id=\"DangerThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the danger alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"DangerThreshold\" id=\"DangerThreshold\" ");
 
         if ((alert != null) && (alert.getDangerThreshold() != null)) {
             htmlBody.append(" value=\"").append(alert.getDangerThreshold().stripTrailingZeros().toPlainString()).append("\"");
         }
-        
+                
         htmlBody.append(">\n</div>\n");
-
+        
         
         // end column 3 & form
         htmlBody.append(             
@@ -973,7 +1002,7 @@ public class CreateAlert extends HttpServlet {
             if ((parameter != null) && parameter.contains("on")) alert.setIsDangerEnabled(true);
             else alert.setIsDangerEnabled(false);
             
-            parameter = Common.getObjectParameter(request, "CreateAlert_Type");
+            parameter = Common.getObjectParameter(request, "Type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             

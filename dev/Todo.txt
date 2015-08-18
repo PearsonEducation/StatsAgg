@@ -20,6 +20,7 @@ StatsAgg 1.5
 Short/Medium term
  * Support for KariosDB?
  * Reduce JS code for typeahead & update typeahead library
+ * Notification groups that inherit other notification group properties
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine
