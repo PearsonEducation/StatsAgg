@@ -483,7 +483,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
     }
 
-     public JSONObject getAlerts(int offset, int pageSize) {        
+    public JSONObject getAlerts(int offset, int pageSize) {        
         logger.debug("getAlerts");
         List<Object> parametersList = new ArrayList<>(2);
         
@@ -504,7 +504,14 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
             parametersList.add(offset);
             parametersList.add(pageSize);
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby, pageSize);
+            
+            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_MySQL,
+                                                           pageSize);
+            } else {
+                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby,
+                                                           pageSize);
+            }
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();

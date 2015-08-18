@@ -137,5 +137,5 @@ public class AlertSuspensionsSql {
                     "SELECT ID, NAME FROM ALERT_SUSPENSIONS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
 
     protected final static String Select_AlertSuspension_ByPageNumberAndPageSize_MySQL = 
-                    "SELECT ID, NAME FROM ALERT_SUSPENSIONS LIMIT ?,?";
+                    "SELECT ID, NAME FROM ALERT_SUSPENSIONS ORDER BY ID ASC LIMIT ?,?";
 }
