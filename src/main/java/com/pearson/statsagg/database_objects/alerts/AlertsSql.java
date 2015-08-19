@@ -215,4 +215,7 @@ public class AlertsSql {
     protected final static String Select_Alerts_ByPageNumberAndPageSize_Derby = 
                     "SELECT ID, NAME FROM ALERTS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
     
+    protected final static String Select_Alerts_ByPageNumberAndPageSize_MySQL = 
+                    "SELECT ID, NAME FROM ALERTS ORDER BY ID ASC LIMIT ?,?";
+    
 }

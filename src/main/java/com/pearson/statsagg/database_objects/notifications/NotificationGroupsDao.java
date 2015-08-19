@@ -297,7 +297,14 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
             
             parametersList.add(offset);
             parametersList.add(pageSize);
-            databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroups_ByPageNumberAndPageSize_Derby, pageSize);
+            
+            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroups_ByPageNumberAndPageSize_MySQL,
+                                                           pageSize);
+            } else {
+                databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroups_ByPageNumberAndPageSize_Derby,
+                                                           pageSize);
+            }
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();

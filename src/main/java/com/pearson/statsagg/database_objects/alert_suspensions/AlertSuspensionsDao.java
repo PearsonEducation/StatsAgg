@@ -360,8 +360,14 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             
             parametersList.add(offset);
             parametersList.add(pageSize);
-            databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_Derby,
-                                                       pageSize);
+            
+            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_MySQL,
+                                                           pageSize);
+            } else {
+                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_Derby,
+                                                           pageSize);
+            }
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();
