@@ -699,8 +699,8 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" name=\"DangerWindowDuration\" id=\"DangerWindowDuration\" ");
 
         if ((alert != null) && (alert.getDangerWindowDuration() != null)) {
-            BigDecimal DangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
-            htmlBody.append(" value=\"").append(DangerWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
+            BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit());
+            htmlBody.append(" value=\"").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append("\"");
         }
         
         htmlBody.append(">\n</div>\n");
@@ -708,7 +708,7 @@ public class CreateAlert extends HttpServlet {
         
         // danger window duration time unit
         htmlBody.append(
-            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\" >\n" +
+            "<div class=\"col-xs-6\" style=\"margin-bottom: 11px;\">\n" +
             "  <select class=\"form-control-statsagg\" name=\"DangerWindowDurationTimeUnit\" id=\"DangerWindowDurationTimeUnit\">\n");
         
         if ((alert != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alert.getDangerWindowDurationTimeUnit(), true) != null)) {
@@ -750,8 +750,8 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" name=\"DangerStopTrackingAfter\" id=\"DangerStopTrackingAfter\"");
 
         if ((alert != null) && (alert.getDangerStopTrackingAfter() != null)) {
-            BigDecimal DangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
-            htmlBody.append(" value=\"").append(DangerStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
+            BigDecimal dangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
+            htmlBody.append(" value=\"").append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString()).append("\"");
         }
 
         htmlBody.append(">\n</div>\n");
@@ -812,27 +812,27 @@ public class CreateAlert extends HttpServlet {
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
@@ -847,20 +847,20 @@ public class CreateAlert extends HttpServlet {
             "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"combination\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
-        if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
+        if ((alert != null) && (alert.getCombinationString(Alert.DANGER) != null)) {
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Any")) htmlBody.append("<option selected=\"selected\">Any</option>\n");
             else htmlBody.append("<option>Any</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("All")) htmlBody.append("<option selected=\"selected\">All</option>\n");
             else htmlBody.append("<option>All</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("Average")) htmlBody.append("<option selected=\"selected\">Average</option>\n");
             else htmlBody.append("<option>Average</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At most")) htmlBody.append("<option selected=\"selected\">At most</option>\n");
             else htmlBody.append("<option>At most</option>\n");
 
-            if (alert.getCombinationString(Alert.CAUTION).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
+            if (alert.getCombinationString(Alert.DANGER).equalsIgnoreCase("At least")) htmlBody.append("<option selected=\"selected\">At least</option>\n");
             else htmlBody.append("<option>At least</option>\n");
         }
         else {
@@ -903,7 +903,7 @@ public class CreateAlert extends HttpServlet {
         }
                 
         htmlBody.append(">\n</div>\n");
-        
+
         
         // end column 3 & form
         htmlBody.append(             

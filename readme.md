@@ -97,7 +97,7 @@ Detailed installation instructions can be found in the [StatsAgg user manual](./
 * [CollectD](https://collectd.org/)
 * [tcollector](https://github.com/OpenTSDB/tcollector/)
 * [scollector](https://github.com/bosun-monitor/bosun/tree/master/cmd/scollector)
-* StatsPoller -- a Pearson-developed metrics collection agent for servers (to be publically released sometime in 2015).
+* StatsPoller -- a Pearson-developed metrics collection agent for servers (to be publicly released sometime in 2015).
 * Anything that can output in Graphite, StatsD, or OpenTSDB format
 
 <br>
