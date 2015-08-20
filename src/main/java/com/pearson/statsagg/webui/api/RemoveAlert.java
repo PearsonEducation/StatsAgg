@@ -54,7 +54,7 @@ public class RemoveAlert extends HttpServlet {
         }  
     }
 
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Remove alert request");
         
         String returnString = null;

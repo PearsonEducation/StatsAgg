@@ -71,30 +71,37 @@ public class NotificationGroupDetails extends HttpServlet {
     JSONObject getNotificationGroup(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroup");
         logger.debug(PAGE_NAME);
+        
         JSONObject notificationGroupDetails = new JSONObject();
         int notificationGroupId = 0;
+        
         try {
             if (request.getParameter(Helper.id) != null) {
-              notificationGroupId = Integer.parseInt(request.getParameter(Helper.id));
+                notificationGroupId = Integer.parseInt(request.getParameter(Helper.id));
             }
+            
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
+            
             if (notificationGroup != null) {
-              if (notificationGroup.getId() != null) {
-                notificationGroupDetails.put("id", notificationGroup.getId());
-              }
-              if (notificationGroup.getName() != null) {
-                notificationGroupDetails.put("name", notificationGroup.getName());
-              }
-              if (notificationGroup.getEmailAddresses() != null) {
-                notificationGroupDetails.put("email_addresses", notificationGroup.getEmailAddresses());
-              }
-            } else {
+                if (notificationGroup.getId() != null) {
+                    notificationGroupDetails.put("id", notificationGroup.getId());
+                }
+                if (notificationGroup.getName() != null) {
+                    notificationGroupDetails.put("name", notificationGroup.getName());
+                }
+                if (notificationGroup.getEmailAddresses() != null) {
+                    notificationGroupDetails.put("email_addresses", notificationGroup.getEmailAddresses());
+                }
+            }
+            else {
                 notificationGroupDetails.put(Helper.error, Helper.noResult);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             notificationGroupDetails.put(Helper.error, Helper.errorMsg);
         }
+        
         return notificationGroupDetails;
     }
 }

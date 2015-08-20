@@ -19,6 +19,16 @@ public class CreateMetricGroup extends HttpServlet {
     private static final Logger logger = LoggerFactory.getLogger(CreateMetricGroup.class.getName());
     
     public static final String PAGE_NAME = "API_CreateMetricGroup";
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return PAGE_NAME;
+    }
     
     /**
      * Handles the HTTP <code>POST</code> method.
@@ -43,17 +53,7 @@ public class CreateMetricGroup extends HttpServlet {
         
     }
 
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return PAGE_NAME;
-    }
-    
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
         String result = null;
         JSONObject metricData = Helper.getRequestData(request);
         

@@ -1,18 +1,3 @@
-/*
- * Copyright 2015 prashant kumar (prashant4nov).
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
@@ -28,7 +13,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author prashant kumar (prashant4nov)
  */
 @WebServlet(name="API_MetricGroupDetails", urlPatterns={"/api/metric-group-details"})
@@ -69,33 +53,39 @@ public class MetricGroupDetails extends HttpServlet {
         }
     }
 
-    JSONObject getMetricGroup(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
+    protected JSONObject getMetricGroup(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
         logger.debug("getMetricGroup");
         logger.debug(PAGE_NAME);
         JSONObject metricGroupDetails = new JSONObject();
         int metricGroupId = 0;
         try {
             if (request.getParameter(Helper.id) != null) {
-              metricGroupId = Integer.parseInt(request.getParameter(Helper.id));
+                metricGroupId = Integer.parseInt(request.getParameter(Helper.id));
             }
+            
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+            
             if (metricGroup != null) {
-              if (metricGroup.getId() != null) {
-                metricGroupDetails.put("id", metricGroup.getId());
-              }
-              if (metricGroup.getName() != null) {
-                metricGroupDetails.put("name", metricGroup.getName());
-              }
-              if (metricGroup.getDescription()!= null) {
-                metricGroupDetails.put("description", metricGroup.getDescription());
-              }
-            } else {
+                if (metricGroup.getId() != null) {
+                    metricGroupDetails.put("id", metricGroup.getId());
+                }
+                if (metricGroup.getName() != null) {
+                    metricGroupDetails.put("name", metricGroup.getName());
+                }
+                if (metricGroup.getDescription() != null) {
+                    metricGroupDetails.put("description", metricGroup.getDescription());
+                }
+            }
+            else {
                 metricGroupDetails.put(Helper.error, Helper.noResult);
             }
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             metricGroupDetails.put(Helper.error, Helper.errorMsg);
         }
+        
         return metricGroupDetails;
     }
+    
 }

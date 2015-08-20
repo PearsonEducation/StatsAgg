@@ -52,12 +52,13 @@ public class NotificationGroupsList extends HttpServlet {
         }     
     }
 
-     public JSONObject getNotificationGroupsList(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
+    protected JSONObject getNotificationGroupsList(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroupsList");
+        
         JSONObject errorMsg = null;
         JSONObject notificationGroupsList = null;
         int pageNumber = 0, pageSize = 0;
-        
+
         try {
             if (request.getParameter(Helper.pageNumber) != null) {
                 pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
@@ -66,15 +67,18 @@ public class NotificationGroupsList extends HttpServlet {
             if (request.getParameter(Helper.pageSize) != null) {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
-            
-            notificationGroupsList = notificationGroupsDao.getNotificationGroups(pageNumber*pageSize, pageSize);
-        } catch (Exception e) {
+
+            notificationGroupsList = notificationGroupsDao.getNotificationGroups(pageNumber * pageSize, pageSize);
+        }
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
+        
         if (notificationGroupsList != null) return notificationGroupsList;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }
+    
 }

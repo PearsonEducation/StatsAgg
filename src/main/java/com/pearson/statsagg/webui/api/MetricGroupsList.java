@@ -52,12 +52,13 @@ public class MetricGroupsList extends HttpServlet {
         }     
     }
 
-     public JSONObject getMetricGroupsList(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
+    protected JSONObject getMetricGroupsList(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
         logger.debug("getMetricGroupsList");
         JSONObject errorMsg = null;
         JSONObject metricGroupsList = null;
+
         int pageNumber = 0, pageSize = 0;
-        
+
         try {
             if (request.getParameter(Helper.pageNumber) != null) {
                 pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
@@ -66,15 +67,18 @@ public class MetricGroupsList extends HttpServlet {
             if (request.getParameter(Helper.pageSize) != null) {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
-            
-            metricGroupsList = metricGroupsDao.getMetricGroups(pageNumber*pageSize, pageSize);
-        } catch (Exception e) {
+
+            metricGroupsList = metricGroupsDao.getMetricGroups(pageNumber * pageSize, pageSize);
+        }
+        catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
+        
         if (metricGroupsList != null) return metricGroupsList;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }
+     
 }

@@ -55,7 +55,7 @@ public class AlertSuspensionList extends HttpServlet {
         
     }
     
-    public JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
+    protected JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
         logger.debug("getAlertSuspensionList");
         
         JSONObject errorMsg = null;

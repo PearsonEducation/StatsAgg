@@ -52,29 +52,32 @@ public class AlertsList extends HttpServlet {
         }     
     }
 
-     public JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
-        logger.debug("getAlertsList");
-        JSONObject errorMsg = null;
-        JSONObject alertsList = null;
-        int pageNumber = 0, pageSize = 0;
-        
-        try {
-            if (request.getParameter(Helper.pageNumber) != null) {
-                pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
-            }
+     protected JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
+         logger.debug("getAlertsList");
+         JSONObject errorMsg = null;
+         JSONObject alertsList = null;
+         int pageNumber = 0, pageSize = 0;
 
-            if (request.getParameter(Helper.pageSize) != null) {
-                pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
-            }
-            
-            alertsList = alertsDao.getAlerts(pageNumber*pageSize, pageSize);
-        } catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            errorMsg = new JSONObject();
-            errorMsg.put(Helper.error, Helper.errorMsg);
-        }
+         try {
+             if (request.getParameter(Helper.pageNumber) != null) {
+                 pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
+             }
+
+             if (request.getParameter(Helper.pageSize) != null) {
+                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
+             }
+
+             alertsList = alertsDao.getAlerts(pageNumber * pageSize, pageSize);
+         }
+         catch (Exception e) {
+             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+             errorMsg = new JSONObject();
+             errorMsg.put(Helper.error, Helper.errorMsg);
+         }
+
         if (alertsList != null) return alertsList;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }
+     
 }

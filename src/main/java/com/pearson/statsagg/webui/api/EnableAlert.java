@@ -50,26 +50,26 @@ public class EnableAlert extends HttpServlet {
         }  
     }
 
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Enable/Disable alert request");
         String returnString = null;
-        
+
         try {
             String alertName = null;
             logger.debug(request.getParameter(Helper.name));
-            
+
             if (request.getParameter(Helper.name) != null) {
                 alertName = request.getParameter(Helper.name);
             }
-            
+
             Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
             returnString = alert.changeAlertEnabled(alertName, isEnabled);
-        } 
+        }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        
+
         return returnString;
-    }   
-    
+    }
+
 }

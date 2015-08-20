@@ -55,26 +55,26 @@ public class RemoveAlertSuspension extends HttpServlet {
         }   
     }
 
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.AlertSuspensions alertSuspension) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.AlertSuspensions alertSuspension) {
         logger.debug("Remove alert suspension request");
-        
+
         String returnString = null;
         String alertSuspensionName = null;
-        
+
         try {
             logger.debug(request.getParameter(Helper.name));
-            
+
             if (request.getParameter(Helper.name) != null) {
                 alertSuspensionName = request.getParameter(Helper.name);
             }
-            
+
             returnString = alertSuspension.removeAlertSuspension(alertSuspensionName);
-        } 
+        }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        
+
         return returnString;
     }
-    
+
 }

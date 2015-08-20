@@ -52,7 +52,7 @@ public class RemoveNotificationGroup extends HttpServlet {
         }  
     }
 
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.NotificationGroups notificationGroup) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.NotificationGroups notificationGroup) {
         logger.debug("Remove notificationGroup request");
         
         String returnString = null;

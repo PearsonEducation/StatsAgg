@@ -47,7 +47,7 @@ public class CreateAlertSuspension extends HttpServlet {
         return PAGE_NAME;
     }
     
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension) throws IOException {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension) throws IOException {
         String result = null;
         JSONObject alertSuspensionData = Helper.getRequestData(request);
 

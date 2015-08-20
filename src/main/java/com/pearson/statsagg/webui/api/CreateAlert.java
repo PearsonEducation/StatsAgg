@@ -20,6 +20,16 @@ public class CreateAlert extends HttpServlet {
     
     public static final String PAGE_NAME = "API_CreateAlert";
 
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return PAGE_NAME;
+    }
+    
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -35,18 +45,8 @@ public class CreateAlert extends HttpServlet {
             logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
         }
     }
-
-    /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return PAGE_NAME;
-    }
     
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) {
         String result = null;
         
         try {
