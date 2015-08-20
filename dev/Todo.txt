@@ -1,14 +1,9 @@
-StatsAgg 1.4
- * Test API, cleanup API code, update API documentation
- * Test cross-format metric output (Graphite->OpenTSDB,InfluxDB), (OpenTSDB->InfluxDB,Graphite), (InfluxDB->OpenTSDB,Graphite)
- * Update documentation images
-   
 StatsAgg 1.5
  * InfluxDB 0.9+ support
+ * Finish/refine API
  * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
  * Alter buttons on 'details' pages
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
- * use time unit selectors for duration fields (alerts, alert suspensions)
  * tags in email alert output
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
  * Support 'no timestamp' on Graphite metrics
@@ -19,7 +14,8 @@ StatsAgg 1.5
  
 Short/Medium term
  * Support for KariosDB?
- * Reduce JS code for typeahead & update typeahead library
+ * Reduce JS code for typeahead & update typeahead library?
+   * Worth the time? This library is a huge pain.
  * Notification groups that inherit other notification group properties
  * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component

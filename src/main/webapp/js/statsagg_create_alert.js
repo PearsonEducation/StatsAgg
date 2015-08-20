@@ -211,7 +211,7 @@ $(document).ready(function() {
 
         MetricGroupNameLookup_Bloodhound.initialize();
 
-       $('#MetricGroupNameLookup .typeahead').typeahead(
+       $('#MetricGroupName_Lookup .typeahead').typeahead(
             {
                 highlight: false,
                 hint: false

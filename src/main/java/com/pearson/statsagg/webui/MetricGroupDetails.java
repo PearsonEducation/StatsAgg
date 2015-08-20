@@ -159,16 +159,19 @@ public class MetricGroupDetails extends HttpServlet {
             
             if (didOutputMatchRegex) outputString.append("<br>");
             
+            boolean didOutputBlacklistRegex = false;
             if ((metricGroupRegexes != null) && !metricGroupRegexes.isEmpty()) {
                 int i = 1;
                 for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                     if (metricGroupRegex.isBlacklistRegex()) {
                         outputString.append("<b>Blacklist Regex #").append(i).append("</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupRegex.getPattern())).append("<br>");
                         i++;
+                        didOutputBlacklistRegex = true;
                     }
                 }
             }
             
+            if (didOutputBlacklistRegex) outputString.append("<br>"); 
             if ((metricGroupRegexes == null) || metricGroupRegexes.isEmpty()) outputString.append("<br>");
             
             if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {

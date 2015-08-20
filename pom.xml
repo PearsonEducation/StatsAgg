@@ -4,7 +4,7 @@
 
     <groupId>com.pearson.StatsAgg</groupId>
     <artifactId>StatsAgg</artifactId>
-    <version>1.4-beta</version>
+    <version>1.4</version>
     <packaging>war</packaging>
     <name>StatsAgg</name>
 
@@ -281,7 +281,7 @@
         <dependency>
             <groupId>org.jsoup</groupId>
             <artifactId>jsoup</artifactId>
-            <version>1.8.2</version>
+            <version>1.8.3</version>
         </dependency> 
         
         <dependency>

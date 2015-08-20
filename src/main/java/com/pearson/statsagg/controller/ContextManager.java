@@ -161,6 +161,7 @@ public class ContextManager implements ServletContextListener {
         createGraphiteAggregatorMetricPrefix();
         createGraphitePassthroughMetricPrefix();
         createOpenTsdbMetricPrefix();
+        createInfluxdbMetricPrefix();
                 
         // start the thread pool that is responsible for sending alert emails 
         startSendEmailThreadPool();

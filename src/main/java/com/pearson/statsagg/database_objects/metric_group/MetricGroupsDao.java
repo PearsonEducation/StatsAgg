@@ -257,10 +257,12 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
             parametersList.add(pageSize);
             
             if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroups_ByPageNumberAndPageSize_Derby, pageSize);
-            } else {
                 databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroups_ByPageNumberAndPageSize_MySQL, pageSize);
+            } 
+            else {
+                databaseInterface_.createPreparedStatement(MetricGroupsSql.Select_MetricGroups_ByPageNumberAndPageSize_Derby, pageSize);
             }
+            
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();
