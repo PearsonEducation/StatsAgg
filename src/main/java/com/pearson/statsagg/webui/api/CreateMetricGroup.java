@@ -53,6 +53,14 @@ public class CreateMetricGroup extends HttpServlet {
         
     }
 
+    /**
+     * Returns a string with success message if metric group is
+     * successfully created or error message if the request fails to create one.
+     * 
+     * @param request servlet request
+     * @param createMetricGroup CreateMetricGroup object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
         String result = null;
         JSONObject metricData = Helper.getRequestData(request);

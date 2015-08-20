@@ -37,7 +37,7 @@ public class CreateAlertSuspension extends HttpServlet {
         }
     }
     
-        /**
+    /**
      * Returns a short description of the servlet.
      *
      * @return a String containing servlet description
@@ -47,6 +47,14 @@ public class CreateAlertSuspension extends HttpServlet {
         return PAGE_NAME;
     }
     
+    /**
+     * Returns a string with success message if alert suspension is 
+     * successfully created or error message if the request fails to create one.
+     * 
+     * @param request servlet request
+     * @param createAlertSuspension CreateAlertSuspension object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension) throws IOException {
         String result = null;
         JSONObject alertSuspensionData = Helper.getRequestData(request);

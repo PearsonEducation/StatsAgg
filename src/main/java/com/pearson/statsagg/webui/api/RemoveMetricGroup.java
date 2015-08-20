@@ -52,6 +52,14 @@ public class RemoveMetricGroup extends HttpServlet {
         }  
     }
     
+    /**
+     * Returns a string with success message if metric group is deleted 
+     * successfully or error message if the request fails to delete metric group.
+     * 
+     * @param request servlet request
+     * @param metricGroup MetricGroups object
+     * @return success or error message
+     */
     String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.MetricGroups metricGroup) {
         logger.debug("Remove metricGroup request");
         

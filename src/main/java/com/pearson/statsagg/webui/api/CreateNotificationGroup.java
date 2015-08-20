@@ -50,6 +50,14 @@ public class CreateNotificationGroup extends HttpServlet {
         return PAGE_NAME;
     }
     
+    /**
+     * Returns a string with success message if notification group is 
+     * successfully created or error message if the request fails to create one.     
+     * 
+     * @param request servlet request
+     * @param createNotificationGroup CreateNotificationGroup object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) {
         logger.debug("create notification request");
         

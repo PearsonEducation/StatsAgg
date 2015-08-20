@@ -55,6 +55,13 @@ public class AlertSuspensionList extends HttpServlet {
         
     }
     
+    /**
+     * Returns a json object containing a list of alert suspensions.
+     * 
+     * @param request servlet request
+     * @param alertSuspensionsDao AlertSuspensionsDao object
+     * @return list of the alert suspensions
+     */
     protected JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
         logger.debug("getAlertSuspensionList");
         

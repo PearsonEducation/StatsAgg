@@ -52,6 +52,13 @@ public class NotificationGroupsList extends HttpServlet {
         }     
     }
 
+    /**
+     * Returns a json object containing a list of notification groups.
+     * 
+     * @param request servlet request
+     * @param NotificationGroupsDao notificationGroupsDao object
+     * @return list of notification groups
+     */ 
     protected JSONObject getNotificationGroupsList(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroupsList");
         

@@ -54,6 +54,14 @@ public class RemoveAlert extends HttpServlet {
         }  
     }
 
+    /**
+     * Returns a string with success message if alert is deleted 
+     * successfully or error message if the request fails to delete alert.
+     * 
+     * @param request servlet request
+     * @param alert Alerts object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Remove alert request");
         

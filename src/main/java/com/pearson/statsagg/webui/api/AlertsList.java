@@ -52,7 +52,14 @@ public class AlertsList extends HttpServlet {
         }     
     }
 
-     protected JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
+    /**
+     * Returns a json object containing a list of alerts.
+     * 
+     * @param request servlet request
+     * @param alertsDao AlertsDao object
+     * @return list of alerts
+     */ 
+    protected JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
          logger.debug("getAlertsList");
          JSONObject errorMsg = null;
          JSONObject alertsList = null;

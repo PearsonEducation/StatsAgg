@@ -52,6 +52,13 @@ public class MetricGroupsList extends HttpServlet {
         }     
     }
 
+    /**
+     * Returns a json object containing a list of metric groups.
+     * 
+     * @param request servlet request
+     * @param metricGroupsDao MetricGroupsDao object
+     * @return list of metric groups
+     */ 
     protected JSONObject getMetricGroupsList(HttpServletRequest request, MetricGroupsDao metricGroupsDao) {
         logger.debug("getMetricGroupsList");
         JSONObject errorMsg = null;

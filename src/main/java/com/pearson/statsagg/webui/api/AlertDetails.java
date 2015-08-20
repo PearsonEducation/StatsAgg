@@ -53,6 +53,13 @@ public class AlertDetails extends HttpServlet {
         }
     }
 
+    /**
+     * Returns a json object containing the details of the requested alert.
+     * 
+     * @param request servlet request
+     * @param alertsDao AlertsDao object
+     * @return details of the requested alert
+     */
     protected JSONObject getAlertDetails(HttpServletRequest request, AlertsDao alertsDao) {
         logger.debug("getAlertDetails");
         logger.debug(PAGE_NAME);

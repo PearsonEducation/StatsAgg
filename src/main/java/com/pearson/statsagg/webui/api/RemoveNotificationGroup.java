@@ -52,6 +52,14 @@ public class RemoveNotificationGroup extends HttpServlet {
         }  
     }
 
+    /**
+     * Returns a string with success message if notification group is deleted 
+     * successfully or error message if the request fails to delete notification group.
+     * 
+     * @param request servlet request
+     * @param notificationGroup NotificationGroups object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.NotificationGroups notificationGroup) {
         logger.debug("Remove notificationGroup request");
         

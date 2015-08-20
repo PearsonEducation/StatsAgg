@@ -50,6 +50,14 @@ public class EnableAlert extends HttpServlet {
         }  
     }
 
+    /**
+     * Returns a string with success message if alert is enabled/disabled 
+     * successfully or error message if the request fails to enable/disable alert.
+     * 
+     * @param request servlet request
+     * @param alert Alerts object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
         logger.debug("Enable/Disable alert request");
         String returnString = null;

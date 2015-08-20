@@ -55,6 +55,14 @@ public class RemoveAlertSuspension extends HttpServlet {
         }   
     }
 
+    /**
+     * Returns a string with success message if alert suspension is deleted 
+     * successfully or error message if the request fails to delete alert suspension.
+     * 
+     * @param request servlet request
+     * @param alertSuspension AlertSuspensions object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.AlertSuspensions alertSuspension) {
         logger.debug("Remove alert suspension request");
 

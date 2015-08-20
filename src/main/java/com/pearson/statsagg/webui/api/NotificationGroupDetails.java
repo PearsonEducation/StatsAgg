@@ -68,6 +68,13 @@ public class NotificationGroupDetails extends HttpServlet {
         }
     }
 
+    /**
+     * Returns a json object containing the details of the requested notification group.
+     * 
+     * @param request servlet request
+     * @param notificationGroupsDao NotificationGroupsDao object
+     * @return details of the requested notification group
+     */
     JSONObject getNotificationGroup(HttpServletRequest request, NotificationGroupsDao notificationGroupsDao) {
         logger.debug("getNotificationGroup");
         logger.debug(PAGE_NAME);

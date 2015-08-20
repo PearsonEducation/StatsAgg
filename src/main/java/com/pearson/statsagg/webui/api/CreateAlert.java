@@ -30,6 +30,12 @@ public class CreateAlert extends HttpServlet {
         return PAGE_NAME;
     }
     
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         try {
@@ -46,6 +52,14 @@ public class CreateAlert extends HttpServlet {
         }
     }
     
+    /**
+     * Returns a string with success message if alert is 
+     * successfully created or error message if the request fails to create one.     
+     * 
+     * @param request servlet request
+     * @param createAlert CreateAlert object
+     * @return success or error message
+     */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) {
         String result = null;
         
@@ -59,5 +73,4 @@ public class CreateAlert extends HttpServlet {
         
         return result;
     }
-    
 }
