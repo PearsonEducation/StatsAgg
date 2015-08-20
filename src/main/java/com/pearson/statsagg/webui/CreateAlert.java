@@ -520,7 +520,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionMinimumSampleCount_Div\" >\n" +
             "  <label id=\"CautionMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
-            "  <button type=\"button\" id=\"CautionMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the window duration.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"CautionMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the 'alert window duration'.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"CautionMinimumSampleCount\" id=\"CautionMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getCautionMinimumSampleCount() != null)) {
@@ -534,7 +534,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionOperator_Div\" >\n" +
             "  <label id=\"CautionOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
-            "  <button type=\"button\" id=\"CautionOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"operator\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"CautionOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The values of a metric-key are considered for threshold-based alerting when they are above/below/equal-to a certain threshold. This value controls the above/below/equal-to aspect of the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"CautionOperator\" id=\"CautionOperator\">\n");
 
         htmlBody.append("<option");
@@ -570,7 +570,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionCombination_Div\" >\n" +
             "  <label id=\"CautionCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
-            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"combination\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"For any metric values that fall within the 'alert window duration', what condition will cause the alert to be triggered? Is the average of the metric values above or below the threshold? Are all metrics values above or below the threshold? Is any metric value above or below the threshold? Are 'at least' or 'at most' X metric values above or below the threshold?\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"CautionCombination\" id=\"CautionCombination\">\n");
 
         if ((alert != null) && (alert.getCombinationString(Alert.CAUTION) != null)) {
@@ -607,7 +607,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionCombinationCount_Div\" >\n" +
             "  <label id=\"CautionCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
-            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a caution combination of 'at most' or 'at least', then you must specify a count.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"CautionCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a combination of 'at most' or 'at least', then you must specify a count. This refers to the number of independent metric values for a single metric-key that fall within the 'alert window duration'.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"CautionCombinationCount\" id=\"CautionCombinationCount\" ");
 
         if ((alert != null) && (alert.getCautionCombinationCount() != null)) {
@@ -621,7 +621,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"CautionThreshold_Div\" >\n" +
             "  <label id=\"CautionThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
-            "  <button type=\"button\" id=\"CautionThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the caution alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"CautionThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"CautionThreshold\" id=\"CautionThreshold\" ");
 
         if ((alert != null) && (alert.getCautionThreshold() != null)) {
@@ -794,7 +794,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerMinimumSampleCount_Div\" >\n" +
             "  <label id=\"DangerMinimumSampleCount_Label\" class=\"label_small_margin\">Minimum sample count</label>\n" +
-            "  <button type=\"button\" id=\"DangerMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the window duration.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"DangerMinimumSampleCount_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"An alert can only be triggered if there are at least 'X' samples within specified the 'alert window duration'.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"DangerMinimumSampleCount\" id=\"DangerMinimumSampleCount\"");
 
         if ((alert != null) && (alert.getDangerMinimumSampleCount() != null)) {
@@ -808,7 +808,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerOperator_Div\" >\n" +
             "  <label id=\"DangerOperator_Label\" class=\"label_small_margin\">Operator</label>\n" +
-            "  <button type=\"button\" id=\"DangerOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"operator\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"DangerOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The values of a metric-key are considered for threshold-based alerting when they are above/below/equal-to a certain threshold. This value controls the above/below/equal-to aspect of the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
 
         htmlBody.append("<option");
@@ -844,7 +844,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerCombination_Div\" >\n" +
             "  <label id=\"DangerCombination_Label\" class=\"label_small_margin\">Combination</label>\n" +
-            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"combination\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"For any metric values that fall within the 'alert window duration', what condition will cause the alert to be triggered? Is the average of the metric values above or below the threshold? Are all metrics values above or below the threshold? Is any metric value above or below the threshold? Are 'at least' or 'at most' X metric values above or below the threshold?\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerCombination\" id=\"DangerCombination\">\n");
 
         if ((alert != null) && (alert.getCombinationString(Alert.DANGER) != null)) {
@@ -881,7 +881,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerCombinationCount_Div\" >\n" +
             "  <label id=\"DangerCombinationCount_Label\" class=\"label_small_margin\">Combination count</label>\n" +
-            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a danger combination of 'at most' or 'at least', then you must specify a count.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"DangerCombination_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"If using a combination of 'at most' or 'at least', then you must specify a count. This refers to the number of independent metric values for a single metric-key that fall within the 'alert window duration'.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"DangerCombinationCount\" id=\"DangerCombinationCount\" ");
 
         if ((alert != null) && (alert.getDangerCombinationCount() != null)) {
@@ -895,7 +895,7 @@ public class CreateAlert extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group statsagg_typeahead_form_margin_correction\" id=\"DangerThreshold_Div\" >\n" +
             "  <label id=\"DangerThreshold_Label\" class=\"label_small_margin\">Threshold</label>\n" +
-            "  <button type=\"button\" id=\"DangerThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the danger alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"DangerThreshold_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The numeric threshold that, if crossed, will trigger the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <input class=\"form-control-statsagg\" name=\"DangerThreshold\" id=\"DangerThreshold\" ");
 
         if ((alert != null) && (alert.getDangerThreshold() != null)) {
@@ -903,7 +903,7 @@ public class CreateAlert extends HttpServlet {
         }
                 
         htmlBody.append(">\n</div>\n");
-
+        
         
         // end column 3 & form
         htmlBody.append(             
