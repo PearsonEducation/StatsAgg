@@ -1,4 +1,4 @@
-StatsAgg 1.4  - released 2015-0x-xx
+StatsAgg 1.4  - released 2015-08-20
  * Added support for receiving & outputting InfluxDB metrics
    * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported (just in time for it to be depreciated)
    * The metric format used in InfluxDB 0.9x will be supported in the next StatsAgg release
