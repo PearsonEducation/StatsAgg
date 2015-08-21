@@ -7,11 +7,26 @@
             <http-only>true</http-only>
         </cookie-config>
     </session-config>
-    
+
     <listener>
         <listener-class>com.pearson.statsagg.controller.ContextManager</listener-class>
     </listener>
     
+    <filter>
+        <filter-name>ExpiresFilter</filter-name>
+        <filter-class>org.apache.catalina.filters.ExpiresFilter</filter-class>
+        <init-param>
+            <param-name>ExpiresDefault</param-name>
+            <param-value>access plus 0 minutes</param-value>
+        </init-param>
+    </filter>
+
+    <filter-mapping>
+        <filter-name>ExpiresFilter</filter-name>
+        <url-pattern>/*</url-pattern>
+        <dispatcher>REQUEST</dispatcher>
+    </filter-mapping>
+	
     <!-- Uncomment the below blocks of xml (security-constraint & login-config) to enable basic authentication in StatsAgg -->
     <!--    
     <security-constraint>
