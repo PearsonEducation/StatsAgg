@@ -1,6 +1,5 @@
-package com.pearson.statsagg.metric_aggregation.threads;
+package com.pearson.statsagg.metric_formats.opentsdb;
 
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import java.util.List;
 import com.pearson.statsagg.utilities.TcpClient;
 import java.net.URL;
@@ -9,7 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
 import com.pearson.statsagg.utilities.HttpRequest;
 
 /**
@@ -36,14 +35,14 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
     
     // constructor for outputting to opentsdb telnet
     public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String openTsdbHost, 
-            int openTsdbPort, int connectTimeoutInMs, int readTimeoutInMs, int numSendRetries, String threadId) {
+            int openTsdbPort, int connectTimeoutInMs, int numSendRetries, String threadId) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.sanitizeMetrics_ = sanitizeMetrics;
         this.openTsdbHost_ = openTsdbHost;
         this.openTsdbUrl_ = null;
         this.openTsdbPort_ = openTsdbPort;
         this.connectTimeoutInMs_ = connectTimeoutInMs;
-        this.readTimeoutInMs_ = readTimeoutInMs;
+        this.readTimeoutInMs_ = -1;
         this.numSendRetries_ = numSendRetries;
         this.maxMetricsPerMessage_ = -1;
         this.threadId_ = threadId;

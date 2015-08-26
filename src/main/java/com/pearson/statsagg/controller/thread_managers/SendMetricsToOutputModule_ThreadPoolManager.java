@@ -1,14 +1,14 @@
 package com.pearson.statsagg.controller.thread_managers;
 
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.globals.GraphiteOutputModule;
-import com.pearson.statsagg.globals.InfluxdbV1HttpOutputModule;
-import com.pearson.statsagg.globals.OpenTsdbHttpOutputModule;
-import com.pearson.statsagg.globals.OpenTsdbTelnetOutputModule;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToGraphiteThread;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToInfluxdbV1Thread;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOpenTsdbThread;
-import com.pearson.statsagg.metric_aggregation.threads.SendMetricsToOutputModuleThread;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
+import com.pearson.statsagg.metric_formats.graphite.SendMetricsToGraphiteThread;
+import com.pearson.statsagg.metric_formats.influxdb.SendMetricsToInfluxdbV1Thread;
+import com.pearson.statsagg.metric_formats.opentsdb.SendMetricsToOpenTsdbThread;
+import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
@@ -274,7 +274,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                 
                 SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbTelnetOutputModule.isSanitizeMetrics(), 
                         openTsdbTelnetOutputModule.getHost(), openTsdbTelnetOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),
-                        ApplicationConfiguration.getOutputModuleMaxReadTime(), openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
+                        openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
                                 
                 SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToTelnetOpenTsdbThread, openTsdbTelnetOutputModule.getUniqueId());
             }
@@ -323,11 +323,9 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
                     
             for (OpenTsdbHttpOutputModule openTsdbHttpOutputModule : openTsdbHttpOutputModules) {
                 if (!openTsdbHttpOutputModule.isOutputEnabled()) continue;
-                
-                URL url = new URL(openTsdbHttpOutputModule.getUrl());
-                
-                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbHttpOutputModule.isSanitizeMetrics(), url, 
-                        ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
+                                
+                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbHttpOutputModule.isSanitizeMetrics(), 
+                        openTsdbHttpOutputModule.getUrl(), ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
                         openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                                 
                 SendMetricsToOutputModule_ThreadPoolManager.executeThread(sendMetricsToHttpOpenTsdbThread, openTsdbHttpOutputModule.getUniqueId());

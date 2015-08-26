@@ -345,7 +345,12 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
-
+    
+    @Override
+    public void setMetricHashKey(long hashKey) {
+        setHashKey(hashKey);
+    }
+    
     public String getMetricPath() {
         return metricPath_;
     }

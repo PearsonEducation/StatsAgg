@@ -8,9 +8,11 @@ import java.math.BigDecimal;
 public interface GenericMetricFormat {
     
     public long getMetricHashKey();
+    
+    public void setMetricHashKey(long hashKey);
 
     public String getMetricKey();
-    
+        
     public BigDecimal getMetricValueBigDecimal();
 
     public String getMetricValueString();

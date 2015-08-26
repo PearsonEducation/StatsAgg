@@ -1,4 +1,4 @@
-package com.pearson.statsagg.globals;
+package com.pearson.statsagg.metric_formats.opentsdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,42 +6,42 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class OpenTsdbHttpOutputModule {
+public class OpenTsdbTelnetOutputModule {
     
-    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbHttpOutputModule.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbTelnetOutputModule.class.getName());
     
     private final boolean isOutputEnabled_;
-    private final String url_;
+    private final String host_;
+    private final int port_;
     private final int numSendRetryAttempts_;
-    private final int maxMetricsPerMessage_;
     private final boolean sanitizeMetrics_;
     private final String uniqueId_;
     
-    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage, boolean sanitizeMetrics, String uniqueId) {
+    public OpenTsdbTelnetOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, boolean sanitizeMetrics, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
-        this.url_ = url;
+        this.host_ = host;
+        this.port_ = port;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
-        this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.sanitizeMetrics_ = sanitizeMetrics;
         this.uniqueId_ = uniqueId;
     }
-
+    
     public boolean isOutputEnabled() {
         return isOutputEnabled_;
     }
 
-    public String getUrl() {
-        return url_;
+    public String getHost() {
+        return host_;
+    }
+
+    public int getPort() {
+        return port_;
     }
 
     public int getNumSendRetryAttempts() {
         return numSendRetryAttempts_;
     }
-
-    public int getMaxMetricsPerMessage() {
-        return maxMetricsPerMessage_;
-    }
-
+    
     public boolean isSanitizeMetrics() {
         return sanitizeMetrics_;
     }

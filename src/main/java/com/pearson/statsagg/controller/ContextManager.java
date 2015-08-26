@@ -2,7 +2,7 @@ package com.pearson.statsagg.controller;
 
 import com.pearson.statsagg.controller.thread_managers.SendEmail_ThreadPoolManager;
 import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
-import com.pearson.statsagg.controller.threads.InvokerThread;
+import com.pearson.statsagg.utilities.InvokerThread;
 import com.pearson.statsagg.controller.threads.GraphitePassthroughInvokerThread;
 import com.pearson.statsagg.controller.threads.StatsdAggregationInvokerThread;
 import com.pearson.statsagg.controller.threads.GraphiteAggregationInvokerThread;

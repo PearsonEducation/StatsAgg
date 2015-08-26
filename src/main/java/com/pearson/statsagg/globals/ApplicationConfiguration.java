@@ -1,5 +1,9 @@
 package com.pearson.statsagg.globals;
 
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
 import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import com.pearson.statsagg.webui.HttpLink;
@@ -255,7 +259,7 @@ public class ApplicationConfiguration {
         
         List<GraphiteOutputModule> graphiteOutputModules = new ArrayList<>();
         
-        for (int i = 0; i < 1000; i++) {
+        for (int i = -1; i < 10000; i++) {
             String graphiteOutputModuleKey = "graphite_output_module_" + (i + 1);
             String graphiteOutputModuleValue = applicationConfiguration_.safeGetString(graphiteOutputModuleKey, null);
             
@@ -304,7 +308,7 @@ public class ApplicationConfiguration {
         
         List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules = new ArrayList<>();
         
-        for (int i = 0; i < 1000; i++) {
+        for (int i = -1; i < 10000; i++) {
             String openTsdbTelnetOutputModuleKey = "opentsdb_telnet_output_module_" + (i + 1);
             String openTsdbTelnetOutputModuleValue = applicationConfiguration_.safeGetString(openTsdbTelnetOutputModuleKey, null);
             
@@ -347,7 +351,7 @@ public class ApplicationConfiguration {
         
         List<OpenTsdbHttpOutputModule> openTsdbHttpOutputModules = new ArrayList<>();
         
-        for (int i = 0; i < 1000; i++) {
+        for (int i = -1; i < 10000; i++) {
             String openTsdbHttpOutputModuleKey = "opentsdb_http_output_module_" + (i + 1);
             String openTsdbHttpOutputModuleValue = applicationConfiguration_.safeGetString(openTsdbHttpOutputModuleKey, null);
             
@@ -389,7 +393,7 @@ public class ApplicationConfiguration {
         
         List<InfluxdbV1HttpOutputModule> influxdbV1HttpOutputModules = new ArrayList<>();
         
-        for (int i = 0; i < 1000; i++) {
+        for (int i = -1; i < 10000; i++) {
             String influxdbV1HttpOutputModuleKey = "influxdb_v1_output_module_" + (i + 1);
             String influxdbV1HttpOutputModuleValue = applicationConfiguration_.safeGetString(influxdbV1HttpOutputModuleKey, null);
             

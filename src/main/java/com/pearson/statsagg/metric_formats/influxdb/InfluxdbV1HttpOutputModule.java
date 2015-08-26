@@ -1,4 +1,4 @@
-package com.pearson.statsagg.globals;
+package com.pearson.statsagg.metric_formats.influxdb;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

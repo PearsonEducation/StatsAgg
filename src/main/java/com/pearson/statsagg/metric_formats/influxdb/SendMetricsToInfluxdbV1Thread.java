@@ -1,4 +1,4 @@
-package com.pearson.statsagg.metric_aggregation.threads;
+package com.pearson.statsagg.metric_formats.influxdb;
 
 import com.pearson.statsagg.utilities.HttpUtils;
 import java.util.List;
@@ -8,8 +8,7 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
+import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
 import com.pearson.statsagg.utilities.HttpRequest;
 
 /**

@@ -473,6 +473,11 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     }
     
     @Override
+    public void setMetricHashKey(long hashKey) {
+        setHashKey(hashKey);
+    }
+    
+    @Override
     public String getMetricKey() {
         return metricKey_;
     }

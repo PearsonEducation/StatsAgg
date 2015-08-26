@@ -135,7 +135,12 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
     public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
-
+    
+    @Override
+    public void setMetricHashKey(long hashKey) {
+        setHashKey(hashKey);
+    }
+    
     public String getBucket() {
         return bucket_;
     }

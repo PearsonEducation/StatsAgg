@@ -194,7 +194,12 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
     public void setHashKey(long hashKey) {
         this.hashKey_ = hashKey;
     }
-
+    
+    @Override
+    public void setMetricHashKey(long hashKey) {
+        setHashKey(hashKey);
+    }
+    
     @Override
     public String getMetricKey() {
         return metricKey_;
