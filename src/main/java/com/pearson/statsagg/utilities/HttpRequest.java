@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
  */
 public class HttpRequest {
     
-    private static final Logger logger = LoggerFactory.getLogger(HttpUtils.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HttpRequest.class.getName());
 
     private final String url_;
     private final Map<String,String> headerProperties_;

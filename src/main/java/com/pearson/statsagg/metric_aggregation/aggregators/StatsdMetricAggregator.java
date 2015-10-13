@@ -19,6 +19,7 @@ import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.globals.StatsdNthPercentiles;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -199,8 +200,9 @@ public class StatsdMetricAggregator {
         
         BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
         
-        for (String bucket : statsdMetricByBucketAndMetricType.keySet()) {
-            List<StatsdMetric> statsdMetricsByBucket = statsdMetricByBucketAndMetricType.get(bucket);
+        for (Entry<String,List<StatsdMetric>> statsdMetricByBucketAndMetricType_Entry : statsdMetricByBucketAndMetricType.entrySet()) {
+            String bucket = statsdMetricByBucketAndMetricType_Entry.getKey();
+            List<StatsdMetric> statsdMetricsByBucket = statsdMetricByBucketAndMetricType_Entry.getValue();
             
             if ((metricTypeCode == null) && (statsdMetricsByBucket != null) && !statsdMetricsByBucket.isEmpty()) {
                 metricTypeCode = statsdMetricsByBucket.get(0).getMetricTypeCode();

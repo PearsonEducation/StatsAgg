@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_engine;
 
-import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.sql.Connection;
 import java.sql.PreparedStatement;

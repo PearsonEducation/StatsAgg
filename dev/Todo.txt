@@ -1,6 +1,7 @@
 StatsAgg 1.5
  * InfluxDB 0.9+ support
  * Finish/refine API
+ * support output module configs that don't require the _n suffix
  * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
  * Alter buttons on 'details' pages
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
@@ -17,7 +18,6 @@ Short/Medium term
  * Reduce JS code for typeahead & update typeahead library?
    * Worth the time? This library is a huge pain.
  * Notification groups that inherit other notification group properties
- * metricKeysLastSeenTimestamp & metricKeysLastSeenTimestamp_UpdateOnResend  -- one Map, defined as Map<MetricKey,Long[ts1,ts2]> ???
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI

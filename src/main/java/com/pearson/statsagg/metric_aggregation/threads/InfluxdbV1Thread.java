@@ -70,7 +70,7 @@ public class InfluxdbV1Thread implements Runnable {
                     
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(influxdbStandardizedMetrics);
+            Common.updateMetricLastSeenTimestamps(influxdbStandardizedMetrics);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.

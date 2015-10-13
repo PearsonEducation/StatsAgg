@@ -1,20 +1,3 @@
-/*
- * Copyright 2015 prashant4nov.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-
-
 package com.pearson.statsagg.webui.api;
 
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
@@ -38,13 +21,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author Prashant Kumar (prashant4nov)
  */
 public class AlertSuspensionDetailsTest extends Mockito {
+    
+    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionDetailsTest.class.getName());
+
     private static AlertSuspensionsDao alertSuspensionsDao;
-    AlertSuspension mockAlertSuspension;
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionDetails.class.getName());
+    private AlertSuspension mockAlertSuspension;
 
     @BeforeClass
     public static void setUp() {
@@ -81,4 +65,5 @@ public class AlertSuspensionDetailsTest extends Mockito {
         assertEquals("incl\ntag1\ntag2", result.get("MetricGroupTagsInclusive"));
         assertEquals("alertSuspension junit name 1", result.get("Name"));
     }
+    
 }

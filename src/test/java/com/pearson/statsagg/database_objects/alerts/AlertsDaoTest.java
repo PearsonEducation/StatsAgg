@@ -6,7 +6,7 @@ import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import com.pearson.statsagg.webui.AlertsLogic;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
 import com.pearson.statsagg.webui.NotificationGroupsLogic;

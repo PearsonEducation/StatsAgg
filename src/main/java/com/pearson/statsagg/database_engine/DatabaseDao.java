@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_engine;
 
-import com.pearson.statsagg.globals.DatabaseConnections;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

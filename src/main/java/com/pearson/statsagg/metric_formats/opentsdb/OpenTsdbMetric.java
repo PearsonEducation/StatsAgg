@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map.Entry;
 import org.apache.commons.lang3.StringEscapeUtils;
 import org.boon.Boon;
 import org.boon.core.value.LazyValueMap;
@@ -392,11 +393,13 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 LazyValueMap tagsObject = (LazyValueMap) openTsdbMetric.get("tags");
                 StringBuilder tagsString = new StringBuilder();
                 int tagCounter = 0;
-                for (String tagKey : tagsObject.keySet()) {
-                    tagsString.append(tagKey).append("=").append(tagsObject.get(tagKey));
+                for (Entry<String,Object> tagsObject_Entry : tagsObject.entrySet()) {
+                    String tagsObjectKey = tagsObject_Entry.getKey();
+                    Object tagsObjectValue = tagsObject_Entry.getValue();
+                    tagsString.append(tagsObjectKey).append("=").append(tagsObjectValue);
                     if ((tagCounter + 1) < tagsObject.size()) tagsString.append(" ");
                 }
-                
+
                 String openTsdbMetricString = metric + " " + timestampString + " " + valueString + " " + tagsString.toString() + "\n";
                 openTsdbMetricsString.append(openTsdbMetricString);
                 

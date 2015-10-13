@@ -22,11 +22,13 @@ import org.slf4j.LoggerFactory;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Helper.class )
 public class CreateAlertSuspensionTest extends Mockito {
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspensionTest.class.getName());
+    
     private static final String mockReturnString = "Successful alert suspension creation.";
     private static final JSONObject alertSuspensionData = new JSONObject();
-    static com.pearson.statsagg.webui.CreateAlertSuspension testCreateAlertSuspension = mock(com.pearson.statsagg.webui.CreateAlertSuspension.class);
-    static HttpServletRequest request = mock(HttpServletRequest.class);
+    private static com.pearson.statsagg.webui.CreateAlertSuspension testCreateAlertSuspension = mock(com.pearson.statsagg.webui.CreateAlertSuspension.class);
+    private static HttpServletRequest request = mock(HttpServletRequest.class);
 
     @BeforeClass
     public static void setUp() {
@@ -46,4 +48,5 @@ public class CreateAlertSuspensionTest extends Mockito {
         responseMsg = createAlertSuspension.processPostRequest(request, testCreateAlertSuspension);
         assertEquals(mockReturnString, responseMsg);     
     }
+    
 }

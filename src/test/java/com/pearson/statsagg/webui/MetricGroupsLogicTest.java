@@ -10,7 +10,7 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import java.io.File;
 import java.io.InputStream;
 import org.junit.After;

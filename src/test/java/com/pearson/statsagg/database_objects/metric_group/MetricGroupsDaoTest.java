@@ -18,7 +18,7 @@ package com.pearson.statsagg.database_objects.metric_group;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import com.pearson.statsagg.webui.AlertsLogic;
 import com.pearson.statsagg.webui.MetricGroupsLogic;
 import java.io.InputStream;

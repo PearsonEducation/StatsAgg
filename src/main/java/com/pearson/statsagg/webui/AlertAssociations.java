@@ -632,7 +632,7 @@ public class AlertAssociations extends HttpServlet {
         // don't display metrics that have been 'forgotten', but haven't gone through the alert-routine yet
         List<String> keysToRemove = new ArrayList<>();
         for (String activeAlertMetricKey : activeAlertMetricKeysLocal) {
-            if (!GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.containsKey(activeAlertMetricKey)) keysToRemove.add(activeAlertMetricKey);
+            if (!GlobalVariables.metricKeysLastSeenTimestamp.containsKey(activeAlertMetricKey)) keysToRemove.add(activeAlertMetricKey);
         }
         activeAlertMetricKeysLocal.removeAll(GlobalVariables.immediateCleanupMetrics.keySet());
         activeAlertMetricKeysLocal.removeAll(keysToRemove);

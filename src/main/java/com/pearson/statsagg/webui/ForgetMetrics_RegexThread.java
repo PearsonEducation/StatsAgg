@@ -32,7 +32,7 @@ public class ForgetMetrics_RegexThread implements Runnable {
         
         long startTimestamp = System.currentTimeMillis();
         
-        List<String> metricKeyesToCleanup = getRegexMetricKeyMatches(regex_, GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet());
+        List<String> metricKeyesToCleanup = getRegexMetricKeyMatches(regex_, GlobalVariables.metricKeysLastSeenTimestamp.keySet());
         
         for (String metricKey : metricKeyesToCleanup) {
             GlobalVariables.immediateCleanupMetrics.put(metricKey, metricKey);

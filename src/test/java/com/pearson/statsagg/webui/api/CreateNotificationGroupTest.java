@@ -22,11 +22,13 @@ import org.slf4j.LoggerFactory;
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Helper.class)
 public class CreateNotificationGroupTest extends Mockito {
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateNotificationGroupTest.class.getName());
+    
     private static final String mockReturnString = "Successful notification group creation.";
     private static final JSONObject notificationData = new JSONObject();
-    static com.pearson.statsagg.webui.CreateNotificationGroup testCreateNotificationGroup = mock(com.pearson.statsagg.webui.CreateNotificationGroup.class);
-    static HttpServletRequest request = mock(HttpServletRequest.class);
+    private static com.pearson.statsagg.webui.CreateNotificationGroup testCreateNotificationGroup = mock(com.pearson.statsagg.webui.CreateNotificationGroup.class);
+    private static HttpServletRequest request = mock(HttpServletRequest.class);
 
     @Before
     public void setUp() {

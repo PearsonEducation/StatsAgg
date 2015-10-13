@@ -3,8 +3,6 @@ package com.pearson.statsagg.utilities;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

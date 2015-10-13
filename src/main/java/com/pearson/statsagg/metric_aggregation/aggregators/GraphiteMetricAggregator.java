@@ -7,7 +7,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
@@ -83,7 +82,6 @@ public class GraphiteMetricAggregator {
         }
 
         List<GraphiteMetric> graphiteMetricsAggregated = new ArrayList<>();
-        Set<String> metricPathSet = graphiteMetricsByMetricPath.keySet();
         
         BigDecimal aggregationWindowLengthInMs = new BigDecimal(ApplicationConfiguration.getFlushTimeAgg());
         
@@ -91,9 +89,8 @@ public class GraphiteMetricAggregator {
         if (ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString() == null) aggregatedMetricsSeparator = ".";
         else aggregatedMetricsSeparator = ApplicationConfiguration.getGlobalAggregatedMetricsSeparatorString();
         
-        for (String metricPath : metricPathSet) {
+        for (List<GraphiteMetric> graphiteMetrics : graphiteMetricsByMetricPath.values()) {
             try {
-                List<GraphiteMetric> graphiteMetrics = graphiteMetricsByMetricPath.get(metricPath);
                 List<GraphiteMetric> multipleGraphiteMetricsAggregated = aggregate(graphiteMetrics, aggregationWindowLengthInMs, aggregatedMetricsSeparator);
             
                 if ((multipleGraphiteMetricsAggregated != null) && !multipleGraphiteMetricsAggregated.isEmpty()) {

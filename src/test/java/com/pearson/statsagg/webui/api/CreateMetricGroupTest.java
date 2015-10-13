@@ -17,17 +17,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author Prashant Kumar (prashant4nov)
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Helper.class )
 public class CreateMetricGroupTest extends Mockito {
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateMetricGroupTest.class.getName());
+    
     private static final String mockReturnString = "Successful metric group creation.";
     private static final JSONObject metricData = new JSONObject();
-    static com.pearson.statsagg.webui.CreateMetricGroup testCreateMetricGroup = mock(com.pearson.statsagg.webui.CreateMetricGroup.class);
-    static HttpServletRequest request = mock(HttpServletRequest.class);
+    private static com.pearson.statsagg.webui.CreateMetricGroup testCreateMetricGroup = mock(com.pearson.statsagg.webui.CreateMetricGroup.class);
+    private static HttpServletRequest request = mock(HttpServletRequest.class);
 
     @Before
     public void setUp() {

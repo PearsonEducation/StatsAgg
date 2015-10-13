@@ -121,7 +121,7 @@ function yadcf_init_AlertsTable(alertsTable) {
     ], 'footer');
 }
         
-// Setup for the table found on the 'Alerts' page
+// Setup for the table found on the 'Alert Suspensions' page
 $(document).ready(function () {
     var table = document.getElementById('AlertSuspensionsTable');
 

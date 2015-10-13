@@ -134,7 +134,7 @@ public class Home extends HttpServlet {
         }
         
         long numAssociatedMetricsWithValues = GlobalVariables.associatedMetricsWithValuesCount.longValue();
-        long numMetricKeysTrackedLast24Hrs = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.size();
+        long numMetricKeysTrackedLast24Hrs = GlobalVariables.metricKeysLastSeenTimestamp.size();
         long avgIncomingMetricsProcessedPerSecond = GlobalVariables.incomingMetricsRollingAverage.longValue();
         
         Calendar homeLastRefreshedTimestamp = Calendar.getInstance();

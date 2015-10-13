@@ -120,8 +120,7 @@ public class StatsdAggregationThread implements Runnable {
 
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps_MostRecentNew(statsdMetricsAggregated);
-            Common.updateMetricLastSeenTimestamps_UpdateOnResend(statsdMetricsAggregatedMerged);
+            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregated, statsdMetricsAggregatedMerged);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.

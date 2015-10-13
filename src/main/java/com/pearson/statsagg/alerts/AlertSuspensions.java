@@ -14,6 +14,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Objects;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -79,7 +80,7 @@ public class AlertSuspensions {
         
         for (int alertId : alertsByAlertId.keySet()) {
             if ((metricGroupTagsAssociatedWithAlert != null) && !metricGroupTagsAssociatedWithAlert.containsKey(alertId)) {
-                metricGroupTagsAssociatedWithAlert.put(alertId, new HashSet<String>());
+                metricGroupTagsAssociatedWithAlert.put(alertId, new HashSet<>());
             }
         }
         
@@ -87,9 +88,10 @@ public class AlertSuspensions {
         List<AlertSuspension> allAlertSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
         areAlertSuspensionsActive(allAlertSuspensions);
 
-        for (int alertId : alertsByAlertId.keySet()) {
-            Alert alert = alertsByAlertId.get(alertId);
-            
+        for (Entry<Integer,Alert> alertEntry : alertsByAlertId.entrySet()) {
+            int alertId = alertEntry.getKey();
+            Alert alert = alertEntry.getValue();
+
             Set<Integer> alertSuspensionIdsAssociatedWithAnAlert = getAlertSuspensionIdsAssociatedWithAnAlert(alert, allAlertSuspensions, metricGroupTagsAssociatedWithAlert);
             alertSuspensionIdAssociationsByAlertId_.put(alertId, alertSuspensionIdsAssociatedWithAnAlert);
 
@@ -182,11 +184,11 @@ public class AlertSuspensions {
     }
     
     public static int getAlertSuspensionLevel(Alert alert, List<AlertSuspension> alertSuspensions, 
-            Set<Integer> alertSuspensionIdsAssociatedWithAnAlert, Map<Integer, Boolean> areAlertSuspensionsActive_) {
+            Set<Integer> alertSuspensionIdsAssociatedWithAnAlert, Map<Integer, Boolean> areAlertSuspensionsActive) {
         
         if ((alert == null) || (alertSuspensions == null) || alertSuspensions.isEmpty() || 
                 (alertSuspensionIdsAssociatedWithAnAlert == null) || alertSuspensionIdsAssociatedWithAnAlert.isEmpty() || 
-                (areAlertSuspensionsActive_ == null) || areAlertSuspensionsActive_.isEmpty()) {
+                (areAlertSuspensionsActive == null) || areAlertSuspensionsActive.isEmpty()) {
             return ALERT_NOT_SUSPENDED;
         }
         
@@ -194,7 +196,7 @@ public class AlertSuspensions {
         
         for (AlertSuspension alertSuspension : alertSuspensions) {
             if (alertSuspension.getId() == null) continue;
-            if (!areAlertSuspensionsActive_.containsKey(alertSuspension.getId()) || !areAlertSuspensionsActive_.get(alertSuspension.getId())) continue;
+            if (!areAlertSuspensionsActive.containsKey(alertSuspension.getId()) || !areAlertSuspensionsActive.get(alertSuspension.getId())) continue;
             
             if (alertSuspensionIdsAssociatedWithAnAlert.contains(alertSuspension.getId())) {
                 if (alertSuspension.isSuspendNotificationOnly()) {

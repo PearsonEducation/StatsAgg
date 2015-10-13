@@ -1,12 +1,10 @@
 package com.pearson.statsagg.database_objects.alert_suspensions;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import com.pearson.statsagg.utilities.DateAndTime;
 import java.io.InputStream;
 import org.junit.After;

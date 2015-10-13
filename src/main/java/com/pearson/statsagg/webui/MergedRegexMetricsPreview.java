@@ -79,7 +79,7 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes_List);
         String mergedBlacklistRegex = StringUtilities.createMergedRegex(blacklistRegexes_List);
 
-        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet(), mergedMatchRegex, mergedBlacklistRegex, 1001);
+        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, mergedBlacklistRegex, 1001);
         String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
             
         try {  

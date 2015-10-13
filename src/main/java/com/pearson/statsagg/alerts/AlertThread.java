@@ -20,6 +20,7 @@ import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeen;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
@@ -173,14 +174,14 @@ public class AlertThread implements Runnable {
         // gets a list of alerts that are both enabled & in a 'caution-active' state
         List<Alert> enabledAndActiveCautionAlerts = getActiveCautionAlerts(enabledAlerts_);
         for (Alert alert : enabledAndActiveCautionAlerts) {
-            activeCautionAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<String>());
+            activeCautionAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<>());
             activeCautionAlertMetricKeysByAlertId_Counter_.incrementAndGet();
         }
         
         // gets a list of alerts that are both enabled & in a 'danger-active' state
         List<Alert> enabledAndActiveDangerAlerts = getActiveDangerAlerts(enabledAlerts_);
         for (Alert alert : enabledAndActiveDangerAlerts) {
-            activeDangerAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<String>());
+            activeDangerAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<>());
             activeDangerAlertMetricKeysByAlertId_Counter_.incrementAndGet();
         }
         
@@ -630,10 +631,11 @@ public class AlertThread implements Runnable {
                 if ((metricLastSeenFromDb != null) && (metricLastSeenFromDb.getMetricKeySha1() != null)) metricKeySha1 = metricLastSeenFromDb.getMetricKeySha1();
                 else metricKeySha1 = DigestUtils.sha1Hex(metricKey);
 
-                Long timestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+                MetricKeyLastSeen metricKeyLastSeen = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+                Long metricKeyLastSeenTimestamp = (metricKeyLastSeen != null) ? metricKeyLastSeen.getMetricKeyLastSeenTimestamp_Current() : null;
 
-                if ((metricKeySha1 != null) && (timestamp != null)) {
-                    Timestamp lastSeenTimestamp = new Timestamp(timestamp);
+                if ((metricKeySha1 != null) && (metricKeyLastSeenTimestamp != null)) {
+                    Timestamp lastSeenTimestamp = new Timestamp(metricKeyLastSeenTimestamp);
                     MetricLastSeen metricLastSeen = new MetricLastSeen(metricKeySha1, metricKey, lastSeenTimestamp);
                     
                     if ((metricLastSeenFromDb == null) || !metricLastSeenFromDb.isEqual(metricLastSeen)) {
@@ -730,8 +732,10 @@ public class AlertThread implements Runnable {
         
         BigDecimal availabilityAlert_TimeSinceLastSeen = null;
         
-        if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-            Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+        if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {            
+            MetricKeyLastSeen metricKeyLastSeen = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+            Long metricKeyLastSeenTimestamp = (metricKeyLastSeen != null) ? metricKeyLastSeen.getMetricKeyLastSeenTimestamp_Current() : null;
+                
             boolean isAvailabilityAlert_And_HitStopTrackingLimit = isAvailabilityAlert_And_HitStopTrackingLimit(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionStopTrackingAfter());
             if (!isAvailabilityAlert_And_HitStopTrackingLimit) availabilityAlert_TimeSinceLastSeen = getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getCautionWindowDuration());
             Set<String> activeCautionAvailabilityMetricKeys = alertThread.activeCautionAvailabilityAlerts_.get(alert.getId());
@@ -740,7 +744,7 @@ public class AlertThread implements Runnable {
                 if (activeCautionAvailabilityMetricKeys != null) {
                     activeCautionAvailabilityMetricKeys.remove(metricKey);
 
-                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
                 }
@@ -754,7 +758,7 @@ public class AlertThread implements Runnable {
                 if (activeCautionAvailabilityMetricKeys != null) {
                     activeCautionAvailabilityMetricKeys.remove(metricKey);
                     
-                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    positiveAlertReasons_Caution_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "New data point(s) received");
                 }
@@ -780,7 +784,7 @@ public class AlertThread implements Runnable {
             List<String> activeCautionAlertMetricKeys = alertThread.activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
 
             if (activeCautionAlertMetricKeys == null) {
-                alertThread.activeCautionAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<String>());
+                alertThread.activeCautionAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<>());
                 alertThread.activeCautionAlertMetricKeysByAlertId_Counter_.incrementAndGet();
                 activeCautionAlertMetricKeys = alertThread.activeCautionAlertMetricKeysByAlertId_.get(alert.getId());
             }
@@ -804,7 +808,9 @@ public class AlertThread implements Runnable {
         BigDecimal availabilityAlert_TimeSinceLastSeen = null;
         
         if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-            Long metricKeyLastSeenTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+            MetricKeyLastSeen metricKeyLastSeen = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+            Long metricKeyLastSeenTimestamp = (metricKeyLastSeen != null) ? metricKeyLastSeen.getMetricKeyLastSeenTimestamp_Current() : null;
+            
             boolean isAvailabilityAlert_And_HitStopTrackingLimit = isAvailabilityAlert_And_HitStopTrackingLimit(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerStopTrackingAfter());
             if (!isAvailabilityAlert_And_HitStopTrackingLimit) availabilityAlert_TimeSinceLastSeen = getAvailabilityAlert_TimeSinceLastSeen(alertThread.threadStartTimestampInMilliseconds_, metricKeyLastSeenTimestamp, alert.getAlertType(), alert.getDangerWindowDuration());
             Set<String> activeDangerAvailabilityMetricKeys = alertThread.activeDangerAvailabilityAlerts_.get(alert.getId());
@@ -813,7 +819,7 @@ public class AlertThread implements Runnable {
                 if (activeDangerAvailabilityMetricKeys != null) {
                     activeDangerAvailabilityMetricKeys.remove(metricKey);
 
-                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "Reached 'Stop Tracking' time limit");
                 }
@@ -827,7 +833,7 @@ public class AlertThread implements Runnable {
                 if (activeDangerAvailabilityMetricKeys != null) {
                     activeDangerAvailabilityMetricKeys.remove(metricKey);
                     
-                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<String,String>());
+                    positiveAlertReasons_Danger_ByAlertId_.putIfAbsent(alert.getId(), new ConcurrentHashMap<>());
                     Map<String,String> positiveAlertReasons = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
                     positiveAlertReasons.put(metricKey, "New data point(s) received");
                 }
@@ -853,7 +859,7 @@ public class AlertThread implements Runnable {
             List<String> activeDangerAlertMetricKeys = alertThread.activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
 
             if (activeDangerAlertMetricKeys == null) {
-                alertThread.activeDangerAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<String>());
+                alertThread.activeDangerAlertMetricKeysByAlertId_.put(alert.getId(), new ArrayList<>());
                 alertThread.activeDangerAlertMetricKeysByAlertId_Counter_.incrementAndGet();
                 activeDangerAlertMetricKeys = alertThread.activeDangerAlertMetricKeysByAlertId_.get(alert.getId());
             }

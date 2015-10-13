@@ -52,7 +52,7 @@ public class MetricAssociation {
         
         // run the association routine against all metric-groups/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
-        Set<String> metricKeys = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet();
+        Set<String> metricKeys = GlobalVariables.metricKeysLastSeenTimestamp.keySet();
         for (String metricKey : metricKeys) associateMetricKeyWithMetricGroups(metricKey, metricGroupIds);
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
 

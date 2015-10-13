@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
@@ -47,21 +48,8 @@ public class Common {
         
         return waitInMsCounter;
     }
-
-    public static void updateMetricLastSeenTimestamps_MostRecentNew(List<? extends GenericMetricFormat> metrics) {
-        
-        if ((metrics == null) || metrics.isEmpty()) {
-            return;
-        }
-        
-        for (GenericMetricFormat metric : metrics) {
-            String metricKey = metric.getMetricKey();
-            GlobalVariables.metricKeysLastSeenTimestamp.put(metricKey, metric.getMetricReceivedTimestampInMilliseconds());
-        }
-        
-    }
     
-    public static void updateMetricLastSeenTimestamps_UpdateOnResend(List<? extends GenericMetricFormat> metrics) {
+    public static void updateMetricLastSeenTimestamps(List<? extends GenericMetricFormat> metrics) {
         
         if ((metrics == null) || metrics.isEmpty()) {
             return;
@@ -69,26 +57,36 @@ public class Common {
         
         for (GenericMetricFormat metric : metrics) {
             String metricKey = metric.getMetricKey();
-            GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.put(metricKey, metric.getMetricReceivedTimestampInMilliseconds());
-        }
-        
-    }
-    
-    // use this when 'send previous value' is disabled
-    public static void updateMetricLastSeenTimestamps_UpdateOnResend_And_MostRecentNew(List<? extends GenericMetricFormat> metrics) {
-        
-        if ((metrics == null) || metrics.isEmpty()) {
-            return;
-        }
-        
-        for (GenericMetricFormat metric : metrics) {
-            String metricKey = metric.getMetricKey();
-            GlobalVariables.metricKeysLastSeenTimestamp.put(metricKey, metric.getMetricReceivedTimestampInMilliseconds());
-            GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.put(metricKey, metric.getMetricReceivedTimestampInMilliseconds());
+            Long metricReceivedTimestampInMilliseconds = metric.getMetricReceivedTimestampInMilliseconds();
+            MetricKeyLastSeen metricKeyLastSeen = new MetricKeyLastSeen(metricReceivedTimestampInMilliseconds, metricReceivedTimestampInMilliseconds);
+            GlobalVariables.metricKeysLastSeenTimestamp.put(metricKey, metricKeyLastSeen);
         }
         
     }
 
+    public static void updateMetricLastSeenTimestamps(List<? extends GenericMetricFormat> currentMetrics, List<? extends GenericMetricFormat> resendMetrics) {
+        
+        if (resendMetrics == null) {
+            return;
+        }
+        
+        Map<String,GenericMetricFormat> currentMetricsMap = new HashMap<>();
+        if (currentMetrics != null) for (GenericMetricFormat metric : currentMetrics) currentMetricsMap.put(metric.getMetricKey(), metric);
+        
+        for (GenericMetricFormat resendMetric : resendMetrics) {
+            String metricKey = resendMetric.getMetricKey();
+            
+            GenericMetricFormat currentMetric = currentMetricsMap.get(metricKey);
+            Long metricKeyLastSeenTimestamp_Current = (currentMetric != null) ? currentMetric.getMetricReceivedTimestampInMilliseconds() : null;
+            
+            Long metricKeyLastSeenTimestamp_UpdateOnResend = resendMetric.getMetricReceivedTimestampInMilliseconds();
+            
+            MetricKeyLastSeen metricKeyLastSeen = new MetricKeyLastSeen(metricKeyLastSeenTimestamp_Current, metricKeyLastSeenTimestamp_UpdateOnResend);
+            GlobalVariables.metricKeysLastSeenTimestamp.put(metricKey, metricKeyLastSeen);
+        }
+        
+    }
+    
     public static boolean updateAlertMetricRecentValues(List<? extends GenericMetricFormat> metrics) {
         
         if ((metrics == null) || metrics.isEmpty()) {

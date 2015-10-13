@@ -108,7 +108,7 @@ public class RegexTester extends HttpServlet {
         
         try {
             String parameter = request.getParameter("Regex");
-            Set<String> metricKeys = getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet(), parameter, null, 1000);
+            Set<String> metricKeys = getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1000);
             String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000);
   
             StringBuilder htmlBuilder = new StringBuilder();

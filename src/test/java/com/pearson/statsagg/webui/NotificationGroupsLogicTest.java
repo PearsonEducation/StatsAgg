@@ -3,7 +3,7 @@ package com.pearson.statsagg.webui;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import java.io.File;
 import java.io.InputStream;
 import org.junit.After;

@@ -19,7 +19,7 @@ import org.slf4j.LoggerFactory;
  */
 public class StatsAggHtmlFramework {
 
-    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsLogic.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(StatsAggHtmlFramework.class.getName());
     
     public StatsAggHtmlFramework() {}
     

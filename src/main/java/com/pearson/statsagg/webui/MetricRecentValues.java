@@ -4,12 +4,12 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
@@ -144,7 +144,9 @@ public class MetricRecentValues extends HttpServlet {
 
         outputString.append("<b>Metric Key</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("<br>");
         
-        Long mostRecentTimestamp = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+        MetricKeyLastSeen metricKeyLastSeen = GlobalVariables.metricKeysLastSeenTimestamp.get(metricKey);
+        Long mostRecentTimestamp = (metricKeyLastSeen != null) ? metricKeyLastSeen.getMetricKeyLastSeenTimestamp_Current() : null;
+        
         if (mostRecentTimestamp != null) outputString.append("<b>Most recent received timestamp</b> = ").append(dateAndTimeFormat.format(mostRecentTimestamp)).append("<br><br>");
         else outputString.append("<b>Most recent received timestamp</b> = ").append("N/A").append("<br><br>");
         

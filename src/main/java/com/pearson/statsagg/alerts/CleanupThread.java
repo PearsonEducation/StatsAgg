@@ -10,10 +10,12 @@ import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
 import com.pearson.statsagg.database_objects.gauges.GaugesDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.HashSet;
+import java.util.Map.Entry;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -129,7 +131,7 @@ public class CleanupThread implements Runnable {
     
     private long cleanupMetricsAssociations_MetricsNotRecentlySeen() {
         
-        if (GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend == null) {
+        if (GlobalVariables.metricKeysLastSeenTimestamp == null) {
             return 0;
         }
         
@@ -137,10 +139,12 @@ public class CleanupThread implements Runnable {
         long currentTimeInMilliseconds = System.currentTimeMillis();
         Set<String> gaugeMetricKeys = new HashSet<>();
         
-        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.keySet()) {
-            Long timestamp = GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.get(metricKey);
-
-            if (timestamp == null) {
+        for (Entry<String,MetricKeyLastSeen> metricKeysLastSeenTimestamp_Entry : GlobalVariables.metricKeysLastSeenTimestamp.entrySet()) {
+            String metricKey = metricKeysLastSeenTimestamp_Entry.getKey();
+            MetricKeyLastSeen metricKeyLastSeenTimestamp = metricKeysLastSeenTimestamp_Entry.getValue();
+            Long metricKeyLastSeenTimestamp_UpdateOnResend = metricKeyLastSeenTimestamp.getMetricKeyLastSeenTimestamp_UpdateOnResend();
+            
+            if (metricKeyLastSeenTimestamp_UpdateOnResend == null) {
                 if (GlobalVariables.statsdGaugeCache.containsKey(metricKey)) gaugeMetricKeys.add(metricKey);
                 removeMetricAssociations(metricKey);
                 metricsRemovedCount++;
@@ -149,7 +153,7 @@ public class CleanupThread implements Runnable {
                 boolean isMetricKeyTrackedByActiveAvailabilityAlert = isMetricKeyTrackedByActiveAvailabilityAlert(metricKey);
 
                 if (!isMetricKeyTrackedByActiveAvailabilityAlert) { // only cleanup if not tracked by an availability alert
-                    long metricNotSeenTimeInMilliseconds = currentTimeInMilliseconds - timestamp;
+                    long metricNotSeenTimeInMilliseconds = currentTimeInMilliseconds - metricKeyLastSeenTimestamp_UpdateOnResend;
 
                     if (metricNotSeenTimeInMilliseconds > NUM_MILLISECONDS_IN_ONE_DAY) { // only cleanup if older than 24hrs
                         if (GlobalVariables.statsdGaugeCache.containsKey(metricKey)) gaugeMetricKeys.add(metricKey);
@@ -172,11 +176,8 @@ public class CleanupThread implements Runnable {
         if (metricKey == null) {
             return;
         }
-                
-        Set<Integer> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet();
 
-        for (Integer metricGroupId : matchingMetricKeysAssociatedWithMetricGroup) {
-            Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+        for (Set<String> matchingMetricKeyAssociationWithMetricGroup : GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.values()) {
             if (matchingMetricKeyAssociationWithMetricGroup != null) matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
         }
         
@@ -187,7 +188,6 @@ public class CleanupThread implements Runnable {
         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(metricKey);
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
-        GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.remove(metricKey);
         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
     }
     
@@ -255,14 +255,13 @@ public class CleanupThread implements Runnable {
         synchronized(GlobalVariables.activeCautionAvailabilityAlerts) {
             List<Integer> alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts = new ArrayList<>();
             
-            for (Integer alertId : GlobalVariables.activeCautionAvailabilityAlerts.keySet()) {
-                Set<String> activeCautionAvailabilityMetricKeys = GlobalVariables.activeCautionAvailabilityAlerts.get(alertId);
+            for (Entry<Integer,Set<String>> activeCautionAvailabilityAlerts_Entry : GlobalVariables.activeCautionAvailabilityAlerts.entrySet()) {
+                Integer alertId = activeCautionAvailabilityAlerts_Entry.getKey();
+                Set<String> activeCautionAvailabilityMetricKeys = activeCautionAvailabilityAlerts_Entry.getValue();
 
                 if (activeCautionAvailabilityMetricKeys != null) {
                     activeCautionAvailabilityMetricKeys.remove(metricKey);
-                    if (activeCautionAvailabilityMetricKeys.isEmpty()) {
-                        alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts.add(alertId);
-                    }
+                    if (activeCautionAvailabilityMetricKeys.isEmpty()) alertIdsToRemoveFrom_ActiveCautionAvailabilityAlerts.add(alertId);
                 }
             }
             
@@ -276,14 +275,13 @@ public class CleanupThread implements Runnable {
         synchronized(GlobalVariables.activeDangerAvailabilityAlerts) {
             List<Integer> alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts = new ArrayList<>();
             
-            for (Integer alertId : GlobalVariables.activeDangerAvailabilityAlerts.keySet()) {
-                Set<String> activeDangerAvailabilityMetricKeys = GlobalVariables.activeDangerAvailabilityAlerts.get(alertId);
+            for (Entry<Integer,Set<String>> activeDangerAvailabilityAlerts_Entry : GlobalVariables.activeDangerAvailabilityAlerts.entrySet()) {
+                Integer alertId = activeDangerAvailabilityAlerts_Entry.getKey();
+                Set<String> activeDangerAvailabilityMetricKeys = activeDangerAvailabilityAlerts_Entry.getValue();
 
                 if (activeDangerAvailabilityMetricKeys != null) {
                     activeDangerAvailabilityMetricKeys.remove(metricKey);
-                    if (activeDangerAvailabilityMetricKeys.isEmpty()) {
-                        alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts.add(alertId);
-                    }
+                    if (activeDangerAvailabilityMetricKeys.isEmpty()) alertIdsToRemoveFrom_ActiveDangerAvailabilityAlerts.add(alertId);
                 }
             }
 
@@ -315,17 +313,18 @@ public class CleanupThread implements Runnable {
         int numValuesRemoved = 0;
         
         Map<String,Long> longestWindowDurationsForMetricKeys = getLongestWindowDurationsForMetricKeys(alerts);
-        Set<String> metricKeys = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet();
+        int metricKeys_Size = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.keySet().size();
         
         try {
             // for every metric key that has had a recent datapoint...
-            for (String metricKey : metricKeys) {
+            for (Entry<String,List<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey_Entry : GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.entrySet()) {
+                String metricKey = recentMetricTimestampsAndValuesByMetricKey_Entry.getKey();
+                List<MetricTimestampAndValue> recentMetricTimestampsAndValues = recentMetricTimestampsAndValuesByMetricKey_Entry.getValue();
+                        
                 boolean isImmeadiateCleanup = immediateCleanupMetricKeys_.contains(metricKey); // we should cleanup this metric regardless...
                 
                 // lookup the longest window duration associated with this metric key...
                 Long windowDuration = longestWindowDurationsForMetricKeys.get(metricKey);
-
-                List<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
                 // remove data that is outside of the window duration (older than 'now' minus 'duration') for this metric key               
                 if ((windowDuration != null) && (recentMetricTimestampsAndValues != null)) { 
@@ -333,7 +332,7 @@ public class CleanupThread implements Runnable {
 
                     synchronized (recentMetricTimestampsAndValues) {
                         for (MetricTimestampAndValue metricTimestampAndValue : recentMetricTimestampsAndValues) {
-                            Long metricValueTimestamp = metricTimestampAndValue.getTimestamp();
+                            long metricValueTimestamp = metricTimestampAndValue.getTimestamp();
                             long metricValueAge = cleanupStartTime - metricValueTimestamp;
 
                             if ((metricValueAge > windowDuration) || isImmeadiateCleanup) {
@@ -364,7 +363,7 @@ public class CleanupThread implements Runnable {
         long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
 
         String outputMessage = "CleanupRecentMetricTimestampsAndValuesTime=" + cleanupTimeElasped
-                + ", NumRecentMetricKeys=" + metricKeys.size()
+                + ", NumRecentMetricKeys=" + metricKeys_Size
                 + ", NumRecentMetricValuesRemoved=" + numValuesRemoved;
 
         return outputMessage;

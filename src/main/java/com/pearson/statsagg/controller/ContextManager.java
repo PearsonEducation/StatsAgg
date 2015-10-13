@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
-import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_engine.DatabaseConnections;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +42,7 @@ import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeen;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.network.JettyServer;
@@ -589,8 +590,8 @@ public class ContextManager implements ServletContextListener {
                     }
                 }
                 
-                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(metricLastSeen.getMetricKey(), metricLastSeen.getLastModified().getTime());
-                GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.putIfAbsent(metricLastSeen.getMetricKey(), metricLastSeen.getLastModified().getTime());
+                MetricKeyLastSeen metricKeyLastSeen = new MetricKeyLastSeen(metricLastSeen.getLastModified().getTime(), metricLastSeen.getLastModified().getTime());
+                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(metricLastSeen.getMetricKey(), metricKeyLastSeen);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -619,8 +620,8 @@ public class ContextManager implements ServletContextListener {
                 statsdMetricAggregated.setHashKey(GlobalVariables.metricHashKeyGenerator.incrementAndGet());
 
                 GlobalVariables.statsdMetricsAggregatedMostRecentValue.putIfAbsent(gauge.getBucket(), statsdMetricAggregated);
-                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(gauge.getBucket(), gauge.getLastModified().getTime());
-                GlobalVariables.metricKeysLastSeenTimestamp_UpdateOnResend.putIfAbsent(gauge.getBucket(), gauge.getLastModified().getTime());
+                MetricKeyLastSeen metricKeyLastSeen = new MetricKeyLastSeen(gauge.getLastModified().getTime(), gauge.getLastModified().getTime());
+                GlobalVariables.metricKeysLastSeenTimestamp.putIfAbsent(gauge.getBucket(), metricKeyLastSeen);
                 GlobalVariables.statsdGaugeCache.putIfAbsent(gauge.getBucket(), gauge);
             }
             catch (Exception e) {

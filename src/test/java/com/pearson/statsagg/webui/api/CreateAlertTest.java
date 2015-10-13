@@ -17,17 +17,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- *
  * @author Prashant Kumar (prashant4nov)
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Helper.class )
 public class CreateAlertTest extends Mockito {
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
+    
+    private static final Logger logger = LoggerFactory.getLogger(CreateAlertTest.class.getName());
+    
     private static final String mockReturnString = "Successful alert creation.";
     private static final JSONObject alertData = new JSONObject();
-    static com.pearson.statsagg.webui.CreateAlert testCreateAlert = mock(com.pearson.statsagg.webui.CreateAlert.class);
-    static HttpServletRequest request = mock(HttpServletRequest.class);
+    private static com.pearson.statsagg.webui.CreateAlert testCreateAlert = mock(com.pearson.statsagg.webui.CreateAlert.class);
+    private static HttpServletRequest request = mock(HttpServletRequest.class);
 
     @BeforeClass
     public static void setUp() {
@@ -47,4 +48,5 @@ public class CreateAlertTest extends Mockito {
         responseMsg = createAlert.processPostRequest(request, testCreateAlert);
         assertEquals(mockReturnString, responseMsg);     
     }
+    
 }

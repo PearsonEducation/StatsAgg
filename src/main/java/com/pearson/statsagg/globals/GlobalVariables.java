@@ -9,6 +9,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.regex.Pattern;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
+import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
@@ -78,11 +79,8 @@ public class GlobalVariables {
     // k=MetricGroupId, v="codes for "New, "Remove", "Alter" 
     public final static ConcurrentHashMap<Integer,Byte> metricGroupChanges = new ConcurrentHashMap<>();
             
-    // k=MetricKey, v="The most timestamp that this metric was received by this program"
-    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(16, 0.75f, 6); 
-    
-    // k=MetricKey, v="The most timestamp that this metric was received by this program. Gets updated if the metric is configured to send 0 or previous value when no new metrics were received."
-    public final static ConcurrentHashMap<String,Long> metricKeysLastSeenTimestamp_UpdateOnResend = new ConcurrentHashMap<>(16, 0.75f, 6); 
+    // k=MetricKey, v="The most recent timestamp that this metric was received by this program"
+    public final static ConcurrentHashMap<String,MetricKeyLastSeen> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(16, 0.75f, 6); 
     
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 
@@ -92,6 +90,9 @@ public class GlobalVariables {
     
     // k=MetricGroupId, v=string representing a single, merged, match regex statement that is composed of the metric group's associated regexes
     public final static ConcurrentHashMap<Integer,String> mergedMatchRegexesForMetricGroups = new ConcurrentHashMap<>(); 
+
+    // k=MetricSuspensionId, v=List<"MetricKeys that are suspended by a metric-suspension">
+    public final static ConcurrentHashMap<Integer,Set<String>> suspendedMetricKeys = new ConcurrentHashMap<>(); 
     
     // k=MetricGroupId, v=string representing a single, merged, blacklist regex statement that is composed of the metric group's associated regexes
     public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexesForMetricGroups = new ConcurrentHashMap<>(); 
