@@ -1,8 +1,12 @@
 package com.pearson.statsagg.utilities;
 
 import java.nio.charset.Charset;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -117,6 +121,32 @@ public class StringUtilities {
         
         String cleanedString = inputString.replace('\n', newlineReplacementCharacter).replace('\r', newlineReplacementCharacter);
         return cleanedString;
+    }
+    
+    public static Set<String> getSetOfStringsFromDelimitedString(String newlineDelimitedString, char delimiter) {
+        
+        if ((newlineDelimitedString == null) || newlineDelimitedString.isEmpty()) {
+            return new HashSet<>();
+        }
+        
+        String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
+        if (stringArray.length == 0) return new HashSet<>();
+        Set<String> stringSet = new HashSet<>();
+        stringSet.addAll(Arrays.asList(stringArray));
+        return stringSet;
+    }
+    
+    public static List<String> getListOfStringsFromDelimitedString(String newlineDelimitedString, char delimiter) {
+        
+        if ((newlineDelimitedString == null) || newlineDelimitedString.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
+        if (stringArray.length == 0) return new ArrayList<>();
+        List<String> stringList = new ArrayList<>();
+        stringList.addAll(Arrays.asList(stringArray));
+        return stringList;
     }
     
 }

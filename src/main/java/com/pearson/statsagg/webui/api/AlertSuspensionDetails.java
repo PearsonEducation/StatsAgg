@@ -42,7 +42,7 @@ public class AlertSuspensionDetails extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {
-            JSONObject json = getAlertSuspensionDetails(request, new AlertSuspensionsDao());
+            JSONObject json = getSuspensionDetails(request, new AlertSuspensionsDao());
             response.setContentType("application/json");
             PrintWriter out;
             out = response.getWriter();
@@ -60,66 +60,46 @@ public class AlertSuspensionDetails extends HttpServlet {
      * @param alertSuspensionsDao AlertSuspensionsDao object
      * @return details of the requested alert suspension
      */
-    protected JSONObject getAlertSuspensionDetails(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
-        logger.debug("getAlertSuspensionDetails");
-        logger.debug(PAGE_NAME);
+    protected JSONObject getSuspensionDetails(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
         
-        JSONObject alertSuspensionDetails = new JSONObject();
-        int alertSuspensionId = 0;
+        JSONObject suspensionDetails = new JSONObject();
+        int suspensionId = 0;
         
         try {
             if (request.getParameter(Helper.id) != null) {
-                alertSuspensionId = Integer.parseInt(request.getParameter(Helper.id));
+                suspensionId = Integer.parseInt(request.getParameter(Helper.id));
             }
             
-            AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspension(alertSuspensionId);
+            AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
             
-            if (alertSuspension != null) {
-                if (alertSuspension.getAlertId() != null) {
-                    alertSuspensionDetails.put("AlertId", alertSuspension.getAlertId());
-                }
-                if (alertSuspension.getId() != null) {
-                    alertSuspensionDetails.put("Id", alertSuspension.getId());
-                }
-                if (alertSuspension.getDescription() != null) {
-                    alertSuspensionDetails.put("Description", alertSuspension.getDescription());
-                }
-                if (alertSuspension.getDuration() != null) {
-                    alertSuspensionDetails.put("Duration", alertSuspension.getDuration());
-                }
-                if (alertSuspension.getMetricGroupTagsExclusive() != null) {
-                    alertSuspensionDetails.put("MetricGroupTagsExclusive", alertSuspension.getMetricGroupTagsExclusive());
-                }
-                if (alertSuspension.getMetricGroupTagsInclusive() != null) {
-                    alertSuspensionDetails.put("MetricGroupTagsInclusive", alertSuspension.getMetricGroupTagsInclusive());
-                }
-                if (alertSuspension.getName() != null) {
-                    alertSuspensionDetails.put("Name", alertSuspension.getName());
-                }
-                if (alertSuspension.getStartDate() != null) {
-                    alertSuspensionDetails.put("StartDate", alertSuspension.getStartDate());
-                }
-                if (alertSuspension.getStartTime() != null) {
-                    alertSuspensionDetails.put("StartTime", alertSuspension.getStartTime());
-                }
-                if (alertSuspension.getSuspendBy() != null) {
-                    alertSuspensionDetails.put("SuspendBy", alertSuspension.getSuspendBy());
-                }
-                if (alertSuspension.getDeleteAtTimestamp() != null) {
-                    alertSuspensionDetails.put("DeleteAtTimestamp", alertSuspension.getDeleteAtTimestamp());
-                }
-                if (alertSuspension.getDurationTimeUnit() != null) {
-                    alertSuspensionDetails.put("Duration", alertSuspension.getDuration());
+            if (suspension != null) {
+                if (suspension.getAlertId() != null) suspensionDetails.put("AlertId", suspension.getAlertId());
+                if (suspension.getId() != null) suspensionDetails.put("Id", suspension.getId());
+                if (suspension.getDescription() != null) suspensionDetails.put("Description", suspension.getDescription());
+                if (suspension.getDuration() != null) suspensionDetails.put("Duration", suspension.getDuration());
+                if (suspension.getMetricGroupTagsExclusive() != null) suspensionDetails.put("MetricGroupTagsExclusive", suspension.getMetricGroupTagsExclusive());
+                if (suspension.getMetricGroupTagsInclusive() != null) suspensionDetails.put("MetricGroupTagsInclusive", suspension.getMetricGroupTagsInclusive());
+                if (suspension.getMetricGroupTagsInclusive() != null) suspensionDetails.put("MetricSuspensionRegexes", suspension.getMetricSuspensionRegexes());
+                if (suspension.getName() != null) suspensionDetails.put("Name", suspension.getName());
+                if (suspension.getStartDate() != null) suspensionDetails.put("StartDate", suspension.getStartDate());
+                if (suspension.getStartTime() != null) suspensionDetails.put("StartTime", suspension.getStartTime());
+                if (suspension.getDeleteAtTimestamp() != null) suspensionDetails.put("DeleteAtTimestamp", suspension.getDeleteAtTimestamp());
+                if (suspension.getDurationTimeUnit() != null) suspensionDetails.put("Duration", suspension.getDuration());
+                
+                if (suspension.getSuspendBy() != null) {
+                    suspensionDetails.put("SuspendBy", suspension.getSuspendBy());
                 }
             }
             else {
-                alertSuspensionDetails.put(Helper.error, Helper.noResult);
+                suspensionDetails.put(Helper.error, Helper.noResult);
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            alertSuspensionDetails.put(Helper.error, Helper.errorMsg);
+            suspensionDetails.put(Helper.error, Helper.errorMsg);
         }
-        return alertSuspensionDetails;
+        
+        return suspensionDetails;
     }
+    
 }

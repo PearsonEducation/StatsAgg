@@ -292,7 +292,7 @@ public class Alerts extends HttpServlet {
         Map<Integer, String> notificationGroupNames_ById = notificationGroupsDao.getNotificationGroupNames_ById();
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        Map<Integer,List<AlertSuspension>> alertSuspensions_SuspendByAlertId_ByAlertId = alertSuspensionsDao.getAlertSuspensions_SuspendByAlertId_ByAlertId();
+        Map<Integer,List<AlertSuspension>> alertSuspensions_SuspendByAlertId_ByAlertId = alertSuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
         
         for (Alert alert : alerts) {
 

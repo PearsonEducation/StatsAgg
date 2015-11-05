@@ -82,19 +82,21 @@ public class CleanupThread implements Runnable {
     private String cleanupMetricsAssociations() {
         
         synchronized(GlobalVariables.metricGroupChanges) {
-            long cleanupStartTime = System.currentTimeMillis();
-            long metricsRemoved = 0;
+            synchronized(GlobalVariables.suspensionChanges) {
+                long cleanupStartTime = System.currentTimeMillis();
+                long metricsRemoved = 0;
 
-            long immediateCleanupMetricKeys_MetricsRemoved = cleanupMetricsAssociations_ImmediateCleanupMetricKeys();
-            metricsRemoved += immediateCleanupMetricKeys_MetricsRemoved;
-            
-            long metricsNotRecentlySeen_MetricsRemoved = cleanupMetricsAssociations_MetricsNotRecentlySeen();
-            metricsRemoved += metricsNotRecentlySeen_MetricsRemoved;
+                long immediateCleanupMetricKeys_MetricsRemoved = cleanupMetricsAssociations_ImmediateCleanupMetricKeys();
+                metricsRemoved += immediateCleanupMetricKeys_MetricsRemoved;
 
-            long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
+                long metricsNotRecentlySeen_MetricsRemoved = cleanupMetricsAssociations_MetricsNotRecentlySeen();
+                metricsRemoved += metricsNotRecentlySeen_MetricsRemoved;
 
-            String outputMessage = "CleanupMetricsAssociationsTime=" + cleanupTimeElasped + ", MetricsRemoved=" + metricsRemoved;
-            return outputMessage;
+                long cleanupTimeElasped = System.currentTimeMillis() - cleanupStartTime;
+
+                String outputMessage = "CleanupMetricsAssociationsTime=" + cleanupTimeElasped + ", MetricsRemoved=" + metricsRemoved;
+                return outputMessage;
+            }
         }
         
     }
@@ -181,12 +183,17 @@ public class CleanupThread implements Runnable {
             if (matchingMetricKeyAssociationWithMetricGroup != null) matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
         }
         
+        for (Set<String> matchingMetricKeyAssociationWithSuspension : GlobalVariables.matchingMetricKeysAssociatedWithSuspension.values()) {
+            if (matchingMetricKeyAssociationWithSuspension != null) matchingMetricKeyAssociationWithSuspension.remove(metricKey);
+        }
+        
         cleanupActiveAvailabilityAlerts(metricKey);
         
         // removing values from statsdGaugeCache & remove gauges from the db is handled in the 'cleanupGauges' method
         
         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(metricKey);
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
+        GlobalVariables.metricKeysAssociatedWithAnySuspension.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);
     }

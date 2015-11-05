@@ -31,7 +31,7 @@ public class CreateAlertSuspension extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspension.class.getName());
     
-    public static final String PAGE_NAME = "Create Alert Suspension";
+    public static final String PAGE_NAME = "Create Suspension";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -80,14 +80,14 @@ public class CreateAlertSuspension extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            AlertSuspension alertSuspension = null;
+            AlertSuspension suspension = null;
             String name = request.getParameter("Name");
             if (name != null) {
                 AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-                alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(name.trim());
+                suspension = alertSuspensionsDao.getSuspensionByName(name.trim());
             }        
             
-            String htmlBodyContents = buildCreateAlertSuspensionHtml(alertSuspension);
+            String htmlBodyContents = buildCreateAlertSuspensionHtml(suspension);
             List<String> additionalJavascript = new ArrayList<>();
             additionalJavascript.add("js/statsagg_create_alert_suspension.js");
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript);
@@ -144,7 +144,7 @@ public class CreateAlertSuspension extends HttpServlet {
         }
     }
     
-    private String buildCreateAlertSuspensionHtml(AlertSuspension alertSuspension) {
+    private String buildCreateAlertSuspensionHtml(AlertSuspension suspension) {
 
         StringBuilder htmlBody = new StringBuilder();
 
@@ -159,8 +159,8 @@ public class CreateAlertSuspension extends HttpServlet {
         
         htmlBody.append("<div class=\"row create-alert-form-row\">"); 
 
-        if ((alertSuspension != null) && (alertSuspension.getName() != null) && !alertSuspension.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(alertSuspension.getName())).append("\">");
+        if ((suspension != null) && (suspension.getName() != null) && !suspension.getName().isEmpty()) {
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(suspension.getName())).append("\">");
         }
         
         
@@ -177,8 +177,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "  <label class=\"label_small_margin\">Name</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\".\" name=\"Name\" id=\"Name\"");
         
-        if ((alertSuspension != null) && (alertSuspension.getName() != null)) {
-            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(alertSuspension.getName())).append("\"");
+        if ((suspension != null) && (suspension.getName() != null)) {
+            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(suspension.getName())).append("\"");
         }
 
         htmlBody.append(">\n" + "</div>\n");
@@ -190,8 +190,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
 
-        if ((alertSuspension != null) && (alertSuspension.getDescription() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getDescription()));
+        if ((suspension != null) && (suspension.getDescription() != null)) {
+            htmlBody.append(Encode.forHtmlAttribute(suspension.getDescription()));
         }
 
         htmlBody.append("</textarea>\n");
@@ -204,8 +204,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "  <label class=\"label_small_margin\">Is enabled?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"Enabled\" id=\"Enabled\" type=\"checkbox\" ");
 
-        if (((alertSuspension != null) && (alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) || 
-                (alertSuspension == null) || (alertSuspension.isEnabled() == null)) {
+        if (((suspension != null) && (suspension.isEnabled() != null) && suspension.isEnabled()) || 
+                (suspension == null) || (suspension.isEnabled() == null)) {
             htmlBody.append(" checked=\"checked\"");
         }
 
@@ -218,8 +218,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "  <label class=\"label_small_margin\">Suspend notification only?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"SuspendNotificationOnly\" id=\"SuspendNotificationOnly\" type=\"checkbox\" ");
 
-        if ((alertSuspension != null) && (alertSuspension.isSuspendNotificationOnly() != null) && alertSuspension.isSuspendNotificationOnly() ||
-                (alertSuspension == null) || (alertSuspension.isSuspendNotificationOnly() == null)) {
+        if ((suspension != null) && (suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly() ||
+                (suspension == null) || (suspension.isSuspendNotificationOnly() == null)) {
             htmlBody.append(" checked=\"checked\"");
         }
 
@@ -235,36 +235,40 @@ public class CreateAlertSuspension extends HttpServlet {
             "<div class=\"col-md-4 statsagg_three_panel_second_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
             "    <div class=\"panel-heading\"><b>Suspend by...</b>" +
-            "         <a id=\"AlertSuspensionAlertAssociationsPreview\" name=\"AlertSuspensionAlertAssociationsPreview\" class=\"iframe cboxElement statsagg_alert_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateAlertSuspensionAssociationsPreviewLink();\">Preview Alert Associations</a>" + 
+            "         <a id=\"AlertSuspensionAlertAssociationsPreview\" name=\"AlertSuspensionAlertAssociationsPreview\" class=\"iframe cboxElement statsagg_alert_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateAlertSuspensionAssociationsPreviewLink();\">Preview Suspension Associations</a>" + 
             "    </div>" + 
             "    <div class=\"panel-body\"> \n");
             
         
         // type selection
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertSuspension_SuspendBy_AlertName_Radio\" name=\"CreateAlertSuspension_SuspendBy\" value=\"AlertName\" ");
-        if ((alertSuspension != null) && (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_AlertName_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"AlertName\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Alert Name &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertSuspension_SuspendBy_Tags_Radio\" name=\"CreateAlertSuspension_SuspendBy\" value=\"Tags\" ");
-        if ((alertSuspension != null) && (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS)) htmlBody.append(" checked=\"checked\"");
+        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Tags_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Tags\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Tags &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateAlertSuspension_SuspendBy_Everything_Radio\" name=\"CreateAlertSuspension_SuspendBy\" value=\"Everything\" ");
-        if ((alertSuspension != null) && (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING)) htmlBody.append(" checked=\"checked\" ");
-        htmlBody.append("> Everything\n");
+        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Everything_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Everything\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING)) htmlBody.append(" checked=\"checked\" ");
+        htmlBody.append("> Everything &nbsp;&nbsp;&nbsp;\n");
+        
+        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Metrics_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Metrics\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS)) htmlBody.append(" checked=\"checked\" ");
+        htmlBody.append("> Metrics\n");
         
         htmlBody.append("<br><br>\n");
         
         
         // alert name
         htmlBody.append("" +
-            "<div id=\"CreateAlertSuspension_SuspendBy_AlertName_Div\">\n" +
+            "<div id=\"CreateSuspension_SuspendBy_AlertName_Div\">\n" +
             "  <div class=\"form-group\" id=\"AlertNameLookup\"> \n" +
             "    <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the name of the alert that you want to suspend.\" autocomplete=\"off\" name=\"AlertName\" id=\"AlertName\" ");
         
-        if ((alertSuspension != null) && (alertSuspension.getAlertId() != null)) {
+        if ((suspension != null) && (suspension.getAlertId() != null)) {
             AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(alertSuspension.getAlertId());
+            Alert alert = alertsDao.getAlert(suspension.getAlertId());
             
             if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
         }
@@ -277,13 +281,13 @@ public class CreateAlertSuspension extends HttpServlet {
         
         // metric group tags (inclusive)
         htmlBody.append("" +
-            "<div id=\"CreateAlertSuspension_SuspendBy_Tags_Div\">\n" +
+            "<div id=\"CreateSuspension_SuspendBy_Tags_Div\">\n" +
             "  <div class=\"form-group\"> \n" +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"For an alert to be suspended, it must be tagged with ALL of the tags listed here. " +
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsInclusive\" id=\"MetricGroupTagsInclusive\" >");
         
-        if ((alertSuspension != null) && (alertSuspension.getMetricGroupTagsInclusive() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getMetricGroupTagsInclusive()));
+        if ((suspension != null) && (suspension.getMetricGroupTagsInclusive() != null)) {
+            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricGroupTagsInclusive()));
         }
  
         htmlBody.append("" +
@@ -294,13 +298,30 @@ public class CreateAlertSuspension extends HttpServlet {
         
         // metric group tags (exclusive)
         htmlBody.append("" +
-            "<div id=\"CreateAlertSuspension_SuspendBy_Everything_Div\">\n" +
+            "<div id=\"CreateSuspension_SuspendBy_Everything_Div\">\n" +
             "  <div class=\"form-group\"> \n" +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"For an alert to be excluded from suspension, it must be tagged with ANY of the tags listed here. " +
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsExclusive\" id=\"MetricGroupTagsExclusive\" >");
         
-        if ((alertSuspension != null) && (alertSuspension.getMetricGroupTagsExclusive() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(alertSuspension.getMetricGroupTagsExclusive()));
+        if ((suspension != null) && (suspension.getMetricGroupTagsExclusive() != null)) {
+            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricGroupTagsExclusive()));
+        }
+ 
+        htmlBody.append("" +
+            "</textarea> \n" +
+            "  </div>\n" +
+            "</div>\n");
+        
+        
+        // metric suspension
+        htmlBody.append("" +
+            "<div id=\"CreateSuspension_SuspendBy_Metrics_Div\">\n" +
+            "  <div class=\"form-group\"> \n" +
+            "    <textarea class=\"form-control-statsagg\" placeholder=\" " +
+            "List one regex per line.\" rows=\"5\" name=\"MetricSuspensionRegexes\" id=\"MetricSuspensionRegexes\" >");
+        
+        if ((suspension != null) && (suspension.getMetricSuspensionRegexes() != null)) {
+            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricSuspensionRegexes()));
         }
  
         htmlBody.append("" +
@@ -327,8 +348,8 @@ public class CreateAlertSuspension extends HttpServlet {
         String startSuspensionTypeOneTime = "<input type=\"radio\" id=\"CreateAlertSuspension_Type_OneTime\" name=\"CreateAlertSuspension_Type\" value=\"OneTime\" ";
         String endSuspensionTypeOneTime = " > One Time \n";
 
-        if ((alertSuspension != null) && (alertSuspension.isOneTime() != null)) {
-            if (alertSuspension.isOneTime()) {
+        if ((suspension != null) && (suspension.isOneTime() != null)) {
+            if (suspension.isOneTime()) {
                 htmlBody.append(startSuspensionTypeRecurring).append(endSuspensionTypeRecurring)
                         .append(startSuspensionTypeOneTime).append(" checked=\"checked\" ").append(endSuspensionTypeOneTime);
             }
@@ -356,8 +377,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "    <div class=\"input-group\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
             "      <input class=\"form-control-datetime\" name=\"StartDate\" id=\"StartDate\" style=\"width:100%;\" type=\"text\" ");
         
-        if ((alertSuspension != null) && (alertSuspension.getStartDate() != null)) {
-            String startDateString = DateAndTime.getFormattedDateAndTime(alertSuspension.getStartDate(), "MM/dd/yyyy");
+        if ((suspension != null) && (suspension.getStartDate() != null)) {
+            String startDateString = DateAndTime.getFormattedDateAndTime(suspension.getStartDate(), "MM/dd/yyyy");
             htmlBody.append(" value=\"").append(startDateString).append("\"");
         }
         
@@ -377,31 +398,31 @@ public class CreateAlertSuspension extends HttpServlet {
             "    <div id=\"CreateAlertSuspension_RecurOnDays_Div\">\n");
 
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurSunday\" id=\"RecurSunday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurSunday() == null) || alertSuspension.isRecurSunday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurSunday() == null) || suspension.isRecurSunday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">S</label>\n");      
                 
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurMonday\" id=\"RecurMonday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurMonday() == null) || alertSuspension.isRecurMonday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurMonday() == null) || suspension.isRecurMonday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">M</label>\n");      
         
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurTuesday\" id=\"RecurTuesday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurTuesday() == null) || alertSuspension.isRecurTuesday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurTuesday() == null) || suspension.isRecurTuesday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">T</label>\n");      
      
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurWednesday\" id=\"RecurWednesday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurWednesday() == null) || alertSuspension.isRecurWednesday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurWednesday() == null) || suspension.isRecurWednesday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">W</label>\n");   
         
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurThursday\" id=\"RecurThursday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurThursday() == null) || alertSuspension.isRecurThursday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurThursday() == null) || suspension.isRecurThursday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">T</label>\n");   
         
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurFriday\" id=\"RecurFriday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurFriday() == null) || alertSuspension.isRecurFriday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurFriday() == null) || suspension.isRecurFriday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">F</label>\n");   
         
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurSaturday\" id=\"RecurSaturday\" type=\"checkbox\" ");
-        if ((alertSuspension == null) || ((alertSuspension.isRecurSaturday() == null) || alertSuspension.isRecurSaturday())) htmlBody.append("checked=\"checked\"");
+        if ((suspension == null) || ((suspension.isRecurSaturday() == null) || suspension.isRecurSaturday())) htmlBody.append("checked=\"checked\"");
         htmlBody.append(">S</label>\n");   
         
         htmlBody.append("</div>\n" + "</td>\n" + "</tr>\n");
@@ -417,8 +438,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "      <div class=\"input-group\" id=\"CreateAlertSuspension_DateTimePicker_StartTime_Div\" style=\"width:100%;\" > \n" +
             "        <input class=\"form-control-datetime\" name=\"StartTime\" id=\"StartTime\" style=\"width:100%;\" type=\"text\" ");
         
-        if ((alertSuspension != null) && (alertSuspension.getStartTime() != null)) {
-            String startTimeString = DateAndTime.getFormattedDateAndTime(alertSuspension.getStartTime(), "h:mm a");
+        if ((suspension != null) && (suspension.getStartTime() != null)) {
+            String startTimeString = DateAndTime.getFormattedDateAndTime(suspension.getStartTime(), "h:mm a");
             htmlBody.append(" value=\"").append(startTimeString).append("\"");
         }
   
@@ -438,8 +459,8 @@ public class CreateAlertSuspension extends HttpServlet {
             "    <div style=\" padding-top: 3px;\" id=\"CreateAlertSuspension_Duration_Div\">\n" +
             "      <div class=\"col-xs-6\"> <input class=\"form-control-statsagg\" name=\"Duration\" id=\"Duration\" ");
                     
-        if ((alertSuspension != null) && (alertSuspension.getDuration() != null)) {
-            BigDecimal duration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alertSuspension.getDuration(), alertSuspension.getDurationTimeUnit());
+        if ((suspension != null) && (suspension.getDuration() != null)) {
+            BigDecimal duration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(suspension.getDuration(), suspension.getDurationTimeUnit());
             htmlBody.append(" value=\"").append(duration.stripTrailingZeros().toPlainString()).append("\"");
         }
         htmlBody.append("></div>\n");
@@ -448,9 +469,9 @@ public class CreateAlertSuspension extends HttpServlet {
         // duration time unit
         htmlBody.append("<div class=\"col-xs-6\"> <select class=\"form-control-statsagg col-xs-6\" name=\"DurationTimeUnit\" id=\"DurationTimeUnit\">\n");
 
-        if ((alertSuspension != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(alertSuspension.getDurationTimeUnit(), true) != null)) {
+        if ((suspension != null) && (DatabaseObjectCommon.getTimeUnitStringFromCode(suspension.getDurationTimeUnit(), true) != null)) {
             String whiteSpace = "							  ";
-            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(alertSuspension.getDurationTimeUnit(), true);
+            String timeUnitString = DatabaseObjectCommon.getTimeUnitStringFromCode(suspension.getDurationTimeUnit(), true);
 
             if (timeUnitString.equalsIgnoreCase("Minutes")) htmlBody.append(whiteSpace).append("<option selected=\"selected\">Minutes</option>\n");
             else htmlBody.append(whiteSpace).append("<option>Minutes</option>\n");
@@ -497,29 +518,29 @@ public class CreateAlertSuspension extends HttpServlet {
         
         String returnString;
         
-        AlertSuspension alertSuspension = getAlertSuspensionFromRequestParameters(request);
+        AlertSuspension suspension = getSuspensionFromRequestParameters(request);
         String oldName = Common.getObjectParameter(request, "Old_Name");
         
         // insert/update/delete records in the database
-        if (alertSuspension != null) {
-            AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-            returnString = alertSuspensionsLogic.alterRecordInDatabase(alertSuspension, oldName);
+        if (suspension != null) {
+            AlertSuspensionsLogic suspensionsLogic = new AlertSuspensionsLogic();
+            returnString = suspensionsLogic.alterRecordInDatabase(suspension, oldName);
             
-            if (alertSuspensionsLogic.getLastAlterRecordStatus() == AlertSuspensionsLogic.STATUS_CODE_SUCCESS) {
-                logger.info("Running alert suspension routine");
-                com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-                alertSuspensions.runAlertSuspensionRoutine();
+            if (suspensionsLogic.getLastAlterRecordStatus() == AlertSuspensionsLogic.STATUS_CODE_SUCCESS) {
+                logger.info("Running suspension routine");
+                com.pearson.statsagg.alerts.AlertSuspensions suspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
+                suspensions.runAlertSuspensionRoutine();
             }
         }
         else {
-            returnString = "Failed to add alert suspension. Reason=\"Field validation failed.\"";
+            returnString = "Failed to add suspension. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         
         return returnString;
     }
     
-    private AlertSuspension getAlertSuspensionFromRequestParameters(Object request) {
+    private AlertSuspension getSuspensionFromRequestParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -527,7 +548,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         boolean didEncounterError = false;
         
-        AlertSuspension alertSuspension = new AlertSuspension();
+        AlertSuspension suspension = new AlertSuspension();
 
         try {
             String parameter;
@@ -535,9 +556,9 @@ public class CreateAlertSuspension extends HttpServlet {
             // column #1 parameters
             parameter = Common.getObjectParameter(request, "Name");
             String trimmedName = parameter.trim();
-            alertSuspension.setName(trimmedName);
-            alertSuspension.setUppercaseName(trimmedName.toUpperCase());
-            if ((alertSuspension.getName() == null) || alertSuspension.getName().isEmpty()) didEncounterError = true;
+            suspension.setName(trimmedName);
+            suspension.setUppercaseName(trimmedName.toUpperCase());
+            if ((suspension.getName() == null) || suspension.getName().isEmpty()) didEncounterError = true;
             
             parameter = Common.getObjectParameter(request, "Description");
             if (parameter != null) {
@@ -545,83 +566,90 @@ public class CreateAlertSuspension extends HttpServlet {
                 String description;
                 if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
                 else description = trimmedParameter;
-                alertSuspension.setDescription(description);
+                suspension.setDescription(description);
             }
-            else alertSuspension.setDescription("");
+            else suspension.setDescription("");
             
             parameter = Common.getObjectParameter(request, "Enabled");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsEnabled(true);
-            else alertSuspension.setIsEnabled(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsEnabled(true);
+            else suspension.setIsEnabled(false);
 
             parameter = Common.getObjectParameter(request, "SuspendNotificationOnly");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsSuspendNotificationOnly(true);
-            else alertSuspension.setIsSuspendNotificationOnly(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsSuspendNotificationOnly(true);
+            else suspension.setIsSuspendNotificationOnly(false);
  
             
             // column #2 parameters
-            parameter = Common.getObjectParameter(request, "CreateAlertSuspension_SuspendBy");
-            if ((parameter != null) && parameter.contains("AlertName")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
-            else if ((parameter != null) && parameter.contains("Tags")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
-            else if ((parameter != null) && parameter.contains("Everything")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
-            
+            parameter = Common.getObjectParameter(request, "CreateSuspension_SuspendBy");
+            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
+            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
+            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
+            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+
             parameter = Common.getObjectParameter(request, "AlertName");
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlertByName(parameter);
-            if (alert != null) alertSuspension.setAlertId(alert.getId());
+            if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = Common.getObjectParameter(request, "MetricGroupTagsInclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
-                alertSuspension.setMetricGroupTagsInclusive(trimmedTags);
+                suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
             
             parameter = Common.getObjectParameter(request, "MetricGroupTagsExclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
-                alertSuspension.setMetricGroupTagsExclusive(trimmedTags);
+                suspension.setMetricGroupTagsExclusive(trimmedTags);
+            }
+            
+            parameter = Common.getObjectParameter(request, "MetricSuspensionRegexes");
+            if (parameter != null) {
+                String metricSuspensionRegexes = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                suspension.setMetricSuspensionRegexes(metricSuspensionRegexes);
             }
             
             
             // column #3 parameters
             parameter = Common.getObjectParameter(request, "CreateAlertSuspension_Type");
-            if ((parameter != null) && parameter.contains("Recurring")) alertSuspension.setIsOneTime(false);
-            else if ((parameter != null) && parameter.contains("OneTime")) alertSuspension.setIsOneTime(true);
+            if ((parameter != null) && parameter.contains("Recurring")) suspension.setIsOneTime(false);
+            else if ((parameter != null) && parameter.contains("OneTime")) suspension.setIsOneTime(true);
             
             parameter = Common.getObjectParameter(request, "StartDate");
             if (parameter != null) {
                 String startDateStringTrimmed = parameter.trim();
                 Calendar startDateCalendar = DateAndTime.getCalendarFromFormattedString(startDateStringTrimmed, "MM/dd/yyyy");
                 Timestamp startDateTimestamp = new Timestamp(startDateCalendar.getTimeInMillis());
-                alertSuspension.setStartDate(startDateTimestamp);
+                suspension.setStartDate(startDateTimestamp);
             }
             
             parameter = Common.getObjectParameter(request, "RecurSunday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurSunday(true);
-            else alertSuspension.setIsRecurSunday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurSunday(true);
+            else suspension.setIsRecurSunday(false);
             
             parameter = Common.getObjectParameter(request, "RecurMonday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurMonday(true);
-            else alertSuspension.setIsRecurMonday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurMonday(true);
+            else suspension.setIsRecurMonday(false);
             
             parameter = Common.getObjectParameter(request, "RecurTuesday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurTuesday(true);
-            else alertSuspension.setIsRecurTuesday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurTuesday(true);
+            else suspension.setIsRecurTuesday(false);
             
             parameter = Common.getObjectParameter(request, "RecurWednesday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurWednesday(true);
-            else alertSuspension.setIsRecurWednesday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurWednesday(true);
+            else suspension.setIsRecurWednesday(false);
             
             parameter = Common.getObjectParameter(request, "RecurThursday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurThursday(true);
-            else alertSuspension.setIsRecurThursday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurThursday(true);
+            else suspension.setIsRecurThursday(false);
 
             parameter = Common.getObjectParameter(request, "RecurFriday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurFriday(true);
-            else alertSuspension.setIsRecurFriday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurFriday(true);
+            else suspension.setIsRecurFriday(false);
             
             parameter = Common.getObjectParameter(request, "RecurSaturday");
-            if ((parameter != null) && parameter.contains("on")) alertSuspension.setIsRecurSaturday(true);
-            else alertSuspension.setIsRecurSaturday(false);
+            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurSaturday(true);
+            else suspension.setIsRecurSaturday(false);
 
             parameter = Common.getObjectParameter(request, "StartTime");
             if (parameter != null) {
@@ -629,7 +657,7 @@ public class CreateAlertSuspension extends HttpServlet {
                 String startTimeStringTrimmedWithDate = "01/01/1970" + " " + startTimeStringTrimmed;
                 Calendar startTimeCalendar = DateAndTime.getCalendarFromFormattedString(startTimeStringTrimmedWithDate, "MM/dd/yyyy h:mm a");
                 Timestamp startTimeTimestamp = new Timestamp(startTimeCalendar.getTimeInMillis());
-                alertSuspension.setStartTime(startTimeTimestamp);
+                suspension.setStartTime(startTimeTimestamp);
             }
             
             parameter = Common.getObjectParameter(request, "DurationTimeUnit");
@@ -638,7 +666,7 @@ public class CreateAlertSuspension extends HttpServlet {
                 
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
-                    alertSuspension.setDurationTimeUnit(intValue);
+                    suspension.setDurationTimeUnit(intValue);
                 }
             }
             
@@ -648,27 +676,27 @@ public class CreateAlertSuspension extends HttpServlet {
                 
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed);
-                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alertSuspension.getDurationTimeUnit());
-                    if (timeInMs != null) alertSuspension.setDuration(timeInMs.longValue());
+                    BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, suspension.getDurationTimeUnit());
+                    if (timeInMs != null) suspension.setDuration(timeInMs.longValue());
                 }
             }
 
-            if ((alertSuspension.isOneTime() != null) && alertSuspension.isOneTime() && (alertSuspension.getDuration() != null) &&
-                    (alertSuspension.getStartDate() != null) && (alertSuspension.getStartTime() != null)) {
+            if ((suspension.isOneTime() != null) && suspension.isOneTime() && (suspension.getDuration() != null) &&
+                    (suspension.getStartDate() != null) && (suspension.getStartTime() != null)) {
                 Calendar startTime = Calendar.getInstance();
-                startTime.setTimeInMillis(alertSuspension.getStartTime().getTime());
+                startTime.setTimeInMillis(suspension.getStartTime().getTime());
                
                 Calendar startDateAndTime = Calendar.getInstance();
-                startDateAndTime.setTimeInMillis(alertSuspension.getStartDate().getTime());
+                startDateAndTime.setTimeInMillis(suspension.getStartDate().getTime());
                 startDateAndTime = DateAndTime.getCalendarWithSameDateAtDifferentTime(startDateAndTime, 
                         startTime.get(Calendar.HOUR_OF_DAY), startTime.get(Calendar.MINUTE), startTime.get(Calendar.SECOND), startTime.get(Calendar.MILLISECOND));
                 
                 Calendar deleteDateAndTime = Calendar.getInstance();
                 deleteDateAndTime.setTimeInMillis(startDateAndTime.getTimeInMillis());
-                deleteDateAndTime.add(Calendar.SECOND, (int) (alertSuspension.getDuration() / 1000));
+                deleteDateAndTime.add(Calendar.SECOND, (int) (suspension.getDuration() / 1000));
                 
                 Timestamp deleteAtTimestamp = new Timestamp(deleteDateAndTime.getTimeInMillis());
-                alertSuspension.setDeleteAtTimestamp(deleteAtTimestamp);
+                suspension.setDeleteAtTimestamp(deleteAtTimestamp);
             }
         }
         catch (Exception e) {
@@ -676,11 +704,11 @@ public class CreateAlertSuspension extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (didEncounterError) alertSuspension = null;
-        boolean isValid = AlertSuspension.isValid(alertSuspension);
-        if (!isValid) alertSuspension = null;
+        if (didEncounterError) suspension = null;
+        boolean isValid = AlertSuspension.isValid(suspension);
+        if (!isValid) suspension = null;
         
-        return alertSuspension;
+        return suspension;
     }
     
 }

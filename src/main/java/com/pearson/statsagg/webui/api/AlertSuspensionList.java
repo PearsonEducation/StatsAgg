@@ -78,7 +78,7 @@ public class AlertSuspensionList extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
             
-            alertSuspensionJson = alertSuspensionsDao.getAlertSuspension(pageNumber*pageSize, pageSize);
+            alertSuspensionJson = alertSuspensionsDao.getSuspension(pageNumber*pageSize, pageSize);
         } 
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

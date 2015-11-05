@@ -26,11 +26,13 @@ import javax.servlet.ServletContext;
 import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
@@ -156,6 +158,17 @@ public class ContextManager implements ServletContextListener {
         if (initializeDatabaseSuccess) {
             long numGaugesFromDatabase = readGaugesFromDatabaseAndAddToGlobalVariables();
             logger.info("Finished adding gauges from database to recent metric global history. NumGaugesFromDbAddedToGlobal=" + numGaugesFromDatabase);
+        }
+        
+        // load all metric-group & metric-suspension regexes into global variables
+        if (initializeDatabaseSuccess) {
+            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+            List<Integer> allMetricGroupIds = metricGroupsDao.getAllMetricGroupIds();
+            MetricAssociation.updateMergedRegexesForMetricGroups(allMetricGroupIds);
+            
+            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
+            List<Integer> allMetricSuspensionIds = alertSuspensionsDao.getSuspensionIds_BySuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            MetricAssociation.updateMergedRegexesForSuspensions(allMetricSuspensionIds);
         }
         
         // create the prefixes (added on by StatsAgg) for the various types of metrics

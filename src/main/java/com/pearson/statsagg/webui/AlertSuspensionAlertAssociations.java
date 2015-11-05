@@ -116,28 +116,28 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
     protected String getAlertSuspension_AlertAssociations(String alertSuspensionName) {
         
         if (alertSuspensionName == null) {
-            return "<b>No alert suspension specified</b>";
+            return "<b>No suspension specified</b>";
         }
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
-        if (alertSuspension == null) return "<b>Alert suspension not found</b>";
+        AlertSuspension suspension = alertSuspensionsDao.getSuspensionByName(alertSuspensionName);
+        if (suspension == null) return "<b>Suspension not found</b>";
         
         StringBuilder outputString = new StringBuilder();
 
-        outputString.append("<b>Alert Suspension Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertSuspension.getName())).append("<br>");
+        outputString.append("<b>Suspension Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(suspension.getName())).append("<br>");
 
-        Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId;
-        synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
-            alertIdAssociationsByAlertSuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsByAlertSuspensionId(GlobalVariables.alertSuspensionIdAssociationsByAlertId);
+        Map<Integer, Set<Integer>> alertIdAssociationsBySuspensionId;
+        synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
+            alertIdAssociationsBySuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
         }
         
-        if (alertIdAssociationsByAlertSuspensionId == null) {
+        if (alertIdAssociationsBySuspensionId == null) {
             outputString.append("<b>Total Alert Associations</b> = ").append("0");
             return outputString.toString();
         }
 
-        Set<Integer> alertIdAssociations = alertIdAssociationsByAlertSuspensionId.get(alertSuspension.getId());
+        Set<Integer> alertIdAssociations = alertIdAssociationsBySuspensionId.get(suspension.getId());
         if (alertIdAssociations == null) alertIdAssociations = new HashSet<>();
         
         int associationCount = alertIdAssociations.size();
@@ -160,11 +160,11 @@ public class AlertSuspensionAlertAssociations extends HttpServlet {
         
         outputString.append("<ul>");
         for (String alertName : alertNames) {
-            String alertSuspensionDetailsUrl = "<a href=\"AlertDetails?Name=" + 
+            String alertDetailsUrl = "<a href=\"AlertDetails?Name=" + 
                     StatsAggHtmlFramework.urlEncode(alertName) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
 
-            outputString.append("<li>").append(alertSuspensionDetailsUrl).append("</li>");
+            outputString.append("<li>").append(alertDetailsUrl).append("</li>");
         }
         outputString.append("</ul>");
 

@@ -47,12 +47,12 @@ public class AlertSuspensionsDaoTest {
         Timestamp endTimeTimestamp = new Timestamp(endTime.getTimeInMillis());
         
         alertSuspension1_ = new AlertSuspension(
-                -1, "AlertSuspension JUnit 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "AlertSuspension JUnit 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", "metricSuspendRegex",
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
         
         alertSuspension2_ = new AlertSuspension(
-                -1, "AlertSuspension JUnit 2", "desc", true, AlertSuspension.SUSPEND_BY_ALERT_ID, null, null, null,
+                -1, "AlertSuspension JUnit 2", "desc", true, AlertSuspension.SUSPEND_BY_ALERT_ID, null, null, null, "",
                 true, true, true, true, false, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);  
     }
@@ -60,10 +60,10 @@ public class AlertSuspensionsDaoTest {
     private static void deleteDataFromPreviousTest() {
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
         
-        AlertSuspension alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
+        AlertSuspension alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
         alertSuspensionsDao.delete(alertSuspension1);
         
-        AlertSuspension alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        AlertSuspension alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         alertSuspensionsDao.delete(alertSuspension2);
 
         alertSuspensionsDao.close();
@@ -127,13 +127,13 @@ public class AlertSuspensionsDaoTest {
         // validate the inserts were successful
         alertSuspensionsDao = new AlertSuspensionsDao(false);
         
-        AlertSuspension alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
+        AlertSuspension alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
         if (alertSuspension1.getId() == -1) fail("alertSuspension1.getId() == -1");
         else alertSuspension1.setId(-1);
         assertTrue(alertSuspension1.isEqual(alertSuspension1_));
         assertFalse(alertSuspension1.isEqual(alertSuspension2_));
         
-        AlertSuspension alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        AlertSuspension alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         if (alertSuspension2.getId() == -1) fail("alertSuspension2.getId() == -1");
         else alertSuspension2.setId(-1);
         assertFalse(alertSuspension2.isEqual(alertSuspension1_));
@@ -147,9 +147,9 @@ public class AlertSuspensionsDaoTest {
     public void testUpdate() {
         // get the records, change a value, and update the records
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-        AlertSuspension alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
+        AlertSuspension alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
         if (alertSuspension1 == null) fail("alertSuspension1 == null");
-        AlertSuspension alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        AlertSuspension alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         if (alertSuspension2 == null) fail("alertSuspension2 == null");
 
         if ((alertSuspension1 != null) && !alertSuspension1.isRecurSunday()) fail("!alertSuspension1.isRecurSunday()");
@@ -164,10 +164,10 @@ public class AlertSuspensionsDaoTest {
         
         // verify the updates
         alertSuspensionsDao = new AlertSuspensionsDao(false);
-        alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
+        alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
         assertFalse(alertSuspension1.isRecurSunday());
         
-        alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         assertFalse(alertSuspension2.isRecurMonday());
         alertSuspensionsDao.close();
     }
@@ -178,8 +178,8 @@ public class AlertSuspensionsDaoTest {
     public void testDelete() {
         // get the records & delete them
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-        AlertSuspension alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
-        AlertSuspension alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        AlertSuspension alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
+        AlertSuspension alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         
         assertTrue(alertSuspensionsDao.delete(alertSuspension1));
         assertTrue(alertSuspensionsDao.delete(alertSuspension2));
@@ -188,9 +188,9 @@ public class AlertSuspensionsDaoTest {
         
         // verify that the records were deleted
         alertSuspensionsDao = new AlertSuspensionsDao(false);
-        alertSuspension1 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension1_.getName());
+        alertSuspension1 = alertSuspensionsDao.getSuspensionByName(alertSuspension1_.getName());
         assertEquals(alertSuspension1, null);
-        alertSuspension2 = alertSuspensionsDao.getAlertSuspensionByName(alertSuspension2_.getName());
+        alertSuspension2 = alertSuspensionsDao.getSuspensionByName(alertSuspension2_.getName());
         assertEquals(alertSuspension2, null);
         alertSuspensionsDao.close();
     }

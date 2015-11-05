@@ -41,10 +41,10 @@ public class AlertSuspensionDetailsTest extends Mockito {
         Timestamp endTimeTimestamp = new Timestamp(endTime.getTimeInMillis());
         AlertSuspension mockAlertSuspension = new AlertSuspension(
         -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null,
-        "incl\ntag1\ntag2", "excl\ntag1\ntag2", true, true, true, true, true, true, true, true, true,
+        "incl\ntag1\ntag2", "excl\ntag1\ntag2", "", true, true, true, true, true, true, true, true, true,
         startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
         alertSuspensionsDao = mock(AlertSuspensionsDao.class);
-        when(alertSuspensionsDao.getAlertSuspension(21)).thenReturn(mockAlertSuspension);
+        when(alertSuspensionsDao.getSuspension(21)).thenReturn(mockAlertSuspension);
     }
     
     @After
@@ -57,7 +57,7 @@ public class AlertSuspensionDetailsTest extends Mockito {
         when(request.getParameter(Helper.id)).thenReturn("21");
 
         AlertSuspensionDetails alertSuspensionDetails = new AlertSuspensionDetails();
-        JSONObject result = alertSuspensionDetails.getAlertSuspensionDetails(request, alertSuspensionsDao);
+        JSONObject result = alertSuspensionDetails.getSuspensionDetails(request, alertSuspensionsDao);
 
         verify(request, atLeast(1)).getParameter(Helper.id);
         assertEquals("excl\ntag1\ntag2", result.get("MetricGroupTagsExclusive"));

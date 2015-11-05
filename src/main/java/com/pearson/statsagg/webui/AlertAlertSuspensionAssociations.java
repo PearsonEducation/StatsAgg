@@ -127,17 +127,17 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
         
         outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
 
-        Set<Integer> alertSuspensionIds;
-        synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
-            alertSuspensionIds = GlobalVariables.alertSuspensionIdAssociationsByAlertId.get(alert.getId());
+        Set<Integer> suspensionIds;
+        synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
+            suspensionIds = GlobalVariables.suspensionIdAssociationsByAlertId.get(alert.getId());
         }
         
-        if (alertSuspensionIds == null) {
+        if (suspensionIds == null) {
             outputString.append("<b>Total Associations</b> = ").append("0");
             return outputString.toString();
         }
 
-        int associationCount = alertSuspensionIds.size();
+        int associationCount = suspensionIds.size();
         outputString.append("<b>Total Associations</b> = ").append(associationCount).append("<br><br>");
         if (associationCount <= 0) return outputString.toString();
 
@@ -145,35 +145,35 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
 
         outputString.append("<ul>");
 
-        Map<String,String> alertSuspensionStrings = new HashMap<>();
+        Map<String,String> suspensionStrings = new HashMap<>();
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-        for (Integer alertSuspensionId : alertSuspensionIds) {
-            AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspension(alertSuspensionId);
-            if ((alertSuspension == null) || (alertSuspension.getName() == null)) continue;
+        for (Integer suspensionId : suspensionIds) {
+            AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
+            if ((suspension == null) || (suspension.getName() == null)) continue;
 
-            String alertSuspensionDetailsUrl = "<a href=\"AlertSuspensionDetails?Name=" + 
-                    StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
+            String suspensionDetailsUrl = "<a href=\"AlertSuspensionDetails?Name=" + 
+                    StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
 
-            boolean isAlertSuspensionActive = AlertSuspension.isAlertSuspensionActive(alertSuspension);
+            boolean isSuspensionActive = AlertSuspension.isSuspensionActive(suspension);
 
             StringBuilder status = new StringBuilder();
-            if (isAlertSuspensionActive) status.append("(active");
+            if (isSuspensionActive) status.append("(active");
             else status.append("(inactive");
-            if ((alertSuspension.isSuspendNotificationOnly() != null) && alertSuspension.isSuspendNotificationOnly()) status.append(", suspend notification only");
-            else if ((alertSuspension.isSuspendNotificationOnly() != null) && !alertSuspension.isSuspendNotificationOnly()) status.append(", suspend entire alert");
+            if ((suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly()) status.append(", suspend notification only");
+            else if ((suspension.isSuspendNotificationOnly() != null) && !suspension.isSuspendNotificationOnly()) status.append(", suspend entire alert");
             status.append(")");
 
-            if (isAlertSuspensionActive) alertSuspensionStrings.put(alertSuspension.getName(), "<li>" + "<b>" + alertSuspensionDetailsUrl + "&nbsp" + status.toString() + "</b>" + "</li>");
-            else alertSuspensionStrings.put(alertSuspension.getName(), "<li>" + alertSuspensionDetailsUrl + "&nbsp" + status.toString() + "</li>");
+            if (isSuspensionActive) suspensionStrings.put(suspension.getName(), "<li>" + "<b>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</b>" + "</li>");
+            else suspensionStrings.put(suspension.getName(), "<li>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</li>");
         }
         alertSuspensionsDao.close();
 
-        List<String> sortedAlertSuspensionStrings = new ArrayList<>(alertSuspensionStrings.keySet());
-        Collections.sort(sortedAlertSuspensionStrings);
+        List<String> sortedSuspensionStrings = new ArrayList<>(suspensionStrings.keySet());
+        Collections.sort(sortedSuspensionStrings);
         
-        for (String alertSuspensionString : sortedAlertSuspensionStrings) {
-            String alertSuspensionOutputString = alertSuspensionStrings.get(alertSuspensionString);
+        for (String suspensionString : sortedSuspensionStrings) {
+            String alertSuspensionOutputString = suspensionStrings.get(suspensionString);
             outputString.append(alertSuspensionOutputString);
         }
 

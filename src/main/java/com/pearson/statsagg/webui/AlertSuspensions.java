@@ -16,6 +16,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -31,7 +32,7 @@ public class AlertSuspensions extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertSuspensions.class.getName());
     
-    public static final String PAGE_NAME = "Alert Suspensions";
+    public static final String PAGE_NAME = "Suspensions";
     
         /**
      * Handles the HTTP
@@ -106,73 +107,73 @@ public class AlertSuspensions extends HttpServlet {
         if ((operation != null) && operation.equals("Enable")) {
             String name = request.getParameter("Name");
             Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
-            changeAlertSuspensionEnabled(name, isEnabled);
+            changeSuspensionEnabled(name, isEnabled);
         }
         
         if ((operation != null) && operation.equals("Clone")) {
             String name = request.getParameter("Name");
-            cloneAlertSuspension(name);
+            cloneSuspension(name);
         }
         
         if ((operation != null) && operation.equals("Remove")) {
             String name = request.getParameter("Name");
-            removeAlertSuspension(name);
+            removeSuspension(name);
         }
         
         StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertSuspensions");
     }
         
-    private void changeAlertSuspensionEnabled(String alertSuspensionName, Boolean isEnabled) {
+    private void changeSuspensionEnabled(String suspensionName, Boolean isEnabled) {
         
-        if ((alertSuspensionName == null) || (isEnabled == null)) {
+        if ((suspensionName == null) || (isEnabled == null)) {
             return;
         }
         
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
+        AlertSuspension suspension = alertSuspensionsDao.getSuspensionByName(suspensionName);
         
-        if (alertSuspension != null) {
-            alertSuspension.setIsEnabled(isEnabled);
+        if (suspension != null) {
+            suspension.setIsEnabled(isEnabled);
 
             AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-            alertSuspensionsLogic.alterRecordInDatabase(alertSuspension, alertSuspensionName);
+            alertSuspensionsLogic.alterRecordInDatabase(suspension, suspensionName);
 
             com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
             alertSuspensions.runAlertSuspensionRoutine();
         }
     }
 
-    private void cloneAlertSuspension(String alertSuspensionName) {
+    private void cloneSuspension(String suspensionName) {
         
-        if (alertSuspensionName == null) {
+        if (suspensionName == null) {
             return;
         }
         
         try {
             AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-            AlertSuspension alertSuspension = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionName);
-            List<AlertSuspension> allAlertSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
+            AlertSuspension suspension = alertSuspensionsDao.getSuspensionByName(suspensionName);
+            List<AlertSuspension> allSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
             alertSuspensionsDao.close();
 
-            if ((alertSuspension != null) && (alertSuspension.getName() != null)) {
-                Set<String> allAlertSuspensionsNames = new HashSet<>();
-                for (AlertSuspension currentAlertSuspension : allAlertSuspensions) {
-                    if (currentAlertSuspension.getName() != null) {
-                        allAlertSuspensionsNames.add(currentAlertSuspension.getName());
+            if ((suspension != null) && (suspension.getName() != null)) {
+                Set<String> allSuspensionsNames = new HashSet<>();
+                for (AlertSuspension currentSuspension : allSuspensions) {
+                    if (currentSuspension.getName() != null) {
+                        allSuspensionsNames.add(currentSuspension.getName());
                     }
                 }
                 
-                AlertSuspension clonedAlertSuspension = AlertSuspension.copy(alertSuspension);
-                clonedAlertSuspension.setId(-1);
-                String clonedAlertSuspensionName = StatsAggHtmlFramework.createCloneName(alertSuspension.getName(), allAlertSuspensionsNames);
-                clonedAlertSuspension.setName(clonedAlertSuspensionName);
-                clonedAlertSuspension.setUppercaseName(clonedAlertSuspensionName.toUpperCase());
+                AlertSuspension clonedSuspension = AlertSuspension.copy(suspension);
+                clonedSuspension.setId(-1);
+                String clonedSuspensionName = StatsAggHtmlFramework.createCloneName(suspension.getName(), allSuspensionsNames);
+                clonedSuspension.setName(clonedSuspensionName);
+                clonedSuspension.setUppercaseName(clonedSuspensionName.toUpperCase());
 
-                AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-                alertSuspensionsLogic.alterRecordInDatabase(clonedAlertSuspension);
+                AlertSuspensionsLogic suspensionsLogic = new AlertSuspensionsLogic();
+                suspensionsLogic.alterRecordInDatabase(clonedSuspension);
 
-                com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-                alertSuspensions.runAlertSuspensionRoutine();
+                com.pearson.statsagg.alerts.AlertSuspensions suspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
+                suspensions.runAlertSuspensionRoutine();
             }
         }
         catch (Exception e) {
@@ -180,18 +181,18 @@ public class AlertSuspensions extends HttpServlet {
         }
     }
     
-    public String removeAlertSuspension(String alertSuspensionName) {
+    public String removeSuspension(String suspensionName) {
         
-        if (alertSuspensionName == null) {
+        if (suspensionName == null) {
             return null;
         }
         
         String returnString = null;
-        AlertSuspensionsLogic alertSuspensionsLogic = new AlertSuspensionsLogic();
-        returnString = alertSuspensionsLogic.deleteRecordInDatabase(alertSuspensionName);
+        AlertSuspensionsLogic suspensionsLogic = new AlertSuspensionsLogic();
+        returnString = suspensionsLogic.deleteRecordInDatabase(suspensionName);
         
-        com.pearson.statsagg.alerts.AlertSuspensions alertSuspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-        alertSuspensions.runAlertSuspensionRoutine();
+        com.pearson.statsagg.alerts.AlertSuspensions suspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
+        suspensions.runAlertSuspensionRoutine();
         
         return returnString;
     }
@@ -211,13 +212,13 @@ public class AlertSuspensions extends HttpServlet {
             "  <div class=\"content-header\"> \n" +
             "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    <div class=\"pull-right \">\n" +
-            "     <a href=\"CreateAlertSuspension\" class=\"btn btn-primary statsagg_page_content_font\">Create New Alert Suspension <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
+            "     <a href=\"CreateAlertSuspension\" class=\"btn btn-primary statsagg_page_content_font\">Create New Suspension <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>\n" + 
             "  </div>\n" +   
-            "  <table id=\"AlertSuspensionsTable\" style=\"display:none\" class=\"table table-bordered table-hover\">\n" +
+            "  <table id=\"SuspensionsTable\" style=\"display:none\" class=\"table table-bordered table-hover\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
-            "         <th>Alert Suspension Name</th>\n" +
+            "         <th>Suspension Name</th>\n" +
             "         <th>Suspend By</th>\n" +
             "         <th>Suspend By Details</th>\n" +
             "         <th># Alert Associations</th>\n" +
@@ -228,35 +229,35 @@ public class AlertSuspensions extends HttpServlet {
             "     <tbody>\n");
 
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        List<AlertSuspension> alertSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
+        List<AlertSuspension> suspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
         
-        for (AlertSuspension alertSuspension : alertSuspensions) {
+        for (AlertSuspension suspension : suspensions) {
             
-            if (alertSuspension.isOneTime() && alertSuspension.getDeleteAtTimestamp() != null) {
-                if (System.currentTimeMillis() >= alertSuspension.getDeleteAtTimestamp().getTime()) continue;
+            if (suspension.isOneTime() && suspension.getDeleteAtTimestamp() != null) {
+                if (System.currentTimeMillis() >= suspension.getDeleteAtTimestamp().getTime()) continue;
             }
             
             String rowAlertStatusContext = "";
-            if (AlertSuspension.isAlertSuspensionActive(alertSuspension)) rowAlertStatusContext = "class=\"info\"";
+            if (AlertSuspension.isSuspensionActive(suspension)) rowAlertStatusContext = "class=\"info\"";
             
-            String alertSuspensionDetails = "<a href=\"AlertSuspensionDetails?Name=" + 
-                    StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertSuspension.getName()) + "</a>";
+            String suspensionDetails = "<a href=\"AlertSuspensionDetails?Name=" + 
+                    StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
             
             String suspendBy;
             StringBuilder suspendByDetails = new StringBuilder();
             
-            if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
+            if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
                 suspendBy = "Alert Name";
                 
-                if (alertSuspension.getAlertId() != null) {
+                if (suspension.getAlertId() != null) {
                     AlertsDao alertsDao = new AlertsDao();
-                    Alert alert = alertsDao.getAlert(alertSuspension.getAlertId());
+                    Alert alert = alertsDao.getAlert(suspension.getAlertId());
                     if ((alert != null) && (alert.getName() != null)) suspendByDetails.append(StatsAggHtmlFramework.htmlEncode(alert.getName()));
                 }
             }
-            else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
+            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
                 suspendBy = "Metric Group Tags";
-                List<String> tags = AlertSuspension.getMetricGroupTagStringsFromNewlineDelimitedString(alertSuspension.getMetricGroupTagsInclusive());
+                List<String> tags = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricGroupTagsInclusive(), '\n');
                 
                 if (tags != null) {
                     for (int i = 0; i < tags.size(); i++) {
@@ -265,9 +266,9 @@ public class AlertSuspensions extends HttpServlet {
                     }
                 }
             }
-            else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
+            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
                 suspendBy = "Everything";
-                List<String> tags = AlertSuspension.getMetricGroupTagStringsFromNewlineDelimitedString(alertSuspension.getMetricGroupTagsExclusive());
+                List<String> tags = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricGroupTagsExclusive(), '\n');
                 
                 if (tags != null) {
                     for (int i = 0; i < tags.size(); i++) {
@@ -275,57 +276,70 @@ public class AlertSuspensions extends HttpServlet {
                         if ((i + 1) < tags.size()) suspendByDetails.append("&nbsp;&nbsp;");
                     }
                 }
+            }
+            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS) {
+                suspendBy = "Metrics";
+                
+                Set<String> matchingMetricKeysAssociatedWithSuspension = GlobalVariables.matchingMetricKeysAssociatedWithSuspension.get(suspension.getId());
+                int matchingMetricKeysAssociatedWithSuspension_Count = 0;
+                if (matchingMetricKeysAssociatedWithSuspension != null) matchingMetricKeysAssociatedWithSuspension_Count = matchingMetricKeysAssociatedWithSuspension.size();
+            
+                String metricAssociationsLink = "<a href=\"SuspensionMetricKeyAssociations?Name=" + 
+                        StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode("# Metric Associations: " + Integer.toString(matchingMetricKeysAssociatedWithSuspension_Count)) + "</a>";
+                
+                suspendByDetails.append(metricAssociationsLink);
             }
             else {
                 suspendBy = "?";
             }
             
-            Map<Integer, Set<Integer>> alertIdAssociationsByAlertSuspensionId;
-            synchronized(GlobalVariables.alertSuspensionIdAssociationsByAlertId) {
-                alertIdAssociationsByAlertSuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsByAlertSuspensionId(GlobalVariables.alertSuspensionIdAssociationsByAlertId);
+            Map<Integer, Set<Integer>> alertIdAssociationsBySuspensionId;
+            synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
+                alertIdAssociationsBySuspensionId = com.pearson.statsagg.alerts.AlertSuspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
             }
             
-            Set<Integer> alertIdAssociations = alertIdAssociationsByAlertSuspensionId.get(alertSuspension.getId());
-            int alertSuspensionAssociationCount;
-            if (alertIdAssociations == null) alertSuspensionAssociationCount = 0;
-            else alertSuspensionAssociationCount = alertIdAssociations.size(); 
-            String associatedAlertsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">" + alertSuspensionAssociationCount + "</a>";
+            Set<Integer> alertIdAssociations = alertIdAssociationsBySuspensionId.get(suspension.getId());
+            int suspensionAssociationCount;
+            if (alertIdAssociations == null) suspensionAssociationCount = 0;
+            else suspensionAssociationCount = alertIdAssociations.size(); 
+            String associatedAlertsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + suspensionAssociationCount + "</a>";
             
             String isAlertEnabled = "No";
-            if ((alertSuspension.isEnabled() != null) && alertSuspension.isEnabled()) isAlertEnabled = "Yes";
+            if ((suspension.isEnabled() != null) && suspension.isEnabled()) isAlertEnabled = "Yes";
             
             String enable; 
-            if (alertSuspension.isEnabled()) {
+            if (suspension.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
-                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alertSuspension.getName(), "AlertSuspensions", "disable", keysAndValues);
+                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + suspension.getName(), "AlertSuspensions", "disable", keysAndValues);
             }
             else {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
+                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
-                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alertSuspension.getName(), "AlertSuspensions", "enable", keysAndValues);
+                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + suspension.getName(), "AlertSuspensions", "enable", keysAndValues);
             }
             
-            String alter = "<a href=\"CreateAlertSuspension?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertSuspension.getName()) + "\">alter</a>";
+            String alter = "<a href=\"CreateAlertSuspension?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">alter</a>";
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alertSuspension.getName(), "AlertSuspensions", "clone", cloneKeysAndValues);
+            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + suspension.getName(), "AlertSuspensions", "clone", cloneKeysAndValues);
                     
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alertSuspension.getName())));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alertSuspension.getName(), "AlertSuspensions", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this alert suspension?");
+            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + suspension.getName(), "AlertSuspensions", "remove", 
+                    removeKeysAndValues, true, "Are you sure you want to remove this suspension?");
 
             htmlBodyStringBuilder
                     .append("<tr ").append(rowAlertStatusContext).append(">\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(alertSuspensionDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(suspensionDetails).append("</td>\n")
                     .append("<td>").append(suspendBy).append("</td>\n")
                     .append("<td class=\"statsagg_force_word_break\">").append(suspendByDetails).append("</td>\n")
                     .append("<td>").append(associatedAlertsLink).append("</td>\n")

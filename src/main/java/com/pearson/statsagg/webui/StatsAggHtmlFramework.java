@@ -92,7 +92,7 @@ public class StatsAggHtmlFramework {
                 "        <a class=\"dropdown-toggle\" href=\"#\"> Alerting&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
                 "        <ul class=\"dropdown-menu dropdown-menu-right\">\n" +
                 "          <li><a href=\"Alerts\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Alerts </a></li>\n" +
-                "          <li><a href=\"AlertSuspensions\"><i class=\"fa fa-moon-o\"></i>&nbsp;&nbsp;Alert Suspensions </a></li>\n" +
+                "          <li><a href=\"AlertSuspensions\"><i class=\"fa fa-moon-o\"></i>&nbsp;&nbsp;Suspensions </a></li>\n" +
                 "          <li><a href=\"MetricGroups\"><i class=\"fa fa-align-justify\"></i>&nbsp;&nbsp;Metric Groups </a></li>\n" +
                 "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n" +
                 "        </ul> \n" +

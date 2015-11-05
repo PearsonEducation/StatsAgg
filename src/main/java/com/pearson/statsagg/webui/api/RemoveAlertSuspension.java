@@ -76,7 +76,7 @@ public class RemoveAlertSuspension extends HttpServlet {
                 alertSuspensionName = request.getParameter(Helper.name);
             }
 
-            returnString = alertSuspension.removeAlertSuspension(alertSuspensionName);
+            returnString = alertSuspension.removeSuspension(alertSuspensionName);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

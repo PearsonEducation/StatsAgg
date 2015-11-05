@@ -9,11 +9,14 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -70,8 +73,8 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
     
-        AlertSuspension alertSuspension = getAlertSuspensionFromParameters(request);
-        String alertAssociationsBody = getAlertSuspension_AlertAssociations(alertSuspension);
+        AlertSuspension suspension = getSuspensionFromParameters(request);
+        String alertAssociationsBody = getSuspension_ResponseHtml(suspension);
         
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -109,16 +112,16 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         
     }
 
-    private AlertSuspension getAlertSuspensionFromParameters(HttpServletRequest request) {
+    private AlertSuspension getSuspensionFromParameters(HttpServletRequest request) {
         
         if (request == null) {
             return null;
         }
         
-        String alertSuspensionName = "AlertSuspension Preview";
+        String suspensionName = "Suspension Preview";
         
-        AlertSuspension alertSuspension = new AlertSuspension(
-                -1, alertSuspensionName, alertSuspensionName.toUpperCase(), true, null, 1, null, null, false, true, 
+        AlertSuspension suspension = new AlertSuspension(
+                -1, suspensionName, suspensionName.toUpperCase(), true, null, 1, null, null, "", false, true, 
                 true, true, true, true, true, true, true, 
                 new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()), 
                 60000l, DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
@@ -126,43 +129,58 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         try {
             String parameter;
             
-            parameter = request.getParameter("CreateAlertSuspension_SuspendBy");
-            if ((parameter != null) && parameter.contains("AlertName")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
-            else if ((parameter != null) && parameter.contains("Tags")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
-            else if ((parameter != null) && parameter.contains("Everything")) alertSuspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
-
+            parameter = request.getParameter("CreateSuspension_SuspendBy");
+            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
+            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
+            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
+            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            
             parameter = request.getParameter("AlertName");
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlertByName(parameter);
-            if (alert != null) alertSuspension.setAlertId(alert.getId());
+            if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = request.getParameter("MetricGroupTagsInclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
-                alertSuspension.setMetricGroupTagsInclusive(trimmedTags);
+                suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
             
             parameter = request.getParameter("MetricGroupTagsExclusive");
             if (parameter != null) {
                 String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
-                alertSuspension.setMetricGroupTagsExclusive(trimmedTags);
+                suspension.setMetricGroupTagsExclusive(trimmedTags);
+            }
+            
+            parameter = request.getParameter("MetricSuspensionRegexes");
+            if (parameter != null) {
+                String trimmedRegexes = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                suspension.setMetricSuspensionRegexes(trimmedRegexes);
             }
         }
         catch (Exception e) {
-            alertSuspension = null;
+            suspension = null;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (AlertSuspension.isValid_CheckSuspendBy(alertSuspension)) return alertSuspension;
+        if (AlertSuspension.isValid_CheckSuspendBy(suspension)) return suspension;
         else return null;
     }
    
-    protected String getAlertSuspension_AlertAssociations(AlertSuspension alertSuspension) {
+    protected String getSuspension_ResponseHtml(AlertSuspension suspension) {
         
-        if (alertSuspension == null) {
-            return "<b>Invalid alert suspension specified</b>";
+        if (suspension == null) {
+            return "<b>Invalid suspension</b>";
         }
         
+        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS) return getAlertSuspension_MetricSuspensions(suspension);
+        else return "<b>Invalid suspension</b>";
+    }
+
+    private String getAlertSuspension_AlertAssociations_ResponseHtml(AlertSuspension suspension) {
         List<String> alertNames = new ArrayList<>();
         
         AlertsDao alertsDao = new AlertsDao();
@@ -173,16 +191,16 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             
             boolean outputAlert = false;
             
-            if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, alertSuspension);
+            if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
+                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
             }
-            else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, alertSuspension);
+            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
+                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
             }
-            else if (alertSuspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, alertSuspension);
+            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
+                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
             }
-            
+
             if (outputAlert) {
                 alertNames.add(alert.getName());
             }
@@ -207,5 +225,16 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
 
         return outputString.toString();
     }
-
+    
+    protected String getAlertSuspension_MetricSuspensions(AlertSuspension suspension) {
+        
+        List<String> matchRegexes = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
+        String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes);
+        
+        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, null, 1001);
+        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
+        
+        return regexMatchesHtml;
+    }
+    
 }

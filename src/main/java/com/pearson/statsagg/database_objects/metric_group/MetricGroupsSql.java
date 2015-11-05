@@ -18,7 +18,7 @@ public class MetricGroupsSql {
                     "ID INTEGER NOT NULL GENERATED ALWAYS AS IDENTITY (START WITH 1, INCREMENT BY 1), " + 
                     "NAME VARCHAR(500) NOT NULL, " + 
                     "UPPERCASE_NAME VARCHAR(500) NOT NULL, " + 
-                    "DESCRIPTION CLOB(1048576) NOT NULL" + 
+                    "DESCRIPTION CLOB(1048576) NOT NULL" +
                     ")";
     
     protected final static String CreateTable_MetricGroups_MySQL =  
@@ -44,7 +44,7 @@ public class MetricGroupsSql {
                     "ALTER TABLE METRIC_GROUPS ADD CONSTRAINT MG_U_UPPERCASE_NAME UNIQUE (" + 
                     "UPPERCASE_NAME" + 
                     ")";
-    
+
     protected final static String Select_MetricGroup_ByPrimaryKey = 
                     "SELECT * FROM METRIC_GROUPS " +
                     "WHERE ID = ?";
@@ -60,7 +60,7 @@ public class MetricGroupsSql {
     
     protected final static String Select_AllMetricGroups = 
                     "SELECT * FROM METRIC_GROUPS";
-    
+
     protected final static String Select_DistinctMetricGroupIds = 
                     "SELECT DISTINCT ID FROM METRIC_GROUPS";
     

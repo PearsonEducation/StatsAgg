@@ -900,7 +900,7 @@ public class AlertThread implements Runnable {
         
         // the alert is suspended (the entire alert, not just notifications)
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
-                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
+                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
             alert.setIsCautionAlertActive(false);
             alert.setCautionFirstActiveAt(null);
             alert.setCautionAlertLastSentTimestamp(null);
@@ -998,7 +998,7 @@ public class AlertThread implements Runnable {
         
         // the alert is suspended (the entire alert, not just notifications)
         if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
-                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.SUSPEND_ENTIRE_ALERT)) {
+                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
             alert.setIsDangerAlertActive(false);
             alert.setDangerFirstActiveAt(null);
             alert.setDangerAlertLastSentTimestamp(null);

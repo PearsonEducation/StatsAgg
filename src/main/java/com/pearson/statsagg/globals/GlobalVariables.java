@@ -6,7 +6,6 @@ import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
-import java.util.regex.Pattern;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
@@ -24,13 +23,18 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * @author Jeffrey Schmidt
  */
 public class GlobalVariables {
-
+        
+    // generic constants for use by any class that needs to use them
+    public static final Byte NEW = 1;
+    public static final Byte ALTER = 2;
+    public static final Byte REMOVE = 3;
+    
     // the prefixes (added on by StatsAgg) for the various types of metrics
     public static String graphiteAggregatedPrefix = "";
     public static String graphitePassthroughPrefix = "";
     public static String openTsdbPrefix = "";
     public static String influxdbPrefix = "";
-        
+    
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;
     
@@ -76,35 +80,41 @@ public class GlobalVariables {
     // k=MetricKey, v=MetricKey (k=v. The cleanup routine will cleanup these metrics ASAP (regardless of whether they're tracked an alert or not).
     public final static ConcurrentHashMap<String,String> immediateCleanupMetrics = new ConcurrentHashMap<>();
     
-    // k=MetricGroupId, v="codes for "New, "Remove", "Alter" 
-    public final static ConcurrentHashMap<Integer,Byte> metricGroupChanges = new ConcurrentHashMap<>();
-            
     // k=MetricKey, v="The most recent timestamp that this metric was received by this program"
     public final static ConcurrentHashMap<String,MetricKeyLastSeen> metricKeysLastSeenTimestamp = new ConcurrentHashMap<>(16, 0.75f, 6); 
+    
+    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedList(ArrayList<MetricTimestampAndValue>()))
+    public final static ConcurrentHashMap<String,List<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 
+    
+    // k=MetricGroupId, v="codes for "New", "Remove", "Alter" 
+    public final static ConcurrentHashMap<Integer,Byte> metricGroupChanges = new ConcurrentHashMap<>();
+            
+    // k=SuspensionId, v="codes for "New", "Remove", "Alter" (only applies to metric suspensions)
+    public final static ConcurrentHashMap<Integer,Byte> suspensionChanges = new ConcurrentHashMap<>();
     
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 
     
-    // k=MetricKey, v="Boolean for "is this metric key associated with ANY metric group"?
+    // k=SuspensionId, v=Set<MetricKey> "is the metric key associated with a specific suspension? only include in the set if the assocation/match is true.">
+    public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithSuspension = new ConcurrentHashMap<>(); 
+    
+    // k=MetricKey, v="Boolean for "is this metric key associated with ANY metric group"?"
     public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyMetricGroup = new ConcurrentHashMap<>(); 
     
+    // k=MetricKey, v="Boolean for "is this metric key associated with ANY suspension"?"
+    public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnySuspension = new ConcurrentHashMap<>(); 
+    
     // k=MetricGroupId, v=string representing a single, merged, match regex statement that is composed of the metric group's associated regexes
-    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexesForMetricGroups = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexesByMetricGroupId = new ConcurrentHashMap<>(); 
 
-    // k=MetricSuspensionId, v=List<"MetricKeys that are suspended by a metric-suspension">
-    public final static ConcurrentHashMap<Integer,Set<String>> suspendedMetricKeys = new ConcurrentHashMap<>(); 
-    
+    // k=SuspensionId, v=string representing a single, merged, match regex statement that is composed of the suspensions's associated regexes
+    public final static ConcurrentHashMap<Integer,String> mergedMatchRegexesBySuspensionId = new ConcurrentHashMap<>(); 
+
     // k=MetricGroupId, v=string representing a single, merged, blacklist regex statement that is composed of the metric group's associated regexes
-    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexesForMetricGroups = new ConcurrentHashMap<>(); 
+    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexesByMetricGroupId = new ConcurrentHashMap<>(); 
     
-    // k=MetricKey, v=List<MetricTimestampAndValue> (should be -- synchronizedList(ArrayList<MetricTimestampAndValue>()))
-    public final static ConcurrentHashMap<String,List<MetricTimestampAndValue>> recentMetricTimestampsAndValuesByMetricKey = new ConcurrentHashMap<>(16, 0.75f, 6); 
-
-    // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern compiled pattern. This is a cache for compiled regex patterns."
-    public final static ConcurrentHashMap<String,Pattern> metricGroupRegexPatterns = new ConcurrentHashMap<>(); 
-    
-    // k=MetricGroupRegex-pattern, v="MetricGroupRegex-pattern. If a regex pattern is bad (doesn't compile), then it is stored here so we don't try to recompile it."
-    public final static ConcurrentHashMap<String,String> metricGroupRegexBlacklist = new ConcurrentHashMap<>(); 
+    // k=SuspensionId, v=string representing a single, merged, blacklist regex statement that is composed of the suspension's associated regexes
+    public final static ConcurrentHashMap<Integer,String> mergedBlacklistRegexesBySuspensionId = new ConcurrentHashMap<>(); 
     
     // k=AlertId, v=MetricKey
     public final static ConcurrentHashMap<Integer,List<String>> activeCautionAlertMetricKeysByAlertId = new ConcurrentHashMap<>(); 
@@ -136,11 +146,14 @@ public class GlobalVariables {
     // k=AlertId, v='is alert suspended (as of last alert routine run)?'
     public final static ConcurrentHashMap<Integer,Boolean> alertSuspensionStatusByAlertId = new ConcurrentHashMap<>();
     
-    // k=AlertId, v=alert suspension ids that are currently associated with a specific alert
-    public final static ConcurrentHashMap<Integer,Set<Integer>> alertSuspensionIdAssociationsByAlertId = new ConcurrentHashMap<>();
+    // k=AlertId, v=suspension ids that are currently associated with a specific alert
+    public final static ConcurrentHashMap<Integer,Set<Integer>> suspensionIdAssociationsByAlertId = new ConcurrentHashMap<>();
     
-    // k=AlertId, v=the alert suspension level (ALERT_NOT_SUSPENDED, SUSPEND_ALERT_NOTIFICATION_ONLY, SUSPEND_ENTIRE_ALERT)
+    // k=AlertId, v=the alert suspension level (LEVEL_ALERT_NOT_SUSPENDED, LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY, LEVEL_SUSPEND_ENTIRE_ALERT)
     public final static ConcurrentHashMap<Integer,Integer> alertSuspensionLevelsByAlertId = new ConcurrentHashMap<>();
+    
+    // k=MetricKey, v=MetricKey -- k=v, "the set of metric keys that are currently suspended"
+    public final static ConcurrentHashMap<String,String> suspendedMetricKeys = new ConcurrentHashMap<>();
     
     // The timestamp of the last time the alert routine finished executing. This variable does not persist across application restarts.
     public final static AtomicLong alertRountineLastExecutedTimestamp = new AtomicLong(0);

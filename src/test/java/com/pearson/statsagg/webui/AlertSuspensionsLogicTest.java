@@ -74,14 +74,14 @@ public class AlertSuspensionsLogicTest {
         
         // create & insert a AlertSuspension, insert it into the db, retrieve it from the db, & compare the original & retrieved records
         AlertSuspension alertSuspension1 = new AlertSuspension(
-                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", "",
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
          
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspension1);
         assertTrue(result.contains("Success"));
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension1FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension1FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertTrue(alertSuspension1FromDb.getName().contains("alertSuspension junit name 1"));
         assertTrue(alertSuspension1FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2"));
         
@@ -91,29 +91,29 @@ public class AlertSuspensionsLogicTest {
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspension1FromDb, alertSuspension1FromDb.getName());
         assertTrue(result.contains("Success"));
         alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension2FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension2FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertTrue(alertSuspension2FromDb.getName().contains("alertSuspension junit name 1"));
         assertTrue(alertSuspension2FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2\ntag3"));
         
         result = alertSuspensionsLogic_.deleteRecordInDatabase("alertSuspension junit fake 1");
         assertTrue(result.contains("Cancelling"));
         alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension3FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension3FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertTrue(alertSuspension3FromDb.getName().contains("alertSuspension junit name 1"));
         
         // test altering alert suspension name
         alertSuspensionsDao = new AlertSuspensionsDao(false);
-        AlertSuspension alertSuspensionFromDbOriginalName = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1"); // pt1
+        AlertSuspension alertSuspensionFromDbOriginalName = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1"); // pt1
         assertTrue(alertSuspensionFromDbOriginalName.getName().contains("alertSuspension junit name 1"));
         AlertSuspension alertSuspensionFromDbNewName = AlertSuspension.copy(alertSuspensionFromDbOriginalName);
         alertSuspensionFromDbNewName.setName("alertSuspension junit name 11");
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspensionFromDbNewName, alertSuspensionFromDbNewName.getName());
         assertTrue(result.contains("Successful"));
-        AlertSuspension alertSuspensionFromDbNewNameVerify = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionFromDbNewName.getName()); // pt2
+        AlertSuspension alertSuspensionFromDbNewNameVerify = alertSuspensionsDao.getSuspensionByName(alertSuspensionFromDbNewName.getName()); // pt2
         assertTrue(alertSuspensionFromDbNewNameVerify.getName().contains(alertSuspensionFromDbNewName.getName()));
         assertFalse(alertSuspensionFromDbNewNameVerify.getName().equals(alertSuspensionFromDbOriginalName.getName()));
         assertEquals(alertSuspensionFromDbOriginalName.getId(), alertSuspensionFromDbNewNameVerify.getId());
-        AlertSuspension alertSuspensionFromDbOriginalName_NoResult = alertSuspensionsDao.getAlertSuspensionByName(alertSuspensionFromDbOriginalName.getName()); // pt3
+        AlertSuspension alertSuspensionFromDbOriginalName_NoResult = alertSuspensionsDao.getSuspensionByName(alertSuspensionFromDbOriginalName.getName()); // pt3
         assertEquals(alertSuspensionFromDbOriginalName_NoResult, null);
         AlertSuspension alertSuspensionFromDbOriginalName_Reset = AlertSuspension.copy(alertSuspensionFromDbOriginalName); // pt4
         alertSuspensionFromDbOriginalName_Reset.setName(alertSuspensionFromDbOriginalName.getName());  
@@ -124,7 +124,7 @@ public class AlertSuspensionsLogicTest {
         result = alertSuspensionsLogic_.deleteRecordInDatabase("alertSuspension junit name 1");
         assertTrue(result.contains("success"));
         alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension4FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension4FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertEquals(null, alertSuspension4FromDb);
     }
 
@@ -146,21 +146,21 @@ public class AlertSuspensionsLogicTest {
         
         // create & insert a AlertSuspension, insert it into the db, retrieve it from the db, & compare the original & retrieved records
         AlertSuspension alertSuspension1 = new AlertSuspension(
-                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", 
+                -1, "alertSuspension junit name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, null, "incl\ntag1\ntag2", "excl\ntag1\ntag2", "",
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
         
         result = alertSuspensionsLogic_.alterRecordInDatabase(alertSuspension1);
         assertTrue(result.contains("Success"));
         AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension1FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension1FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertTrue(alertSuspension1FromDb.getName().contains("alertSuspension junit name 1"));
         assertTrue(alertSuspension1FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2"));
         
         result = alertSuspensionsLogic_.deleteRecordInDatabase("alertSuspension junit name 1");
         assertTrue(result.contains("success"));
         alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension alertSuspension2FromDb = alertSuspensionsDao.getAlertSuspensionByName("alertSuspension junit name 1");
+        AlertSuspension alertSuspension2FromDb = alertSuspensionsDao.getSuspensionByName("alertSuspension junit name 1");
         assertEquals(null, alertSuspension2FromDb);
         
         result = alertSuspensionsLogic_.deleteRecordInDatabase("alertSuspension junit fake 1");

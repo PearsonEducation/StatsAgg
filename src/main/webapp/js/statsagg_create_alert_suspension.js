@@ -1,17 +1,19 @@
 function generateAlertSuspensionAssociationsPreviewLink() {
 
     var SuspendByParameter;
-    if (document.getElementById("CreateAlertSuspension_SuspendBy_AlertName_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("AlertName");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Tags_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Tags");
-    else if (document.getElementById("CreateAlertSuspension_SuspendBy_Everything_Radio").checked === true) SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("Everything");
-    else SuspendByParameter = "CreateAlertSuspension_SuspendBy=" + encodeURIComponent("undefined");
+    if (document.getElementById("CreateSuspension_SuspendBy_AlertName_Radio").checked === true) SuspendByParameter = "CreateSuspension_SuspendBy=" + encodeURIComponent("AlertName");
+    else if (document.getElementById("CreateSuspension_SuspendBy_Tags_Radio").checked === true) SuspendByParameter = "CreateSuspension_SuspendBy=" + encodeURIComponent("Tags");
+    else if (document.getElementById("CreateSuspension_SuspendBy_Everything_Radio").checked === true) SuspendByParameter = "CreateSuspension_SuspendBy=" + encodeURIComponent("Everything");
+    else if (document.getElementById("CreateSuspension_SuspendBy_Metrics_Radio").checked === true) SuspendByParameter = "CreateSuspension_SuspendBy=" + encodeURIComponent("Metrics");
+    else SuspendByParameter = "CreateSuspension_SuspendBy=" + encodeURIComponent("undefined");
 
     var AlertNameParameter = "AlertName=" + encodeURIComponent(document.getElementById("AlertName").value);
     var MetricGroupTagsInclusiveParameter = "MetricGroupTagsInclusive=" + encodeURIComponent(document.getElementById("MetricGroupTagsInclusive").value);
     var MetricGroupTagsExclusiveParameter = "MetricGroupTagsExclusive=" + encodeURIComponent(document.getElementById("MetricGroupTagsExclusive").value);
+    var MetricSuspensionRegexesParameter = "MetricSuspensionRegexes=" + encodeURIComponent(document.getElementById("MetricSuspensionRegexes").value);
 
-    var uriEncodedLink = "AlertSuspensionAlertAssociationsPreview?" + SuspendByParameter + "&" +
-            AlertNameParameter + "&" + MetricGroupTagsInclusiveParameter + "&" + MetricGroupTagsExclusiveParameter;
+    var uriEncodedLink = "AlertSuspensionAlertAssociationsPreview?" + SuspendByParameter + "&" + AlertNameParameter + "&" + 
+            MetricGroupTagsInclusiveParameter + "&" + MetricGroupTagsExclusiveParameter + "&" + MetricSuspensionRegexesParameter;
 
     document.getElementById("AlertSuspensionAlertAssociationsPreview").setAttribute("href", uriEncodedLink);
 }
@@ -76,34 +78,44 @@ function CreateAlertSuspension_Type_ShowAndHide() {
 
 // On page load for 'CreateAlertSuspension', show and hide certain UI elements for 'suspend by'
 $(document).ready(function () {
-    CreateAlertSuspension_SuspendBy_ShowAndHide();
+    CreateSuspension_SuspendBy_ShowAndHide();
 });
 
 // On changing the 'suspend by' radio buttons 'CreateAlertSuspension', show and hide certain UI elements
 $("input[type=radio]").change(function () {
-    CreateAlertSuspension_SuspendBy_ShowAndHide();
+    CreateSuspension_SuspendBy_ShowAndHide();
 });
 
-function CreateAlertSuspension_SuspendBy_ShowAndHide() {
-    if ($("#CreateAlertSuspension_SuspendBy_AlertName_Radio").prop('checked') === true) {
-        $("#CreateAlertSuspension_SuspendBy_AlertName_Div").show();
-        $("#CreateAlertSuspension_SuspendBy_Tags_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Everything_Div").hide();
+function CreateSuspension_SuspendBy_ShowAndHide() {
+    if ($("#CreateSuspension_SuspendBy_AlertName_Radio").prop('checked') === true) {
+        $("#CreateSuspension_SuspendBy_AlertName_Div").show();
+        $("#CreateSuspension_SuspendBy_Tags_Div").hide();
+        $("#CreateSuspension_SuspendBy_Everything_Div").hide();
+        $("#CreateSuspension_SuspendBy_Metrics_Div").hide();
     }
-    else if ($("#CreateAlertSuspension_SuspendBy_Tags_Radio").prop('checked') === true) {
-        $("#CreateAlertSuspension_SuspendBy_AlertName_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Tags_Div").show();
-        $("#CreateAlertSuspension_SuspendBy_Everything_Div").hide();
+    else if ($("#CreateSuspension_SuspendBy_Tags_Radio").prop('checked') === true) {
+        $("#CreateSuspension_SuspendBy_AlertName_Div").hide();
+        $("#CreateSuspension_SuspendBy_Tags_Div").show();
+        $("#CreateSuspension_SuspendBy_Everything_Div").hide();
+        $("#CreateSuspension_SuspendBy_Metrics_Div").hide();
     }
-    else if ($("#CreateAlertSuspension_SuspendBy_Everything_Radio").prop('checked') === true) {
-        $("#CreateAlertSuspension_SuspendBy_AlertName_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Tags_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Everything_Div").show();
+    else if ($("#CreateSuspension_SuspendBy_Everything_Radio").prop('checked') === true) {
+        $("#CreateSuspension_SuspendBy_AlertName_Div").hide();
+        $("#CreateSuspension_SuspendBy_Tags_Div").hide();
+        $("#CreateSuspension_SuspendBy_Everything_Div").show();
+        $("#CreateSuspension_SuspendBy_Metrics_Div").hide();
+    }
+    else if ($("#CreateSuspension_SuspendBy_Metrics_Radio").prop('checked') === true) {
+        $("#CreateSuspension_SuspendBy_AlertName_Div").hide();
+        $("#CreateSuspension_SuspendBy_Tags_Div").hide();
+        $("#CreateSuspension_SuspendBy_Everything_Div").hide();
+        $("#CreateSuspension_SuspendBy_Metrics_Div").show();
     }
     else {
-        $("#CreateAlertSuspension_SuspendBy_AlertName_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Tags_Div").hide();
-        $("#CreateAlertSuspension_SuspendBy_Everything_Div").hide();
+        $("#CreateSuspension_SuspendBy_AlertName_Div").hide();
+        $("#CreateSuspension_SuspendBy_Tags_Div").hide();
+        $("#CreateSuspension_SuspendBy_Everything_Div").hide();
+        $("#CreateSuspension_SuspendBy_Metrics_Div").hide();
     }
 }
 

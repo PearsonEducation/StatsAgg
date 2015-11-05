@@ -1,5 +1,7 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -15,7 +17,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import com.pearson.statsagg.utilities.Threads;
-import com.pearson.statsagg.webui.MetricGroupsLogic;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +31,12 @@ public class MetricAssociation {
 
     private static final byte REGEX_TYPE_BLACKLIST = 1;
     private static final byte REGEX_TYPE_MATCH = 2;
+    
+    // k=Regex_String, v="Regex compiled pattern. This is a cache for compiled regex patterns."
+    private final static ConcurrentHashMap<String,Pattern> regexPatterns = new ConcurrentHashMap<>(); 
+    
+    // k=Regex_String, v="Regex_String. If a regex pattern is bad (doesn't compile), then it is stored here so we don't try to recompile it."
+    private final static ConcurrentHashMap<String,String> regexBlacklist = new ConcurrentHashMap<>(); 
     
     public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning = new AtomicBoolean(false);
     public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating = new AtomicBoolean(false);
@@ -44,117 +52,364 @@ public class MetricAssociation {
         //  wait until the the cleanup thread is done running
         if (CleanupThread.isCleanupThreadCurrentlyRunning.get()) Threads.sleepMilliseconds(50, false);
         
+        // set a flag to indicate that the metric association routine is running -- prevents other threads from running at the same time
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
-        List<Integer> metricGroupIds = applyMetricGroupGlobalVariableChanges();
-        IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
         
-        updateMergedRegexesForMetricGroups(metricGroupIds);
+        List<Integer> allMetricGroupIds = getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups();
+        List<Integer> allMetricSuspensionIds = getMetricSuspensionIds_And_AssociateMetricKeysWithNewOrAlteredSuspensions();
+
+        // run the association routine against all metric-groups/metric-suspensions/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
+        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
+            ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
+            if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) continue;
+                    
+            associateMetricKeyWithIds(metricKey, allMetricGroupIds, 
+                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup, 
+                    GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId);
+
+            associateMetricKeyWithIds(metricKey, allMetricSuspensionIds, 
+                    GlobalVariables.matchingMetricKeysAssociatedWithSuspension, GlobalVariables.metricKeysAssociatedWithAnySuspension, 
+                    GlobalVariables.mergedMatchRegexesBySuspensionId, GlobalVariables.mergedBlacklistRegexesBySuspensionId);
+        }
         
-        // run the association routine against all metric-groups/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
-        IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
-        Set<String> metricKeys = GlobalVariables.metricKeysLastSeenTimestamp.keySet();
-        for (String metricKey : metricKeys) associateMetricKeyWithMetricGroups(metricKey, metricGroupIds);
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
 
         IsMetricAssociationRoutineCurrentlyRunning.set(false);
     }
-
-    // update global variables for the case of a metric group being newly added, altered, or removed
-    // returns the current/active set of metric-group ids
-    private static List<Integer> applyMetricGroupGlobalVariableChanges() {
+    
+    private static List<Integer> getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups() {
         
-        List<Integer> allMetricGroupIds;
-        List<Integer> newAndAlteredMetricGroupIds = new ArrayList<>();
         List<String> metricsToReassociateWithAlteredMetricGroups = new ArrayList<>();
-        
+        List<Integer> newAndAlteredMetricGroupIds = new ArrayList<>();
+        List<Integer> allMetricGroupIds;
+
         synchronized(GlobalVariables.metricGroupChanges) {
-            Set<Integer> metricGroupIdsLocal_MetricGroupsChanging = new HashSet<>(GlobalVariables.metricGroupChanges.keySet());
-
-            for (Integer metricGroupId : metricGroupIdsLocal_MetricGroupsChanging) {
-                Byte metricGroupChangeCode = GlobalVariables.metricGroupChanges.get(metricGroupId);
-
-                if ((metricGroupChangeCode != null) && metricGroupChangeCode.equals(MetricGroupsLogic.NEW)) {
-                    newAndAlteredMetricGroupIds.add(metricGroupId);
-                }
-                else if ((metricGroupChangeCode != null) && metricGroupChangeCode.equals(MetricGroupsLogic.ALTER)) {
-                    Set<String> metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated = getMetricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated(metricGroupId);
-
-                    for (String metricKey : metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated) {
-                        GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
-                        metricsToReassociateWithAlteredMetricGroups.add(metricKey);
-                    }
-
-                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
-                    GlobalVariables.mergedMatchRegexesForMetricGroups.remove(metricGroupId);
-                    GlobalVariables.mergedBlacklistRegexesForMetricGroups.remove(metricGroupId);
-                    newAndAlteredMetricGroupIds.add(metricGroupId);
-                }
-                else if ((metricGroupChangeCode != null) && metricGroupChangeCode.equals(MetricGroupsLogic.REMOVE)) {
-                    Set<String> metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated = getMetricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated(metricGroupId);
-                    for (String metricKey : metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated) GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.put(metricKey, false);
-                    
-                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.remove(metricGroupId);
-                    GlobalVariables.mergedMatchRegexesForMetricGroups.remove(metricGroupId);
-                    GlobalVariables.mergedBlacklistRegexesForMetricGroups.remove(metricGroupId);
-                }
-                
-                GlobalVariables.metricGroupChanges.remove(metricGroupId);
-            }
+            associateMetricKeysWithNewOrAlteredIds_DetectChanges(GlobalVariables.metricGroupChanges, 
+                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup, 
+                    GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId,
+                    newAndAlteredMetricGroupIds, metricsToReassociateWithAlteredMetricGroups);
             
             updateMergedRegexesForMetricGroups(newAndAlteredMetricGroupIds);
             
-            MetricGroupsDao metricGrouspDao = new MetricGroupsDao();
-            allMetricGroupIds = metricGrouspDao.getAllMetricGroupIds();
+            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+            allMetricGroupIds = metricGroupsDao.getAllMetricGroupIds();
             if (allMetricGroupIds == null) {
-                logger.error("Failure reading metric group ids from the database. Aborting metric association routine.");
+                logger.error("Failure reading metric group ids from the database.");
                 allMetricGroupIds = new ArrayList<>();
             }
         }
         
-        // doing metric-group associations for new metric groups outside of the synchronized block to avoid holding the lock on GlobalVariables.metricGroupChanges for too long
+        associateMetricKeysWithNewOrAlteredIds_AssociateMetrics(GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup,
+                GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId,
+                newAndAlteredMetricGroupIds, metricsToReassociateWithAlteredMetricGroups);
+            
+        return allMetricGroupIds;
+    }
+
+    private static List<Integer> getMetricSuspensionIds_And_AssociateMetricKeysWithNewOrAlteredSuspensions() {
+        
+        List<String> metricsToReassociateWithAlteredSuspensions = new ArrayList<>();
+        List<Integer> newAndAlteredSuspensionIds = new ArrayList<>();
+        List<Integer> allMetricSuspensionIds;
+
+        synchronized(GlobalVariables.suspensionChanges) {
+            associateMetricKeysWithNewOrAlteredIds_DetectChanges(GlobalVariables.suspensionChanges, 
+                    GlobalVariables.matchingMetricKeysAssociatedWithSuspension, GlobalVariables.metricKeysAssociatedWithAnySuspension, 
+                    GlobalVariables.mergedMatchRegexesBySuspensionId, GlobalVariables.mergedBlacklistRegexesBySuspensionId,
+                    newAndAlteredSuspensionIds, metricsToReassociateWithAlteredSuspensions);
+
+            updateMergedRegexesForSuspensions(newAndAlteredSuspensionIds);
+
+            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
+            allMetricSuspensionIds = alertSuspensionsDao.getSuspensionIds_BySuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            if (allMetricSuspensionIds == null) {
+                logger.error("Failure reading metric suspension ids from the database.");
+                allMetricSuspensionIds = new ArrayList<>();
+            }
+        }
+        
+        associateMetricKeysWithNewOrAlteredIds_AssociateMetrics(GlobalVariables.matchingMetricKeysAssociatedWithSuspension, GlobalVariables.metricKeysAssociatedWithAnySuspension,
+                GlobalVariables.mergedMatchRegexesBySuspensionId, GlobalVariables.mergedBlacklistRegexesBySuspensionId,
+                newAndAlteredSuspensionIds, metricsToReassociateWithAlteredSuspensions);
+            
+        return allMetricSuspensionIds;
+    }
+    
+    // update global variables for the case of a suspension or metric-group being newly added, altered, or removed
+    // 'id' refers to either metric-group id or suspension id
+    // a list of ids that are new or have been altered is written to 'newAndAlteredIds'
+    // a set of metrics to reassociate with ids that are new or altered is written to 'metricsToReassociateWithAlteredIds'
+    private static void associateMetricKeysWithNewOrAlteredIds_DetectChanges(
+            ConcurrentHashMap<Integer,Byte> changesById,
+            ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId, ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyId,
+            ConcurrentHashMap<Integer,String> mergedMatchRegexesById, ConcurrentHashMap<Integer,String> mergedBlacklistRegexesById,
+            List<Integer> newAndAlteredIds, List<String> metricsToReassociateWithAlteredIds) {
+        
+        Set<Integer> changeIds_Local = new HashSet<>(changesById.keySet());
+
+        for (Integer id : changeIds_Local) {
+            Byte changeCode = changesById.get(id);
+
+            if ((changeCode != null) && changeCode.equals(GlobalVariables.NEW)) {
+                newAndAlteredIds.add(id);
+            }
+            else if ((changeCode != null) && changeCode.equals(GlobalVariables.ALTER)) {
+                Set<String> metricKeysWhereThisIdIsTheOnlyIdAssociated = getMetricKeysWhereThisIdIsTheOnlyIdAssociated(id, matchingMetricKeysAssociatedWithId);
+
+                for (String metricKey : metricKeysWhereThisIdIsTheOnlyIdAssociated) {
+                    metricKeysAssociatedWithAnyId.remove(metricKey);
+                    metricsToReassociateWithAlteredIds.add(metricKey);
+                }
+
+                matchingMetricKeysAssociatedWithId.remove(id);
+                mergedMatchRegexesById.remove(id);
+                mergedBlacklistRegexesById.remove(id);
+                newAndAlteredIds.add(id);
+            }
+            else if ((changeCode != null) && changeCode.equals(GlobalVariables.REMOVE)) {
+                Set<String> metricKeysWhereThisIdIsTheOnlyIdAssociated = getMetricKeysWhereThisIdIsTheOnlyIdAssociated(id, matchingMetricKeysAssociatedWithId);
+                for (String metricKey : metricKeysWhereThisIdIsTheOnlyIdAssociated) metricKeysAssociatedWithAnyId.put(metricKey, false);
+
+                matchingMetricKeysAssociatedWithId.remove(id);
+                mergedMatchRegexesById.remove(id);
+                mergedBlacklistRegexesById.remove(id);
+            }
+
+            changesById.remove(id);
+        }
+        
+    }
+    
+    private static void associateMetricKeysWithNewOrAlteredIds_AssociateMetrics(
+            ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId, ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyId,
+            ConcurrentHashMap<Integer,String> mergedMatchRegexesById, ConcurrentHashMap<Integer,String> mergedBlacklistRegexesById,
+            List<Integer> newAndAlteredIds, List<String> metricsToReassociateWithAlteredIds) {
+        
         // only run the association routine against metrics that have already been through the association routine before
-        for (Integer metricGroupId : newAndAlteredMetricGroupIds) {
-            for (String metricKey : GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.keySet()) associateMetricKeyWithMetricGroups(metricKey, metricGroupId);
-            for (String metricKey : metricsToReassociateWithAlteredMetricGroups) associateMetricKeyWithMetricGroups(metricKey, metricGroupId);
+        for (Integer id : newAndAlteredIds) {
+            for (String metricKey : metricKeysAssociatedWithAnyId.keySet()) {
+                associateMetricKeyWithId(metricKey, id, matchingMetricKeysAssociatedWithId, mergedMatchRegexesById, mergedBlacklistRegexesById);
+            }
             
-            Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-            if (matchingMetricKeyAssociationWithMetricGroup == null) continue;
-            
-            synchronized(matchingMetricKeyAssociationWithMetricGroup) {
-                for (String metricKey : matchingMetricKeyAssociationWithMetricGroup) {
-                    GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.put(metricKey, true);
+            for (String metricKey : metricsToReassociateWithAlteredIds) {
+                associateMetricKeyWithId(metricKey, id, matchingMetricKeysAssociatedWithId, mergedMatchRegexesById, mergedBlacklistRegexesById);
+            }
+
+            Set<String> matchingMetricKeyAssociatedWithId = matchingMetricKeysAssociatedWithId.get(id);
+            if (matchingMetricKeyAssociatedWithId == null) continue;
+
+            synchronized (matchingMetricKeyAssociatedWithId) {
+                for (String metricKey : matchingMetricKeyAssociatedWithId) {
+                    metricKeysAssociatedWithAnyId.put(metricKey, true);
                 }
             }
         }
         
-        return allMetricGroupIds;
+    }
+    
+    /*
+     For a specific id (suspension id or metric-group id), return the set of metric-keys where the metrics-keys are ONLY associated with this particular id.
+    */
+    private static Set<String> getMetricKeysWhereThisIdIsTheOnlyIdAssociated(Integer id, ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId) {
+                
+        try {
+            Set<String> metricKeysWhereThisIdIsTheOnlyIdAssociated;
+            Set<String> matchingMetricKeys = matchingMetricKeysAssociatedWithId.get(id);
+
+            if (matchingMetricKeys != null) {
+                synchronized(matchingMetricKeys) {
+                    metricKeysWhereThisIdIsTheOnlyIdAssociated = new HashSet<>(matchingMetricKeys);
+                }
+            }
+            else metricKeysWhereThisIdIsTheOnlyIdAssociated = new HashSet<>();
+
+            if (!metricKeysWhereThisIdIsTheOnlyIdAssociated.isEmpty()) {
+                for (Integer currentId : matchingMetricKeysAssociatedWithId.keySet()) {
+                    if (id.equals(currentId)) continue;
+
+                    Set<String> currentMatchingMetricKeysAssociatedWithId = matchingMetricKeysAssociatedWithId.get(currentId);
+                    if (currentMatchingMetricKeysAssociatedWithId == null) continue;
+
+                    synchronized(currentMatchingMetricKeysAssociatedWithId) {
+                        for (String metricKey : currentMatchingMetricKeysAssociatedWithId) {
+                            metricKeysWhereThisIdIsTheOnlyIdAssociated.remove(metricKey);
+                        }
+                    }
+                }
+            }
+
+            return metricKeysWhereThisIdIsTheOnlyIdAssociated;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return new HashSet<>();
+        }
     }
 
-    // update GlobalVariables.mergedMatchRegexesForMetricGroups & GlobalVariables.mergedBlacklistRegexesForMetricGroups with the latest merged regexes
-    private static void updateMergedRegexesForMetricGroups(List<Integer> metricGroupIds) {
+    /*
+     For a specific id (suspension id or metric-group id), determine if this metric key is associated with it. 
+     If the association is true, then the association is cached in "matchingMetricKeysAssociatedWithId".
+    */
+    private static void associateMetricKeyWithId(String metricKey, Integer id, 
+            ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId,
+            ConcurrentHashMap<Integer,String> mergedMatchRegexesById,
+            ConcurrentHashMap<Integer,String> mergedBlacklistRegexesById) {
+
+        ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
+        if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) return;
+        
+        try {
+            String matchRegex = mergedMatchRegexesById.get(id);
+            if (matchRegex == null) return;
+
+            Pattern matchPattern = getPatternFromRegexString(matchRegex);
+
+            if (matchPattern != null) {
+                Matcher matchMatcher = matchPattern.matcher(metricKey);
+                boolean isMatchRegexMatch = matchMatcher.matches();
+                boolean isMetricKeyAssociatedWithId = false;
+
+                if (isMatchRegexMatch) {
+                    String blacklistRegex = mergedBlacklistRegexesById.get(id);
+                    Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
+
+                    if (blacklistPattern != null) {
+                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
+                        boolean isBlacklistRegexMatch = blacklistMatcher.matches();
+                        if (!isBlacklistRegexMatch) isMetricKeyAssociatedWithId = true;
+                    }
+                    else isMetricKeyAssociatedWithId = true;
+                }
+
+                if (isMetricKeyAssociatedWithId) {
+                    Set<String> matchingMetricKeyAssociations = matchingMetricKeysAssociatedWithId.get(id);
+
+                    if (matchingMetricKeyAssociations == null) {
+                        matchingMetricKeyAssociations = new HashSet<>();
+                        matchingMetricKeysAssociatedWithId.put(id, Collections.synchronizedSet(matchingMetricKeyAssociations));
+                    }
+
+                    matchingMetricKeyAssociations.add(metricKey);
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+    }
+    
+    /*
+     This method performs two tasks. 
+     Task 1: Determines if a metric key is associated with ANY id (where id is either a suspension id or a metric-group id). 
+             The boolean value of this determination is returned & is stored in 'metricKeysAssociatedWithAnyId'.
+     Task 2: For every id (where id is either a suspension id or a metric-group id), determine if this metric key is associated with it. 
+             If the association is true, then the association is cached in 'matchingMetricKeysAssociatedWithId'.
+     */
+    private static void associateMetricKeyWithIds(String metricKey, List<Integer> ids,
+            ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId,
+            ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyId,
+            ConcurrentHashMap<Integer,String> mergedMatchRegexesById,
+            ConcurrentHashMap<Integer,String> mergedBlacklistRegexesById) {
+        
+        Boolean isMetricKeyAssociatedWithAnyId = metricKeysAssociatedWithAnyId.get(metricKey);
+        if (isMetricKeyAssociatedWithAnyId != null) return;
+        isMetricKeyAssociatedWithAnyId = false;
+
+        for (Integer id : ids) {
+            try {
+                String matchRegex = mergedMatchRegexesById.get(id);
+                if (matchRegex == null) continue;
+
+                Pattern matchPattern = getPatternFromRegexString(matchRegex);
+
+                if (matchPattern != null) {
+                    Matcher matchMatcher = matchPattern.matcher(metricKey);
+                    boolean isMatchRegexMatch = matchMatcher.matches();
+                    boolean isMetricKeyAssociatedWithId = false;
+
+                    if (isMatchRegexMatch) {
+                        String blacklistRegex = mergedBlacklistRegexesById.get(id);
+                        Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
+                        
+                        if (blacklistPattern != null) {
+                            Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
+                            boolean isBlacklistRegexMatch = blacklistMatcher.matches();
+                            if (!isBlacklistRegexMatch) isMetricKeyAssociatedWithId = true;
+                        }
+                        else isMetricKeyAssociatedWithId = true;
+                    }
+                    
+                    if (isMetricKeyAssociatedWithId) {
+                        Set<String> matchingMetricKeyAssociations = matchingMetricKeysAssociatedWithId.get(id);
+
+                        if (matchingMetricKeyAssociations == null) {
+                            matchingMetricKeyAssociations = new HashSet<>();
+                            matchingMetricKeysAssociatedWithId.put(id, Collections.synchronizedSet(matchingMetricKeyAssociations));
+                        }
+
+                        matchingMetricKeyAssociations.add(metricKey);
+                        isMetricKeyAssociatedWithAnyId = true;
+                    }
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+
+        metricKeysAssociatedWithAnyId.put(metricKey, isMetricKeyAssociatedWithAnyId);
+    }
+    
+    public static Pattern getPatternFromRegexString(String regex) {
+
+        if (regex == null) {
+            return null;
+        }
+
+        Pattern pattern = regexPatterns.get(regex);
+
+        if (pattern == null) {
+            boolean isRegexBad = regexBlacklist.containsKey(regex);
+            if (isRegexBad) return null;
+            
+            try {
+                pattern = Pattern.compile(regex);
+                regexPatterns.put(regex, pattern);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                regexBlacklist.put(regex, regex);
+            }
+        }
+
+        return pattern;
+    }
+    
+    // update GlobalVariables.mergedMatchRegexesByMetricGroupId & GlobalVariables.mergedBlacklistRegexesByMetricGroupId with the latest merged regexes
+    public static void updateMergedRegexesForMetricGroups(List<Integer> metricGroupIds) {
 
         if (metricGroupIds == null) {
             return;
         }
         
         for (Integer metricGroupId : metricGroupIds) {
-            String mergedMetricGroupMatchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
-            String mergedMetricGroupBlacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
+            String mergedMatchRegex = GlobalVariables.mergedMatchRegexesByMetricGroupId.get(metricGroupId);
+            String mergedBlacklistRegex = GlobalVariables.mergedBlacklistRegexesByMetricGroupId.get(metricGroupId);
             List<MetricGroupRegex> metricGroupRegexes = null;
             
-            if ((mergedMetricGroupMatchRegex == null) || (mergedMetricGroupBlacklistRegex == null)) {
+            if ((mergedMatchRegex == null) || (mergedBlacklistRegex == null)) {
                 MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
                 metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupId);
             }
                 
-            if (mergedMetricGroupMatchRegex == null) {
-                mergedMetricGroupMatchRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_MATCH);
-                GlobalVariables.mergedMatchRegexesForMetricGroups.put(metricGroupId, mergedMetricGroupMatchRegex);
+            if (mergedMatchRegex == null) {
+                mergedMatchRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_MATCH);
+                if (mergedMatchRegex != null) GlobalVariables.mergedMatchRegexesByMetricGroupId.put(metricGroupId, mergedMatchRegex);
             }
             
-            if (mergedMetricGroupBlacklistRegex == null) {
-                mergedMetricGroupBlacklistRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_BLACKLIST);
-                GlobalVariables.mergedBlacklistRegexesForMetricGroups.put(metricGroupId, mergedMetricGroupBlacklistRegex);
+            if (mergedBlacklistRegex == null) {
+                mergedBlacklistRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_BLACKLIST);
+                if (mergedBlacklistRegex != null) GlobalVariables.mergedBlacklistRegexesByMetricGroupId.put(metricGroupId, mergedBlacklistRegex);
             }
         }
         
@@ -181,213 +436,57 @@ public class MetricAssociation {
         String mergedRegex = StringUtilities.createMergedRegex(regexPatterns);
         return mergedRegex;
     }
-
-    private static Pattern getPatternFromRegexString(String regex) {
-
-        if (regex == null) {
-            return null;
-        }
-
-        Pattern pattern = GlobalVariables.metricGroupRegexPatterns.get(regex);
-
-        if (pattern == null) {
-            boolean isRegexBad = GlobalVariables.metricGroupRegexBlacklist.containsKey(regex);
-            if (isRegexBad) return null;
-            
-            try {
-                pattern = Pattern.compile(regex);
-                GlobalVariables.metricGroupRegexPatterns.put(regex, pattern);
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                GlobalVariables.metricGroupRegexBlacklist.put(regex, regex);
-            }
-        }
-
-        return pattern;
-    }
     
-    private static Set<String> getMetricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated(Integer metricGroupId) {
-             
-        if (metricGroupId == null) {
-            return new HashSet<>();
+    public static void updateMergedRegexesForSuspensions(List<Integer> suspensionIds) {
+
+        if (suspensionIds == null) {
+            return;
         }
         
-        Set<String> metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated;
+        for (Integer suspensionId : suspensionIds) {
+            String mergedMatchRegex = GlobalVariables.mergedMatchRegexesBySuspensionId.get(suspensionId);
+
+            if (mergedMatchRegex == null) {
+                AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
+                AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
                 
-        try {
-            Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+                List<String> regexPatterns = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
+                mergedMatchRegex = StringUtilities.createMergedRegex(regexPatterns);
 
-            if (matchingMetricKeysAssociatedWithMetricGroup != null) {
-                synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
-                    metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated = new HashSet<>(matchingMetricKeysAssociatedWithMetricGroup);
-                }
+                if (mergedMatchRegex != null) GlobalVariables.mergedMatchRegexesBySuspensionId.put(suspensionId, mergedMatchRegex);
             }
-            else metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated = new HashSet<>();
-
-            if (!metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated.isEmpty()) {
-                for (Integer currentMetricGroupId : GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet()) {
-                    if (metricGroupId.equals(currentMetricGroupId)) continue;
-
-                    Set<String> currentMatchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(currentMetricGroupId);
-                    if (currentMatchingMetricKeysAssociatedWithMetricGroup == null) continue;
-
-                    synchronized(currentMatchingMetricKeysAssociatedWithMetricGroup) {
-                        for (String metricKey : currentMatchingMetricKeysAssociatedWithMetricGroup) {
-                            metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated.remove(metricKey);
-                        }
-                    }
-                }
-            }
-
-            return metricKeysWhereThisMetricGroupIsTheOnlyMetricGroupAssociated;
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new HashSet<>();
-        }
+        
     }
     
-    /*
-     For a specific metric group, determine if this metric key is associated with it. 
-     If the association is true, then the association is cached in "GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup".
-    */
-    private static void associateMetricKeyWithMetricGroups(String metricKey, Integer metricGroupId) {
-
-        if ((metricKey == null) || (metricGroupId == null)) {
-            return;
-        }
-        
-        if ((GlobalVariables.immediateCleanupMetrics != null) && !GlobalVariables.immediateCleanupMetrics.isEmpty() && GlobalVariables.immediateCleanupMetrics.containsKey(metricKey)) {
-            return;
-        }
-        
-        try {
-            String matchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
-            if (matchRegex == null) return;
-
-            Pattern matchPattern = getPatternFromRegexString(matchRegex);
-
-            if (matchPattern != null) {
-                Matcher matchMatcher = matchPattern.matcher(metricKey);
-                boolean isMatchRegexMatch = matchMatcher.matches();
-                boolean isMetricKeyAssociatedWithMetricGroup = false;
-
-                if (isMatchRegexMatch) {
-                    String blacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
-                    Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
-
-                    if (blacklistPattern != null) {
-                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
-                        boolean isBlacklistRegexMatch = blacklistMatcher.matches();
-                        if (!isBlacklistRegexMatch) isMetricKeyAssociatedWithMetricGroup = true;
-                    }
-                    else isMetricKeyAssociatedWithMetricGroup = true;
-                }
-
-                if (isMetricKeyAssociatedWithMetricGroup) {
-                    Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-
-                    if (matchingMetricKeyAssociationWithMetricGroup == null) {
-                        matchingMetricKeyAssociationWithMetricGroup = new HashSet<>();
-                        GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.put(metricGroupId, Collections.synchronizedSet(matchingMetricKeyAssociationWithMetricGroup));
-                    }
-
-                    matchingMetricKeyAssociationWithMetricGroup.add(metricKey);
-                }
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-    }
-    
-    /*
-     This method performs two tasks. 
-     Task 1: Determines if a metric key is associated with ANY metric group. 
-             The boolean value of this determination is returned & is stored in "GlobalVariables.metricKeysAssociatedWithAnyMetricGroup".
-     Task 2: For every metric group, determine if this metric key is associated with it. 
-             If the association is true, then the association is cached in "GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup".
-     */
-    private static void associateMetricKeyWithMetricGroups(String metricKey, List<Integer> metricGroupIds) {
-
-        if ((metricKey == null) || (metricGroupIds == null)) {
-            return;
-        }
-
-        if ((GlobalVariables.immediateCleanupMetrics != null) && !GlobalVariables.immediateCleanupMetrics.isEmpty() && GlobalVariables.immediateCleanupMetrics.containsKey(metricKey)) {
-            return;
-        }
-        
-        Boolean isMetricKeyAssociatedWithAnyMetricGroup = GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.get(metricKey);
-        if (isMetricKeyAssociatedWithAnyMetricGroup != null) return;
-        isMetricKeyAssociatedWithAnyMetricGroup = false;
-
-        for (Integer metricGroupId : metricGroupIds) {
-            try {
-                String matchRegex = GlobalVariables.mergedMatchRegexesForMetricGroups.get(metricGroupId);
-                if (matchRegex == null) continue;
-
-                Pattern matchPattern = getPatternFromRegexString(matchRegex);
-
-                if (matchPattern != null) {
-                    Matcher matchMatcher = matchPattern.matcher(metricKey);
-                    boolean isMatchRegexMatch = matchMatcher.matches();
-                    boolean isMetricKeyAssociatedWithMetricGroup = false;
-
-                    if (isMatchRegexMatch) {
-                        String blacklistRegex = GlobalVariables.mergedBlacklistRegexesForMetricGroups.get(metricGroupId);
-                        Pattern blacklistPattern = getPatternFromRegexString(blacklistRegex);
-                        
-                        if (blacklistPattern != null) {
-                            Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
-                            boolean isBlacklistRegexMatch = blacklistMatcher.matches();
-                            if (!isBlacklistRegexMatch) isMetricKeyAssociatedWithMetricGroup = true;
-                        }
-                        else isMetricKeyAssociatedWithMetricGroup = true;
-                    }
-                    
-                    if (isMetricKeyAssociatedWithMetricGroup) {
-                        Set<String> matchingMetricKeyAssociationWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
-
-                        if (matchingMetricKeyAssociationWithMetricGroup == null) {
-                            matchingMetricKeyAssociationWithMetricGroup = new HashSet<>();
-                            GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.put(metricGroupId, Collections.synchronizedSet(matchingMetricKeyAssociationWithMetricGroup));
-                        }
-
-                        matchingMetricKeyAssociationWithMetricGroup.add(metricKey);
-                        isMetricKeyAssociatedWithAnyMetricGroup = true;
-                    }
-                }
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-        }
-
-        GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.put(metricKey, isMetricKeyAssociatedWithAnyMetricGroup);
-    }
-
-    protected static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {
+    // todo: improve performance of this method
+    public static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {
 
         if (alert == null) {
             return new ArrayList<>();
         }
 
-        List<String> metricKeysAssociatedWithAlert;
-        
+        List<String> suspendedMetricKeys_Local;
         Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(alert.getMetricGroupId());
-
+        Set<String> metricKeysAssociatedWithAlert;
+        
         if (matchingMetricKeysAssociatedWithMetricGroup != null) {
-            synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
-                metricKeysAssociatedWithAlert = new ArrayList<>(matchingMetricKeysAssociatedWithMetricGroup);
+            
+            synchronized(GlobalVariables.suspendedMetricKeys) {
+                suspendedMetricKeys_Local = new ArrayList<>(GlobalVariables.suspendedMetricKeys.keySet());
             }
+            
+            synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
+                metricKeysAssociatedWithAlert = new HashSet<>(matchingMetricKeysAssociatedWithMetricGroup);
+            }
+            
+            metricKeysAssociatedWithAlert.removeAll(suspendedMetricKeys_Local);
         }
         else {
-            metricKeysAssociatedWithAlert = new ArrayList<>();
+            metricKeysAssociatedWithAlert = new HashSet<>();
         }
 
-        return metricKeysAssociatedWithAlert;
+        return new ArrayList<>(metricKeysAssociatedWithAlert);
     }
 
 }

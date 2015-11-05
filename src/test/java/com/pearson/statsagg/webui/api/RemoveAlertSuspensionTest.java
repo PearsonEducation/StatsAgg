@@ -25,7 +25,7 @@ public class RemoveAlertSuspensionTest extends Mockito {
     @BeforeClass
     public static void setUp() {
         alertSuspension = mock(com.pearson.statsagg.webui.AlertSuspensions.class);
-        when(alertSuspension.removeAlertSuspension(alertSuspensionName)).thenReturn(mockReturnString);
+        when(alertSuspension.removeSuspension(alertSuspensionName)).thenReturn(mockReturnString);
     }
     
     @After

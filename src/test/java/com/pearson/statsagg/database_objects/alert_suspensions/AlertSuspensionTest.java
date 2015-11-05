@@ -43,7 +43,7 @@ public class AlertSuspensionTest {
         Timestamp endTimeTimestamp = new Timestamp(endTime.getTimeInMillis());
         
         alertSuspension_Reference_ = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", true, true, 
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "", true, true, 
                 true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 40), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
     }
@@ -97,7 +97,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(startTime.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", 
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1439), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -113,7 +113,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(startTime.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "tag1 tag2", "excl tag1 tag2", 
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1440), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -128,7 +128,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(startTime.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", 
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1441), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -170,7 +170,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 30), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -190,7 +190,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 30), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -212,7 +212,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 30), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -234,7 +234,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 30), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -254,7 +254,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 75), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -283,7 +283,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1440), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -309,7 +309,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1440), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -324,7 +324,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", 
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 75), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -356,7 +356,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 75), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -379,7 +379,7 @@ public class AlertSuspensionTest {
         Timestamp endTimeTimestamp = new Timestamp(endTime.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 true, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 75), DatabaseObjectCommon.TIME_UNIT_MINUTES, endTimeTimestamp);
         
@@ -401,7 +401,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, false, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 75), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
@@ -417,7 +417,7 @@ public class AlertSuspensionTest {
         Timestamp startTimeTimestamp = new Timestamp(seedCalendar.getTimeInMillis());
         
         AlertSuspension alertSuspension = new AlertSuspension(
-                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2",
+                -1, "AlertSuspension Name 1", "desc", true, AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS, 1, "incl tag1 tag2", "excl tag1 tag2", "",
                 false, true, true, true, true, true, true, false, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 15), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         

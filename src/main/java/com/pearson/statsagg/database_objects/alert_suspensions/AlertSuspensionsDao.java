@@ -9,6 +9,7 @@ import java.util.Map;
 import com.pearson.statsagg.database_engine.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.slf4j.Logger;
@@ -49,60 +50,62 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_SuspendBy);
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_DeleteAtTimestamp);
         databaseCreationSqlStatements.add(AlertSuspensionsSql.CreateIndex_AlertSuspensions_ForeignKey_AlertId);
-
+                        
         return createTable(databaseCreationSqlStatements);
     }
 
     @Override
-    public AlertSuspension getDatabaseObject(AlertSuspension alertSuspension) {
-        if (alertSuspension == null) return null;
+    public AlertSuspension getDatabaseObject(AlertSuspension suspension) {
+        if (suspension == null) return null;
 
         return getDatabaseObject(AlertSuspensionsSql.Select_AlertSuspension_ByPrimaryKey, 
-                alertSuspension.getId()); 
+                suspension.getId()); 
     }
     
     @Override
-    public boolean insert(AlertSuspension alertSuspension) {
-        if (alertSuspension == null) return false;
+    public boolean insert(AlertSuspension suspension) {
+        if (suspension == null) return false;
         
         return insert(AlertSuspensionsSql.Insert_AlertSuspension, 
-                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.getDescription(), alertSuspension.isEnabled(), 
-                alertSuspension.getSuspendBy(), alertSuspension.getAlertId(), 
-                alertSuspension.getMetricGroupTagsInclusive(), alertSuspension.getMetricGroupTagsExclusive(),
-                alertSuspension.isOneTime(), alertSuspension.isSuspendNotificationOnly(), 
-                alertSuspension.isRecurSunday(), alertSuspension.isRecurMonday(), 
-                alertSuspension.isRecurTuesday(), alertSuspension.isRecurWednesday(),
-                alertSuspension.isRecurThursday(), alertSuspension.isRecurFriday(),
-                alertSuspension.isRecurSaturday(), alertSuspension.getStartDate(), 
-                alertSuspension.getStartTime(), alertSuspension.getDuration(), alertSuspension.getDurationTimeUnit(),
-                alertSuspension.getDeleteAtTimestamp()
+                suspension.getName(), suspension.getUppercaseName(), suspension.getDescription(), suspension.isEnabled(), 
+                suspension.getSuspendBy(), suspension.getAlertId(), 
+                suspension.getMetricGroupTagsInclusive(), suspension.getMetricGroupTagsExclusive(),
+                suspension.getMetricSuspensionRegexes(),
+                suspension.isOneTime(), suspension.isSuspendNotificationOnly(), 
+                suspension.isRecurSunday(), suspension.isRecurMonday(), 
+                suspension.isRecurTuesday(), suspension.isRecurWednesday(),
+                suspension.isRecurThursday(), suspension.isRecurFriday(),
+                suspension.isRecurSaturday(), suspension.getStartDate(), 
+                suspension.getStartTime(), suspension.getDuration(), suspension.getDurationTimeUnit(),
+                suspension.getDeleteAtTimestamp()
         );
     }
     
     @Override
-    public boolean update(AlertSuspension alertSuspension) {
-        if (alertSuspension == null) return false;
+    public boolean update(AlertSuspension suspension) {
+        if (suspension == null) return false;
 
         return update(AlertSuspensionsSql.Update_AlertSuspension_ByPrimaryKey,
-                alertSuspension.getName(), alertSuspension.getUppercaseName(), alertSuspension.getDescription(), alertSuspension.isEnabled(), 
-                alertSuspension.getSuspendBy(), alertSuspension.getAlertId(), 
-                alertSuspension.getMetricGroupTagsInclusive(), alertSuspension.getMetricGroupTagsExclusive(),
-                alertSuspension.isOneTime(), alertSuspension.isSuspendNotificationOnly(), 
-                alertSuspension.isRecurSunday(), alertSuspension.isRecurMonday(), 
-                alertSuspension.isRecurTuesday(), alertSuspension.isRecurWednesday(),
-                alertSuspension.isRecurThursday(), alertSuspension.isRecurFriday(),
-                alertSuspension.isRecurSaturday(), alertSuspension.getStartDate(), 
-                alertSuspension.getStartTime(), alertSuspension.getDuration(), alertSuspension.getDurationTimeUnit(),
-                alertSuspension.getDeleteAtTimestamp(),
-                alertSuspension.getId());
+                suspension.getName(), suspension.getUppercaseName(), suspension.getDescription(), suspension.isEnabled(), 
+                suspension.getSuspendBy(), suspension.getAlertId(), 
+                suspension.getMetricGroupTagsInclusive(), suspension.getMetricGroupTagsExclusive(),
+                suspension.getMetricSuspensionRegexes(),
+                suspension.isOneTime(), suspension.isSuspendNotificationOnly(), 
+                suspension.isRecurSunday(), suspension.isRecurMonday(), 
+                suspension.isRecurTuesday(), suspension.isRecurWednesday(),
+                suspension.isRecurThursday(), suspension.isRecurFriday(),
+                suspension.isRecurSaturday(), suspension.getStartDate(), 
+                suspension.getStartTime(), suspension.getDuration(), suspension.getDurationTimeUnit(),
+                suspension.getDeleteAtTimestamp(),
+                suspension.getId());
     }
 
     @Override
-    public boolean delete(AlertSuspension alertSuspension) {
-        if (alertSuspension == null) return false;
+    public boolean delete(AlertSuspension suspension) {
+        if (suspension == null) return false;
         
         return delete(AlertSuspensionsSql.Delete_AlertSuspension_ByPrimaryKey, 
-                alertSuspension.getId()); 
+                suspension.getId()); 
     }
     
     @Override
@@ -139,6 +142,9 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             
             String metricGroupTagsExclusive = resultSet.getString("METRIC_GROUP_TAGS_EXCLUSIVE");
             if (resultSet.wasNull()) metricGroupTagsExclusive = null;
+            
+            String metricSuspensionRegexes = resultSet.getString("METRIC_SUSPENSION_REGEXES");
+            if (resultSet.wasNull()) metricSuspensionRegexes = null;
             
             Boolean isOneTime = resultSet.getBoolean("IS_ONE_TIME");
             if (resultSet.wasNull()) isOneTime = null;
@@ -182,12 +188,12 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             Timestamp deleteAtTimestamp = resultSet.getTimestamp("DELETE_AT_TIMESTAMP");
             if (resultSet.wasNull()) deleteAtTimestamp = null;            
             
-            AlertSuspension alertSuspension = new AlertSuspension(
-                    id, name, uppercaseName, description, isEnabled, suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, isOneTime, isSuspendNotificationOnly, 
-                    isRecurSunday, isRecurMonday, isRecurTuesday, isRecurWednesday, isRecurThursday, isRecurFriday, isRecurSaturday, 
+            AlertSuspension suspension = new AlertSuspension(
+                    id, name, uppercaseName, description, isEnabled, suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, metricSuspensionRegexes,
+                    isOneTime, isSuspendNotificationOnly, isRecurSunday, isRecurMonday, isRecurTuesday, isRecurWednesday, isRecurThursday, isRecurFriday, isRecurSaturday, 
                     startDate, startTime, duration, durationTimeUnit, deleteAtTimestamp);
             
-            return alertSuspension;
+            return suspension;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -200,12 +206,12 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         return tableName_;
     }
 
-    public AlertSuspension getAlertSuspension(int id) {
+    public AlertSuspension getSuspension(int id) {
         return getDatabaseObject(AlertSuspensionsSql.Select_AlertSuspension_ByPrimaryKey, 
                 id); 
     }  
     
-    public AlertSuspension getAlertSuspensionByName(String name) {
+    public AlertSuspension getSuspensionByName(String name) {
         
         try {
 
@@ -224,8 +230,8 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
             ResultSet resultSet = databaseInterface_.getResults();
             
             if (resultSet.next()) {
-                AlertSuspension alertSuspension = processSingleResultAllColumns(resultSet);
-                return alertSuspension;
+                AlertSuspension suspension = processSingleResultAllColumns(resultSet);
+                return suspension;
             }
             else {
                 return null;
@@ -241,7 +247,48 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         
     }
     
-    public List<AlertSuspension> getAlertSuspensions_BySuspendBy(Integer suspendByCode) {
+    public List<Integer> getSuspensionIds_BySuspendBy(Integer suspendByCode) {
+        
+        if (suspendByCode == null) {
+            return new ArrayList<>();
+        }
+        
+        try {
+
+            if (!isConnectionValid()) {
+                return new ArrayList<>();
+            }
+
+            databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspensionId_BySuspendBy, 100);
+            databaseInterface_.addPreparedStatementParameters(suspendByCode);
+            databaseInterface_.executePreparedStatement();
+            
+            if (!databaseInterface_.isResultSetValid()) {
+                return new ArrayList<>();
+            }
+            
+            List<Integer> suspensionIds = new ArrayList<>();
+            
+            ResultSet resultSet = databaseInterface_.getResults();
+
+            while (resultSet.next()) {
+                Integer id = resultSet.getInt("ID");
+                suspensionIds.add(id);
+            }
+            
+            return suspensionIds; 
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return new ArrayList<>();
+        }
+        finally {
+            databaseInterface_.cleanupAutomatic();
+        } 
+        
+    }
+    
+    public List<AlertSuspension> getSuspensions_BySuspendBy(Integer suspendByCode) {
         
         if (suspendByCode == null) {
             return new ArrayList<>();
@@ -261,8 +308,8 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
                 return new ArrayList<>();
             }
 
-            List<AlertSuspension> alertSuspensions = processResultSet(databaseInterface_.getResults());
-            return alertSuspensions; 
+            List<AlertSuspension> suspensions = processResultSet(databaseInterface_.getResults());
+            return suspensions; 
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -281,116 +328,116 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         return genericDmlStatement(AlertSuspensionsSql.Delete_AlertSuspension_DeleteAtTimestamp, parametersList);
     }
     
-    public Map<Integer,List<AlertSuspension>> getAlertSuspensions_SuspendByAlertId_ByAlertId() {
+    public Map<Integer,List<AlertSuspension>> getSuspensions_SuspendByAlertId_ByAlertId() {
 
-        List<AlertSuspension> alertSuspensions_SuspendByAlertId = getAlertSuspensions_BySuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
+        List<AlertSuspension> suspensions_SuspendByAlertId = getSuspensions_BySuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
         
-        if (alertSuspensions_SuspendByAlertId == null) return new HashMap<>();
+        if (suspensions_SuspendByAlertId == null) return new HashMap<>();
         
-        Map<Integer,List<AlertSuspension>> alertSuspensions_SuspendByAlertId_ByAlertId = new HashMap<>();
+        Map<Integer,List<AlertSuspension>> suspensions_SuspendByAlertId_ByAlertId = new HashMap<>();
         
-        for (AlertSuspension alertSuspension : alertSuspensions_SuspendByAlertId) {
-            if (alertSuspension.getAlertId() == null) continue;
+        for (AlertSuspension suspension : suspensions_SuspendByAlertId) {
+            if (suspension.getAlertId() == null) continue;
             
-            Integer alertId = alertSuspension.getAlertId();
-            List<AlertSuspension> alertSuspensions = alertSuspensions_SuspendByAlertId_ByAlertId.get(alertId);
+            Integer alertId = suspension.getAlertId();
+            List<AlertSuspension> suspensions = suspensions_SuspendByAlertId_ByAlertId.get(alertId);
             
-            if (alertSuspensions != null) {
-                alertSuspensions.add(alertSuspension);
+            if (suspensions != null) {
+                suspensions.add(suspension);
             }
             else {
-                alertSuspensions = new ArrayList<>();
-                alertSuspensions_SuspendByAlertId_ByAlertId.put(alertId, alertSuspensions);
+                suspensions = new ArrayList<>();
+                suspensions_SuspendByAlertId_ByAlertId.put(alertId, suspensions);
             }
             
         }
         
-        return alertSuspensions_SuspendByAlertId_ByAlertId;
+        return suspensions_SuspendByAlertId_ByAlertId;
     }
     
-    public Map<String,List<AlertSuspension>> getAlertSuspensions_ForSuspendByAlertId_ByMetricGroupTag() {
+    public Map<String,List<AlertSuspension>> getSuspensions_ForSuspendByAlertId_ByMetricGroupTag() {
 
-        List<AlertSuspension> alertSuspensions_SuspendByMetricGroupTags = getAlertSuspensions_BySuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
+        List<AlertSuspension> suspensions_SuspendByMetricGroupTags = getSuspensions_BySuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
         
-        if (alertSuspensions_SuspendByMetricGroupTags == null) return new HashMap<>();
+        if (suspensions_SuspendByMetricGroupTags == null) return new HashMap<>();
         
-        Map<String,List<AlertSuspension>> alertSuspensions_SuspendByMetricGroupTag_ByMetricGroupTag = new HashMap<>();
+        Map<String,List<AlertSuspension>> suspensions_SuspendByMetricGroupTag_ByMetricGroupTag = new HashMap<>();
         
-        for (AlertSuspension alertSuspension : alertSuspensions_SuspendByMetricGroupTags) {
-            if (alertSuspension.getAlertId() == null) continue;
+        for (AlertSuspension suspension : suspensions_SuspendByMetricGroupTags) {
+            if (suspension.getAlertId() == null) continue;
             
-            String metricGroupTags_NewlineDelimitedString = alertSuspension.getMetricGroupTagsInclusive();
-            List<String> metricGroupTags = AlertSuspension.getMetricGroupTagStringsFromNewlineDelimitedString(metricGroupTags_NewlineDelimitedString);
+            String metricGroupTags_NewlineDelimitedString = suspension.getMetricGroupTagsInclusive();
+            List<String> metricGroupTags = StringUtilities.getListOfStringsFromDelimitedString(metricGroupTags_NewlineDelimitedString, '\n');
             
             for (String metricGroupTag : metricGroupTags) {
-                List<AlertSuspension> alertSuspensions = alertSuspensions_SuspendByMetricGroupTag_ByMetricGroupTag.get(metricGroupTag);
+                List<AlertSuspension> suspensions = suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.get(metricGroupTag);
 
-                if (alertSuspensions != null) {
-                    alertSuspensions.add(alertSuspension);
+                if (suspensions != null) {
+                    suspensions.add(suspension);
                 }
                 else {
-                    alertSuspensions = new ArrayList<>();
-                    alertSuspensions_SuspendByMetricGroupTag_ByMetricGroupTag.put(metricGroupTag, alertSuspensions);
+                    suspensions = new ArrayList<>();
+                    suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.put(metricGroupTag, suspensions);
                 }
             }
             
         }
         
-        return alertSuspensions_SuspendByMetricGroupTag_ByMetricGroupTag;
+        return suspensions_SuspendByMetricGroupTag_ByMetricGroupTag;
     }
     
-     public JSONObject getAlertSuspension(int offset, int pageSize) {        
-        logger.debug("getAlertSuspension");
+    public JSONObject getSuspension(int offset, int pageSize) {
+
         List<Object> parametersList = new ArrayList<>(2);
-        
-        JSONArray alertSuspensionList = new JSONArray();
-        JSONObject alertSuspensionJson = new JSONObject();
-        int alertSuspensionCount = 0;
-        
+
+        JSONArray suspensionList = new JSONArray();
+        JSONObject suspensionJson = new JSONObject();
+        int suspensionCount = 0;
+
         try {
             if (!isConnectionValid()) {
                 return null;
             }
-            
+
             if ((offset == 0) && (pageSize == 0)) {
-                alertSuspensionJson.put("alert_suspensions", alertSuspensionList);
-                alertSuspensionJson.put("count", alertSuspensionCount);
-                return alertSuspensionJson;
+                suspensionJson.put("suspensions", suspensionList);
+                suspensionJson.put("count", suspensionCount);
+                return suspensionJson;
             }
-            
+
             parametersList.add(offset);
             parametersList.add(pageSize);
-            
+
             if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_MySQL,
-                                                           pageSize);
-            } else {
-                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_Derby,
-                                                           pageSize);
+                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_MySQL, pageSize);
             }
+            else {
+                databaseInterface_.createPreparedStatement(AlertSuspensionsSql.Select_AlertSuspension_ByPageNumberAndPageSize_Derby, pageSize);
+            }
+            
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();
-            
+
             if (!databaseInterface_.isResultSetValid()) {
                 logger.debug("Invalid resultset");
                 return null;
             }
-            
+
             ResultSet resultSet = databaseInterface_.getResults();
-            
-            while(resultSet.next()) {
-                JSONObject alertSuspension = new JSONObject();
-                alertSuspension.put("name", resultSet.getString("NAME"));
-                alertSuspension.put("id", resultSet.getString("ID"));
-                alertSuspensionList.add(alertSuspension);
-                alertSuspensionCount++;
+
+            while (resultSet.next()) {
+                JSONObject suspension = new JSONObject();
+                suspension.put("name", resultSet.getString("NAME"));
+                suspension.put("id", resultSet.getString("ID"));
+                suspensionList.add(suspension);
+                suspensionCount++;
             }
-            
-            alertSuspensionJson.put("alerts", alertSuspensionList);
-            alertSuspensionJson.put("count", alertSuspensionCount);
-            
-            return alertSuspensionJson;
+
+            suspensionJson.put("alerts", suspensionList);
+            suspensionJson.put("count", suspensionCount);
+
+            return suspensionJson;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -398,7 +445,7 @@ public class AlertSuspensionsDao extends DatabaseObjectDao<AlertSuspension> {
         }
         finally {
             databaseInterface_.cleanupAutomatic();
-        } 
+        }
     }
-    
+
 }

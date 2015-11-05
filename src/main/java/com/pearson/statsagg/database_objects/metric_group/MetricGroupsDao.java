@@ -43,7 +43,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         
         databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_Unique_Name);
         databaseCreationSqlStatements.add(MetricGroupsSql.CreateIndex_MetricGroups_Unique_UppercaseName);
-
+        
         return createTable(databaseCreationSqlStatements);
     }
     
@@ -98,7 +98,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
             
             String description = resultSet.getString("DESCRIPTION");
             if (resultSet.wasNull()) description = null;
-
+            
             MetricGroup metricGroup = new MetricGroup(id, name, uppercaseName, description);
             
             return metricGroup;

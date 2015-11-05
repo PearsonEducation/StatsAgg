@@ -123,10 +123,10 @@ function yadcf_init_AlertsTable(alertsTable) {
         
 // Setup for the table found on the 'Alert Suspensions' page
 $(document).ready(function () {
-    var table = document.getElementById('AlertSuspensionsTable');
+    var table = document.getElementById('SuspensionsTable');
 
     if (table !== null) {
-        var alertSuspensionsTable = $('#AlertSuspensionsTable').DataTable({
+        var alertSuspensionsTable = $('#SuspensionsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -137,17 +137,17 @@ $(document).ready(function () {
         var tableSearchParameter = getParameterByName("TableSearch");
         if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertSuspensionsTable.search(tableSearchParameter.trim()).draw();
         
-        yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
+        yadcf_init_SuspensionsTable(alertSuspensionsTable);
 
         var colvis = new $.fn.dataTable.ColVis(alertSuspensionsTable, {"align": "right", "iOverlayFade": 200});
-        $(colvis.button()).prependTo('#AlertSuspensionsTable_filter');
+        $(colvis.button()).prependTo('#SuspensionsTable_filter');
 
         // re-initialize yadcf when a column is unhidden
         alertSuspensionsTable.on('column-visibility.dt', function (e, settings, column, state) {
             console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
             
             if (state === true) {
-                yadcf_init_AlertSuspensionsTable(alertSuspensionsTable);
+                yadcf_init_SuspensionsTable(alertSuspensionsTable);
             }
         });
         
@@ -155,7 +155,7 @@ $(document).ready(function () {
     }
 });
 
-function yadcf_init_AlertSuspensionsTable(alertSuspensionsTable) {
+function yadcf_init_SuspensionsTable(alertSuspensionsTable) {
     yadcf.init(alertSuspensionsTable, [
         {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 1, filter_reset_button_text: false, filter_type: "select", data: ['Alert Name', 'Metric Group Tags', 'Everything'], sort_as: "none", filter_default_label: "Filter"},

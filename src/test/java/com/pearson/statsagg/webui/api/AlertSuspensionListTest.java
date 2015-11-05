@@ -44,7 +44,7 @@ public class AlertSuspensionListTest extends Mockito {
         mockAlertSuspensionJson.put("alert_suspensions", mockAlertSuspensionList);
         mockAlertSuspensionJson.put("count", 2);
         alertSuspensionsDao = mock(AlertSuspensionsDao.class);
-        when(alertSuspensionsDao.getAlertSuspension(10, 2)).thenReturn(mockAlertSuspensionJson);
+        when(alertSuspensionsDao.getSuspension(10, 2)).thenReturn(mockAlertSuspensionJson);
     }
     
     @After
