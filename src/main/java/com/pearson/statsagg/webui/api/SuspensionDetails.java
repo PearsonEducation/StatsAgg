@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -15,12 +15,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author prashant kumar (prashant4nov)
  */
-@WebServlet(name="API_AlertSuspensionDetails", urlPatterns={"/api/alertsuspension-details"})
-public class AlertSuspensionDetails extends HttpServlet {
+@WebServlet(name="API_SuspensionDetails", urlPatterns={"/api/suspension-details"})
+public class SuspensionDetails extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionDetails.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionDetails.class.getName());
     
-    public static final String PAGE_NAME = "API_AlertSuspensionDetails";
+    public static final String PAGE_NAME = "API_SuspensionDetails";
     
     /**
      * Returns a short description of the servlet.
@@ -42,7 +42,7 @@ public class AlertSuspensionDetails extends HttpServlet {
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doGet");
         try {
-            JSONObject json = getSuspensionDetails(request, new AlertSuspensionsDao());
+            JSONObject json = getSuspensionDetails(request, new SuspensionsDao());
             response.setContentType("application/json");
             PrintWriter out;
             out = response.getWriter();
@@ -54,13 +54,13 @@ public class AlertSuspensionDetails extends HttpServlet {
     }
 
     /**
-     * Returns a json object containing the details of the requested alert suspension.
+     * Returns a json object containing the details of the requested suspension.
      * 
      * @param request servlet request
-     * @param alertSuspensionsDao AlertSuspensionsDao object
-     * @return details of the requested alert suspension
+     * @param suspensionsDao SuspensionsDao object
+     * @return details of the requested suspension
      */
-    protected JSONObject getSuspensionDetails(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
+    protected JSONObject getSuspensionDetails(HttpServletRequest request, SuspensionsDao suspensionsDao) {
         
         JSONObject suspensionDetails = new JSONObject();
         int suspensionId = 0;
@@ -70,7 +70,7 @@ public class AlertSuspensionDetails extends HttpServlet {
                 suspensionId = Integer.parseInt(request.getParameter(Helper.id));
             }
             
-            AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
+            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
             
             if (suspension != null) {
                 if (suspension.getAlertId() != null) suspensionDetails.put("AlertId", suspension.getAlertId());

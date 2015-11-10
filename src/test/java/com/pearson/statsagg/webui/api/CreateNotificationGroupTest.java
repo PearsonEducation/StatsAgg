@@ -27,8 +27,8 @@ public class CreateNotificationGroupTest extends Mockito {
     
     private static final String mockReturnString = "Successful notification group creation.";
     private static final JSONObject notificationData = new JSONObject();
-    private static com.pearson.statsagg.webui.CreateNotificationGroup testCreateNotificationGroup = mock(com.pearson.statsagg.webui.CreateNotificationGroup.class);
-    private static HttpServletRequest request = mock(HttpServletRequest.class);
+    private static final com.pearson.statsagg.webui.CreateNotificationGroup testCreateNotificationGroup = mock(com.pearson.statsagg.webui.CreateNotificationGroup.class);
+    private static final HttpServletRequest request = mock(HttpServletRequest.class);
 
     @Before
     public void setUp() {

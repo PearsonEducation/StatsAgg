@@ -21,20 +21,20 @@ import org.slf4j.LoggerFactory;
  */
 @RunWith(PowerMockRunner.class)
 @PrepareForTest(Helper.class )
-public class CreateAlertSuspensionTest extends Mockito {
+public class CreateSuspensionTest extends Mockito {
     
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspensionTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateSuspensionTest.class.getName());
     
-    private static final String mockReturnString = "Successful alert suspension creation.";
-    private static final JSONObject alertSuspensionData = new JSONObject();
-    private static com.pearson.statsagg.webui.CreateAlertSuspension testCreateAlertSuspension = mock(com.pearson.statsagg.webui.CreateAlertSuspension.class);
+    private static final String mockReturnString = "Successful suspension creation.";
+    private static final JSONObject suspensionData = new JSONObject();
+    private static com.pearson.statsagg.webui.CreateSuspension testCreateSuspension = mock(com.pearson.statsagg.webui.CreateSuspension.class);
     private static HttpServletRequest request = mock(HttpServletRequest.class);
 
     @BeforeClass
     public static void setUp() {
-        when(testCreateAlertSuspension.parseAndAlterAlertSuspension(alertSuspensionData)).thenReturn(mockReturnString);
+        when(testCreateSuspension.parseAndAlterSuspension(suspensionData)).thenReturn(mockReturnString);
         PowerMockito.mockStatic(Helper.class);
-        PowerMockito.when(Helper.getRequestData(request)).thenReturn(alertSuspensionData);
+        PowerMockito.when(Helper.getRequestData(request)).thenReturn(suspensionData);
     }
     
     @After
@@ -44,8 +44,8 @@ public class CreateAlertSuspensionTest extends Mockito {
     @Test
     public void testProcessPostRequest() throws Exception {
         String responseMsg;
-        CreateAlertSuspension createAlertSuspension = new CreateAlertSuspension();
-        responseMsg = createAlertSuspension.processPostRequest(request, testCreateAlertSuspension);
+        CreateSuspension createSuspension = new CreateSuspension();
+        responseMsg = createSuspension.processPostRequest(request, testCreateSuspension);
         assertEquals(mockReturnString, responseMsg);     
     }
     

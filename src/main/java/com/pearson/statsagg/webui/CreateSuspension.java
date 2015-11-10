@@ -6,8 +6,8 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.DateAndTime;
@@ -26,10 +26,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateAlertSuspension", urlPatterns = {"/CreateAlertSuspension"})
-public class CreateAlertSuspension extends HttpServlet {
+@WebServlet(name = "CreateSuspension", urlPatterns = {"/CreateSuspension"})
+public class CreateSuspension extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspension.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateSuspension.class.getName());
     
     public static final String PAGE_NAME = "Create Suspension";
     
@@ -80,17 +80,17 @@ public class CreateAlertSuspension extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            AlertSuspension suspension = null;
+            Suspension suspension = null;
             String name = request.getParameter("Name");
             if (name != null) {
-                AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-                suspension = alertSuspensionsDao.getSuspensionByName(name.trim());
+                SuspensionsDao suspensionsDao = new SuspensionsDao();
+                suspension = suspensionsDao.getSuspensionByName(name.trim());
             }        
             
-            String htmlBodyContents = buildCreateAlertSuspensionHtml(suspension);
+            String htmlBodyContents = buildCreateSuspensionHtml(suspension);
             List<String> additionalJavascript = new ArrayList<>();
-            additionalJavascript.add("js/statsagg_create_alert_suspension.js");
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript);
+            additionalJavascript.add("js/statsagg_create_suspension.js");
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
@@ -118,14 +118,14 @@ public class CreateAlertSuspension extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterAlertSuspension(request);
+            String result = parseAndAlterSuspension(request);
             
             response.setContentType("text/html");     
             
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
-            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "AlertSuspensions", AlertSuspensions.PAGE_NAME);
+            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "Suspensions", Suspensions.PAGE_NAME);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContent);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -144,7 +144,7 @@ public class CreateAlertSuspension extends HttpServlet {
         }
     }
     
-    private String buildCreateAlertSuspensionHtml(AlertSuspension suspension) {
+    private String buildCreateSuspensionHtml(Suspension suspension) {
 
         StringBuilder htmlBody = new StringBuilder();
 
@@ -155,7 +155,7 @@ public class CreateAlertSuspension extends HttpServlet {
             "    <div class=\"content-header\"> \n" +
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div> \n" +
-            "    <form action=\"CreateAlertSuspension\" method=\"POST\">\n");
+            "    <form action=\"CreateSuspension\" method=\"POST\">\n");
         
         htmlBody.append("<div class=\"row create-alert-form-row\">"); 
 
@@ -235,26 +235,26 @@ public class CreateAlertSuspension extends HttpServlet {
             "<div class=\"col-md-4 statsagg_three_panel_second_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
             "    <div class=\"panel-heading\"><b>Suspend by...</b>" +
-            "         <a id=\"AlertSuspensionAlertAssociationsPreview\" name=\"AlertSuspensionAlertAssociationsPreview\" class=\"iframe cboxElement statsagg_alert_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateAlertSuspensionAssociationsPreviewLink();\">Preview Suspension Associations</a>" + 
+            "         <a id=\"SuspensionAssociationsPreview\" name=\"SuspensionAssociationsPreview\" class=\"iframe cboxElement statsagg_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateSuspensionAssociationsPreviewLink();\">Preview Suspension Associations</a>" + 
             "    </div>" + 
             "    <div class=\"panel-body\"> \n");
             
         
         // type selection
         htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_AlertName_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"AlertName\" ");
-        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID)) htmlBody.append(" checked=\"checked\"");
+        if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Alert Name &nbsp;&nbsp;&nbsp;\n");
         
         htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Tags_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Tags\" ");
-        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS)) htmlBody.append(" checked=\"checked\"");
+        if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Tags &nbsp;&nbsp;&nbsp;\n");
         
         htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Everything_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Everything\" ");
-        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING)) htmlBody.append(" checked=\"checked\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING)) htmlBody.append(" checked=\"checked\" ");
         htmlBody.append("> Everything &nbsp;&nbsp;&nbsp;\n");
         
         htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Metrics_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Metrics\" ");
-        if ((suspension != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS)) htmlBody.append(" checked=\"checked\" ");
+        if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS)) htmlBody.append(" checked=\"checked\" ");
         htmlBody.append("> Metrics\n");
         
         htmlBody.append("<br><br>\n");
@@ -343,9 +343,9 @@ public class CreateAlertSuspension extends HttpServlet {
         
         
         // one time or recurring?
-        String startSuspensionTypeRecurring = "<input type=\"radio\" id=\"CreateAlertSuspension_Type_Recurring\" name=\"CreateAlertSuspension_Type\" value=\"Recurring\" ";
+        String startSuspensionTypeRecurring = "<input type=\"radio\" id=\"CreateSuspension_Type_Recurring\" name=\"CreateSuspension_Type\" value=\"Recurring\" ";
         String endSuspensionTypeRecurring = " > Recurring (daily)&nbsp;&nbsp;&nbsp; \n";
-        String startSuspensionTypeOneTime = "<input type=\"radio\" id=\"CreateAlertSuspension_Type_OneTime\" name=\"CreateAlertSuspension_Type\" value=\"OneTime\" ";
+        String startSuspensionTypeOneTime = "<input type=\"radio\" id=\"CreateSuspension_Type_OneTime\" name=\"CreateSuspension_Type\" value=\"OneTime\" ";
         String endSuspensionTypeOneTime = " > One Time \n";
 
         if ((suspension != null) && (suspension.isOneTime() != null)) {
@@ -372,9 +372,9 @@ public class CreateAlertSuspension extends HttpServlet {
         // start date
         htmlBody.append(        
             "<tr>\n" +
-            "  <th style=\"width:1%;\"><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
+            "  <th style=\"width:1%;\"><div class=\"create-suspension-th\" id=\"CreateSuspension_DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
             "  <td>\n" +
-            "    <div class=\"input-group\" id=\"CreateAlertSuspension_DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
+            "    <div class=\"input-group\" id=\"CreateSuspension_DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
             "      <input class=\"form-control-datetime\" name=\"StartDate\" id=\"StartDate\" style=\"width:100%;\" type=\"text\" ");
         
         if ((suspension != null) && (suspension.getStartDate() != null)) {
@@ -393,9 +393,9 @@ public class CreateAlertSuspension extends HttpServlet {
         // recur on days of week
         htmlBody.append(        
             "<tr>\n" +
-            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_RecurOnDays_Label_Div\">Recurs on:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_RecurOnDays_Label_Div\">Recurs on:</div></th>\n" +
             "  <td>\n" +
-            "    <div id=\"CreateAlertSuspension_RecurOnDays_Div\">\n");
+            "    <div id=\"CreateSuspension_RecurOnDays_Div\">\n");
 
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurSunday\" id=\"RecurSunday\" type=\"checkbox\" ");
         if ((suspension == null) || ((suspension.isRecurSunday() == null) || suspension.isRecurSunday())) htmlBody.append("checked=\"checked\"");
@@ -427,15 +427,15 @@ public class CreateAlertSuspension extends HttpServlet {
         
         htmlBody.append("</div>\n" + "</td>\n" + "</tr>\n");
         
-        htmlBody.append("<tr id=\"CreateAlertSuspension_Type_Spacer1\"><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
+        htmlBody.append("<tr id=\"CreateSuspension_Type_Spacer1\"><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
         
         
         // start time
         htmlBody.append(
             "<tr>\n" +
-            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_DateTimePicker_StartTime_Label_Div\">Start Time:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_DateTimePicker_StartTime_Label_Div\">Start Time:</div></th>\n" +
             "    <td>\n" +
-            "      <div class=\"input-group\" id=\"CreateAlertSuspension_DateTimePicker_StartTime_Div\" style=\"width:100%;\" > \n" +
+            "      <div class=\"input-group\" id=\"CreateSuspension_DateTimePicker_StartTime_Div\" style=\"width:100%;\" > \n" +
             "        <input class=\"form-control-datetime\" name=\"StartTime\" id=\"StartTime\" style=\"width:100%;\" type=\"text\" ");
         
         if ((suspension != null) && (suspension.getStartTime() != null)) {
@@ -454,9 +454,9 @@ public class CreateAlertSuspension extends HttpServlet {
         // duration
         htmlBody.append(
             "<tr>\n" +
-            "  <th><div class=\"create-alert-suspension-th\" id=\"CreateAlertSuspension_Duration_Label_Div\">Duration:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_Duration_Label_Div\">Duration:</div></th>\n" +
             "  <td>\n" +
-            "    <div style=\" padding-top: 3px;\" id=\"CreateAlertSuspension_Duration_Div\">\n" +
+            "    <div style=\" padding-top: 3px;\" id=\"CreateSuspension_Duration_Div\">\n" +
             "      <div class=\"col-xs-6\"> <input class=\"form-control-statsagg\" name=\"Duration\" id=\"Duration\" ");
                     
         if ((suspension != null) && (suspension.getDuration() != null)) {
@@ -503,14 +503,14 @@ public class CreateAlertSuspension extends HttpServlet {
             "</div>" +
             "<button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>\n" +
             "&nbsp;&nbsp;&nbsp;" +
-            "<a href=\"AlertSuspensions\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>");
+            "<a href=\"Suspensions\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>");
         
         htmlBody.append("</form></div></div>");
         
         return htmlBody.toString();
     }
     
-    public String parseAndAlterAlertSuspension(Object request) {
+    public String parseAndAlterSuspension(Object request) {
         
         if (request == null) {
             return null;
@@ -518,18 +518,18 @@ public class CreateAlertSuspension extends HttpServlet {
         
         String returnString;
         
-        AlertSuspension suspension = getSuspensionFromRequestParameters(request);
+        Suspension suspension = getSuspensionFromRequestParameters(request);
         String oldName = Common.getObjectParameter(request, "Old_Name");
         
         // insert/update/delete records in the database
         if (suspension != null) {
-            AlertSuspensionsLogic suspensionsLogic = new AlertSuspensionsLogic();
+            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
             returnString = suspensionsLogic.alterRecordInDatabase(suspension, oldName);
             
-            if (suspensionsLogic.getLastAlterRecordStatus() == AlertSuspensionsLogic.STATUS_CODE_SUCCESS) {
+            if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
                 logger.info("Running suspension routine");
-                com.pearson.statsagg.alerts.AlertSuspensions suspensions = new com.pearson.statsagg.alerts.AlertSuspensions();
-                suspensions.runAlertSuspensionRoutine();
+                com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+                suspensions.runSuspensionRoutine();
             }
         }
         else {
@@ -540,7 +540,7 @@ public class CreateAlertSuspension extends HttpServlet {
         return returnString;
     }
     
-    private AlertSuspension getSuspensionFromRequestParameters(Object request) {
+    private Suspension getSuspensionFromRequestParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -548,7 +548,7 @@ public class CreateAlertSuspension extends HttpServlet {
         
         boolean didEncounterError = false;
         
-        AlertSuspension suspension = new AlertSuspension();
+        Suspension suspension = new Suspension();
 
         try {
             String parameter;
@@ -581,10 +581,10 @@ public class CreateAlertSuspension extends HttpServlet {
             
             // column #2 parameters
             parameter = Common.getObjectParameter(request, "CreateSuspension_SuspendBy");
-            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
-            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
-            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
-            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(Suspension.SUSPEND_BY_ALERT_ID);
+            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
+            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(Suspension.SUSPEND_BY_EVERYTHING);
+            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRICS);
 
             parameter = Common.getObjectParameter(request, "AlertName");
             AlertsDao alertsDao = new AlertsDao();
@@ -593,25 +593,25 @@ public class CreateAlertSuspension extends HttpServlet {
 
             parameter = Common.getObjectParameter(request, "MetricGroupTagsInclusive");
             if (parameter != null) {
-                String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
             
             parameter = Common.getObjectParameter(request, "MetricGroupTagsExclusive");
             if (parameter != null) {
-                String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsExclusive(trimmedTags);
             }
             
             parameter = Common.getObjectParameter(request, "MetricSuspensionRegexes");
             if (parameter != null) {
-                String metricSuspensionRegexes = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String metricSuspensionRegexes = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricSuspensionRegexes(metricSuspensionRegexes);
             }
             
             
             // column #3 parameters
-            parameter = Common.getObjectParameter(request, "CreateAlertSuspension_Type");
+            parameter = Common.getObjectParameter(request, "CreateSuspension_Type");
             if ((parameter != null) && parameter.contains("Recurring")) suspension.setIsOneTime(false);
             else if ((parameter != null) && parameter.contains("OneTime")) suspension.setIsOneTime(true);
             
@@ -705,7 +705,7 @@ public class CreateAlertSuspension extends HttpServlet {
         }
             
         if (didEncounterError) suspension = null;
-        boolean isValid = AlertSuspension.isValid(suspension);
+        boolean isValid = Suspension.isValid(suspension);
         if (!isValid) suspension = null;
         
         return suspension;

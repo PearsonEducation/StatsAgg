@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author prashant kumar (Prashant4nov)
  */
-@WebServlet(name = "API_CreateAlertSuspension", urlPatterns = {"/api/create-alertsuspension"})
-public class CreateAlertSuspension extends HttpServlet {
+@WebServlet(name = "API_CreateSuspension", urlPatterns = {"/api/create-suspension"})
+public class CreateSuspension extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(CreateAlertSuspension.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateSuspension.class.getName());
     
-    public static final String PAGE_NAME = "API_CreateAlertSuspension";
+    public static final String PAGE_NAME = "API_CreateSuspension";
     
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
@@ -27,7 +27,7 @@ public class CreateAlertSuspension extends HttpServlet {
             JSONObject responseMsg = new JSONObject();
             response.setContentType("application/json");
             PrintWriter out = null;
-            String result = processPostRequest(request, new com.pearson.statsagg.webui.CreateAlertSuspension());
+            String result = processPostRequest(request, new com.pearson.statsagg.webui.CreateSuspension());
             responseMsg.put("response", result);
             out = response.getWriter();
             out.println(responseMsg);
@@ -48,19 +48,19 @@ public class CreateAlertSuspension extends HttpServlet {
     }
     
     /**
-     * Returns a string with success message if alert suspension is 
+     * Returns a string with success message if suspension is 
      * successfully created or error message if the request fails to create one.
      * 
      * @param request servlet request
-     * @param createAlertSuspension CreateAlertSuspension object
+     * @param createSuspension CreateSuspension object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlertSuspension createAlertSuspension) throws IOException {
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateSuspension createSuspension) {
         String result = null;
-        JSONObject alertSuspensionData = Helper.getRequestData(request);
+        JSONObject suspensionData = Helper.getRequestData(request);
 
         try {  
-            result = createAlertSuspension.parseAndAlterAlertSuspension(alertSuspensionData);
+            result = createSuspension.parseAndAlterSuspension(suspensionData);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

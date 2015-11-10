@@ -81,7 +81,7 @@ public class AlertThread implements Runnable {
     private final AtomicLong activeCautionAlertMetricValues_Counter_ = new AtomicLong(0);
     private final AtomicLong activeDangerAlertMetricValues_Counter_ = new AtomicLong(0);
     
-    private AlertSuspensions alertSuspensions_ = null;
+    private Suspensions suspensions_ = null;
     
     public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
         this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
@@ -109,18 +109,18 @@ public class AlertThread implements Runnable {
             metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
         }
         
-        long alertRoutineTimeElasped = 0, alertSuspensionRoutineTimeElapsed;
+        long alertRoutineTimeElasped = 0, suspensionRoutineTimeElapsed;
         synchronized (GlobalVariables.alertRoutineLock) {
             // gets all alerts from the database.
             AlertsDao alertsDao = new AlertsDao();
             List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
             alertsByAlertId_ = getAlertsByAlertId(alerts);
             
-            // run the alert suspension routine
-            long alertSuspensionRoutineStartTime = System.currentTimeMillis();
-            alertSuspensions_ = new AlertSuspensions(alertsByAlertId_);
-            alertSuspensions_.runAlertSuspensionRoutine();
-            alertSuspensionRoutineTimeElapsed = System.currentTimeMillis() - alertSuspensionRoutineStartTime; 
+            // run the suspension routine
+            long suspensionRoutineStartTime = System.currentTimeMillis();
+            suspensions_ = new Suspensions(alertsByAlertId_);
+            suspensions_.runSuspensionRoutine();
+            suspensionRoutineTimeElapsed = System.currentTimeMillis() - suspensionRoutineStartTime; 
             
             // run the alerting routine
             if (ApplicationConfiguration.isAlertRoutineEnabled() && runAlertRoutine_) {
@@ -137,7 +137,7 @@ public class AlertThread implements Runnable {
                 + ", Routine=Alert"
                 + ", MetricAssociationTime=" + metricAssociationTimeElasped
                 + ", AlertRoutineTime=" + alertRoutineTimeElasped
-                + ", AlertSuspensionRoutineTime=" + alertSuspensionRoutineTimeElapsed
+                + ", SuspensionRoutineTime=" + suspensionRoutineTimeElapsed
                 ;
 
         logger.info(outputMessage);
@@ -876,7 +876,7 @@ public class AlertThread implements Runnable {
     
     private void takeActionOnCautionAlert(Alert alert, int maxMetricsInEmail) {
         
-        if ((alert == null) || (alertSuspensions_ == null)) {
+        if ((alert == null) || (suspensions_ == null)) {
             return;
         }
         
@@ -899,8 +899,8 @@ public class AlertThread implements Runnable {
         Map<String,String> positiveAlertReasons_Caution = positiveAlertReasons_Caution_ByAlertId_.get(alert.getId());
         
         // the alert is suspended (the entire alert, not just notifications)
-        if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
-                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
+        if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) != null) && suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) &&
+                (suspensions_.getSuspensionLevelsByAlertId().get(alert.getId()) != null) && (suspensions_.getSuspensionLevelsByAlertId().get(alert.getId()) == Suspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
             alert.setIsCautionAlertActive(false);
             alert.setCautionFirstActiveAt(null);
             alert.setCautionAlertLastSentTimestamp(null);
@@ -914,7 +914,7 @@ public class AlertThread implements Runnable {
             alert.setIsCautionAcknowledged(false);
             alert.setCautionAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
             
-            if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+            if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
                 EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, false, statsAggLocation_);
                 SendEmail_ThreadPoolManager.executeThread(emailThread);
@@ -927,7 +927,7 @@ public class AlertThread implements Runnable {
             alert.setIsCautionAlertActive(false);
             
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
-                if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+                if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
                     EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, false, statsAggLocation_);
                     SendEmail_ThreadPoolManager.executeThread(emailThread);
@@ -947,7 +947,7 @@ public class AlertThread implements Runnable {
                 long timeSinceLastNotificationInMs = currentTimeInMs - alert.getCautionAlertLastSentTimestamp().getTime();
                 
                 if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
-                    if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+                    if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
                         SendEmail_ThreadPoolManager.executeThread(emailThread);
@@ -974,7 +974,7 @@ public class AlertThread implements Runnable {
     
     private void takeActionOnDangerAlert(Alert alert, int maxMetricsInEmail) {
         
-        if ((alert == null) || (alertSuspensions_ == null)) {
+        if ((alert == null) || (suspensions_ == null)) {
             return;
         }
         
@@ -997,8 +997,8 @@ public class AlertThread implements Runnable {
         Map<String,String> positiveAlertReasons_Danger = positiveAlertReasons_Danger_ByAlertId_.get(alert.getId());
         
         // the alert is suspended (the entire alert, not just notifications)
-        if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) != null) && alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) &&
-                (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) != null) && (alertSuspensions_.getAlertSuspensionLevelsByAlertId().get(alert.getId()) == AlertSuspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
+        if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) != null) && suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) &&
+                (suspensions_.getSuspensionLevelsByAlertId().get(alert.getId()) != null) && (suspensions_.getSuspensionLevelsByAlertId().get(alert.getId()) == Suspensions.LEVEL_SUSPEND_ENTIRE_ALERT)) {
             alert.setIsDangerAlertActive(false);
             alert.setDangerFirstActiveAt(null);
             alert.setDangerAlertLastSentTimestamp(null);
@@ -1012,7 +1012,7 @@ public class AlertThread implements Runnable {
             alert.setIsDangerAcknowledged(false);
             alert.setDangerAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
             
-            if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+            if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
                 EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, false, statsAggLocation_);
                 SendEmail_ThreadPoolManager.executeThread(emailThread);
@@ -1025,7 +1025,7 @@ public class AlertThread implements Runnable {
             alert.setIsDangerAlertActive(false);
             
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
-                if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+                if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
                     EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, false, statsAggLocation_);
                     SendEmail_ThreadPoolManager.executeThread(emailThread);
@@ -1045,7 +1045,7 @@ public class AlertThread implements Runnable {
                 long timeSinceLastNotificationInMs = currentTimeInMs - alert.getDangerAlertLastSentTimestamp().getTime();
                 
                 if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
-                    if ((alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId()) == null) || !alertSuspensions_.getAlertSuspensionStatusByAlertId().get(alert.getId())) {
+                    if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
                         EmailThread emailThread = new EmailThread(alertCopy, EmailThread.WARNING_LEVEL_DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);
                         SendEmail_ThreadPoolManager.executeThread(emailThread);

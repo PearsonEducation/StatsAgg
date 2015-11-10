@@ -1,4 +1,4 @@
-package com.pearson.statsagg.database_objects.alert_suspensions;
+package com.pearson.statsagg.database_objects.suspensions;
 
 import java.sql.Timestamp;
 import java.util.Calendar;
@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class AlertSuspension extends DatabaseObject<AlertSuspension> {
+public class Suspension extends DatabaseObject<Suspension> {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspension.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Suspension.class.getName());
 
     public static final int SUSPEND_BY_ALERT_ID = 1;
     public static final int SUSPEND_BY_METRIC_GROUP_TAGS = 2;
@@ -49,11 +49,11 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     private Integer durationTimeUnit_ = null; 
     private Timestamp deleteAtTimestamp_ = null;    
     
-    public AlertSuspension() {
+    public Suspension() {
         this.id_ = -1;
     }
     
-    public AlertSuspension(Integer id, String name, String description, Boolean isEnabled, 
+    public Suspension(Integer id, String name, String description, Boolean isEnabled, 
             Integer suspendBy, Integer alertId, String metricGroupTagsInclusive, String metricGroupTagsExclusive, String metricSuspensionRegexes, 
             Boolean isOneTime, Boolean isSuspendNotificationOnly,
             Boolean isRecurSunday, Boolean isRecurMonday, Boolean isRecurTuesday, Boolean isRecurWednesday,  
@@ -68,7 +68,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
              startDate, startTime, duration, durationTimeUnit, deleteAtTimestamp);
     }
     
-    public AlertSuspension(Integer id, String name, String uppercaseName, String description, Boolean isEnabled, 
+    public Suspension(Integer id, String name, String uppercaseName, String description, Boolean isEnabled, 
             Integer suspendBy, Integer alertId, String metricGroupTagsInclusive, String metricGroupTagsExclusive, String metricSuspensionRegexes, 
             Boolean isOneTime, Boolean isSuspendNotificationOnly,
             Boolean isRecurSunday, Boolean isRecurMonday, Boolean isRecurTuesday, Boolean isRecurWednesday,  
@@ -109,13 +109,13 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         else this.deleteAtTimestamp_ = (Timestamp) deleteAtTimestamp.clone();
     }
 
-    public static AlertSuspension copy(AlertSuspension suspension) {
+    public static Suspension copy(Suspension suspension) {
         
         if (suspension == null) {
             return null;
         }
         
-        AlertSuspension suspensionCopy = new AlertSuspension();
+        Suspension suspensionCopy = new Suspension();
         
         suspensionCopy.setId(suspension.getId());
         suspensionCopy.setName(suspension.getName());
@@ -148,7 +148,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     }
     
     @Override
-    public boolean isEqual(AlertSuspension suspension) {
+    public boolean isEqual(Suspension suspension) {
        
         if (suspension == null) return false;
         if (suspension == this) return true;
@@ -182,7 +182,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
                 .isEquals();
     }
      
-    public static boolean isValid(AlertSuspension suspension) {
+    public static boolean isValid(Suspension suspension) {
         
         if (suspension == null) return false;
 
@@ -199,7 +199,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     /*
     Checks to make sure that the 'options' criteria are valid
     */
-    public static boolean isValid_CheckOptions(AlertSuspension suspension) {
+    public static boolean isValid_CheckOptions(Suspension suspension) {
         if (suspension == null) return false;
         if (suspension.getId() == null) return false;
         if ((suspension.getName() == null) || (suspension.getName().isEmpty())) return false;
@@ -211,16 +211,16 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     /*
     Checks to make sure that the 'suspend by' criteria are valid
     */
-    public static boolean isValid_CheckSuspendBy(AlertSuspension suspension) {
+    public static boolean isValid_CheckSuspendBy(Suspension suspension) {
         
         if ((suspension == null) || (suspension.getSuspendBy() == null)) {
             return false;
         }
         
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID && (suspension.getAlertId() != null)) return true;
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) return true;
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) return true;
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS) return true;
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID && (suspension.getAlertId() != null)) return true;
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) return true;
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) return true;
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) return true;
         
         return false;
     }
@@ -228,14 +228,14 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
     /*
     Checks to make sure that the 'suspension type' variables are valid
     */
-    public static boolean isValid_SuspensionType(AlertSuspension suspension) {
+    public static boolean isValid_SuspensionType(Suspension suspension) {
         
         if ((suspension == null) || (suspension.isOneTime() == null)) {
             return false;
         }
         
         if (!suspension.isOneTime()) {
-            // isRecured days of the week can't be null if this is a 'recurring' alert suspension
+            // isRecured days of the week can't be null if this is a 'recurring' suspension
             if (suspension.isRecurSunday() == null) return false;
             if (suspension.isRecurMonday() == null) return false;
             if (suspension.isRecurTuesday() == null) return false;
@@ -265,15 +265,15 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         return true;
     }
     
-    public static boolean isSuspensionActive(AlertSuspension suspension) {
+    public static boolean isSuspensionActive(Suspension suspension) {
         if (suspension == null || (suspension.isEnabled() == null)) {
             return false;
         }
         
-        return suspension.isEnabled() && AlertSuspension.isSuspensionInSuspensionTimeWindow(suspension);
+        return suspension.isEnabled() && Suspension.isSuspensionInSuspensionTimeWindow(suspension);
     }
     
-    public static boolean isAlertSuspensionActive(AlertSuspension suspension, Calendar dateAndTime) {
+    public static boolean isSuspensionActive(Suspension suspension, Calendar dateAndTime) {
         if (suspension == null || (suspension.isEnabled() == null)) {
             return false;
         }
@@ -281,7 +281,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         return suspension.isEnabled() && isSuspensionInSuspensionTimeWindow(suspension, dateAndTime);
     }
     
-    public static boolean isSuspensionInSuspensionTimeWindow(AlertSuspension suspension) {
+    public static boolean isSuspensionInSuspensionTimeWindow(Suspension suspension) {
         if (suspension == null) {
             return false;
         }
@@ -290,43 +290,43 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         return isSuspensionInSuspensionTimeWindow(suspension, currentDateAndTime);
     }
     
-    public static boolean isSuspensionInSuspensionTimeWindow(AlertSuspension suspension, Calendar dateAndTime) {
+    public static boolean isSuspensionInSuspensionTimeWindow(Suspension suspension, Calendar dateAndTime) {
         if ((suspension == null) || (dateAndTime == null)) {
             return false;
         }
         
-        boolean isDateAndTimeInSuspensionWindow = AlertSuspension.isDateAndTimeInSuspensionWindow(suspension, dateAndTime);
+        boolean isDateAndTimeInSuspensionWindow = Suspension.isDateAndTimeInSuspensionWindow(suspension, dateAndTime);
         return isDateAndTimeInSuspensionWindow;
     }
 
     // specifiedDateAndTime will usually refer to 'current date/time'
-    public static boolean isDateAndTimeInSuspensionWindow(AlertSuspension suspension, Calendar specifiedDateAndTime) {
+    public static boolean isDateAndTimeInSuspensionWindow(Suspension suspension, Calendar specifiedDateAndTime) {
 
         if ((suspension == null) || (suspension.getStartTime() == null) || (suspension.getStartDate() == null) || 
                 (suspension.getDuration() == null) || (specifiedDateAndTime == null)) {
             return false;
         }
 
-        long alertSuspensionDuration_Milliseconds = suspension.getDuration();
+        long suspensionDuration_Milliseconds = suspension.getDuration();
         int suspensionStartTime_HourOfDay = suspension.getStartTime().getHours();
         int suspensionStartTime_Minute = suspension.getStartTime().getMinutes();
         int suspensionStartTime_Second = suspension.getStartTime().getSeconds();
         int suspensionStartTime_Millisecond = (int) (suspension.getStartTime().getTime() % 1000);
 
-        // gets a calendar with alertSuspension's date & time. used for checking if specifiedDateAndTime is before the start date/time. 
+        // gets a calendar with suspension's date & time. used for checking if specifiedDateAndTime is before the start date/time. 
         Calendar suspensionStartDateAndTime = DateAndTime.getCalendarWithSameDateAtDifferentTime(suspension.getStartDate(), suspensionStartTime_HourOfDay, 
                     suspensionStartTime_Minute, suspensionStartTime_Second, suspensionStartTime_Millisecond);
         
         if (suspension.isOneTime()) { // handles the 'one time' use-case
-            return isDateAndTimeInSuspensionWindow_OneTime(suspension, suspensionStartDateAndTime, specifiedDateAndTime, alertSuspensionDuration_Milliseconds);
+            return isDateAndTimeInSuspensionWindow_OneTime(suspension, suspensionStartDateAndTime, specifiedDateAndTime, suspensionDuration_Milliseconds);
         }
         else { // handles the 'recurring' use-case
-            return isDateAndTimeInSuspensionWindow_Recurring(suspension, suspensionStartDateAndTime, specifiedDateAndTime, alertSuspensionDuration_Milliseconds);
+            return isDateAndTimeInSuspensionWindow_Recurring(suspension, suspensionStartDateAndTime, specifiedDateAndTime, suspensionDuration_Milliseconds);
         }
     }
     
-    private static boolean isDateAndTimeInSuspensionWindow_OneTime(AlertSuspension suspension, Calendar suspensionStartDateAndTime, 
-            Calendar specifiedDateAndTime, long alertSuspensionDuration_Milliseconds) {
+    private static boolean isDateAndTimeInSuspensionWindow_OneTime(Suspension suspension, Calendar suspensionStartDateAndTime, 
+            Calendar specifiedDateAndTime, long suspensionDuration_Milliseconds) {
         
         if ((suspension == null) || (suspension.getStartTime() == null) || (suspension.getStartDate() == null) || 
                 (suspension.getDuration() == null) || (specifiedDateAndTime == null)) {
@@ -335,7 +335,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         
         long suspensionStartDateAndTime_Milliseconds = suspensionStartDateAndTime.getTimeInMillis();
         long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();
-        long suspensionStartDateAndTime_PlusDuration_Milliseconds = alertSuspensionDuration_Milliseconds + suspensionStartDateAndTime_Milliseconds;
+        long suspensionStartDateAndTime_PlusDuration_Milliseconds = suspensionDuration_Milliseconds + suspensionStartDateAndTime_Milliseconds;
         
         if ((specifiedDateAndTime_Milliseconds >= suspensionStartDateAndTime_Milliseconds) && 
                 (specifiedDateAndTime_Milliseconds < suspensionStartDateAndTime_PlusDuration_Milliseconds)) {
@@ -345,8 +345,8 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         return false;
     }
     
-    private static boolean isDateAndTimeInSuspensionWindow_Recurring(AlertSuspension suspension, Calendar suspensionStartDateAndTime, 
-            Calendar specifiedDateAndTime, long alertSuspensionDuration_Milliseconds) {
+    private static boolean isDateAndTimeInSuspensionWindow_Recurring(Suspension suspension, Calendar suspensionStartDateAndTime, 
+            Calendar specifiedDateAndTime, long suspensionDuration_Milliseconds) {
         
         /* Note -- this method may seem to have a contrived implementation, but the majority of the coding choices for this method were made to  
         achieve maximum performance. A cleaner, Calendar-only, model was originally used, but it performed 2x slower, so it was replaced with this structure. */
@@ -358,11 +358,11 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         
         long specifiedDateAndTime_Milliseconds = specifiedDateAndTime.getTimeInMillis();        
         Date specifiedDateAndTime_Date = new Date(specifiedDateAndTime_Milliseconds);
-        Date specifiedDateAndTime_MinusDuration = new Date(specifiedDateAndTime_Milliseconds - alertSuspensionDuration_Milliseconds);
+        Date specifiedDateAndTime_MinusDuration = new Date(specifiedDateAndTime_Milliseconds - suspensionDuration_Milliseconds);
         
         /* covers the cicumstance of specifiedDateAndTime being in an active suspension time window, and the time window started the day before specifiedDateAndTime */
         if (specifiedDateAndTime_Date.getDate() != specifiedDateAndTime_MinusDuration.getDate()) {
-            // gets a calendar with a date of "one day before specifiedDateAndTime's date" & alertSuspension's start-time
+            // gets a calendar with a date of "one day before specifiedDateAndTime's date" & suspension's start-time
             Calendar startTime_DayBeforeSpecifiedDay = (Calendar) specifiedDateAndTime.clone();
             startTime_DayBeforeSpecifiedDay.add(Calendar.DATE, -1);
             startTime_DayBeforeSpecifiedDay = DateAndTime.getCalendarWithSameDateAtDifferentTime(startTime_DayBeforeSpecifiedDay, suspensionStartDateAndTime.get(Calendar.HOUR_OF_DAY), 
@@ -370,7 +370,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
             long startTime_DayBeforeSpecifiedDay_Milliseconds = startTime_DayBeforeSpecifiedDay.getTimeInMillis();
             
             // gets unix time (in ms) with startTime_DayBeforeSpecifiedDay's date & suspension's end-time
-            long endTime_SpecifiedDay_Milliseconds = startTime_DayBeforeSpecifiedDay_Milliseconds + alertSuspensionDuration_Milliseconds;
+            long endTime_SpecifiedDay_Milliseconds = startTime_DayBeforeSpecifiedDay_Milliseconds + suspensionDuration_Milliseconds;
 
             if (((specifiedDateAndTime_Milliseconds > startTime_DayBeforeSpecifiedDay_Milliseconds) || (specifiedDateAndTime_Milliseconds == startTime_DayBeforeSpecifiedDay_Milliseconds)) && 
                     (specifiedDateAndTime_Milliseconds < endTime_SpecifiedDay_Milliseconds)) {  
@@ -380,7 +380,7 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
                     return false;
                 }
                 else {
-                    return isAlertSuspensionAllowed_DayOfWeek(suspension, startTime_DayBeforeSpecifiedDay);
+                    return isSuspensionAllowed_DayOfWeek(suspension, startTime_DayBeforeSpecifiedDay);
                 }
             }
         }
@@ -398,11 +398,11 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         }
 
         // gets unix time (in ms) with specifiedDateAndTime's date & suspension's end-time
-        long endTime_SpecifiedDay_Milliseconds = startTime_SpecifiedDay_Milliseconds + alertSuspensionDuration_Milliseconds;
+        long endTime_SpecifiedDay_Milliseconds = startTime_SpecifiedDay_Milliseconds + suspensionDuration_Milliseconds;
         
         if (((specifiedDateAndTime_Milliseconds > startTime_SpecifiedDay_Milliseconds) || (specifiedDateAndTime_Milliseconds == startTime_SpecifiedDay_Milliseconds)) && 
                 (specifiedDateAndTime_Milliseconds < endTime_SpecifiedDay_Milliseconds)) {  
-            return isAlertSuspensionAllowed_DayOfWeek(suspension, startTime_SpecifiedDay);
+            return isSuspensionAllowed_DayOfWeek(suspension, startTime_SpecifiedDay);
         }
         else {
             return false;
@@ -410,16 +410,16 @@ public class AlertSuspension extends DatabaseObject<AlertSuspension> {
         
     }
     
-    public static boolean isAlertSuspensionAllowed_DayOfWeek(AlertSuspension suspension, Calendar specifiedDateAndTime) {
+    public static boolean isSuspensionAllowed_DayOfWeek(Suspension suspension, Calendar specifiedDateAndTime) {
         
         if ((suspension == null) || (suspension.isOneTime() == null)) {
             return false;
         }
         
-        // suspensions are isRecured on all days if it is a 'one time' alert suspension 
+        // suspensions are allowed on all days if it is a 'one time' suspension 
         if (suspension.isOneTime()) return true;
         
-        // isRecured days of the week can't be null if this is a 'recurring' alert suspension
+        // isRecured days of the week can't be null if this is a 'recurring' suspension
         if (suspension.isRecurSunday() == null) return false;
         if (suspension.isRecurMonday() == null) return false;
         if (suspension.isRecurTuesday() == null) return false;

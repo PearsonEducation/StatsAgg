@@ -9,6 +9,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.Collections;
 import java.util.List;
 import org.jsoup.Jsoup;
@@ -68,7 +69,8 @@ public class MetricGroupAlertAssociations extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
-        String metricGroup_AlertAssociations = getMetricGroup_AlertAssociations(name);
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+        String metricGroup_AlertAssociations = getMetricGroup_AlertAssociations(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -87,7 +89,8 @@ public class MetricGroupAlertAssociations extends HttpServlet {
             metricGroup_AlertAssociations +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -107,7 +110,7 @@ public class MetricGroupAlertAssociations extends HttpServlet {
         
     }
 
-    private String getMetricGroup_AlertAssociations(String metricGroupName) {
+    private String getMetricGroup_AlertAssociations(String metricGroupName, boolean excludeNavbar) {
         
         if (metricGroupName == null) {
             return "<b>No metric group specified</b>";
@@ -139,7 +142,7 @@ public class MetricGroupAlertAssociations extends HttpServlet {
         outputString.append("<ul>");
         
         for (String alertName : alertNames) {
-            String alertDetailsUrl = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
+            String alertDetailsUrl = "<a href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
             outputString.append("<li>").append(alertDetailsUrl).append("</li>");
         }
 

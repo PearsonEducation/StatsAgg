@@ -11,6 +11,7 @@ import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -74,7 +75,8 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
-        String metricGroupMetricKeyAssociations = getMetricGroupMetricKeyAssociations(name);
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+        String metricGroupMetricKeyAssociations = getMetricGroupMetricKeyAssociations(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -93,7 +95,8 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
             metricGroupMetricKeyAssociations +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -113,7 +116,7 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
         
     }
 
-    private String getMetricGroupMetricKeyAssociations(String metricGroupName) {
+    private String getMetricGroupMetricKeyAssociations(String metricGroupName, boolean excludeNavbar) {
         
         if (metricGroupName == null) {
             return "";
@@ -162,7 +165,7 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
                         if ((metricTimestampsAndValues != null) && !metricTimestampsAndValues.isEmpty()) mostRecentValue = metricTimestampsAndValues.get(metricTimestampsAndValues.size() - 1).getMetricValue();
                         
                         outputString.append("<li>");
-                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
+                        outputString.append("<a class=\"iframe cboxElement\" href=\"MetricRecentValues?ExcludeNavbar=").append(excludeNavbar).append("&amp;MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
                         outputString.append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</a>");
                         if (mostRecentValue != null) outputString.append(" = ").append(mostRecentValue.stripTrailingZeros().toPlainString()).append(" (most recent value)");
                         outputString.append("</li>");

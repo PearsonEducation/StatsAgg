@@ -90,7 +90,7 @@ public class CreateAlert extends HttpServlet {
             String htmlBodyContents = buildCreateAlertHtml(alert);
             List<String> additionalJavascript = new ArrayList<>();
             additionalJavascript.add("js/statsagg_create_alert.js");
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript);
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());

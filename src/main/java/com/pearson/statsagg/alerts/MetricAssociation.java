@@ -1,7 +1,7 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -120,8 +120,8 @@ public class MetricAssociation {
 
             updateMergedRegexesForSuspensions(newAndAlteredSuspensionIds);
 
-            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-            allMetricSuspensionIds = alertSuspensionsDao.getSuspensionIds_BySuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            allMetricSuspensionIds = suspensionsDao.getSuspensionIds_BySuspendBy(Suspension.SUSPEND_BY_METRICS);
             if (allMetricSuspensionIds == null) {
                 logger.error("Failure reading metric suspension ids from the database.");
                 allMetricSuspensionIds = new ArrayList<>();
@@ -447,8 +447,8 @@ public class MetricAssociation {
             String mergedMatchRegex = GlobalVariables.mergedMatchRegexesBySuspensionId.get(suspensionId);
 
             if (mergedMatchRegex == null) {
-                AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-                AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
+                SuspensionsDao suspensionsDao = new SuspensionsDao();
+                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
                 
                 List<String> regexPatterns = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
                 mergedMatchRegex = StringUtilities.createMergedRegex(regexPatterns);

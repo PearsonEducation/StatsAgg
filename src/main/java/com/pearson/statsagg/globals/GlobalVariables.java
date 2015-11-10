@@ -144,13 +144,13 @@ public class GlobalVariables {
     public final static ConcurrentHashMap<String,BigDecimal> activeDangerAlertMetricValues = new ConcurrentHashMap<>(); 
     
     // k=AlertId, v='is alert suspended (as of last alert routine run)?'
-    public final static ConcurrentHashMap<Integer,Boolean> alertSuspensionStatusByAlertId = new ConcurrentHashMap<>();
+    public final static ConcurrentHashMap<Integer,Boolean> suspensionStatusByAlertId = new ConcurrentHashMap<>();
     
     // k=AlertId, v=suspension ids that are currently associated with a specific alert
     public final static ConcurrentHashMap<Integer,Set<Integer>> suspensionIdAssociationsByAlertId = new ConcurrentHashMap<>();
     
-    // k=AlertId, v=the alert suspension level (LEVEL_ALERT_NOT_SUSPENDED, LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY, LEVEL_SUSPEND_ENTIRE_ALERT)
-    public final static ConcurrentHashMap<Integer,Integer> alertSuspensionLevelsByAlertId = new ConcurrentHashMap<>();
+    // k=AlertId, v=the suspension level (LEVEL_ALERT_NOT_SUSPENDED, LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY, LEVEL_SUSPEND_ENTIRE_ALERT)
+    public final static ConcurrentHashMap<Integer,Integer> suspensionLevelsByAlertId = new ConcurrentHashMap<>();
     
     // k=MetricKey, v=MetricKey -- k=v, "the set of metric keys that are currently suspended"
     public final static ConcurrentHashMap<String,String> suspendedMetricKeys = new ConcurrentHashMap<>();

@@ -72,7 +72,7 @@ ul.nav li.dropdown:hover ul.dropdown-menu{
     margin-left: -15px !important;
 }
 
-.create-alert-suspension-th{
+.create-suspension-th{
     min-width: 80px !important;
     padding-right: 7px !important;
 }
@@ -187,7 +187,7 @@ fieldset[disabled] .form-control-statsagg {
     margin-left: 0px !important;
 }
 
-.statsagg_alert_suspension_alert_associations_preview {
+.statsagg_suspension_alert_associations_preview {
     color: #31708F !important;
 }
 

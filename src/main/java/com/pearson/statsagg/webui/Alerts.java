@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -291,8 +291,8 @@ public class Alerts extends HttpServlet {
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
         Map<Integer, String> notificationGroupNames_ById = notificationGroupsDao.getNotificationGroupNames_ById();
         
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        Map<Integer,List<AlertSuspension>> alertSuspensions_SuspendByAlertId_ByAlertId = alertSuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = suspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
         
         for (Alert alert : alerts) {
 
@@ -311,8 +311,8 @@ public class Alerts extends HttpServlet {
                     isRowStatusInfo = true;
                 }
             }
-            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
-                if (GlobalVariables.alertSuspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
+            synchronized(GlobalVariables.suspensionStatusByAlertId) {
+                if (GlobalVariables.suspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) {
                     rowAlertStatusContext = "class=\"info\"";
                     isRowStatusInfo = true;
                 }
@@ -321,13 +321,13 @@ public class Alerts extends HttpServlet {
             if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
             else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
             
-            String alertDetails = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
+            String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
             
             String metricGroupNameAndLink;
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
             if ((metricGroup == null) || (metricGroup.getName() == null)) metricGroupNameAndLink = "N/A";
-            else metricGroupNameAndLink = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            else metricGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             
             StringBuilder tagsCsv = new StringBuilder();
             if ((metricGroup != null) && (metricGroup.getId() != null) && (tagsByMetricGroupId != null)) {
@@ -347,7 +347,7 @@ public class Alerts extends HttpServlet {
                 cautionNotificationGroupNameAndLink = "N/A";
             }
             else {
-                cautionNotificationGroupNameAndLink = "<a href=\"NotificationGroupDetails?Name=" + 
+                cautionNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
                     StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "</a>";
             }
@@ -357,7 +357,7 @@ public class Alerts extends HttpServlet {
                 dangerNotificationGroupNameAndLink = "N/A";
             }
             else {
-                dangerNotificationGroupNameAndLink = "<a href=\"NotificationGroupDetails?Name=" + 
+                dangerNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
                     StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "</a>";
             }
@@ -366,17 +366,17 @@ public class Alerts extends HttpServlet {
             if ((alert.isEnabled() != null) && alert.isEnabled()) isAlertEnabled = "Yes";
     
             String isSuspended = "No";
-            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
-                if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) {
-                    if (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+            synchronized(GlobalVariables.suspensionStatusByAlertId) {
+                if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId()) != null) {
+                    if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
                 }
             }
-            String isSuspendedLink = "<a href=\"AlertAlertSuspensionAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
+            String isSuspendedLink = "<a class=\"iframe cboxElement\" href=\"Alert-SuspensionAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
             
             String triggeredLink = "No", cautionLink = "No", dangerLink = "No";
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) cautionLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) dangerLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
-            if (cautionLink.endsWith("Yes</a>") || dangerLink.endsWith("Yes</a>")) triggeredLink = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">Yes</a>";
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) cautionLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) dangerLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
+            if (cautionLink.endsWith("Yes</a>") || dangerLink.endsWith("Yes</a>")) triggeredLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">Yes</a>";
             
             String enable; 
             if (alert.isEnabled()) {
@@ -450,7 +450,7 @@ public class Alerts extends HttpServlet {
                     .append("<td>").append(isAcknowledged).append("</td>\n")
                     .append("<td>").append(enable).append(", ").append(alter).append(", ").append(clone);
             
-            if ((alertSuspensions_SuspendByAlertId_ByAlertId == null) || !alertSuspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) { 
+            if ((suspensions_SuspendByAlertId_ByAlertId == null) || !suspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) { 
                 htmlBodyStringBuilder.append(", ").append(remove);
             }
             

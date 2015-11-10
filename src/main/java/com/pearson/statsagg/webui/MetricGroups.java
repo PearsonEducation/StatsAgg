@@ -241,7 +241,7 @@ public class MetricGroups extends HttpServlet {
             
             List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesByMetricGroupId.get(metricGroup.getId());
             
-            String metricGroupDetails = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
+            String metricGroupDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             
             int regexCount;
@@ -264,7 +264,7 @@ public class MetricGroups extends HttpServlet {
             Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
             int matchingMetricKeysAssociatedWithMetricGroup_Count = 0;
             if (matchingMetricKeysAssociatedWithMetricGroup != null) matchingMetricKeysAssociatedWithMetricGroup_Count = matchingMetricKeysAssociatedWithMetricGroup.size();
-            String metricAssociationsLink = "<a href=\"MetricGroupMetricKeyAssociations?Name=" + 
+            String metricAssociationsLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupMetricKeyAssociations?ExcludeNavbar=true&amp;Name=" + 
                     StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
                     StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithMetricGroup_Count)) + "</a>";
 

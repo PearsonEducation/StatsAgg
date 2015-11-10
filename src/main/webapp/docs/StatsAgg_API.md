@@ -130,13 +130,13 @@
 
 
 
-**Show Alert Suspensions** 
+**Show Suspensions** 
 ----
-  Returns json data containing list of alert suspensions.
+  Returns json data containing list of suspensions.
 
 * **URL**
 
-    `/StatsAgg/api/AlertsSuspension-list`
+    `/StatsAgg/api/Suspension-list`
 
 
 
@@ -150,15 +150,15 @@
 
      **Required:**
  
-    `page_size=[integer] The maximum number of Alert Suspensions to return per page/request.` 
+    `page_size=[integer] The maximum number of Suspensions to return per page/request.` 
  
-    `page_number=[integer] The page number containing the list of Alert Suspensions.` 
+    `page_number=[integer] The page number containing the list of Suspensions.` 
 
 
 
 * **Example Request:**
 
-    ` /StatsAgg/api/AlertsSuspension-list?page_size=2&page_number=1`
+    ` /StatsAgg/api/SuspensionsList?page_size=2&page_number=1`
    
 
 
@@ -281,13 +281,13 @@
 
 
 
-**Show Alert Suspension Details** 
+**Show Suspension Details** 
 ----
-  Returns json data containing alert suspension details.
+  Returns json data containing suspension details.
 
 * **URL**
 
-    `/StatsAgg/api/alertsuspension-details`
+    `/StatsAgg/api/suspension-details`
 
 
 
@@ -301,13 +301,13 @@
 
      **Required:**
  
-    `id=[integer] Alert Suspensions id.` 
+    `id=[integer] Suspensions id.` 
 
 
 
 * **Example Request:**
 
-    ` /StatsAgg/api/alertsuspension-details?id=2464`
+    ` /StatsAgg/api/suspension-details?id=2464`
    
 
 
@@ -358,7 +358,7 @@
 
 
     ```{
-		"Name":"alertsuspension-hours",
+		"Name":"suspension-hours",
 		"Description":"2464",
 		"MatchRegexes": ".*",
         "BlacklistRegexes": "",
@@ -529,13 +529,13 @@
 
 
 
-**Create Alert Suspension** 
+**Create Suspension** 
 ----
-  Creates a new Alert Suspension.
+  Creates a new Suspension.
 
 * **URL**
 
-    `/StatsAgg/api/create-alertsuspension`
+    `/StatsAgg/api/create-suspension`
 
 
 
@@ -548,11 +548,11 @@
 
 *  **JSON Fields**
  
-    `Name=[String] A unique name for this ‘alert suspension’. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
+    `Name=[String] A unique name for this ‘suspension’. Other than uniqueness, the only limitation is that it must be under 500 characters long.` 
 
     `Description=[String] `
 
-	`Enabled=[String] If you want the alert suspension to be enabled after creation or alteration, then check this checkbox. When an ‘alert suspension’ is disabled, the alert suspension won’t be able to suspend any caution or danger alerts.`
+	`Enabled=[String] If you want the suspension to be enabled after creation or alteration, then check this checkbox. When an ‘suspension’ is disabled, the suspension won’t be able to suspend any caution or danger alerts.`
 
 	`SuspendNotificationOnly=[String] When checked, suspended alerts still evaluate their alert criteria (and display the caution/danger triggered status on the StatsAgg WebUI); they just don’t send out emails alerts. When unchecked, suspended alerts will not be evaluated at all. The most common approach is to have this field checked.`
 
@@ -564,7 +564,7 @@
 
 	`MetricGroupTagsExclusive=[String] `	
 
-	`CreateAlertSuspension_Type=[String] `	
+	`CreateSuspension_Type=[String] `	
 
 	`StartDate=[String] `	
 
@@ -590,12 +590,12 @@
 	
 * **Example Request:**
 
-    ```   {"Name": "alert suspension","Description": "alert new created field","Enabled":"true",
+    ```   {"Name": "suspension","Description": "alert new created field","Enabled":"true",
 	"SuspendNotificationOnly": "true",
 	"CreateSuspension_SuspendBy":"true",
 	"MetricGroupTagsInclusive":"metric group tags inclusive",
 	"MetricGroupTagsExclusive": "metric grp tags exclusive",
-	"CreateAlertSuspension_Type":"alert suspension type",
+	"CreateSuspension_Type":"suspension type",
     "StartDate": 5000,
 	"RecurSunday":"notification grp",
 	"RecurMonday": "positive notification grp1",
@@ -734,13 +734,13 @@
 
         {"response": "Delete notification group success. NotificationGroupName="notification_grp_name"."}
 
-**Remove Alert Suspension**
+**Remove Suspension**
 ----
-  Deletes an Alert Suspension from Database.
+  Deletes an Suspension from Database.
 
 * **URL**
 
-    `/StatsAgg/api/alertsuspension-remove`
+    `/StatsAgg/api/suspension-remove`
 
 * **Method:**
 
@@ -748,14 +748,14 @@
   
 *  **URL Params**
  
-    `Name=[String] Name of the Alert Suspension.` 
+    `Name=[String] Name of the Suspension.` 
 
 
 * **Example Request:**
 
-    ` /StatsAgg/api/alertsuspension-remove?name=alert_suspension_name`
+    ` /StatsAgg/api/suspension-remove?name=suspension_name`
    
 * **Example Result:**
 
 
-    ```{"response":"Delete alert suspension success. AlertSuspensionName=\"alert_suspension_name\"."}```
+    ```{"response":"Delete suspension success. SuspensionName=\"suspension_name\"."}```

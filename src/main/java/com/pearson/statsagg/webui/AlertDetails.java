@@ -16,6 +16,7 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -73,6 +74,7 @@ public class AlertDetails extends HttpServlet {
         PrintWriter out = null;
     
         String alertName = request.getParameter("Name");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         String alertDetails = getAlertDetailsString(alertName);
                 
         try {  
@@ -91,7 +93,8 @@ public class AlertDetails extends HttpServlet {
             "    <div class=\"row create-alert-form-row\">\n" +
             alertDetails +
             "  </div></div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -154,9 +157,8 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Metric group name</b> = ");
             if (metricGroup != null) {
-                String metricGroupDetails = "<a href=\"MetricGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
-                outputString.append(metricGroupDetails).append("<br>");
+                String metricGroupDetailsPopup = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+                outputString.append(metricGroupDetailsPopup).append("<br>");
             }
             else outputString.append("<br>");
             
@@ -204,29 +206,29 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<br>");
             
             boolean isAlertSuspended = false;
-            synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
+            synchronized(GlobalVariables.suspensionStatusByAlertId) {
                 outputString.append("<b>Is alert suspended?</b> = ");
 
-                if ((GlobalVariables.alertSuspensionStatusByAlertId != null) && (GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId()) != null) &&
-                        GlobalVariables.alertSuspensionStatusByAlertId.get(alert.getId())) {
+                if ((GlobalVariables.suspensionStatusByAlertId != null) && (GlobalVariables.suspensionStatusByAlertId.get(alert.getId()) != null) &&
+                        GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) {
                     outputString.append("Yes <br>");
                     isAlertSuspended = true;
                 }
                 else outputString.append("No <br>");
             }
             
-            synchronized(GlobalVariables.alertSuspensionLevelsByAlertId) {
+            synchronized(GlobalVariables.suspensionLevelsByAlertId) {
                 outputString.append("<b>Is alert suspended, notification only?</b> = ");
-                if (isAlertSuspended && (GlobalVariables.alertSuspensionLevelsByAlertId != null) && (GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId()) != null)) {
-                    Integer suspensionLevel = GlobalVariables.alertSuspensionLevelsByAlertId.get(alert.getId());
+                if (isAlertSuspended && (GlobalVariables.suspensionLevelsByAlertId != null) && (GlobalVariables.suspensionLevelsByAlertId.get(alert.getId()) != null)) {
+                    Integer suspensionLevel = GlobalVariables.suspensionLevelsByAlertId.get(alert.getId());
 
-                    if (com.pearson.statsagg.alerts.AlertSuspensions.LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
+                    if (com.pearson.statsagg.alerts.Suspensions.LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
                     else outputString.append("No <br>");
                 }
                 else outputString.append("N/A <br>");
             }
             
-            outputString.append("<b>View Triggered Metrics</b> = ").append("<a href=\"AlertAssociations?Name=").append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("&Level=" + "Triggered" + "\">Triggered Metrics</a>");
+            outputString.append("<b>View Triggered Metrics</b> = ").append("<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=").append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("&Level=" + "Triggered" + "\">Triggered Metrics</a>");
             
             outputString.append("</div></div></div>").append("<div class=\"col-md-4 statsagg_three_panel_second_panel\">\n");
             outputString.append("<div class=\"panel panel-warning\"> <div class=\"panel-heading\"><b>Caution Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
@@ -235,17 +237,15 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Caution notification group name</b> = ");
             if (cautionNotificationGroup != null) {
-                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(cautionNotificationGroup.getName()) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName()) + "</a>";
-                outputString.append(notificationGroupDetails).append("<br>");
+                String notificationGroupDetailsPopup = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(cautionNotificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(cautionNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetailsPopup).append("<br>");
             }
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution positive notification group name</b> = ");
             if (cautionPositiveNotificationGroup != null) {
-                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(cautionPositiveNotificationGroup.getName()) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(cautionPositiveNotificationGroup.getName()) + "</a>";
-                outputString.append(notificationGroupDetails).append("<br>");
+                String notificationGroupDetailsPopup = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(cautionPositiveNotificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(cautionPositiveNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetailsPopup).append("<br>");
             }
             else outputString.append("N/A <br>");
             
@@ -306,7 +306,7 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Is the caution criteria valid?</b> = ").append(isCautionAlertCriteriaValid).append("<br>");
             
             String isCautionAlertActive = "No";
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
+            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) isCautionAlertActive = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&amp;Level=" + "Caution" + "\">Yes</a>";
             outputString.append("<b>Caution alert active?</b> = ").append(isCautionAlertActive).append("<br>");
             
             outputString.append("<b>Caution alert initially triggered at</b> = ");
@@ -340,17 +340,15 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>Danger notification group name</b> = ");
             if (dangerNotificationGroup != null) {
-                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(dangerNotificationGroup.getName()) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName()) + "</a>";
-                outputString.append(notificationGroupDetails).append("<br>");
+                String notificationGroupDetailsPopup = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(dangerNotificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(dangerNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetailsPopup).append("<br>");
             }
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger positive notification group name</b> = ");
             if (dangerPositiveNotificationGroup != null) {
-                String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(dangerPositiveNotificationGroup.getName()) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(dangerPositiveNotificationGroup.getName()) + "</a>";
-                outputString.append(notificationGroupDetails).append("<br>");
+                String notificationGroupDetailsPopup = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(dangerPositiveNotificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(dangerPositiveNotificationGroup.getName()) + "</a>";
+                outputString.append(notificationGroupDetailsPopup).append("<br>");
             }
             else outputString.append("N/A <br>");
             
@@ -411,7 +409,7 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<b>Is the danger criteria valid?</b> = ").append(isDangerAlertCriteriaValid).append("<br>");
             
             String isDangerAlertActive = "No";
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "<a href=\"AlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
+            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) isDangerAlertActive = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&amp;Level=" + "Danger" + "\">Yes</a>";
             outputString.append("<b>Danger alert active?</b> = ").append(isDangerAlertActive).append("<br>");
 
             outputString.append("<b>Danger alert initially triggered at</b> = ");

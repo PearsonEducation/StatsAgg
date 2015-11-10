@@ -121,19 +121,19 @@ public class EmailThread implements Runnable  {
         }
         
         if ((warningLevel_ == WARNING_LEVEL_CAUTION) && (statsAggLocation_ != null) && !statsAggLocation_.isEmpty() && (alert_ != null) && (alert_.getName() != null)) {
-            body.append("<b>Currently triggered metrics</b> = ").append("<a href=\"").append(statsAggLocation_).append("/AlertAssociations?Name=")
+            body.append("<b>Currently Triggered Metrics</b> = ").append("<a href=\"").append(statsAggLocation_).append("/AlertAssociations?Name=")
                     .append(StatsAggHtmlFramework.urlEncode(alert_.getName())).append("&Level=" + "Caution").append("\">");
             body.append("Triggered caution metrics").append("</a>").append("<br>");
         }
         
         if ((warningLevel_ == WARNING_LEVEL_DANGER) && (statsAggLocation_ != null) && !statsAggLocation_.isEmpty() && (alert_ != null) && (alert_.getName() != null)) {
-            body.append("<b>Currently triggered metrics</b> = ").append("<a href=\"").append(statsAggLocation_).append("/AlertAssociations?Name=")
+            body.append("<b>Currently Triggered Metrics</b> = ").append("<a href=\"").append(statsAggLocation_).append("/AlertAssociations?Name=")
                     .append(StatsAggHtmlFramework.urlEncode(alert_.getName())).append("&Level=" + "Danger").append("\">");
             body.append("Triggered danger metrics").append("</a>").append("<br>");
         }
         
         body.append("<b>Current Time</b> = ").append(formattedDateAndTime).append("<br>");
-        if (alertTriggeredAt != null) body.append("<b>Alert triggered time</b> = ").append(alertTriggeredAt).append("<br>");
+        if (alertTriggeredAt != null) body.append("<b>Alert Triggered Time</b> = ").append(alertTriggeredAt).append("<br>");
         body.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert_.getName())).append("<br>");
         
         body.append("<b>Alert Description</b> = ");

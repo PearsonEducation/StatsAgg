@@ -83,6 +83,7 @@ public class AlertAssociations extends HttpServlet {
         String level = request.getParameter("Level");
         String acknowledgeLevel = request.getParameter("AcknowledgeLevel");
         String acknowledgeChange = request.getParameter("AcknowledgeChange");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
 
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(name);  
@@ -98,9 +99,9 @@ public class AlertAssociations extends HttpServlet {
         String alertAssociations = "";
         
         if (level != null) {
-            if (level.equalsIgnoreCase("Triggered")) alertAssociations = getTriggeredAlertAssociations(name, level);
-            else if (level.equalsIgnoreCase("Caution")) alertAssociations = getCautionAlertAssociations(name, level);
-            else if (level.equalsIgnoreCase("Danger")) alertAssociations = getDangerAlertAssociations(name, level);
+            if (level.equalsIgnoreCase("Triggered")) alertAssociations = getTriggeredAlertAssociations(name, level, excludeNavbar);
+            else if (level.equalsIgnoreCase("Caution")) alertAssociations = getCautionAlertAssociations(name, level, excludeNavbar);
+            else if (level.equalsIgnoreCase("Danger")) alertAssociations = getDangerAlertAssociations(name, level, excludeNavbar);
         }
         
         try {  
@@ -118,8 +119,8 @@ public class AlertAssociations extends HttpServlet {
                 "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
                 "      <div class=\"pull-right \">\n");
             
-            String acknowledgeButtonHtml = getAcknowledgeButtonHtml(alert, level);
-            String clearAllButtonHtml = getClearAllButtonHtml(alert, level);
+            String acknowledgeButtonHtml = getAcknowledgeButtonHtml(alert, level, excludeNavbar);
+            String clearAllButtonHtml = getClearAllButtonHtml(alert, level, excludeNavbar);
             htmlBodyBuilder.append(acknowledgeButtonHtml);
             if (!acknowledgeButtonHtml.isEmpty() && !clearAllButtonHtml.isEmpty()) htmlBodyBuilder.append("&nbsp;");
             htmlBodyBuilder.append(clearAllButtonHtml);
@@ -133,7 +134,7 @@ public class AlertAssociations extends HttpServlet {
                 "  </div>\n" +
                 "</div>\n");
             
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyBuilder.toString());
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyBuilder.toString(), excludeNavbar);
  
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -163,22 +164,23 @@ public class AlertAssociations extends HttpServlet {
         String level = request.getParameter("Level");
         String forgetMetric = request.getParameter("ForgetMetric");
         String clearAll = request.getParameter("ClearAll");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(name);  
         
         if ((forgetMetric != null) && !forgetMetric.isEmpty()) { // if the user clicked on the X button to remove a metric, perform that action & reload the page
-            boolean forgetSuccess = forgetMetricAndReloadPage(forgetMetric, name, level, response);
+            boolean forgetSuccess = forgetMetricAndReloadPage(forgetMetric, name, level, excludeNavbar, response);
             if (!forgetSuccess) processGetRequest(request, response);
         }
         else if ((clearAll != null) && !clearAll.isEmpty()) { // if the user clicked on the 'clear all' button, perform that action & reload the page
-            boolean clearSuccess = clearAllAndReloadPage(alert, level, response);
+            boolean clearSuccess = clearAllAndReloadPage(alert, level, excludeNavbar, response);
             if (!clearSuccess) processGetRequest(request, response);
         }
         else processGetRequest(request, response);
     }
         
-    private boolean forgetMetricAndReloadPage(String metricToForget, String alertName, String level, HttpServletResponse response) {
+    private boolean forgetMetricAndReloadPage(String metricToForget, String alertName, String level, boolean excludeNavbar, HttpServletResponse response) {
         
         if ((metricToForget == null) || metricToForget.isEmpty() || (alertName == null) || (alertName.isEmpty()) || (level == null) || (level.isEmpty()) || (response == null)) {
             return false;
@@ -191,12 +193,12 @@ public class AlertAssociations extends HttpServlet {
         
         if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
 
-        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "ExcludeNavbar=" + excludeNavbar + "&Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
         
         return true;
     }
             
-    private boolean clearAllAndReloadPage(Alert alert, String level, HttpServletResponse response) {
+    private boolean clearAllAndReloadPage(Alert alert, String level, boolean excludeNavbar, HttpServletResponse response) {
         
         if ((alert == null) || (alert.getName() == null) || (level == null) || (level.isEmpty()) || (response == null) || (alert.getAlertType() != Alert.TYPE_AVAILABILITY)) {
             return false;
@@ -220,7 +222,7 @@ public class AlertAssociations extends HttpServlet {
 
         if (GlobalVariables.cleanupInvokerThread != null) GlobalVariables.cleanupInvokerThread.runCleanupThread();
 
-        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "AlertAssociations?" + "ExcludeNavbar=" + excludeNavbar + "&Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&" + "Level=" + StatsAggHtmlFramework.urlEncode(level));
         
         return true;
     }
@@ -256,7 +258,7 @@ public class AlertAssociations extends HttpServlet {
         return didSetAlertAcknowledgement;
     }
     
-    private String getAcknowledgeButtonHtml(Alert alert, String level) {
+    private String getAcknowledgeButtonHtml(Alert alert, String level, boolean excludeNavbar) {
         
         if ((level == null) || (alert == null) || (alert.getName() == null)) {
             return "";
@@ -274,23 +276,23 @@ public class AlertAssociations extends HttpServlet {
                 (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()))
                )              
             {
-                htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=False&amp;Level=Triggered&amp;Name=").
+                htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=False&amp;Level=Triggered&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                         append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Triggered Alert</a>\n");
             }
             else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
                     (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
-                htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=True&amp;Level=Triggered&amp;Name=").
+                htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=True&amp;Level=Triggered&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                         append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Triggered Alert</a>\n");
             }
         }
         else if (level.equalsIgnoreCase("Caution")) {
             if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
                 if ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
-                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=True&amp;Level=Caution&amp;Name=").
+                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=True&amp;Level=Caution&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Caution Alert</a>\n");
                 }
                 else if (((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
-                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=False&amp;Level=Caution&amp;Name=").
+                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=False&amp;Level=Caution&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Caution Alert</a>\n");
                 }
             }
@@ -298,11 +300,11 @@ public class AlertAssociations extends HttpServlet {
         else if (level.equalsIgnoreCase("Danger")) {
             if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
                 if ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
-                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=True&amp;Level=Danger&amp;Name=").
+                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=True&amp;Level=Danger&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Danger Alert</a>\n");
                 }
                 else if (((alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
-                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=False&amp;Level=Danger&amp;Name=").
+                    htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=False&amp;Level=Danger&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Danger Alert</a>\n");
                 }
             }
@@ -311,7 +313,7 @@ public class AlertAssociations extends HttpServlet {
         return htmlBodyBuilder.toString();
     }
 
-    private String getClearAllButtonHtml(Alert alert, String level) {
+    private String getClearAllButtonHtml(Alert alert, String level, boolean excludeNavbar) {
         
         if ((level == null) || (alert == null) || (alert.getName() == null) || (alert.getAlertType() != Alert.TYPE_AVAILABILITY)) {
             return "";
@@ -326,6 +328,7 @@ public class AlertAssociations extends HttpServlet {
         htmlBodyBuilder.append("<form style=\"display: inline;\" action=\"AlertAssociations\" method=\"POST\" id=\"AlertAssociations_ClearAll\" name=\"AlertAssociations_ClearAll\"> ");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"Name\" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\">");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"Level\" value=\"").append(level).append("\">");
+        htmlBodyBuilder.append("<input type=\"hidden\" name=\"ExcludeNavbar\" value=\"").append(excludeNavbar).append("\">");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"ClearAll\" value=\"").append("True").append("\">");         
         htmlBodyBuilder.append("<button type=\"submit\" onclick=\"return confirmAction('AlertAssociations_ClearAll', 'Are you sure you want to remove these metrics? This will completely erase the triggered metrics from StatsAgg. Other alerts may be affected.')\" class=\"btn btn-primary statsagg_page_content_font\">Clear All</button>");
         htmlBodyBuilder.append("</form>");
@@ -333,7 +336,7 @@ public class AlertAssociations extends HttpServlet {
         return htmlBodyBuilder.toString();
     }
     
-    private String getTriggeredAlertAssociations(String alertName, String level) {
+    private String getTriggeredAlertAssociations(String alertName, String level, boolean excludeNavbar) {
         
         if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
@@ -374,19 +377,19 @@ public class AlertAssociations extends HttpServlet {
             
             outputString.append("<hr>");
 
-            String cautionBody = getCautionAlertAssociations_Body(alert, level);
+            String cautionBody = getCautionAlertAssociations_Body(alert, level, excludeNavbar);
             outputString.append(cautionBody);
             
             outputString.append("<hr>");
             
-            String dangerBody = getDangerAlertAssociations_Body(alert, level);
+            String dangerBody = getDangerAlertAssociations_Body(alert, level, excludeNavbar);
             outputString.append(dangerBody);
             
             return outputString.toString();
         }
     }
     
-    private String getCautionAlertAssociations(String alertName, String level) {
+    private String getCautionAlertAssociations(String alertName, String level, boolean excludeNavbar) {
         
         if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
@@ -414,14 +417,14 @@ public class AlertAssociations extends HttpServlet {
             else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getCautionFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
-            String body = getCautionAlertAssociations_Body(alert, level);
+            String body = getCautionAlertAssociations_Body(alert, level, excludeNavbar);
             outputString.append(body);
             
             return outputString.toString();
         }
     }
     
-    private String getCautionAlertAssociations_Body(Alert alert, String level) {
+    private String getCautionAlertAssociations_Body(Alert alert, String level, boolean excludeNavbar) {
         
         if ((alert == null) || (alert.getId() == null) || (level == null)) {
             return "";
@@ -482,7 +485,7 @@ public class AlertAssociations extends HttpServlet {
                     }
 
                     outputString.append("<li>");
-                    outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
+                    outputString.append("<a href=\"MetricRecentValues?ExcludeNavbar=").append(excludeNavbar).append("&amp;MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeCautionAlertMetricKey)).append("\">");
                     outputString.append(StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey)).append("</a>");
                     outputString.append("&nbsp;=&nbsp;").append(metricValueString);
                     if (!forgetMetric.isEmpty()) outputString.append("&nbsp;&nbsp;").append(forgetMetric);
@@ -501,7 +504,7 @@ public class AlertAssociations extends HttpServlet {
         return outputString.toString();
     }
 
-    private String getDangerAlertAssociations(String alertName, String level) {
+    private String getDangerAlertAssociations(String alertName, String level, boolean excludeNavbar) {
         
         if ((alertName == null) || (level == null)) {
             return "<b>No alert specified</b>";
@@ -528,14 +531,14 @@ public class AlertAssociations extends HttpServlet {
             else outputString.append(DateAndTime.getFormattedDateAndTime(alert.getDangerFirstActiveAt(), "yyyy-MM-dd, h:mm:ss a"));   
             outputString.append("<br>");
             
-            String body = getDangerAlertAssociations_Body(alert, level);
+            String body = getDangerAlertAssociations_Body(alert, level, excludeNavbar);
             outputString.append(body);
             
             return outputString.toString();
         }
     }
     
-    private String getDangerAlertAssociations_Body(Alert alert, String level) {
+    private String getDangerAlertAssociations_Body(Alert alert, String level, boolean excludeNavbar) {
         
         if ((alert == null) || (alert.getId() == null) || (level == null)) {
             return "";
@@ -596,7 +599,7 @@ public class AlertAssociations extends HttpServlet {
                     }
 
                     outputString.append("<li>");
-                    outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
+                    outputString.append("<a href=\"MetricRecentValues?ExcludeNavbar=").append(excludeNavbar).append("&amp;MetricKey=").append(StatsAggHtmlFramework.urlEncode(activeDangerAlertMetricKey)).append("\">");
                     outputString.append(StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey)).append("</a>");
                     outputString.append("&nbsp;=&nbsp;").append(metricValueString);
                     if (!forgetMetric.isEmpty()) outputString.append("&nbsp;&nbsp;").append(forgetMetric);

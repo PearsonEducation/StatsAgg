@@ -1,27 +1,24 @@
 StatsAgg 1.5
  * Finish/refine API
- * Finish renaming 'Alert suspensions' to 'Suspensions'
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
  * support output module configs that don't require the _n suffix
- * Add feature -- 'Metric suspensions'. Like 'Alert suspensions', but for metrics. This may silently hook into the 'metric blacklist regex' mechanism of metric groups.
- * Alter buttons on 'details' pages
+ * Alter buttons on 'details' pages (only when not hiding the navbar)
  * Metric group tags in email alert output
  * Support 'no timestamp' on Graphite metrics
- * Alert details -- say "associated with these alert suspensions..."
+ * Alert details -- say "associated with these suspensions..."
  * Notification details -- say "associated with these alerts..."
+ * Update screenshots of 'suspensions' 
 
 StatsAgg 1.6
  * InfluxDB 0.9+ support
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
+ * Fix issue with popover help buttons not displaying text after click-on-->click-off-->click-on
  * Advanced options
    * (optional) Incoming metric rate limits
    * Make optional output HTTP error response bodies to log file
    
 Short/Medium term
- * Support for KariosDB?
- * Reduce JS code for typeahead & update typeahead library?
-   * Worth the time? This library is a huge pain.
  * Notification groups that inherit other notification group properties
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine
@@ -37,6 +34,9 @@ Short/Medium term
    * (optional) Limit max # datapoints for in memory for a single metric-key
    
 Long-term / Wishlist / Brainstorming
+ * Support for KariosDB?
+ * Reduce JS code for typeahead & update typeahead library?
+   * Worth the time? This library is a huge pain.
  * StatsD forwarder
  * Support more forms of notification (not just email)
  * View application config in WebUI
@@ -44,7 +44,7 @@ Long-term / Wishlist / Brainstorming
  * History/events log w/ UI component
  * Alert escalation notification-group in Alerts
  * APIs to create alerts / metric-groups / etc
- * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Alert Suspensions'
+ * "Event Listener" API -- for anything that wants to use StatsAgg to send an alert, but also wants to tie into 'Suspensions'
  * Mobile versions of essential WebUI pages
    * Make existing pages more mobile friendly?
  * Flot graphs on 'Recent Metric Values' page

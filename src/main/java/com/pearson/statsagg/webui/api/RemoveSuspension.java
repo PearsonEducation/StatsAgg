@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
  *
  * @author prashant4nov (Prashant Kumar)
  */
-@WebServlet(name = "API_Remove_AlertSuspension", urlPatterns = {"/api/alertsuspension-remove"})
-public class RemoveAlertSuspension extends HttpServlet {
+@WebServlet(name = "API_Remove_Suspension", urlPatterns = {"/api/suspension-remove"})
+public class RemoveSuspension extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveAlertSuspension.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(RemoveSuspension.class.getName());
     
-    public static final String PAGE_NAME = "API_Remove_AlertSuspension";
+    public static final String PAGE_NAME = "API_Remove_Suspension";
  
     /**
      * Returns a short description of the servlet.
@@ -43,7 +43,7 @@ public class RemoveAlertSuspension extends HttpServlet {
         
         try {    
             PrintWriter out = null;
-            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.AlertSuspensions());       
+            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.Suspensions());       
             JSONObject responseMsg = new JSONObject();
             responseMsg.put("response", returnString);
             response.setContentType("application/json");
@@ -56,27 +56,26 @@ public class RemoveAlertSuspension extends HttpServlet {
     }
 
     /**
-     * Returns a string with success message if alert suspension is deleted 
-     * successfully or error message if the request fails to delete alert suspension.
+     * Returns a string with success message if suspension is deleted 
+     * successfully or error message if the request fails to delete the suspension.
      * 
      * @param request servlet request
-     * @param alertSuspension AlertSuspensions object
+     * @param suspensions Suspensions object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.AlertSuspensions alertSuspension) {
-        logger.debug("Remove alert suspension request");
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Suspensions suspensions) {
 
         String returnString = null;
-        String alertSuspensionName = null;
+        String suspensionName = null;
 
         try {
             logger.debug(request.getParameter(Helper.name));
 
             if (request.getParameter(Helper.name) != null) {
-                alertSuspensionName = request.getParameter(Helper.name);
+                suspensionName = request.getParameter(Helper.name);
             }
 
-            returnString = alertSuspension.removeSuspension(alertSuspensionName);
+            returnString = suspensions.removeSuspension(suspensionName);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

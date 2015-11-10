@@ -121,12 +121,12 @@ function yadcf_init_AlertsTable(alertsTable) {
     ], 'footer');
 }
         
-// Setup for the table found on the 'Alert Suspensions' page
+// Setup for the table found on the 'Suspensions' page
 $(document).ready(function () {
     var table = document.getElementById('SuspensionsTable');
 
     if (table !== null) {
-        var alertSuspensionsTable = $('#SuspensionsTable').DataTable({
+        var suspensionsTable = $('#SuspensionsTable').DataTable({
             "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
             "order": [[0, "asc"]],
             "autoWidth": false,
@@ -135,19 +135,19 @@ $(document).ready(function () {
         });
         
         var tableSearchParameter = getParameterByName("TableSearch");
-        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertSuspensionsTable.search(tableSearchParameter.trim()).draw();
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) suspensionsTable.search(tableSearchParameter.trim()).draw();
         
-        yadcf_init_SuspensionsTable(alertSuspensionsTable);
+        yadcf_init_SuspensionsTable(suspensionsTable);
 
-        var colvis = new $.fn.dataTable.ColVis(alertSuspensionsTable, {"align": "right", "iOverlayFade": 200});
+        var colvis = new $.fn.dataTable.ColVis(suspensionsTable, {"align": "right", "iOverlayFade": 200});
         $(colvis.button()).prependTo('#SuspensionsTable_filter');
 
         // re-initialize yadcf when a column is unhidden
-        alertSuspensionsTable.on('column-visibility.dt', function (e, settings, column, state) {
+        suspensionsTable.on('column-visibility.dt', function (e, settings, column, state) {
             console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
             
             if (state === true) {
-                yadcf_init_SuspensionsTable(alertSuspensionsTable);
+                yadcf_init_SuspensionsTable(suspensionsTable);
             }
         });
         
@@ -155,8 +155,8 @@ $(document).ready(function () {
     }
 });
 
-function yadcf_init_SuspensionsTable(alertSuspensionsTable) {
-    yadcf.init(alertSuspensionsTable, [
+function yadcf_init_SuspensionsTable(suspensionsTable) {
+    yadcf.init(suspensionsTable, [
         {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 1, filter_reset_button_text: false, filter_type: "select", data: ['Alert Name', 'Metric Group Tags', 'Everything'], sort_as: "none", filter_default_label: "Filter"},
         {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},

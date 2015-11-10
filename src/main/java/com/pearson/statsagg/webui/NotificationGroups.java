@@ -210,7 +210,7 @@ public class NotificationGroups extends HttpServlet {
 
         for (NotificationGroup notificationGroup : notificationGroups) {     
             
-            String notificationGroupDetails = "<a href=\"NotificationGroupDetails?Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
+            String notificationGroupDetails = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
             
             StringBuilder emailAddressesOutput = new StringBuilder();
             String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");

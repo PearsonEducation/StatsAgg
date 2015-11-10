@@ -9,6 +9,7 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -68,6 +69,7 @@ public class NotificationGroupDetails extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         String notificationGroupDetails = getNotificationDetailsString(name);
                 
         try {  
@@ -87,7 +89,8 @@ public class NotificationGroupDetails extends HttpServlet {
             notificationGroupDetails +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             

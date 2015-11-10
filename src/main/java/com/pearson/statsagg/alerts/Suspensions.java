@@ -1,7 +1,7 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.general_purpose.GeneralPurposeDao;
@@ -24,9 +24,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class AlertSuspensions {
+public class Suspensions {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensions.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Suspensions.class.getName());
 
     public static final int LEVEL_ALERT_NOT_SUSPENDED = 997;
     public static final int LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY = 998;
@@ -36,19 +36,19 @@ public class AlertSuspensions {
     private final Map<Integer,Set<String>> matchingMetricKeysAssociatedWithSuspension_ = GlobalVariables.matchingMetricKeysAssociatedWithSuspension;
     
     private final Map<Integer, Boolean> areSuspensionsActive_ = new HashMap<>();
-    private final Map<Integer, Set<Integer>> alertSuspensionIdAssociationsByAlertId_ = new HashMap<>();
-    private final Map<Integer, Boolean> alertSuspensionStatusByAlertId_ = new HashMap<>();
-    private final Map<Integer, Integer> alertSuspensionLevelsByAlertId_ = new HashMap<>();
+    private final Map<Integer, Set<Integer>> suspensionIdAssociationsByAlertId_ = new HashMap<>();
+    private final Map<Integer, Boolean> suspensionStatusByAlertId_ = new HashMap<>();
+    private final Map<Integer, Integer> suspensionLevelsByAlertId_ = new HashMap<>();
     private final Map<String,String> suspendedMetricKeys_ = new HashMap<>();
     
-    public AlertSuspensions() {
+    public Suspensions() {
         // gets all alerts from the database.
         AlertsDao alertsDao = new AlertsDao();
         List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
         alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
     }
     
-    public AlertSuspensions(Map<Integer,Alert> alertsByAlertId) {
+    public Suspensions(Map<Integer,Alert> alertsByAlertId) {
         
         if (alertsByAlertId != null) {
             this.alertsByAlertId_  = alertsByAlertId;
@@ -62,17 +62,17 @@ public class AlertSuspensions {
         
     }
     
-    public void runAlertSuspensionRoutine() {
-        boolean isSuccessfullyDeleteExpiredAlertSuspensions = deleteExpiredAlertSuspensions();
-        if (!isSuccessfullyDeleteExpiredAlertSuspensions) {
-            logger.error("Error deleting one-time alert suspensions.");
+    public void runSuspensionRoutine() {
+        boolean isSuccessfullyDeleteExpiredSuspensions = deleteExpiredSuspensions();
+        if (!isSuccessfullyDeleteExpiredSuspensions) {
+            logger.error("Error deleting one-time suspensions.");
         }
         
-        determineAlertSuspensions(alertsByAlertId_);
-        updateAlertSuspensionGlobalVariables();
+        determineSuspensions(alertsByAlertId_);
+        updateSuspensionGlobalVariables();
     }
     
-    public void determineAlertSuspensions(Map<Integer,Alert> alertsByAlertId) {
+    public void determineSuspensions(Map<Integer,Alert> alertsByAlertId) {
         
         if (alertsByAlertId == null) {
             return;
@@ -87,28 +87,28 @@ public class AlertSuspensions {
             }
         }
         
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        List<AlertSuspension> allSuspensions = alertSuspensionsDao.getAllDatabaseObjectsInTable();
-        areAlertSuspensionsActive(allSuspensions);
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        List<Suspension> allSuspensions = suspensionsDao.getAllDatabaseObjectsInTable();
+        areSuspensionsActive(allSuspensions);
 
-        // determine alert suspensions
+        // determine suspensions
         for (Entry<Integer,Alert> alertEntry : alertsByAlertId.entrySet()) {
             int alertId = alertEntry.getKey();
             Alert alert = alertEntry.getValue();
 
             Set<Integer> suspensionIdsAssociatedWithAnAlert = getSuspensionIdsAssociatedWithAnAlert(alert, allSuspensions, metricGroupTagsAssociatedWithAlert);
-            alertSuspensionIdAssociationsByAlertId_.put(alertId, suspensionIdsAssociatedWithAnAlert);
+            suspensionIdAssociationsByAlertId_.put(alertId, suspensionIdsAssociatedWithAnAlert);
 
-            boolean isAlertCurrentlySuspended = isAnyAlertSuspensionCurrentlyActiveForAnAlert(allSuspensions, suspensionIdsAssociatedWithAnAlert, areSuspensionsActive_);
-            alertSuspensionStatusByAlertId_.put(alertId, isAlertCurrentlySuspended);
+            boolean isAlertCurrentlySuspended = isAnySuspensionCurrentlyActiveForAnAlert(allSuspensions, suspensionIdsAssociatedWithAnAlert, areSuspensionsActive_);
+            suspensionStatusByAlertId_.put(alertId, isAlertCurrentlySuspended);
             
-            int alertSuspensionLevel = getSuspensionLevel(alert, allSuspensions, suspensionIdsAssociatedWithAnAlert, areSuspensionsActive_);
-            alertSuspensionLevelsByAlertId_.put(alertId, alertSuspensionLevel);
+            int suspensionLevel = getSuspensionLevel(alert, allSuspensions, suspensionIdsAssociatedWithAnAlert, areSuspensionsActive_);
+            suspensionLevelsByAlertId_.put(alertId, suspensionLevel);
         }
         
         // determine metric suspensions
-        for (AlertSuspension suspension : allSuspensions) {
-            if ((suspension.getId() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS) &&
+        for (Suspension suspension : allSuspensions) {
+            if ((suspension.getId() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) &&
                     (suspension.getMetricSuspensionRegexes() != null) && areSuspensionsActive_.containsKey(suspension.getId()) &&
                     areSuspensionsActive_.get(suspension.getId())) {
                 
@@ -122,19 +122,19 @@ public class AlertSuspensions {
 
     }
     
-    private void areAlertSuspensionsActive(List<AlertSuspension> allSuspensions) {
+    private void areSuspensionsActive(List<Suspension> allSuspensions) {
         
         if (areSuspensionsActive_ == null) {
             return;
         }
 
-        for (AlertSuspension suspension : allSuspensions) {
+        for (Suspension suspension : allSuspensions) {
             if (suspension.getId() == null) continue;
             
             boolean isSuspensionCurrentlyActive = false;
                     
             if ((suspension.isEnabled() != null) && suspension.isEnabled()) {
-                isSuspensionCurrentlyActive = AlertSuspension.isSuspensionInSuspensionTimeWindow(suspension);
+                isSuspensionCurrentlyActive = Suspension.isSuspensionInSuspensionTimeWindow(suspension);
             }
             
             areSuspensionsActive_.put(suspension.getId(), isSuspensionCurrentlyActive);
@@ -142,27 +142,27 @@ public class AlertSuspensions {
 
     }
     
-    private void updateAlertSuspensionGlobalVariables() {
+    private void updateSuspensionGlobalVariables() {
 
-        synchronized(GlobalVariables.alertSuspensionStatusByAlertId) {
-            GlobalVariables.alertSuspensionStatusByAlertId.clear();
-            while (GlobalVariables.alertSuspensionStatusByAlertId.size() > 0) Threads.sleepMilliseconds(1);
-            GlobalVariables.alertSuspensionStatusByAlertId.putAll(alertSuspensionStatusByAlertId_);
-            while (GlobalVariables.alertSuspensionStatusByAlertId.size() != alertSuspensionStatusByAlertId_.size()) Threads.sleepMilliseconds(1);
+        synchronized(GlobalVariables.suspensionStatusByAlertId) {
+            GlobalVariables.suspensionStatusByAlertId.clear();
+            while (GlobalVariables.suspensionStatusByAlertId.size() > 0) Threads.sleepMilliseconds(1);
+            GlobalVariables.suspensionStatusByAlertId.putAll(suspensionStatusByAlertId_);
+            while (GlobalVariables.suspensionStatusByAlertId.size() != suspensionStatusByAlertId_.size()) Threads.sleepMilliseconds(1);
         }
         
         synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
             GlobalVariables.suspensionIdAssociationsByAlertId.clear();
             while (GlobalVariables.suspensionIdAssociationsByAlertId.size() > 0) Threads.sleepMilliseconds(1);
-            GlobalVariables.suspensionIdAssociationsByAlertId.putAll(alertSuspensionIdAssociationsByAlertId_);
-            while (GlobalVariables.suspensionIdAssociationsByAlertId.size() != alertSuspensionIdAssociationsByAlertId_.size()) Threads.sleepMilliseconds(1);
+            GlobalVariables.suspensionIdAssociationsByAlertId.putAll(suspensionIdAssociationsByAlertId_);
+            while (GlobalVariables.suspensionIdAssociationsByAlertId.size() != suspensionIdAssociationsByAlertId_.size()) Threads.sleepMilliseconds(1);
         }
         
-        synchronized(GlobalVariables.alertSuspensionLevelsByAlertId) {
-            GlobalVariables.alertSuspensionLevelsByAlertId.clear();
-            while (GlobalVariables.alertSuspensionLevelsByAlertId.size() > 0) Threads.sleepMilliseconds(1);
-            GlobalVariables.alertSuspensionLevelsByAlertId.putAll(alertSuspensionLevelsByAlertId_);
-            while (GlobalVariables.alertSuspensionLevelsByAlertId.size() != alertSuspensionLevelsByAlertId_.size()) Threads.sleepMilliseconds(1);
+        synchronized(GlobalVariables.suspensionLevelsByAlertId) {
+            GlobalVariables.suspensionLevelsByAlertId.clear();
+            while (GlobalVariables.suspensionLevelsByAlertId.size() > 0) Threads.sleepMilliseconds(1);
+            GlobalVariables.suspensionLevelsByAlertId.putAll(suspensionLevelsByAlertId_);
+            while (GlobalVariables.suspensionLevelsByAlertId.size() != suspensionLevelsByAlertId_.size()) Threads.sleepMilliseconds(1);
         }
         
         synchronized(GlobalVariables.suspendedMetricKeys) {
@@ -174,12 +174,12 @@ public class AlertSuspensions {
         
     }
     
-    public static boolean deleteExpiredAlertSuspensions() {
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        return alertSuspensionsDao.deleteExpired(new Timestamp(System.currentTimeMillis()));
+    public static boolean deleteExpiredSuspensions() {
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        return suspensionsDao.deleteExpired(new Timestamp(System.currentTimeMillis()));
     }
     
-    public static Set<Integer> getSuspensionIdsAssociatedWithAnAlert(Alert alert, List<AlertSuspension> alertSuspensions, Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert) {
+    public static Set<Integer> getSuspensionIdsAssociatedWithAnAlert(Alert alert, List<Suspension> suspensions, Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert) {
 
         if ((alert == null) || (alert.getId() == null) || (metricGroupTagsAssociatedWithAlert == null)) {
             return new HashSet<>();
@@ -187,16 +187,16 @@ public class AlertSuspensions {
 
         Set<Integer> suspensionIdsAssociatedWithAnAlert = new HashSet<>();
         
-        for (AlertSuspension suspension : alertSuspensions) {
+        for (Suspension suspension : suspensions) {
             boolean isSuspensionCriteriaMet = false;
             
-            if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
+            if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) {
                 isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
             }
-            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
+            else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
                 isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByMetricGroupTags(metricGroupTagsAssociatedWithAlert.get(alert.getId()), suspension);
             }
-            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
+            else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) {
                 isSuspensionCriteriaMet = isSuspensionCriteriaMet_SuspendByEverything(metricGroupTagsAssociatedWithAlert.get(alert.getId()), suspension);
             }
             
@@ -208,7 +208,7 @@ public class AlertSuspensions {
         return suspensionIdsAssociatedWithAnAlert;
     }
     
-    public static int getSuspensionLevel(Alert alert, List<AlertSuspension> suspensions, 
+    public static int getSuspensionLevel(Alert alert, List<Suspension> suspensions, 
             Set<Integer> suspensionIdsAssociatedWithAnAlert, Map<Integer, Boolean> areSuspensionsActive) {
         
         if ((alert == null) || (suspensions == null) || suspensions.isEmpty() || 
@@ -219,7 +219,7 @@ public class AlertSuspensions {
         
         boolean isSuspendEntireAlertDetected = false;
         
-        for (AlertSuspension suspension : suspensions) {
+        for (Suspension suspension : suspensions) {
             if (suspension.getId() == null) continue;
             if (!areSuspensionsActive.containsKey(suspension.getId()) || !areSuspensionsActive.get(suspension.getId())) continue;
             
@@ -237,18 +237,18 @@ public class AlertSuspensions {
         else return LEVEL_ALERT_NOT_SUSPENDED;
     }
     
-    public static boolean isSuspensionCriteriaMet_SuspendByAlertName(Alert alert, AlertSuspension suspension) {
+    public static boolean isSuspensionCriteriaMet_SuspendByAlertName(Alert alert, Suspension suspension) {
         
         if ((alert == null) || (alert.getId() == null) || (suspension == null) || (suspension.getAlertId() == null)) {
             return false;
         }
         
-        if (suspension.getSuspendBy() != AlertSuspension.SUSPEND_BY_ALERT_ID) return false;
+        if (suspension.getSuspendBy() != Suspension.SUSPEND_BY_ALERT_ID) return false;
         
         return Objects.equals(suspension.getAlertId(), alert.getId());
     }
     
-    public static boolean isSuspensionCriteriaMet_SuspendedByMetricGroupTags(Alert alert, AlertSuspension suspension) {
+    public static boolean isSuspensionCriteriaMet_SuspendedByMetricGroupTags(Alert alert, Suspension suspension) {
         
         if ((alert == null) || (alert.getMetricGroupId() == null)) {
             return false;
@@ -258,14 +258,14 @@ public class AlertSuspensions {
         return isSuspensionCriteriaMet_SuspendByMetricGroupTags(metricGroupTagsAssociatedWithAlert, suspension);
     }
     
-    public static boolean isSuspensionCriteriaMet_SuspendByMetricGroupTags(Set<String> metricGroupTagsAssociatedWithAlert, AlertSuspension suspension) {
+    public static boolean isSuspensionCriteriaMet_SuspendByMetricGroupTags(Set<String> metricGroupTagsAssociatedWithAlert, Suspension suspension) {
         
         if ((suspension == null) || (suspension.getMetricGroupTagsInclusive() == null) ||
                 (metricGroupTagsAssociatedWithAlert == null) || metricGroupTagsAssociatedWithAlert.isEmpty()) {
             return false;
         }
         
-        if (suspension.getSuspendBy() != AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) return false;
+        if (suspension.getSuspendBy() != Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) return false;
         
         boolean isAlertSuspended = false;
         
@@ -287,7 +287,7 @@ public class AlertSuspensions {
         return isAlertSuspended;  
     }
     
-    public static boolean isSuspensionCriteriaMet_SuspendedByEverything(Alert alert, AlertSuspension suspension) {
+    public static boolean isSuspensionCriteriaMet_SuspendedByEverything(Alert alert, Suspension suspension) {
         
         if ((alert == null) || (alert.getMetricGroupId() == null)) {
             return false;
@@ -297,13 +297,13 @@ public class AlertSuspensions {
         return isSuspensionCriteriaMet_SuspendByEverything(metricGroupTagsAssociatedWithAlert, suspension);
     }
     
-    public static boolean isSuspensionCriteriaMet_SuspendByEverything(Set<String> metricGroupTagsAssociatedWithAlert, AlertSuspension suspension) {
+    public static boolean isSuspensionCriteriaMet_SuspendByEverything(Set<String> metricGroupTagsAssociatedWithAlert, Suspension suspension) {
   
         if ((suspension == null) || (suspension.getMetricGroupTagsExclusive() == null) || (metricGroupTagsAssociatedWithAlert == null)) {
             return false;
         }
         
-        if (suspension.getSuspendBy() != AlertSuspension.SUSPEND_BY_EVERYTHING) return false;
+        if (suspension.getSuspendBy() != Suspension.SUSPEND_BY_EVERYTHING) return false;
         
         boolean isAlertSuspended = true;
         
@@ -345,7 +345,7 @@ public class AlertSuspensions {
         return metricGroupTagsSet;
     }
     
-    public static boolean isAnyAlertSuspensionCurrentlyActiveForAnAlert(List<AlertSuspension> allSuspensions, 
+    public static boolean isAnySuspensionCurrentlyActiveForAnAlert(List<Suspension> allSuspensions, 
             Set<Integer> suspensionIdsAssociatedWithAnAlert, Map<Integer, Boolean> suspensionStatusByAlertId) {
         
         if ((allSuspensions == null) || allSuspensions.isEmpty() || 
@@ -354,7 +354,7 @@ public class AlertSuspensions {
             return false;
         }
 
-        for (AlertSuspension suspension : allSuspensions) {
+        for (Suspension suspension : allSuspensions) {
             if (suspension.getId() == null) continue;
             
             if (suspensionIdsAssociatedWithAnAlert.contains(suspension.getId()) && suspensionStatusByAlertId.containsKey(suspension.getId())) {
@@ -404,16 +404,16 @@ public class AlertSuspensions {
         return alertsByAlertId_;
     }
 
-    public Map<Integer, Boolean> getAlertSuspensionStatusByAlertId() {
-        return alertSuspensionStatusByAlertId_;
+    public Map<Integer, Boolean> getSuspensionStatusByAlertId() {
+        return suspensionStatusByAlertId_;
     }
 
-    public Map<Integer, Set<Integer>> getAlertSuspensionIdAssociationsByAlertId() {
-        return alertSuspensionIdAssociationsByAlertId_;
+    public Map<Integer, Set<Integer>> getSuspensionIdAssociationsByAlertId() {
+        return suspensionIdAssociationsByAlertId_;
     }
 
-    public Map<Integer, Integer> getAlertSuspensionLevelsByAlertId() {
-        return alertSuspensionLevelsByAlertId_;
+    public Map<Integer, Integer> getSuspensionLevelsByAlertId() {
+        return suspensionLevelsByAlertId_;
     }
     
 }

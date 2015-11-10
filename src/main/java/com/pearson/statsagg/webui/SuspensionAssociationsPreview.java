@@ -6,7 +6,7 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
@@ -25,12 +25,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertSuspensionAlertAssociationsPreview", urlPatterns = {"/AlertSuspensionAlertAssociationsPreview"})
-public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
+@WebServlet(name = "SuspensionAssociationsPreview", urlPatterns = {"/SuspensionAssociationsPreview"})
+public class SuspensionAssociationsPreview extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionAlertAssociationsPreview.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionAssociationsPreview.class.getName());
     
-    public static final String PAGE_NAME = "Alert Associations";
+    public static final String PAGE_NAME = "Suspension Associations";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -73,8 +73,8 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
     
-        AlertSuspension suspension = getSuspensionFromParameters(request);
-        String alertAssociationsBody = getSuspension_ResponseHtml(suspension);
+        Suspension suspension = getSuspensionFromParameters(request);
+        String suspensionAssociationsBody = getSuspension_ResponseHtml(suspension);
         
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -88,7 +88,7 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             "    <!-- Keep all page content within the page-content inset div! -->\n" +
             "    <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "      <div class=\"statsagg_force_word_wrap\">" +
-            alertAssociationsBody +
+            suspensionAssociationsBody +
             "      </div>\n" +
             "    </div>\n" +
             "  </div>\n" +
@@ -112,7 +112,7 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         
     }
 
-    private AlertSuspension getSuspensionFromParameters(HttpServletRequest request) {
+    private Suspension getSuspensionFromParameters(HttpServletRequest request) {
         
         if (request == null) {
             return null;
@@ -120,7 +120,7 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         
         String suspensionName = "Suspension Preview";
         
-        AlertSuspension suspension = new AlertSuspension(
+        Suspension suspension = new Suspension(
                 -1, suspensionName, suspensionName.toUpperCase(), true, null, 1, null, null, "", false, true, 
                 true, true, true, true, true, true, true, 
                 new Timestamp(System.currentTimeMillis()), new Timestamp(System.currentTimeMillis()), 
@@ -130,10 +130,10 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             String parameter;
             
             parameter = request.getParameter("CreateSuspension_SuspendBy");
-            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_ALERT_ID);
-            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS);
-            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_EVERYTHING);
-            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(Suspension.SUSPEND_BY_ALERT_ID);
+            else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
+            else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(Suspension.SUSPEND_BY_EVERYTHING);
+            else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRICS);
             
             parameter = request.getParameter("AlertName");
             AlertsDao alertsDao = new AlertsDao();
@@ -142,19 +142,19 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
 
             parameter = request.getParameter("MetricGroupTagsInclusive");
             if (parameter != null) {
-                String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
             
             parameter = request.getParameter("MetricGroupTagsExclusive");
             if (parameter != null) {
-                String trimmedTags = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsExclusive(trimmedTags);
             }
             
             parameter = request.getParameter("MetricSuspensionRegexes");
             if (parameter != null) {
-                String trimmedRegexes = AlertSuspension.trimNewLineDelimitedTags(parameter);
+                String trimmedRegexes = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricSuspensionRegexes(trimmedRegexes);
             }
         }
@@ -163,24 +163,24 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (AlertSuspension.isValid_CheckSuspendBy(suspension)) return suspension;
+        if (Suspension.isValid_CheckSuspendBy(suspension)) return suspension;
         else return null;
     }
    
-    protected String getSuspension_ResponseHtml(AlertSuspension suspension) {
+    protected String getSuspension_ResponseHtml(Suspension suspension) {
         
         if (suspension == null) {
             return "<b>Invalid suspension</b>";
         }
         
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
-        if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS) return getAlertSuspension_MetricSuspensions(suspension);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) return getAlertSuspension_AlertAssociations_ResponseHtml(suspension);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) return getSuspension_MetricSuspensions(suspension);
         else return "<b>Invalid suspension</b>";
     }
 
-    private String getAlertSuspension_AlertAssociations_ResponseHtml(AlertSuspension suspension) {
+    private String getAlertSuspension_AlertAssociations_ResponseHtml(Suspension suspension) {
         List<String> alertNames = new ArrayList<>();
         
         AlertsDao alertsDao = new AlertsDao();
@@ -191,14 +191,14 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
             
             boolean outputAlert = false;
             
-            if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
+            if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) {
+                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
             }
-            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
+            else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
+                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
             }
-            else if (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING) {
-                outputAlert = com.pearson.statsagg.alerts.AlertSuspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
+            else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) {
+                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
             }
 
             if (outputAlert) {
@@ -216,8 +216,8 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
 
             outputString.append("<ul>");
             for (String alertName : alertNames) {
-                String alertSuspensionDetailsUrl = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
-                outputString.append("<li>").append(alertSuspensionDetailsUrl).append("</li>");
+                String alertDetailsUrl = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
+                outputString.append("<li>").append(alertDetailsUrl).append("</li>");
             }
         }
         
@@ -226,7 +226,7 @@ public class AlertSuspensionAlertAssociationsPreview extends HttpServlet {
         return outputString.toString();
     }
     
-    protected String getAlertSuspension_MetricSuspensions(AlertSuspension suspension) {
+    protected String getSuspension_MetricSuspensions(Suspension suspension) {
         
         List<String> matchRegexes = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
         String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes);

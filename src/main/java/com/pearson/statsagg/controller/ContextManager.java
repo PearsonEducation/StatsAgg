@@ -32,8 +32,8 @@ import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
 import com.pearson.statsagg.database_objects.gauges.GaugesDao;
@@ -166,8 +166,8 @@ public class ContextManager implements ServletContextListener {
             List<Integer> allMetricGroupIds = metricGroupsDao.getAllMetricGroupIds();
             MetricAssociation.updateMergedRegexesForMetricGroups(allMetricGroupIds);
             
-            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-            List<Integer> allMetricSuspensionIds = alertSuspensionsDao.getSuspensionIds_BySuspendBy(AlertSuspension.SUSPEND_BY_METRICS);
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            List<Integer> allMetricSuspensionIds = suspensionsDao.getSuspensionIds_BySuspendBy(Suspension.SUSPEND_BY_METRICS);
             MetricAssociation.updateMergedRegexesForSuspensions(allMetricSuspensionIds);
         }
         
@@ -514,8 +514,8 @@ public class ContextManager implements ServletContextListener {
         AlertsDao alertsDao = new AlertsDao();
         boolean isAlertsCreateSuccess = alertsDao.createTable();
         
-        AlertSuspensionsDao AlertSuspensionsDao = new AlertSuspensionsDao();
-        boolean isAlertSuspensionsCreateSuccess = AlertSuspensionsDao.createTable();
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        boolean isSuspensionsCreateSuccess = suspensionsDao.createTable();
         
         boolean isSchemaCreateSuccess = isMetricLastSeenDaoCreateSuccess 
                 && isGaugesCreateSuccess 
@@ -524,7 +524,7 @@ public class ContextManager implements ServletContextListener {
                 && isMetricGroupTagsCreateSuccess
                 && isNotificationGroupsCreateSuccess
                 && isAlertsCreateSuccess 
-                && isAlertSuspensionsCreateSuccess;
+                && isSuspensionsCreateSuccess;
         
         return isSchemaCreateSuccess;
     }

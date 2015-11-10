@@ -1,6 +1,6 @@
 package com.pearson.statsagg.webui.api;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -14,12 +14,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author prashant kumar (Prashant4nov)
  */
-@WebServlet(name="API_AlertSuspensionList", urlPatterns={"/api/AlertsSuspension-list"})
-public class AlertSuspensionList extends HttpServlet {
+@WebServlet(name="API_SuspensionsList", urlPatterns={"/api/SuspensionsList"})
+public class SuspensionsList extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionList.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionsList.class.getName());
     
-    public static final String PAGE_NAME = "API_AlertSuspensionList";
+    public static final String PAGE_NAME = "API_SuspensionsList";
     
     /**
      * Returns a short description of the servlet.
@@ -42,7 +42,7 @@ public class AlertSuspensionList extends HttpServlet {
         logger.debug("doGet");
         
         try {    
-            JSONObject json = getAlertSuspensionList(request, new AlertSuspensionsDao());       
+            JSONObject json = getSuspensionsList(request, new SuspensionsDao());       
             
             PrintWriter out = null;
             response.setContentType("application/json");
@@ -56,17 +56,16 @@ public class AlertSuspensionList extends HttpServlet {
     }
     
     /**
-     * Returns a json object containing a list of alert suspensions.
+     * Returns a json object containing a list of suspensions.
      * 
      * @param request servlet request
-     * @param alertSuspensionsDao AlertSuspensionsDao object
-     * @return list of the alert suspensions
+     * @param suspensionsDao SuspensionsDao object
+     * @return list of the suspensions
      */
-    protected JSONObject getAlertSuspensionList(HttpServletRequest request, AlertSuspensionsDao alertSuspensionsDao) {
-        logger.debug("getAlertSuspensionList");
+    protected JSONObject getSuspensionsList(HttpServletRequest request, SuspensionsDao suspensionsDao) {
         
         JSONObject errorMsg = null;
-        JSONObject alertSuspensionJson = null;
+        JSONObject suspensionsJson = null;
         int pageNumber = 0, pageSize = 0;
         
         try {
@@ -78,7 +77,7 @@ public class AlertSuspensionList extends HttpServlet {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
             
-            alertSuspensionJson = alertSuspensionsDao.getSuspension(pageNumber*pageSize, pageSize);
+            suspensionsJson = suspensionsDao.getSuspension(pageNumber*pageSize, pageSize);
         } 
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -86,7 +85,7 @@ public class AlertSuspensionList extends HttpServlet {
             errorMsg.put(Helper.error, Helper.errorMsg);
         }
         
-        if (alertSuspensionJson != null) return alertSuspensionJson;
+        if (suspensionsJson != null) return suspensionsJson;
         else if (errorMsg != null) return errorMsg;
         else return null;
     }

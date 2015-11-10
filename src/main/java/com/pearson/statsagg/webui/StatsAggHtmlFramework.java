@@ -62,7 +62,11 @@ public class StatsAggHtmlFramework {
     }
     
     public String createHtmlBody(String additionalHtmlToInjectIntoBody) {
-        return createHtmlBody(additionalHtmlToInjectIntoBody, null);
+        return createHtmlBody(additionalHtmlToInjectIntoBody, null, false);
+    }
+    
+    public String createHtmlBody(String additionalHtmlToInjectIntoBody, boolean excludeNavbar) {
+        return createHtmlBody(additionalHtmlToInjectIntoBody, null, excludeNavbar);
     }
     
     /*
@@ -71,55 +75,57 @@ public class StatsAggHtmlFramework {
     additionalJavascriptsToInclude is a list of javascript files to include (on top of the usual statsagg framework). Provide the filename & path to src.
     Example: if you included "LOL/myfile.js", StatsAgg would add "<script type="text/javascript" src="LOL/myfile.js"></script>"
     */
-    public String createHtmlBody(String additionalHtmlToInjectIntoBody, List<String> additionalJavascriptsToInclude) {
+    public String createHtmlBody(String additionalHtmlToInjectIntoBody, List<String> additionalJavascriptsToInclude, boolean excludeNavbar) {
         
         StringBuilder body = new StringBuilder();
         
         body.append("<body>\n");
 
-        body.append("" +
-                "<nav class=\"statsagg_nav_bar navbar navbar-default navbar-static-top\" role=\"navigation\"> \n" +
-                "  <div class=\"navbar-header pull-left\"> \n" +
-                "    <a class=\"statsagg_nav_bar_home_link navbar-brand\" href=\"index.html\">StatsAgg</a> \n" +
-                "  </div> \n" +
-                
-                "  <div class=\"navbar-header navbar-right pull-right\"> \n" +
-                "    <ul class=\"nav navbar-nav\">" +
-                
-                "      <li><a href=\"Home\"><i class=\"fa fa-dashboard\"></i> Home</a></li>\n" +
-                
-                "      <li class=\"dropdown\">\n" +
-                "        <a class=\"dropdown-toggle\" href=\"#\"> Alerting&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
-                "        <ul class=\"dropdown-menu dropdown-menu-right\">\n" +
-                "          <li><a href=\"Alerts\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Alerts </a></li>\n" +
-                "          <li><a href=\"AlertSuspensions\"><i class=\"fa fa-moon-o\"></i>&nbsp;&nbsp;Suspensions </a></li>\n" +
-                "          <li><a href=\"MetricGroups\"><i class=\"fa fa-align-justify\"></i>&nbsp;&nbsp;Metric Groups </a></li>\n" +
-                "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n" +
-                "        </ul> \n" +
-                "      </li>\n" +
+        if (!excludeNavbar) {
+            body.append("" +
+                    "<nav class=\"statsagg_nav_bar navbar navbar-default navbar-static-top\" role=\"navigation\"> \n" +
+                    "  <div class=\"navbar-header pull-left\"> \n" +
+                    "    <a class=\"statsagg_nav_bar_home_link navbar-brand\" href=\"index.html\">StatsAgg</a> \n" +
+                    "  </div> \n" +
 
-                "      <li class=\"dropdown\">\n" +
-                "        <a class=\"dropdown-toggle\" href=\"#\"> Actions&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
-                "        <ul class=\"dropdown-menu dropdown-menu-right\">\n");
-        
-        body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
-        body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
+                    "  <div class=\"navbar-header navbar-right pull-right\"> \n" +
+                    "    <ul class=\"nav navbar-nav\">" +
 
-        for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
-            if ((httpLink.getUrl() == null) || httpLink.getLinkText().isEmpty() || (httpLink.getUrl() == null) || httpLink.getUrl().isEmpty()) continue;
-            body.append("<li><a href=\"").append(httpLink.getUrl()).append("\"><i class=\"fa fa-external-link\"></i>&nbsp;&nbsp;").append(httpLink.getLinkText()).append("</a></li>\n");
+                    "      <li><a href=\"Home\"><i class=\"fa fa-dashboard\"></i> Home</a></li>\n" +
+
+                    "      <li class=\"dropdown\">\n" +
+                    "        <a class=\"dropdown-toggle\" href=\"#\"> Alerting&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
+                    "        <ul class=\"dropdown-menu dropdown-menu-right\">\n" +
+                    "          <li><a href=\"Alerts\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Alerts </a></li>\n" +
+                    "          <li><a href=\"Suspensions\"><i class=\"fa fa-moon-o\"></i>&nbsp;&nbsp;Suspensions </a></li>\n" +
+                    "          <li><a href=\"MetricGroups\"><i class=\"fa fa-align-justify\"></i>&nbsp;&nbsp;Metric Groups </a></li>\n" +
+                    "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n" +
+                    "        </ul> \n" +
+                    "      </li>\n" +
+
+                    "      <li class=\"dropdown\">\n" +
+                    "        <a class=\"dropdown-toggle\" href=\"#\"> Actions&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
+                    "        <ul class=\"dropdown-menu dropdown-menu-right\">\n");
+
+            body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
+            body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
+
+            for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
+                if ((httpLink.getUrl() == null) || httpLink.getLinkText().isEmpty() || (httpLink.getUrl() == null) || httpLink.getUrl().isEmpty()) continue;
+                body.append("<li><a href=\"").append(httpLink.getUrl()).append("\"><i class=\"fa fa-external-link\"></i>&nbsp;&nbsp;").append(httpLink.getLinkText()).append("</a></li>\n");
+            }
+
+            body.append(
+                    "        </ul> \n" +
+                    "      </li>");
+
+            body.append("      <li><a href=\"./docs/Manual.htm\"><i class=\"fa fa-question-circle\"></i></a></li>\n");
+
+            body.append(
+                    "    </ul>\n" +
+                    "  </div>\n" +
+                    "</nav>\n");
         }
-                
-        body.append(
-                "        </ul> \n" +
-                "      </li>");
-        
-        body.append("      <li><a href=\"./docs/Manual.htm\"><i class=\"fa fa-question-circle\"></i></a></li>\n");
-
-        body.append(
-                "    </ul>\n" +
-                "  </div>\n" +
-                "</nav>\n");
         
         String additionalHtmlToInjectIntoBodyLocal = "";
         if (additionalHtmlToInjectIntoBody != null) {

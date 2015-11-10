@@ -31,7 +31,7 @@ StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (o
     * Can alert off of any received/aggregated metric
     * Regular-expression based mechanism for tying metrics & alerts together
     * 'threshold' or 'availability' based alerting
-    * A flexible alert-suspension mechanism
+    * A flexible alert & metric suspension mechanism
     * Alerts notifications can be sent via email or viewed in the StatsAgg website
 * A web-based UI for managing alerts & metrics
 
@@ -79,8 +79,8 @@ StatsAgg is not, and likely never will be, a solution for:
 * [Alerts List](./docs/alerts.png)
 * [Create an Alert](./docs/create_alert.png)
 * [A preview of an email alert](./docs/preview_alert.png)
-* [Alert Suspensions List](./docs/alert_suspensions.png)
-* [Create an Alert Suspension](./docs/create_suspension.png)
+* [Suspensions List](./docs/alert_suspensions.png)
+* [Create a Suspension](./docs/create_suspension.png)
 * [Metric Groups List](./docs/metric_groups.png)
 * [Create a Metric Group](./docs/create_metricgroup.png)
 * [Notification Groups List](./docs/notification_groups.png)

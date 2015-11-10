@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
 import java.util.Set;
 import javax.servlet.annotation.WebServlet;
@@ -11,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -23,10 +24,10 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "SuspensionMetricKeyAssociations", urlPatterns = {"/SuspensionMetricKeyAssociations"})
-public class SuspensionMetricKeyAssociations extends HttpServlet {
+@WebServlet(name = "Suspension-MetricKeyAssociations", urlPatterns = {"/Suspension-MetricKeyAssociations"})
+public class Suspension_MetricKeyAssociations extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(SuspensionMetricKeyAssociations.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Suspension_MetricKeyAssociations.class.getName());
     
     public static final String PAGE_NAME = "Suspension - Metric Key Associations";
     
@@ -74,6 +75,7 @@ public class SuspensionMetricKeyAssociations extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         String suspensionMetricKeyAssociations = getSuspensionMetricKeyAssociations(name);
                 
         try {  
@@ -93,7 +95,8 @@ public class SuspensionMetricKeyAssociations extends HttpServlet {
             suspensionMetricKeyAssociations +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -121,8 +124,8 @@ public class SuspensionMetricKeyAssociations extends HttpServlet {
         
         StringBuilder outputString = new StringBuilder();
         
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension suspension = alertSuspensionsDao.getSuspensionByName(suspensionName);
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
         
         if ((suspension != null) && (suspension.getId() != null) && (suspension.getName() != null)) {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(suspension.getName())).append("<br>");

@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
@@ -12,19 +12,19 @@ import org.slf4j.LoggerFactory;
  This 'Logic' class was created to separate out business logic from 'Suspensions'. 
  The primary advantage of separating out this logic is to make unit-testing easier.
  */
-public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
+public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionsLogic.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionsLogic.class.getName());
     
-    public String alterRecordInDatabase(AlertSuspension suspension) {
+    public String alterRecordInDatabase(Suspension suspension) {
         return alterRecordInDatabase(suspension, null);
     }
     
-    public String alterRecordInDatabase(AlertSuspension suspension, String oldName) {
+    public String alterRecordInDatabase(Suspension suspension, String oldName) {
         
         if ((suspension == null) || (suspension.getName() == null)) {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-            String returnString = "Failed to alter alert suspension.";
+            String returnString = "Failed to alter suspension.";
             logger.warn(returnString);
             return returnString;
         }
@@ -33,11 +33,11 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
         
         synchronized (GlobalVariables.suspensionChanges) {
             boolean isNewSuspension = true, isOverwriteExistingAttempt = false;
-            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-            AlertSuspension suspensionFromDb;
+            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            Suspension suspensionFromDb;
 
             if ((oldName != null) && !oldName.isEmpty()) {
-                suspensionFromDb = alertSuspensionsDao.getSuspensionByName(oldName);
+                suspensionFromDb = suspensionsDao.getSuspensionByName(oldName);
 
                 if (suspensionFromDb != null) {
                     suspension.setId(suspensionFromDb.getId());
@@ -48,18 +48,18 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
                 }
             }
             else {
-                suspensionFromDb = alertSuspensionsDao.getSuspensionByName(suspension.getName());
+                suspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
                 if (suspensionFromDb != null) isOverwriteExistingAttempt = true;
             }
 
             boolean isUpsertSuccess = false;
-            AlertSuspension newSuspensionFromDb = null;
+            Suspension newSuspensionFromDb = null;
             if (!isOverwriteExistingAttempt) {
-                isUpsertSuccess = alertSuspensionsDao.upsert(suspension);
-                newSuspensionFromDb = alertSuspensionsDao.getSuspensionByName(suspension.getName());
+                isUpsertSuccess = suspensionsDao.upsert(suspension);
+                newSuspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
             }
 
-            alertSuspensionsDao.close();
+            suspensionsDao.close();
 
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -104,11 +104,11 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
         String returnString;
         
         synchronized (GlobalVariables.suspensionChanges) {
-            AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
-            AlertSuspension suspensionFromDb = alertSuspensionsDao.getSuspensionByName(suspensionName);
+            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            Suspension suspensionFromDb = suspensionsDao.getSuspensionByName(suspensionName);
 
             if (suspensionFromDb != null) {
-                boolean didDeleteSucceed = alertSuspensionsDao.delete(suspensionFromDb);
+                boolean didDeleteSucceed = suspensionsDao.delete(suspensionFromDb);
 
                 if (!didDeleteSucceed) {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -131,7 +131,7 @@ public class AlertSuspensionsLogic extends AbstractDatabaseInteractionLogic {
                 logger.warn(cleanReturnString);
             }
 
-            alertSuspensionsDao.close();
+            suspensionsDao.close();
         }
         
         return returnString;

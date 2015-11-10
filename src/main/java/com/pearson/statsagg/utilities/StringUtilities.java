@@ -149,4 +149,9 @@ public class StringUtilities {
         return stringList;
     }
     
+    public static boolean isStringValueBooleanTrue(String booleanString) {
+        if (booleanString == null) return false;
+        return booleanString.equalsIgnoreCase("true");
+    }
+        
 }

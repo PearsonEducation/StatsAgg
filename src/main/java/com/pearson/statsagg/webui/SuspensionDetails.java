@@ -1,8 +1,8 @@
 package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.math.BigDecimal;
 import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
@@ -22,12 +23,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertSuspensionDetails", urlPatterns = {"/AlertSuspensionDetails"})
-public class AlertSuspensionDetails extends HttpServlet {
+@WebServlet(name = "SuspensionDetails", urlPatterns = {"/SuspensionDetails"})
+public class SuspensionDetails extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertSuspensionDetails.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionDetails.class.getName());
     
-    public static final String PAGE_NAME = "Alert Suspension Details";
+    public static final String PAGE_NAME = "Suspension Details";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -70,8 +71,9 @@ public class AlertSuspensionDetails extends HttpServlet {
         response.setContentType("text/html");
         PrintWriter out = null;
     
-        String alertSuspensionName = request.getParameter("Name");
-        String alertSuspensionDetails = getSuspensionDetailsString(alertSuspensionName);
+        String suspensionName = request.getParameter("Name");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+        String suspensionDetails = getSuspensionDetailsString(suspensionName);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -87,9 +89,10 @@ public class AlertSuspensionDetails extends HttpServlet {
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div>\n " +
             "    <div class=\"row create-alert-form-row\">\n" +
-            alertSuspensionDetails +
+            suspensionDetails +
             "  </div></div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -115,8 +118,8 @@ public class AlertSuspensionDetails extends HttpServlet {
             return "<div class=\"col-md-4\"><b>No suspension specified</b></div>";
         }
         
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao();
-        AlertSuspension suspension = alertSuspensionsDao.getSuspensionByName(suspensionName);
+        SuspensionsDao suspensionsDao = new SuspensionsDao();
+        Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
         
         if (suspension == null) {
             return "<div class=\"col-md-4\"><b>Suspension not found</b></div>";
@@ -124,6 +127,8 @@ public class AlertSuspensionDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
             
+            
+            // column 1
             outputString.append("<div class=\"col-md-4 statsagg_three_panel_first_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
@@ -144,59 +149,74 @@ public class AlertSuspensionDetails extends HttpServlet {
             if (suspension.isEnabled() != null) outputString.append(isEnabled).append("<br>");
             else outputString.append("N/A <br>");
                 
-            outputString.append("<b>Suspend notification only?</b> = ");
-            String isSuspendNotificationOnly = "No";
-            if ((suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly()) isSuspendNotificationOnly = "Yes";
-            if (suspension.isSuspendNotificationOnly() != null) outputString.append(isSuspendNotificationOnly).append("<br>");
-            else outputString.append("N/A <br>");
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() != Suspension.SUSPEND_BY_METRICS)) {
+                outputString.append("<b>Suspend notification only?</b> = ");
+                String isSuspendNotificationOnly = "No";
+                if ((suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly()) isSuspendNotificationOnly = "Yes";
+                if (suspension.isSuspendNotificationOnly() != null) outputString.append(isSuspendNotificationOnly).append("<br>");
+                else outputString.append("N/A <br>");
+            }
             
             outputString.append("<br>");
             
             String isValid = "No";
-            if (AlertSuspension.isValid(suspension)) isValid = "Yes";
+            if (Suspension.isValid(suspension)) isValid = "Yes";
             outputString.append("<b>Is suspension configuration valid?</b> = ").append(isValid).append("<br>");
             
-            String isAlertSuspensionInSuspensionTimeWindow = "No";
-            if (AlertSuspension.isSuspensionInSuspensionTimeWindow(suspension)) isAlertSuspensionInSuspensionTimeWindow = "Yes";
-            outputString.append("<b>Is currently in the suspension window?</b> = ").append(isAlertSuspensionInSuspensionTimeWindow).append("<br>");
+            String isSuspensionInSuspensionTimeWindow = "No";
+            if (Suspension.isSuspensionInSuspensionTimeWindow(suspension)) isSuspensionInSuspensionTimeWindow = "Yes";
+            outputString.append("<b>Is currently in the suspension window?</b> = ").append(isSuspensionInSuspensionTimeWindow).append("<br>");
             
-            String isAlertSuspensionActive = "No";
-            if (AlertSuspension.isSuspensionActive(suspension)) isAlertSuspensionActive = "Yes";
-            outputString.append("<b>Is suspension active?</b> = ").append(isAlertSuspensionActive).append("<br>");
+            String isSuspensionActive = "No";
+            if (Suspension.isSuspensionActive(suspension)) isSuspensionActive = "Yes";
+            outputString.append("<b>Is suspension active?</b> = ").append(isSuspensionActive).append("<br>");
             
-            outputString.append("<br>");
-            outputString.append("<b>Alert Associations</b> = ");            
-            String alertSuspensionAlertAssociationsLink = "<a href=\"AlertSuspensionAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
-            outputString.append(alertSuspensionAlertAssociationsLink);  
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() != Suspension.SUSPEND_BY_METRICS)) {
+                outputString.append("<br>");
+                outputString.append("<b>Alert Associations</b> = ");            
+                String alertsAssociationsPopup = "<a class=\"iframe cboxElement\" href=\"Suspension-AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
+                outputString.append(alertsAssociationsPopup);  
+            }
             
-            outputString.append("</div></div></div>").append("<div class=\"col-md-4 statsagg_three_panel_second_panel\">\n");
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS)) {
+                outputString.append("<br>");
+                outputString.append("<b>Metric Associations</b> = ");            
+                String metricKeyAssociationsPopup = "<a class=\"iframe cboxElement\" href=\"Suspension-MetricKeyAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
+                outputString.append(metricKeyAssociationsPopup);              
+            }
+            
+            outputString.append("</div></div></div>");
+            
+            
+            // column 2
+            outputString.append("<div class=\"col-md-4 statsagg_three_panel_second_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Suspension Type</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Suspend by...</b> = ");
-            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID)) outputString.append("Alert name").append("<br>");
-            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS)) outputString.append("Metric group tags").append("<br>");
-            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING)) outputString.append("Everything").append("<br>");
-            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS)) outputString.append("Metrics").append("<br>");
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID)) outputString.append("Alert name").append("<br>");
+            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS)) outputString.append("Metric group tags").append("<br>");
+            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING)) outputString.append("Everything").append("<br>");
+            else if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS)) outputString.append("Metrics").append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<br>");
 
-            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_ALERT_ID)) {
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID)) {
                 outputString.append("<b>Alert name</b> = ");
                 if (suspension.getAlertId() != null) {
                     AlertsDao alertsDao = new AlertsDao();
                     Alert alert = alertsDao.getAlert(suspension.getAlertId());
 
                     if ((alert != null) && (alert.getName() != null)) {
-                        String alertDetails = "<a href=\"AlertDetails?Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
-                        outputString.append(alertDetails).append("<br>");
+                        String alertDetailsPopup = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
+                        outputString.append(alertDetailsPopup).append("<br>");
                     }
                     else outputString.append("N/A <br>");
                 }
                 else outputString.append("N/A <br>");
             }
 
-            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRIC_GROUP_TAGS)) {
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS)) {
                 outputString.append("<b>Metric group tags to include</b> = ");
                 if ((suspension.getMetricGroupTagsInclusive() != null) && !suspension.getMetricGroupTagsInclusive().isEmpty()) {
                     String metricGroupTagsExclusiveFormatted = StringUtils.replace(StatsAggHtmlFramework.htmlEncode(suspension.getMetricGroupTagsInclusive()), "\n", "<br>&nbsp;&nbsp;&nbsp;");
@@ -205,7 +225,7 @@ public class AlertSuspensionDetails extends HttpServlet {
                 else outputString.append("N/A <br>");
             }
             
-            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_EVERYTHING)) {
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING)) {
                 outputString.append("<b>Metric group tags to exclude</b> = ");
                 if ((suspension.getMetricGroupTagsExclusive() != null) && !suspension.getMetricGroupTagsExclusive().isEmpty()) {
                     String metricGroupTagsInclusiveFormatted = StringUtils.replace(StatsAggHtmlFramework.htmlEncode(suspension.getMetricGroupTagsExclusive()), "\n", "<br>&nbsp;&nbsp;&nbsp;");
@@ -214,7 +234,7 @@ public class AlertSuspensionDetails extends HttpServlet {
                 else outputString.append("N/A <br>");     
             }
             
-            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == AlertSuspension.SUSPEND_BY_METRICS)) {
+            if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS)) {
                 outputString.append("<b>Metric suspension regexes</b> = ");
                 if ((suspension.getMetricSuspensionRegexes() != null) && !suspension.getMetricSuspensionRegexes().isEmpty()) {
                     String metricSuspensionRegexesFormatted = StringUtils.replace(StatsAggHtmlFramework.htmlEncode(suspension.getMetricSuspensionRegexes()), "\n", "<br>&nbsp;&nbsp;&nbsp;");
@@ -223,7 +243,11 @@ public class AlertSuspensionDetails extends HttpServlet {
                 else outputString.append("N/A <br>");     
             }
             
-            outputString.append("</div></div></div>").append("<div class=\"col-md-4 statsagg_three_panel_third_panel\">\n");
+            outputString.append("</div></div></div>");
+            
+            
+            // column 3
+            outputString.append("<div class=\"col-md-4 statsagg_three_panel_third_panel\">\n");
             outputString.append("<div class=\"panel panel-info\"> <div class=\"panel-heading\"><b>Suspension Schedule</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");
             
             outputString.append("<b>Suspension Type</b> = ");

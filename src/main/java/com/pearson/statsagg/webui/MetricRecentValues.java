@@ -12,6 +12,7 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -78,6 +79,7 @@ public class MetricRecentValues extends HttpServlet {
         PrintWriter out = null;
     
         String metricKey = request.getParameter("MetricKey");
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         if ((metricKey != null) && !metricKey.isEmpty()) metricKey = metricKey.trim();
                 
         try {  
@@ -99,7 +101,8 @@ public class MetricRecentValues extends HttpServlet {
             metricTimestampsAndValues +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
 
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             

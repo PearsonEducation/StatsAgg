@@ -13,6 +13,7 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -70,7 +71,8 @@ public class MetricGroupDetails extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
-        String metricGroupDetails = getMetricGroupDetailsString(name);
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+        String metricGroupDetails = getMetricGroupDetailsString(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -89,7 +91,8 @@ public class MetricGroupDetails extends HttpServlet {
             metricGroupDetails +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -109,7 +112,7 @@ public class MetricGroupDetails extends HttpServlet {
         
     }
 
-    private String getMetricGroupDetailsString(String metricGroupName) {
+    private String getMetricGroupDetailsString(String metricGroupName, boolean excludeNavbar) {
         
         if (metricGroupName == null) {
             return "<b>No metric group specified</b>";
@@ -185,12 +188,12 @@ public class MetricGroupDetails extends HttpServlet {
             if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) outputString.append("<br>");
             
             outputString.append("<b>Metric Key Associations</b> = ");            
-            String metricGroup_MetricKeyAssociations_Link = "<a href=\"MetricGroupMetricKeyAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            String metricGroup_MetricKeyAssociations_Link = "<a class=\"iframe cboxElement\" href=\"MetricGroupMetricKeyAssociations?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             outputString.append(metricGroup_MetricKeyAssociations_Link);  
             
             outputString.append("<br>");
             outputString.append("<b>Alert Associations</b> = ");            
-            String metricGroup_AlertAssociations_Link = "<a href=\"MetricGroupAlertAssociations?Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+            String metricGroup_AlertAssociations_Link = "<a class=\"iframe cboxElement\" href=\"MetricGroupAlertAssociations?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             outputString.append(metricGroup_AlertAssociations_Link);  
             
             return outputString.toString();

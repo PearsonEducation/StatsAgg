@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspension;
-import com.pearson.statsagg.database_objects.alert_suspensions.AlertSuspensionsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
@@ -12,6 +12,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -25,12 +26,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertAlertSuspensionAssociations", urlPatterns = {"/AlertAlertSuspensionAssociations"})
-public class AlertAlertSuspensionAssociations extends HttpServlet {
+@WebServlet(name = "Alert-SuspensionAssociations", urlPatterns = {"/Alert-SuspensionAssociations"})
+public class Alert_SuspensionAssociations extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertAlertSuspensionAssociations.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(Alert_SuspensionAssociations.class.getName());
     
-    public static final String PAGE_NAME = "Alert - Alert Suspension Associations";
+    public static final String PAGE_NAME = "Alert - Suspension Associations";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -74,7 +75,8 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
-        String alert_AlertSuspensionAssociations = getAlert_AlertSuspensionAssociations(name);
+        boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+        String alert_SuspensionAssociations = getAlert_SuspensionAssociations(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -90,10 +92,11 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
             "      <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    </div> " +
             "    <div class=\"statsagg_force_word_wrap\">" +
-            alert_AlertSuspensionAssociations +
+            alert_SuspensionAssociations +
             "    </div>\n" +
             "  </div>\n" +
-            "</div>\n");
+            "</div>\n",
+            excludeNavbar);
             
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -113,7 +116,7 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
         
     }
 
-    private String getAlert_AlertSuspensionAssociations(String alertName) {
+    private String getAlert_SuspensionAssociations(String alertName, boolean excludeNavbar) {
         
         if (alertName == null) {
             return "<b>No alert specified</b>";
@@ -147,15 +150,15 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
 
         Map<String,String> suspensionStrings = new HashMap<>();
         
-        AlertSuspensionsDao alertSuspensionsDao = new AlertSuspensionsDao(false);
+        SuspensionsDao suspensionsDao = new SuspensionsDao(false);
         for (Integer suspensionId : suspensionIds) {
-            AlertSuspension suspension = alertSuspensionsDao.getSuspension(suspensionId);
+            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
             if ((suspension == null) || (suspension.getName() == null)) continue;
 
-            String suspensionDetailsUrl = "<a href=\"AlertSuspensionDetails?Name=" + 
+            String suspensionDetailsUrl = "<a href=\"SuspensionDetails?ExcludeNavbar=true&amp;Name=" + 
                     StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
 
-            boolean isSuspensionActive = AlertSuspension.isSuspensionActive(suspension);
+            boolean isSuspensionActive = Suspension.isSuspensionActive(suspension);
 
             StringBuilder status = new StringBuilder();
             if (isSuspensionActive) status.append("(active");
@@ -167,14 +170,14 @@ public class AlertAlertSuspensionAssociations extends HttpServlet {
             if (isSuspensionActive) suspensionStrings.put(suspension.getName(), "<li>" + "<b>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</b>" + "</li>");
             else suspensionStrings.put(suspension.getName(), "<li>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</li>");
         }
-        alertSuspensionsDao.close();
+        suspensionsDao.close();
 
         List<String> sortedSuspensionStrings = new ArrayList<>(suspensionStrings.keySet());
         Collections.sort(sortedSuspensionStrings);
         
         for (String suspensionString : sortedSuspensionStrings) {
-            String alertSuspensionOutputString = suspensionStrings.get(suspensionString);
-            outputString.append(alertSuspensionOutputString);
+            String suspensionOutputString = suspensionStrings.get(suspensionString);
+            outputString.append(suspensionOutputString);
         }
 
         outputString.append("</ul>");
