@@ -110,12 +110,14 @@ public class Suspensions {
         for (Suspension suspension : allSuspensions) {
             if ((suspension.getId() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) &&
                     (suspension.getMetricSuspensionRegexes() != null) && areSuspensionsActive_.containsKey(suspension.getId()) &&
-                    areSuspensionsActive_.get(suspension.getId())) {
+                    areSuspensionsActive_.get(suspension.getId()) && (matchingMetricKeysAssociatedWithSuspension_ != null)) {
                 
                 Set<String> matchingMetricKeys = matchingMetricKeysAssociatedWithSuspension_.get(suspension.getId());
                 
-                synchronized(matchingMetricKeys) {
-                    for (String metricKey : matchingMetricKeys) suspendedMetricKeys_.put(metricKey, metricKey);
+                if (matchingMetricKeys != null) {
+                    synchronized(matchingMetricKeys) {
+                        for (String metricKey : matchingMetricKeys) suspendedMetricKeys_.put(metricKey, metricKey);
+                    }
                 }
             }
         }

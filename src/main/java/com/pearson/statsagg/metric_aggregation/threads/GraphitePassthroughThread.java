@@ -57,7 +57,7 @@ public class GraphitePassthroughThread implements Runnable {
             Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
-            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
+            // get metrics, remove any metrics that need to be 'forgotten'
             long createMetricsTimeStart = System.currentTimeMillis();
             List<GraphiteMetric> graphiteMetrics = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
             Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetrics, metricKeysToForget);

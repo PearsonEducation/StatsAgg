@@ -647,13 +647,15 @@ public class FileIo {
         try {
             reader = new BufferedReader(new FileReader(file));
             
-            StringBuilder fileContents = new StringBuilder();
+            StringBuilder fileContents = new StringBuilder("");
+            boolean isFirstLine = true;
             
             String currentLine = reader.readLine();
             while (currentLine != null) {
-                fileContents.append(currentLine);
-                fileContents.append(System.lineSeparator());
+                if (isFirstLine) isFirstLine = false;
+                else fileContents.append(System.lineSeparator());
                 
+                fileContents.append(currentLine);
                 currentLine = reader.readLine();
             } 
             
