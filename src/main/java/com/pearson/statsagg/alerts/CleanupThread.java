@@ -376,8 +376,9 @@ public class CleanupThread implements Runnable {
         return outputMessage;
     }
     
-    /* Checks the caution & danger durations of all specified alerts to get the longest window duration.
-       The window durations of disabled alerts are not used. 
+    /* 
+    Checks the caution & danger durations of all specified alerts to get the longest window duration.
+    The window durations of disabled alerts are not used. 
     */
     private Map<String,Long> getLongestWindowDurationsForMetricKeys(List<Alert> alerts) {
         
@@ -386,10 +387,15 @@ public class CleanupThread implements Runnable {
         }
         
         Map<String,Long> longestWindowDurationsForMetricKeys = new HashMap<>();
-                
+            
+        Set<String> suspendedMetricKeys;
+        synchronized (GlobalVariables.suspendedMetricKeys) {
+            suspendedMetricKeys = new HashSet<>(GlobalVariables.suspendedMetricKeys.keySet());
+        }
+                    
         for (Alert alert : alerts) {
             if ((alert.isEnabled() != null) && alert.isEnabled()) {
-                List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert);
+                List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert, suspendedMetricKeys);
 
                 for (String metricKey : metricKeysAssociatedWithAlert) {
                     if (GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.containsKey(metricKey)) {

@@ -170,19 +170,19 @@
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derby</artifactId>
-            <version>10.11.1.1</version>
+            <version>10.12.1.1</version>
         </dependency>
         
         <dependency>
             <groupId>org.apache.derby</groupId>
             <artifactId>derbyclient</artifactId>
-            <version>10.11.1.1</version>
+            <version>10.12.1.1</version>
         </dependency>
 
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>5.1.36</version>
+            <version>5.1.38</version>
         </dependency>
         
         <dependency>
@@ -226,7 +226,7 @@
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>1.7.12</version>
+            <version>1.7.13</version>
         </dependency>
         
         <dependency>
@@ -250,32 +250,32 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>18.0</version>
+            <version>19.0</version>
             <type>jar</type>
         </dependency>
             
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.0.32.Final</version>
+            <version>4.0.33.Final</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-server</artifactId>
-            <version>9.3.3.v20150827</version>
+            <version>9.3.6.v20151106</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlet</artifactId>
-            <version>9.3.3.v20150827</version>
+            <version>9.3.6.v20151106</version>
         </dependency>
         
         <dependency>
             <groupId>org.eclipse.jetty</groupId>
             <artifactId>jetty-servlets</artifactId>
-            <version>9.3.3.v20150827</version>
+            <version>9.3.6.v20151106</version>
         </dependency>
 
         <dependency>

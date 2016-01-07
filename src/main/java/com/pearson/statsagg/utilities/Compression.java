@@ -95,6 +95,67 @@ public class Compression {
         }
     }
     
+    public static byte[] decompressDeflateToByteArray(byte[] compressedData) {
+        
+        if (compressedData == null) {
+            return null;
+        } 
+        
+        ByteArrayInputStream byteArrayInputStream = null;
+        BufferedInputStream bufferedInputStream = null;
+        DeflateCompressorInputStream deflateCompressorInputStream = null;
+        ByteArrayOutputStream byteArrayOutputStream = null;
+        
+        try {
+            byteArrayInputStream = new ByteArrayInputStream(compressedData);
+            bufferedInputStream = new BufferedInputStream(byteArrayInputStream);
+            deflateCompressorInputStream = new DeflateCompressorInputStream(bufferedInputStream);
+            byteArrayOutputStream = new ByteArrayOutputStream();
+            final byte[] buffer = new byte[65536];
+            int n = 0;
+            while (-1 != (n = deflateCompressorInputStream.read(buffer))) byteArrayOutputStream.write(buffer, 0, n);
+
+            return byteArrayOutputStream.toByteArray();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            try {
+                if (byteArrayOutputStream != null) {
+                    byteArrayOutputStream.close();
+                    byteArrayOutputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (deflateCompressorInputStream != null) {
+                    deflateCompressorInputStream.close();
+                    deflateCompressorInputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (bufferedInputStream != null) {
+                    bufferedInputStream.close();
+                    bufferedInputStream = null;
+                }
+            }
+            catch (Exception e){}
+            
+            try {
+                if (byteArrayInputStream != null) {
+                    byteArrayInputStream.close();
+                    byteArrayInputStream = null;
+                }
+            }
+            catch (Exception e){}
+        }
+    }
+    
     public static byte[] compressStringToGzip(String inputString, GzipParameters gzipParameters) {
         
         if ((inputString == null) || inputString.isEmpty() || (gzipParameters == null)) {

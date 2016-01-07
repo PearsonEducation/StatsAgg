@@ -185,9 +185,15 @@ public class AlertThread implements Runnable {
             activeDangerAlertMetricKeysByAlertId_Counter_.incrementAndGet();
         }
         
+        // the current list of metric-keys that are suspended via 'metric suspensions'
+        Set<String> suspendedMetricKeys;
+        synchronized (GlobalVariables.suspendedMetricKeys) {
+            suspendedMetricKeys = new HashSet<>(GlobalVariables.suspendedMetricKeys.keySet());
+        }
+        
         // for each enabled alert, run the alert routine (check alert criteria, send email, persist alert status).
         // if an alert routine thread takes longer than the alert routine internal * 3, it will be terminated
-        determineAlertStatus(enabledAlerts_, ApplicationConfiguration.getAlertRoutineInterval() * 3);
+        determineAlertStatus(enabledAlerts_, suspendedMetricKeys, ApplicationConfiguration.getAlertRoutineInterval() * 3);
         
         // alert recovery routine -- only applies to alerts that were in an 'active' state when the application was started
         alertRecoveryRoutine_HasReachedRecoveryTimeout(GlobalVariables.statsaggStartTimestamp.longValue(), ApplicationConfiguration.getAlertWaitTimeAfterRestart());
@@ -545,7 +551,7 @@ public class AlertThread implements Runnable {
         GlobalVariables.alertRountineLastExecutedTimestamp.set(System.currentTimeMillis());
     }
 
-    private void determineAlertStatus(List<Alert> alerts, int threadTimeoutInMilliseconds) {
+    private void determineAlertStatus(List<Alert> alerts, Set<String> suspendedMetricKeys, int threadTimeoutInMilliseconds) {
         
         if (alerts == null) {
             return;
@@ -555,7 +561,7 @@ public class AlertThread implements Runnable {
 
         List<Thread> determineAlertStatusThreads = new ArrayList<>();
         for (List<Alert> alertsSingleCore : alertsByCpuCore.values()) {
-            Thread determineAlertStatus_Thread = new Thread(new determineAlertStatus_Thread(alertsSingleCore, this));
+            Thread determineAlertStatus_Thread = new Thread(new determineAlertStatus_Thread(alertsSingleCore, suspendedMetricKeys, this));
             determineAlertStatus_Thread.setPriority(3);
             determineAlertStatusThreads.add(determineAlertStatus_Thread);
         }
@@ -680,10 +686,12 @@ public class AlertThread implements Runnable {
     private static class determineAlertStatus_Thread implements Runnable {
   
         private final List<Alert> alerts__;
+        private final Set<String> suspendedMetricKeys__;
         private final AlertThread alertThread__;
         
-        public determineAlertStatus_Thread(List<Alert> alerts, AlertThread alertThread) {
+        public determineAlertStatus_Thread(List<Alert> alerts, Set<String> suspendedMetricKeys, AlertThread alertThread) {
             this.alerts__ = alerts;
+            this.suspendedMetricKeys__ = suspendedMetricKeys;
             this.alertThread__ = alertThread;
         }
         
@@ -698,7 +706,7 @@ public class AlertThread implements Runnable {
                 boolean isCautionAlertCriteriaValid = alert.isCautionAlertCriteriaValid();
                 boolean isDangerAlertCriteriaValid = alert.isDangerAlertCriteriaValid();
                 
-                List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert);
+                List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert, suspendedMetricKeys__);
                 
                 for (String metricKey : metricKeysAssociatedWithAlert) {
                     List<MetricTimestampAndValue> recentMetricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);

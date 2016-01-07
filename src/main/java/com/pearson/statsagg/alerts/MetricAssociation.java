@@ -460,27 +460,33 @@ public class MetricAssociation {
     }
     
     // todo: improve performance of this method
-    public static List<String> getMetricKeysAssociatedWithAlert(Alert alert) {
+    public static List<String> getMetricKeysAssociatedWithAlert(Alert alert, Set<String> suspendedMetricKeys) {
 
         if (alert == null) {
             return new ArrayList<>();
         }
 
-        List<String> suspendedMetricKeys_Local;
         Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(alert.getMetricGroupId());
         Set<String> metricKeysAssociatedWithAlert;
         
         if (matchingMetricKeysAssociatedWithMetricGroup != null) {
             
-            synchronized(GlobalVariables.suspendedMetricKeys) {
-                suspendedMetricKeys_Local = new ArrayList<>(GlobalVariables.suspendedMetricKeys.keySet());
-            }
-            
             synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
                 metricKeysAssociatedWithAlert = new HashSet<>(matchingMetricKeysAssociatedWithMetricGroup);
             }
             
-            metricKeysAssociatedWithAlert.removeAll(suspendedMetricKeys_Local);
+            if (metricKeysAssociatedWithAlert.size() >= suspendedMetricKeys.size()) {
+                metricKeysAssociatedWithAlert.removeAll(suspendedMetricKeys);
+            }
+            else {
+                Set<String> metricKeysAssociatedWithAlert_Temp = new HashSet<>();
+                
+                for (String metricKeyAssociatedWithAlert : metricKeysAssociatedWithAlert) {
+                    if (!suspendedMetricKeys.contains(metricKeyAssociatedWithAlert)) metricKeysAssociatedWithAlert_Temp.add(metricKeyAssociatedWithAlert);
+                }
+                
+                metricKeysAssociatedWithAlert = metricKeysAssociatedWithAlert_Temp;
+            }
         }
         else {
             metricKeysAssociatedWithAlert = new HashSet<>();
