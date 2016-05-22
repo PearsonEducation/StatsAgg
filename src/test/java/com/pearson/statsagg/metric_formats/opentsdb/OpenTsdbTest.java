@@ -83,6 +83,11 @@ public class OpenTsdbTest {
         
         // sanitized
         assertEquals("tcollector.reader.lines_collected_123AaZz09 1424566500123 12 tag1=meow tag2=mix", parsedMetric3.getOpenTsdbTelnetFormatString(true));  
+        
+        // with extra, default, tag
+        String unparsedMetric4 = "tcollector.reader.lines_collected 1424566500123 12  tag2=mix  tag1=meow";
+        OpenTsdbMetric parsedMetric4 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric4, "", 1366998400999L);
+        assertEquals("tcollector.reader.lines_collected 1424566500123 12 tag1=meow tag2=mix Taco=Bell", parsedMetric4.getOpenTsdbTelnetFormatString(true, "Taco", "Bell"));  
     }
     
     /**
@@ -104,6 +109,12 @@ public class OpenTsdbTest {
     
         // sanitized
         assertEquals("{\"metric\":\"tcollector.reader.lines_collected_123AaZz09\",\"timestamp\":1424566500123,\"value\":12,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}", parsedMetric2.getOpenTsdbJsonFormatString(true)); 
+    
+        // with extra, default, tag
+        String unparsedMetric4 = "tcollector.reader.lines_collected@#$%^_123AaZz09 1424566500123 12 tag2=mix tag1=meow";
+        OpenTsdbMetric parsedMetric4 = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric4, "", 1366998400999L);
+        System.out.println(parsedMetric4.getOpenTsdbJsonFormatString(true, "Taco", "Bell"));
+        assertEquals("{\"metric\":\"tcollector.reader.lines_collected_123AaZz09\",\"timestamp\":1424566500123,\"value\":12,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\",\"Taco\":\"Bell\"}}", parsedMetric4.getOpenTsdbJsonFormatString(true, "Taco", "Bell"));  
     }
     
     /**

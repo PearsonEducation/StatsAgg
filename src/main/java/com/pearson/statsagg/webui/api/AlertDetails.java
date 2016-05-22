@@ -1,5 +1,9 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -8,7 +12,6 @@ import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,9 +43,23 @@ public class AlertDetails extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("doGet");
-        try {    
-            JSONObject json = getAlertDetails(request, new AlertsDao());       
+        processRequest(request, response);
+    }
+
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        processRequest(request, response);
+    }
+    
+    private void processRequest(HttpServletRequest request, HttpServletResponse response) {
+        try {
+            String json = getAlertDetails(request);
             response.setContentType("application/json");
             PrintWriter out;
             out = response.getWriter();
@@ -54,152 +71,180 @@ public class AlertDetails extends HttpServlet {
     }
 
     /**
-     * Returns a json object containing the details of the requested alert.
+     * Returns a json string containing the details of the requested alert.
      * 
      * @param request servlet request
-     * @param alertsDao AlertsDao object
      * @return details of the requested alert
      */
-    protected JSONObject getAlertDetails(HttpServletRequest request, AlertsDao alertsDao) {
-        logger.debug("getAlertDetails");
-        logger.debug(PAGE_NAME);
+    protected String getAlertDetails(HttpServletRequest request) {
         
-        JSONObject alertDetails = new JSONObject();
-        int alertId = 0;
+        if (request == null) {
+            return Helper.ERROR_JSON;
+        }
         
         try {
-            if (request.getParameter(Helper.id) != null) {
-              alertId = Integer.parseInt(request.getParameter(Helper.id));
+            Integer alertId = null;
+            String alertName = null;
+
+            if (request.getParameter("id") != null) alertId = Integer.parseInt(request.getParameter("id"));
+            if (request.getParameter("name") != null) alertName = request.getParameter("name");
+
+            if ((alertId == null) && (alertName == null)) {
+                JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
+                alertId = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
+                alertName = Helper.getStringFieldFromJsonObject(jsonObject, "name");
             }
+
+            Alert alert = null;
+            AlertsDao alertsDao = new AlertsDao();
+            if (alertId != null) alert = alertsDao.getAlert(alertId);
+            else if (alertName != null) alert = alertsDao.getAlertByName(alertName);
+            else alertsDao.close();
             
-            Alert alert = alertsDao.getAlert(alertId);
-            
-            if (alert != null) {
-                if (alert.getId() != null) {
-                    alertDetails.put("id", alert.getId());
-                }
-                if (alert.getName() != null) {
-                    alertDetails.put("name", alert.getName());
-                }
-                if (alert.getDescription() != null) {
-                    alertDetails.put("description", alert.getDescription());
-                }
-                if (alert.getAlertType() != null) {
-                    alertDetails.put("alert_type", alert.getAlertType());
-                }
-                if (alert.getMetricGroupId() != null) {
-                    alertDetails.put("metricgroup_id", alert.getMetricGroupId());
-                }
-                if (alert.isEnabled() != null) {
-                    alertDetails.put("enabled", alert.isEnabled());
-                }
-                if (alert.isCautionEnabled() != null) {
-                    alertDetails.put("caution_enabled", alert.isCautionEnabled());
-                }
-                if (alert.isDangerEnabled() != null) {
-                    alertDetails.put("danger_enabled", alert.isDangerEnabled());
-                }
-                if (alert.getCautionNotificationGroupId() != null) {
-                    alertDetails.put("caution_notificationgroup_id", alert.getCautionNotificationGroupId());
-                }
-                if (alert.getCautionNotificationGroupId() != null) {
-                    alertDetails.put("caution_positive_notificationgroup_id", alert.getCautionPositiveNotificationGroupId());
-                }
-                if (alert.isCautionAlertActive() != null) {
-                    alertDetails.put("caution_alert_active", alert.isCautionAlertActive());
-                }
-                if (alert.isDangerAlertActive() != null) {
-                    alertDetails.put("danger_alert_active", alert.isDangerAlertActive());
-                }
-                if (alert.isAlertOnPositive() != null) {
-                    alertDetails.put("alert_on_positive", alert.isAlertOnPositive());
-                }
-                if (alert.isAllowResendAlert() != null) {
-                    alertDetails.put("allow_resend_alert", alert.isAllowResendAlert());
-                }
-                if (alert.getResendAlertEvery() != null) {
-                    alertDetails.put("resend_alert_every", alert.getResendAlertEvery());
-                }
-                if (alert.getCautionPositiveNotificationGroupId() != null) {
-                    alertDetails.put("caution_positive_notification_group_id", alert.getCautionPositiveNotificationGroupId());
-                }
-                if (alert.getCautionOperator() != null) {
-                    alertDetails.put("caution_operator", alert.getCautionOperator());
-                }
-                if (alert.getCautionCombination() != null) {
-                    alertDetails.put("caution_combination", alert.getCautionCombination());
-                }
-                if (alert.getCautionCombinationCount() != null) {
-                    alertDetails.put("caution_combination_count", alert.getCautionCombinationCount());
-                }
-                if (alert.getCautionThreshold() != null) {
-                    alertDetails.put("caution_threshold", alert.getCautionThreshold());
-                }
-                if (alert.getCautionWindowDuration() != null) {
-                    alertDetails.put("caution_window_duration", alert.getCautionWindowDuration());
-                }
-                if (alert.getCautionStopTrackingAfter() != null) {
-                    alertDetails.put("caution_stop_tracking_after", alert.getCautionStopTrackingAfter());
-                }
-                if (alert.getCautionMinimumSampleCount() != null) {
-                    alertDetails.put("caution_minimum_sample_count", alert.getCautionMinimumSampleCount());
-                }
-                if (alert.getCautionAlertLastSentTimestamp() != null) {
-                    alertDetails.put("caution_alert_last_sent_timestamp", alert.getCautionAlertLastSentTimestamp());
-                }
-                if (alert.isCautionAcknowledged() != null) {
-                    alertDetails.put("is_caution_acknowledged", alert.isCautionAcknowledged());
-                }
-                if (alert.getCautionFirstActiveAt() != null) {
-                    alertDetails.put("caution_first_active_at", alert.getCautionFirstActiveAt());
-                }
-                if (alert.getDangerNotificationGroupId() != null) {
-                    alertDetails.put("danger_notificationgroup_id", alert.getDangerNotificationGroupId());
-                }
-                if (alert.getDangerPositiveNotificationGroupId() != null) {
-                    alertDetails.put("danger_positive_notification_group_id", alert.getDangerPositiveNotificationGroupId());
-                }
-                if (alert.getDangerOperator() != null) {
-                    alertDetails.put("danger_operator", alert.getDangerOperator());
-                }
-                if (alert.getDangerCombination() != null) {
-                    alertDetails.put("danger_combination", alert.getDangerCombination());
-                }
-                if (alert.getDangerCombinationCount() != null) {
-                    alertDetails.put("danger_combination_count", alert.getDangerCombinationCount());
-                }
-                if (alert.getDangerThreshold() != null) {
-                    alertDetails.put("danger_threshold", alert.getDangerThreshold());
-                }
-                if (alert.getDangerWindowDuration() != null) {
-                    alertDetails.put("danger_window_duration", alert.getDangerWindowDuration());
-                }
-                if (alert.getDangerStopTrackingAfter() != null) {
-                    alertDetails.put("danger_stop_tracking_after", alert.getDangerStopTrackingAfter());
-                }
-                if (alert.getDangerMinimumSampleCount() != null) {
-                    alertDetails.put("danger_minimum_sample_count", alert.getDangerMinimumSampleCount());
-                }
-                if (alert.getDangerAlertLastSentTimestamp() != null) {
-                    alertDetails.put("danger_alert_last_sent_time_stamp", alert.getDangerAlertLastSentTimestamp());
-                }
-                if (alert.isDangerAcknowledged() != null) {
-                    alertDetails.put("is_danger_acknowledged", alert.isDangerAcknowledged());
-                }
-                if (alert.getDangerFirstActiveAt() != null) {
-                    alertDetails.put("danger_first_active_at", alert.getDangerFirstActiveAt());
-                }
-            }
-            else {
-                alertDetails.put(Helper.error, Helper.noResult);
-            }
+            if (alert != null) return getApiFriendlyJsonObject(alert);
         }
         catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            alertDetails.put(Helper.error, Helper.errorMsg);
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
         }
         
-        return alertDetails;
-        
+        return Helper.ERROR_JSON;
     }
+    
+    private String getApiFriendlyJsonObject(Alert alert) {
+        
+        if (alert == null) {
+            return null;
+        }
+
+        Gson alert_Gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
+        JsonElement alert_JsonElement = alert_Gson.toJsonTree(alert);
+        JsonObject jsonObject = new Gson().toJsonTree(alert_JsonElement).getAsJsonObject();
+        String currentFieldToAlter;
+        JsonElement currentField_JsonElement;
+                    
+        currentFieldToAlter = "alert_type";
+        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, "Threshold");
+        }
+        else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, "Availability");
+        }
+        else jsonObject.remove(currentFieldToAlter);        
+
+        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "resend_alert_every", "resend_alert_every_time_unit");
+
+        currentFieldToAlter = "caution_operator";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            String operatorString = alert.getOperatorString(Alert.CAUTION, true, false);
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, operatorString);
+        }
+        
+        currentFieldToAlter = "caution_combination";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            String combinationString = alert.getCombinationString(Alert.CAUTION);
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, combinationString);
+        }
+        
+        currentFieldToAlter = "caution_threshold";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            jsonObject.remove(currentFieldToAlter);
+            JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getCautionThreshold());
+            jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
+        }
+        
+        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_window_duration", "caution_window_duration_time_unit");
+        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_stop_tracking_after", "caution_stop_tracking_after_time_unit");
+        
+        currentFieldToAlter = "danger_operator";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            String operatorString = alert.getOperatorString(Alert.DANGER, true, false);
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, operatorString);
+        }
+        
+        currentFieldToAlter = "danger_combination";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            String combinationString = alert.getCombinationString(Alert.DANGER);
+            jsonObject.remove(currentFieldToAlter);
+            jsonObject.addProperty(currentFieldToAlter, combinationString);
+        }
+        
+        currentFieldToAlter = "danger_threshold";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if (currentField_JsonElement != null) {
+            jsonObject.remove(currentFieldToAlter);
+            JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getDangerThreshold());
+            jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
+        }
+        
+        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_window_duration", "danger_window_duration_time_unit");
+        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_stop_tracking_after", "danger_stop_tracking_after_time_unit");
+        
+        currentFieldToAlter = "allow_resend_alert";
+        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+        if ((currentField_JsonElement == null) || (alert.isAllowResendAlert() == null) || !alert.isAllowResendAlert()) {
+            jsonObject.remove("resend_alert_every");
+            jsonObject.remove("resend_alert_every_time_unit");
+        }
+        
+        if ((alert.isCautionEnabled() == null) || !alert.isCautionEnabled()) {
+            jsonObject.remove("caution_notification_group_id");
+            jsonObject.remove("caution_positive_notification_group_id");
+            jsonObject.remove("caution_minimum_sample_count");
+            jsonObject.remove("caution_combination");
+            jsonObject.remove("caution_alert_active");
+            jsonObject.remove("caution_window_duration");
+            jsonObject.remove("caution_window_duration_time_unit");
+            jsonObject.remove("caution_stop_tracking_after");
+            jsonObject.remove("caution_stop_tracking_after_time_unit");
+            jsonObject.remove("caution_operator");
+            jsonObject.remove("caution_threshold");
+        }
+        
+        if ((alert.isDangerEnabled() == null) || !alert.isDangerEnabled()) {
+            jsonObject.remove("danger_notification_group_id");
+            jsonObject.remove("danger_positive_notification_group_id");
+            jsonObject.remove("danger_minimum_sample_count");
+            jsonObject.remove("danger_combination");
+            jsonObject.remove("danger_alert_active");
+            jsonObject.remove("danger_window_duration");
+            jsonObject.remove("danger_window_duration_time_unit");
+            jsonObject.remove("danger_stop_tracking_after");
+            jsonObject.remove("danger_stop_tracking_after_time_unit");
+            jsonObject.remove("danger_operator");
+            jsonObject.remove("danger_threshold");
+        }
+        
+        if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+            jsonObject.remove("caution_minimum_sample_count");
+            jsonObject.remove("caution_combination");
+            jsonObject.remove("caution_operator");
+            jsonObject.remove("caution_threshold");
+            
+            jsonObject.remove("danger_minimum_sample_count");
+            jsonObject.remove("danger_combination");
+            jsonObject.remove("danger_operator");
+            jsonObject.remove("danger_threshold");
+        }
+        
+        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+            jsonObject.remove("caution_stop_tracking_after");
+            jsonObject.remove("caution_stop_tracking_after_time_unit");
+            
+            jsonObject.remove("danger_stop_tracking_after");
+            jsonObject.remove("danger_stop_tracking_after_time_unit");
+        }        
+        
+        return alert_Gson.toJson(jsonObject);
+    }
+    
 }

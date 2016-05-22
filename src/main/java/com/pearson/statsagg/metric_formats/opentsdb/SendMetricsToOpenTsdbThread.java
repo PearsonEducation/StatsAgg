@@ -23,6 +23,8 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
     
     private final List<? extends OpenTsdbMetricFormat> openTsdbMetrics_;
     private final boolean sanitizeMetrics_;
+    private final String defaultOpenTsdbTagKey_;
+    private final String defaultOpenTsdbTagValue_;
     private final String openTsdbHost_;
     private final URL openTsdbUrl_;
     private final int openTsdbPort_;
@@ -34,10 +36,13 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
     private HttpRequest currentHttpRequest_ = null;
     
     // constructor for outputting to opentsdb telnet
-    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, String openTsdbHost, 
-            int openTsdbPort, int connectTimeoutInMs, int numSendRetries, String threadId) {
+    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, 
+            boolean sanitizeMetrics, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue, 
+            String openTsdbHost, int openTsdbPort, int connectTimeoutInMs, int numSendRetries, String threadId) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.sanitizeMetrics_ = sanitizeMetrics;
+        this.defaultOpenTsdbTagKey_ = defaultOpenTsdbTagKey;
+        this.defaultOpenTsdbTagValue_ = defaultOpenTsdbTagValue;
         this.openTsdbHost_ = openTsdbHost;
         this.openTsdbUrl_ = null;
         this.openTsdbPort_ = openTsdbPort;
@@ -51,10 +56,13 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
     }
     
     // constructor for outputting to opentsdb http
-    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, boolean sanitizeMetrics, URL openTsdbUrl, 
-            int connectTimeoutInMs, int readTimeoutInMs, int numSendRetries, int maxMetricsPerMessage, String threadId) {
+    public SendMetricsToOpenTsdbThread(List<? extends OpenTsdbMetricFormat> openTsdbMetrics, 
+            boolean sanitizeMetrics, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue, 
+            URL openTsdbUrl, int connectTimeoutInMs, int readTimeoutInMs, int numSendRetries, int maxMetricsPerMessage, String threadId) {
         this.openTsdbMetrics_ = openTsdbMetrics;
         this.sanitizeMetrics_ = sanitizeMetrics;
+        this.defaultOpenTsdbTagKey_ = defaultOpenTsdbTagKey;
+        this.defaultOpenTsdbTagValue_ = defaultOpenTsdbTagValue;
         this.openTsdbHost_ = null;
         this.openTsdbUrl_ = openTsdbUrl;
         this.openTsdbPort_ = -1;
@@ -157,7 +165,8 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
                 continue;
             }
             
-            boolean isSendSucess = tcpClient.send("put " + openTsdbMetric.getOpenTsdbTelnetFormatString(sanitizeMetrics_) + "\n", numSendRetries_, false, false);
+            boolean isSendSucess = tcpClient.send("put " + openTsdbMetric.getOpenTsdbTelnetFormatString(sanitizeMetrics_, defaultOpenTsdbTagKey_, defaultOpenTsdbTagValue_) + "\n", 
+                    numSendRetries_, false, false);
 
             if (!isSendSucess) {
                 logger.error("Error sending message to OpenTSDB telnet. Endpoint=\"" + outputEndpoint_ + "\"");
@@ -192,7 +201,7 @@ public class SendMetricsToOpenTsdbThread extends SendMetricsToOutputModuleThread
                 continue;
             }
             
-            String openTsdbMetricJson = OpenTsdbMetric.getOpenTsdbJson(openTsdbMetricsPartitionedList, sanitizeMetrics_);
+            String openTsdbMetricJson = OpenTsdbMetric.getOpenTsdbJson(openTsdbMetricsPartitionedList, sanitizeMetrics_, defaultOpenTsdbTagKey_, defaultOpenTsdbTagValue_);
             
             if (openTsdbMetricJson != null) {
                 HttpRequest httpRequest = new HttpRequest(outputEndpoint_, OPENTSDB_HTTP_HEADER_PROPERTIES, openTsdbMetricJson, 

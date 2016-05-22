@@ -129,7 +129,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
         try {
             String parameter;
             
-            parameter = request.getParameter("CreateSuspension_SuspendBy");
+            parameter = request.getParameter("SuspendBy");
             if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(Suspension.SUSPEND_BY_ALERT_ID);
             else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
             else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(Suspension.SUSPEND_BY_EVERYTHING);

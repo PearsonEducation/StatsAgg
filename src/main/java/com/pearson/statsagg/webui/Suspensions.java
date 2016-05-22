@@ -123,11 +123,13 @@ public class Suspensions extends HttpServlet {
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Suspensions");
     }
         
-    private void changeSuspensionEnabled(String suspensionName, Boolean isEnabled) {
+    public String changeSuspensionEnabled(String suspensionName, Boolean isEnabled) {
         
         if ((suspensionName == null) || (isEnabled == null)) {
-            return;
+            return "Invalid input!";
         }
+        
+        boolean isSuccess = false;
         
         SuspensionsDao suspensionsDao = new SuspensionsDao();
         Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
@@ -138,9 +140,16 @@ public class Suspensions extends HttpServlet {
             SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
             suspensionsLogic.alterRecordInDatabase(suspension, suspensionName);
 
-            com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
-            suspensions.runSuspensionRoutine();
+            if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
+                isSuccess = true;
+                com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+                suspensions.runSuspensionRoutine();
+            }
         }
+        
+        if (isSuccess && isEnabled) return "Successfully enabled alert";
+        if (isSuccess && !isEnabled) return "Successfully disabled alert";
+        else return "Error -- could not alter alert";
     }
 
     private void cloneSuspension(String suspensionName) {

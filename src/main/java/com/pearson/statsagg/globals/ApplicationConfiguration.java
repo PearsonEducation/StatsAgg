@@ -1,10 +1,10 @@
 package com.pearson.statsagg.globals;
 
+import com.opencsv.CSVReader;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
-import au.com.bytecode.opencsv.CSVReader;
 import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
 import com.pearson.statsagg.webui.HttpLink;
 import java.io.InputStream;
@@ -29,7 +29,7 @@ public class ApplicationConfiguration {
     private static boolean isInitializeSuccess_ = false; 
     private static PropertiesConfigurationWrapper applicationConfiguration_ = null;
     
-    private static int flushTimeAgg_ = VALUE_NOT_SET_CODE;
+    private static long flushTimeAgg_ = VALUE_NOT_SET_CODE;
     private static boolean debugModeEnabled_ = false;
     
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
@@ -96,7 +96,7 @@ public class ApplicationConfiguration {
     private static String influxdbDefaultDatabaseHttpBasicAuthValue_;
     
     private static boolean alertRoutineEnabled_ = false;
-    private static int alertRoutineInterval_ = VALUE_NOT_SET_CODE;
+    private static long alertRoutineInterval_ = VALUE_NOT_SET_CODE;
     private static boolean alertSendEmailEnabled_ = false;  
     private static int alertMaxMetricsInEmail_ = VALUE_NOT_SET_CODE;
     private static boolean alertOutputStatus_ = false;
@@ -140,7 +140,7 @@ public class ApplicationConfiguration {
     private static boolean setApplicationConfigurationValues() {
         
         try {
-            flushTimeAgg_ = applicationConfiguration_.safeGetInteger("flush_time_agg", 10000);
+            flushTimeAgg_ = applicationConfiguration_.safeGetLong("flush_time_agg", 10000);
             debugModeEnabled_ = applicationConfiguration_.safeGetBoolean("debug_mode_enabled", false);
             
             // graphite output configuration
@@ -220,7 +220,7 @@ public class ApplicationConfiguration {
             
             // alerting variables
             alertRoutineEnabled_ = applicationConfiguration_.safeGetBoolean("alert_routine_enabled", true);
-            alertRoutineInterval_ = applicationConfiguration_.safeGetInteger("alert_routine_interval", 5000);
+            alertRoutineInterval_ = applicationConfiguration_.safeGetLong("alert_routine_interval", 5000);
             alertSendEmailEnabled_ = applicationConfiguration_.safeGetBoolean("alert_send_email_enabled", false);
             alertMaxMetricsInEmail_ = applicationConfiguration_.safeGetInteger("alert_max_metrics_in_email", 100);
             alertOutputStatus_ = applicationConfiguration_.safeGetBoolean("alert_output_status", true);
@@ -478,7 +478,7 @@ public class ApplicationConfiguration {
         return applicationConfiguration_;
     }
 
-    public static int getFlushTimeAgg() {
+    public static long getFlushTimeAgg() {
         return flushTimeAgg_;
     }
     
@@ -726,7 +726,7 @@ public class ApplicationConfiguration {
         return alertRoutineEnabled_;
     }
     
-    public static int getAlertRoutineInterval() {
+    public static long getAlertRoutineInterval() {
         return alertRoutineInterval_;
     }
 

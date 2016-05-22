@@ -95,7 +95,10 @@ public class GraphiteMetricTest {
         assertEquals(graphiteMetric1_.getOpenTsdbTelnetFormatString(false), openTsdbFormatString1);     
         
         String openTsdbFormatString2 = "test.metric.path?><!@#$! 123 12345 Format=Graphite";
-        assertEquals(graphiteMetric2_.getOpenTsdbTelnetFormatString(false), openTsdbFormatString2);        
+        assertEquals(graphiteMetric2_.getOpenTsdbTelnetFormatString(false), openTsdbFormatString2);   
+        
+        String openTsdbFormatString3 = "test.metric.path?><!@#$! 123 12345 Taco=Bell";
+        assertEquals(graphiteMetric2_.getOpenTsdbTelnetFormatString(false, "Taco", "Bell"), openTsdbFormatString3);  
     }
     
     /**
@@ -111,6 +114,9 @@ public class GraphiteMetricTest {
         
         String openTsdbFormatString3 = "{\"metric\":\"test.metric.path\",\"timestamp\":123,\"value\":12345,\"tags\":{\"Format\":\"Graphite\"}}";
         assertEquals(graphiteMetric2_.getOpenTsdbJsonFormatString(true), openTsdbFormatString3);    
+        
+        String openTsdbFormatString4 = "{\"metric\":\"test.metric.path\",\"timestamp\":123,\"value\":12345,\"tags\":{\"Taco\":\"Bell\"}}";
+        assertEquals(graphiteMetric2_.getOpenTsdbJsonFormatString(true, "Taco", "Bell"), openTsdbFormatString4);    
     }
     
     /**

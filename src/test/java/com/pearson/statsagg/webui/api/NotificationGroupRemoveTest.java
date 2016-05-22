@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Prashant Kumar (prashant4nov)
  */
-public class RemoveNotificationGroupTest extends Mockito {
+public class NotificationGroupRemoveTest extends Mockito {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveNotificationGroupTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupRemoveTest.class.getName());
     
     private static com.pearson.statsagg.webui.NotificationGroups notificationGroup;
     private static final String mockReturnString = "Delete notification group success. NotificationGroupName=\"notification_grp_name\".";
@@ -37,7 +37,7 @@ public class RemoveNotificationGroupTest extends Mockito {
         String responseMsg;
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("name")).thenReturn(notificationGroupName);
-        RemoveNotificationGroup removeNotificationGroup = new RemoveNotificationGroup();
+        NotificationGroupRemove removeNotificationGroup = new NotificationGroupRemove();
         responseMsg = removeNotificationGroup.processPostRequest(request, notificationGroup);
         assertEquals(mockReturnString, responseMsg);     
     }

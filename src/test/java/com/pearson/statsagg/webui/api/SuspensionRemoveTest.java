@@ -10,13 +10,15 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.mock;
 
 /**
  * @author Prashant Kumar (prashant4nov)
  */
-public class RemoveSuspensionTest extends Mockito {
+public class SuspensionRemoveTest extends Mockito {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveSuspensionTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionRemoveTest.class.getName());
     
     private static com.pearson.statsagg.webui.Suspensions suspension;
     private static final String mockReturnString = "Delete suspension success. SuspensionName=\"suspension_name\".";
@@ -37,8 +39,8 @@ public class RemoveSuspensionTest extends Mockito {
         String responseMsg;
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("name")).thenReturn(suspensionName);
-        RemoveSuspension removeSuspension = new RemoveSuspension();
-        responseMsg = removeSuspension.processPostRequest(request, suspension);
+        SuspensionRemove removeSuspension = new SuspensionRemove();
+        responseMsg = removeSuspension.processPostRequest(request);
         assertEquals(mockReturnString, responseMsg);     
     }
     

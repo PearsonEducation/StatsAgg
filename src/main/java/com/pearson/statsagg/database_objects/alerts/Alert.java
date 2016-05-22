@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.alerts;
 
+import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
@@ -34,54 +35,54 @@ public class Alert extends DatabaseObject<Alert> {
     public static final int COMBINATION_AT_MOST_COUNT = 105;
     public static final int COMBINATION_AT_LEAST_COUNT = 106;
      
-    private Integer id_;
-    private String name_ = null;
-    private String uppercaseName_ = null;
-    private String description_ = null;
-    private Integer metricGroupId_ = null;
-    private Boolean isEnabled_ = null;
-    private Boolean isCautionEnabled_ = null;
-    private Boolean isDangerEnabled_ = null;
-    private Integer alertType_ = null;
+    @SerializedName("id") private Integer id_;
+    @SerializedName("name") private String name_ = null;
+    private transient String uppercaseName_ = null;
+    @SerializedName("description") private String description_ = null;
+    @SerializedName("metric_group_id") private Integer metricGroupId_ = null;
+    @SerializedName("enabled") private Boolean isEnabled_ = null;
+    @SerializedName("caution_enabled") private Boolean isCautionEnabled_ = null;
+    @SerializedName("danger_enabled") private Boolean isDangerEnabled_ = null;
+    @SerializedName("alert_type") private Integer alertType_ = null;
 
-    private Boolean alertOnPositive_ = null;
-    private Boolean allowResendAlert_ = null;
-    private Long resendAlertEvery_ = null;
-    private Integer resendAlertEveryTimeUnit_ = null;
+    @SerializedName("alert_on_positive") private Boolean alertOnPositive_ = null;
+    @SerializedName("allow_resend_alert") private Boolean allowResendAlert_ = null;
+    @SerializedName("resend_alert_every") private Long resendAlertEvery_ = null;
+    @SerializedName("resend_alert_every_time_unit") private Integer resendAlertEveryTimeUnit_ = null;
     
-    private Integer cautionNotificationGroupId_ = null;
-    private Integer cautionPositiveNotificationGroupId_ = null;
-    private Integer cautionOperator_ = null;
-    private Integer cautionCombination_ = null; 
-    private Integer cautionCombinationCount_ = null;
-    private BigDecimal cautionThreshold_ = null; 
-    private Long cautionWindowDuration_ = null;  // native timeunit is milliseconds
-    private Integer cautionWindowDurationTimeUnit_ = null;
-    private Long cautionStopTrackingAfter_ = null;
-    private Integer cautionStopTrackingAfterTimeUnit_ = null;
-    private Integer cautionMinimumSampleCount_ = null;
-    private Boolean isCautionAlertActive_ = null;
-    private Timestamp cautionAlertLastSentTimestamp_ = null;
-    private Boolean isCautionAcknowledged_ = null;
-    private String cautionActiveAlertsSet_ = null;
-    private Timestamp cautionFirstActiveAt_ = null;
+    @SerializedName("caution_notification_group_id") private Integer cautionNotificationGroupId_ = null;
+    @SerializedName("caution_positive_notification_group_id") private Integer cautionPositiveNotificationGroupId_ = null;
+    @SerializedName("caution_operator") private Integer cautionOperator_ = null;
+    @SerializedName("caution_combination") private Integer cautionCombination_ = null; 
+    @SerializedName("caution_combination_count") private Integer cautionCombinationCount_ = null;
+    @SerializedName("caution_threshold") private BigDecimal cautionThreshold_ = null; 
+    @SerializedName("caution_window_duration") private Long cautionWindowDuration_ = null;  // native timeunit is milliseconds
+    @SerializedName("caution_window_duration_time_unit") private Integer cautionWindowDurationTimeUnit_ = null;
+    @SerializedName("caution_stop_tracking_after") private Long cautionStopTrackingAfter_ = null;
+    @SerializedName("caution_stop_tracking_after_time_unit") private Integer cautionStopTrackingAfterTimeUnit_ = null;
+    @SerializedName("caution_minimum_sample_count") private Integer cautionMinimumSampleCount_ = null;
+    @SerializedName("caution_alert_active") private Boolean isCautionAlertActive_ = null;
+    @SerializedName("caution_alert_last_sent_timestamp") private Timestamp cautionAlertLastSentTimestamp_ = null;
+    @SerializedName("caution_alert_acknowledged_status") private Boolean isCautionAlertAcknowledged_ = null;
+    private transient String cautionActiveAlertsSet_ = null;
+    @SerializedName("caution_first_active_at") private Timestamp cautionFirstActiveAt_ = null;
     
-    private Integer dangerNotificationGroupId_ = null;
-    private Integer dangerPositiveNotificationGroupId_ = null;
-    private Integer dangerOperator_ = null; 
-    private Integer dangerCombination_ = null; 
-    private Integer dangerCombinationCount_ = null;
-    private BigDecimal dangerThreshold_ = null; 
-    private Long dangerWindowDuration_ = null; // native timeunit is milliseconds
-    private Integer dangerWindowDurationTimeUnit_ = null;
-    private Long dangerStopTrackingAfter_ = null;
-    private Integer dangerStopTrackingAfterTimeUnit_ = null;
-    private Integer dangerMinimumSampleCount_ = null;
-    private Boolean isDangerAlertActive_ = null;
-    private Timestamp dangerAlertLastSentTimestamp_ = null;
-    private Boolean isDangerAcknowledged_ = null;
-    private String dangerActiveAlertsSet_ = null;
-    private Timestamp dangerFirstActiveAt_ = null;
+    @SerializedName("danger_notification_group_id") private Integer dangerNotificationGroupId_ = null;
+    @SerializedName("danger_positive_notification_group_id") private Integer dangerPositiveNotificationGroupId_ = null;
+    @SerializedName("danger_operator") private Integer dangerOperator_ = null; 
+    @SerializedName("danger_combination") private Integer dangerCombination_ = null; 
+    @SerializedName("danger_combination_count") private Integer dangerCombinationCount_ = null;
+    @SerializedName("danger_threshold") private BigDecimal dangerThreshold_ = null; 
+    @SerializedName("danger_window_duration") private Long dangerWindowDuration_ = null; // native timeunit is milliseconds
+    @SerializedName("danger_window_duration_time_unit") private Integer dangerWindowDurationTimeUnit_ = null;
+    @SerializedName("danger_stop_tracking_after") private Long dangerStopTrackingAfter_ = null;
+    @SerializedName("danger_stop_tracking_after_time_unit") private Integer dangerStopTrackingAfterTimeUnit_ = null;
+    @SerializedName("danger_minimum_sample_count") private Integer dangerMinimumSampleCount_ = null;
+    @SerializedName("danger_alert_active") private Boolean isDangerAlertActive_ = null;
+    @SerializedName("danger_alert_last_sent_timestamp") private Timestamp dangerAlertLastSentTimestamp_ = null;
+    @SerializedName("danger_alert_acknowledged_status") private Boolean isDangerAlertAcknowledged_ = null;
+    private transient String dangerActiveAlertsSet_ = null;
+    @SerializedName("danger_first_active_at") private Timestamp dangerFirstActiveAt_ = null;
     
     public Alert() {
         this.id_ = -1;
@@ -92,22 +93,22 @@ public class Alert extends DatabaseObject<Alert> {
             Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
-            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
+            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAlertAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
             Integer dangerNotificationGroupId, Integer dangerPositiveNotificationGroupId, Integer dangerOperator, Integer dangerCombination, 
             Integer dangerCombinationCount, BigDecimal dangerThreshold, Long dangerWindowDuration, Integer dangerWindowDurationTimeUnit, 
             Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
-            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
+            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAlertAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         
         this(id, name, ((name == null) ? null : name.toUpperCase()), description, metricGroupId, isEnabled, isCautionEnabled, 
              isDangerEnabled, alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit,
              cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination,  
              cautionCombinationCount, cautionThreshold, cautionWindowDuration, cautionWindowDurationTimeUnit, 
              cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, isCautionAlertActive,  
-             cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt, 
+             cautionAlertLastSentTimestamp, isCautionAlertAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt, 
              dangerNotificationGroupId, dangerPositiveNotificationGroupId, dangerOperator, dangerCombination,  
              dangerCombinationCount, dangerThreshold, dangerWindowDuration, dangerWindowDurationTimeUnit, 
              dangerStopTrackingAfter, dangerStopTrackingAfterTimeUnit, dangerMinimumSampleCount, isDangerAlertActive,  
-             dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
+             dangerAlertLastSentTimestamp, isDangerAlertAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
     }
 
     public Alert(Integer id, String name, String uppercaseName, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
@@ -115,11 +116,11 @@ public class Alert extends DatabaseObject<Alert> {
             Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
-            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
+            Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAlertAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
             Integer dangerNotificationGroupId, Integer dangerPositiveNotificationGroupId, Integer dangerOperator, Integer dangerCombination, 
             Integer dangerCombinationCount, BigDecimal dangerThreshold, Long dangerWindowDuration, Integer dangerWindowDurationTimeUnit, 
             Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
-            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
+            Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAlertAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
@@ -149,7 +150,7 @@ public class Alert extends DatabaseObject<Alert> {
         this.isCautionAlertActive_ = isCautionAlertActive;
         if (cautionAlertLastSentTimestamp == null) this.cautionAlertLastSentTimestamp_ = null;
         else this.cautionAlertLastSentTimestamp_ = (Timestamp) cautionAlertLastSentTimestamp.clone();
-        this.isCautionAcknowledged_ = isCautionAcknowledged;
+        this.isCautionAlertAcknowledged_ = isCautionAlertAcknowledged;
         this.cautionActiveAlertsSet_ = cautionActiveAlertsSet;
         this.cautionFirstActiveAt_ = cautionFirstActiveAt;
 
@@ -167,7 +168,7 @@ public class Alert extends DatabaseObject<Alert> {
         this.isDangerAlertActive_ = isDangerAlertActive;
         if (dangerAlertLastSentTimestamp == null) this.dangerAlertLastSentTimestamp_ = null;
         else this.dangerAlertLastSentTimestamp_ = (Timestamp) dangerAlertLastSentTimestamp.clone();
-        this.isDangerAcknowledged_ = isDangerAcknowledged;
+        this.isDangerAlertAcknowledged_ = isDangerAlertAcknowledged;
         this.dangerActiveAlertsSet_ = dangerActiveAlertsSet;
         this.dangerFirstActiveAt_ = dangerFirstActiveAt;
     }
@@ -209,7 +210,7 @@ public class Alert extends DatabaseObject<Alert> {
         alertCopy.setIsCautionAlertActive(alert.isCautionAlertActive());
         if (alert.getCautionAlertLastSentTimestamp() == null) alertCopy.setCautionAlertLastSentTimestamp(null);
         else alertCopy.setCautionAlertLastSentTimestamp(new Timestamp(alert.getCautionAlertLastSentTimestamp().getTime()));
-        alertCopy.setIsCautionAcknowledged(alert.isCautionAcknowledged());
+        alertCopy.setIsCautionAlertAcknowledged(alert.isCautionAlertAcknowledged());
         alertCopy.setCautionActiveAlertsSet(alert.getCautionActiveAlertsSet());
         alertCopy.setCautionFirstActiveAt(alert.getCautionFirstActiveAt());
         
@@ -227,7 +228,7 @@ public class Alert extends DatabaseObject<Alert> {
         alertCopy.setIsDangerAlertActive(alert.isDangerAlertActive());
         if (alert.getDangerAlertLastSentTimestamp() == null) alertCopy.setDangerAlertLastSentTimestamp(null);
         else alertCopy.setDangerAlertLastSentTimestamp(new Timestamp(alert.getDangerAlertLastSentTimestamp().getTime()));
-        alertCopy.setIsDangerAcknowledged(alert.isDangerAcknowledged());
+        alertCopy.setIsDangerAlertAcknowledged(alert.isDangerAlertAcknowledged());
         alertCopy.setDangerActiveAlertsSet(alert.getDangerActiveAlertsSet());
         alertCopy.setDangerFirstActiveAt(alert.getDangerFirstActiveAt());
 
@@ -271,7 +272,7 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(cautionMinimumSampleCount_, alert.getCautionMinimumSampleCount())
                 .append(isCautionAlertActive_, alert.isCautionAlertActive())
                 .append(cautionAlertLastSentTimestamp_, alert.getCautionAlertLastSentTimestamp())
-                .append(isCautionAcknowledged_, alert.isCautionAcknowledged())
+                .append(isCautionAlertAcknowledged_, alert.isCautionAlertAcknowledged())
                 .append(cautionActiveAlertsSet_, alert.getCautionActiveAlertsSet())
                 .append(cautionFirstActiveAt_, alert.getCautionFirstActiveAt())
                 .append(dangerNotificationGroupId_, alert.getDangerNotificationGroupId())
@@ -287,7 +288,7 @@ public class Alert extends DatabaseObject<Alert> {
                 .append(dangerMinimumSampleCount_, alert.getDangerMinimumSampleCount())
                 .append(isDangerAlertActive_, alert.isDangerAlertActive())
                 .append(dangerAlertLastSentTimestamp_, alert.getDangerAlertLastSentTimestamp())
-                .append(isDangerAcknowledged_, alert.isDangerAcknowledged())
+                .append(isDangerAlertAcknowledged_, alert.isDangerAlertAcknowledged())
                 .append(dangerActiveAlertsSet_, alert.getDangerActiveAlertsSet())
                 .append(dangerFirstActiveAt_, alert.getDangerFirstActiveAt())
                 .isEquals();
@@ -598,7 +599,7 @@ public class Alert extends DatabaseObject<Alert> {
         if ((operator == null) || operator.isEmpty()) {
             return null;
         }
-        
+                
         if (operator.equals(">") || operator.contains("(greater than)")) return OPERATOR_GREATER;
         else if (operator.equals(">=") || operator.contains("(greater than or equal to)")) return OPERATOR_GREATER_EQUALS;
         else if (operator.equals("<") || operator.contains("(less than)")) return OPERATOR_LESS;
@@ -885,12 +886,12 @@ public class Alert extends DatabaseObject<Alert> {
         else this.cautionAlertLastSentTimestamp_ = (Timestamp) cautionAlertLastSentTimestamp.clone();
     }
 
-    public Boolean isCautionAcknowledged() {
-        return isCautionAcknowledged_;
+    public Boolean isCautionAlertAcknowledged() {
+        return isCautionAlertAcknowledged_;
     }
 
-    public void setIsCautionAcknowledged(Boolean isCautionAcknowledged) {
-        this.isCautionAcknowledged_ = isCautionAcknowledged;
+    public void setIsCautionAlertAcknowledged(Boolean isCautionAlertAcknowledged) {
+        this.isCautionAlertAcknowledged_ = isCautionAlertAcknowledged;
     }
     
     public String getCautionActiveAlertsSet() {
@@ -1017,12 +1018,12 @@ public class Alert extends DatabaseObject<Alert> {
         else this.dangerAlertLastSentTimestamp_ = (Timestamp) dangerAlertLastSentTimestamp.clone();
     }
 
-    public Boolean isDangerAcknowledged() {
-        return isDangerAcknowledged_;
+    public Boolean isDangerAlertAcknowledged() {
+        return isDangerAlertAcknowledged_;
     }
 
-    public void setIsDangerAcknowledged(Boolean isDangerAcknowledged) {
-        this.isDangerAcknowledged_ = isDangerAcknowledged;
+    public void setIsDangerAlertAcknowledged(Boolean isDangerAlertAcknowledged) {
+        this.isDangerAlertAcknowledged_ = isDangerAlertAcknowledged;
     }
 
     public String getDangerActiveAlertsSet() {

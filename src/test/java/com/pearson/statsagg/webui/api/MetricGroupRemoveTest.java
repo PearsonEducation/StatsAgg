@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Prashant Kumar (prashant4nov)
  */
-public class RemoveMetricGroupTest extends Mockito {
+public class MetricGroupRemoveTest extends Mockito {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveMetricGroupTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupRemoveTest.class.getName());
     
     private static com.pearson.statsagg.webui.MetricGroups metricGroup;
     private static final String mockReturnString = "Delete metric group success. MetricGroupName=\"metric_grp_name\".";
@@ -37,7 +37,7 @@ public class RemoveMetricGroupTest extends Mockito {
         String responseMsg;
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("name")).thenReturn(metricGroupName);
-        RemoveMetricGroup removeMetricGroup = new RemoveMetricGroup();
+        MetricGroupRemove removeMetricGroup = new MetricGroupRemove();
         responseMsg = removeMetricGroup.processPostRequest(request, metricGroup);
         assertEquals(mockReturnString, responseMsg);     
     }

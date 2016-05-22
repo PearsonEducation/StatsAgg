@@ -268,30 +268,30 @@ public class AlertAssociations extends HttpServlet {
         
         if (level.equalsIgnoreCase("Triggered")) {
             if (                // caution & danger both acknowledged
-                ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) 
+                ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) 
                 ||              // danger acknowledged, caution not active (therefore not acknowledged)
-                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged()))
+                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()))
                 ||              // caution acknowledged, danger not active (therefore not acknowledged)
-                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()))
+                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()))
                )              
             {
                 htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=False&amp;Level=Triggered&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                         append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Triggered Alert</a>\n");
             }
-            else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
-                    (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
+            else if ((alert.isCautionAlertActive() && ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()))) || 
+                    (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
                 htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Triggered&amp;AcknowledgeChange=True&amp;Level=Triggered&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                         append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Triggered Alert</a>\n");
             }
         }
         else if (level.equalsIgnoreCase("Caution")) {
             if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
-                if ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
+                if ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=True&amp;Level=Caution&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Caution Alert</a>\n");
                 }
-                else if (((alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
+                else if (((alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Caution&amp;AcknowledgeChange=False&amp;Level=Caution&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Caution Alert</a>\n");
                 }
@@ -299,11 +299,11 @@ public class AlertAssociations extends HttpServlet {
         }
         else if (level.equalsIgnoreCase("Danger")) {
             if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
-                if ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+                if ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=True&amp;Level=Danger&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Acknowledge Danger Alert</a>\n");
                 }
-                else if (((alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+                else if (((alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) {
                     htmlBodyBuilder.append("<a href=\"AlertAssociations?AcknowledgeLevel=Danger&amp;AcknowledgeChange=False&amp;Level=Danger&amp;ExcludeNavbar=").append(excludeNavbar).append("&amp;Name=").
                             append(StatsAggHtmlFramework.urlEncode(alert.getName())).append("\" class=\"btn btn-primary statsagg_page_content_font\">Unacknowledge Danger Alert</a>\n");
                 }
@@ -354,9 +354,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Caution Acknowledged</b> = ");
-            if (alert.isCautionAcknowledged() == null) outputString.append("N/A");
-            else if (alert.isCautionAcknowledged()) outputString.append("Yes");   
-            else if (!alert.isCautionAcknowledged()) outputString.append("No");    
+            if (alert.isCautionAlertAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isCautionAlertAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isCautionAlertAcknowledged()) outputString.append("No");    
             outputString.append("<br>");
             
             outputString.append("<b>Caution First Triggered At</b> = ");
@@ -365,9 +365,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<br>");
             
             outputString.append("<b>Danger Acknowledged</b> = ");
-            if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
-            else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
-            else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            if (alert.isDangerAlertAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isDangerAlertAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isDangerAlertAcknowledged()) outputString.append("No");    
             outputString.append("<br>");
             
             outputString.append("<b>Danger First Triggered At</b> = ");
@@ -407,9 +407,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Alert Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Caution Acknowledged</b> = ");
-            if (alert.isCautionAcknowledged() == null) outputString.append("N/A");
-            else if (alert.isCautionAcknowledged()) outputString.append("Yes");   
-            else if (!alert.isCautionAcknowledged()) outputString.append("No");    
+            if (alert.isCautionAlertAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isCautionAlertAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isCautionAlertAcknowledged()) outputString.append("No");    
             outputString.append("<br>");
             
             outputString.append("<b>Caution First Triggered At</b> = ");
@@ -521,9 +521,9 @@ public class AlertAssociations extends HttpServlet {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alert.getName())).append("<br>");
             
             outputString.append("<b>Danger Acknowledged</b> = ");
-            if (alert.isDangerAcknowledged() == null) outputString.append("N/A");
-            else if (alert.isDangerAcknowledged()) outputString.append("Yes");   
-            else if (!alert.isDangerAcknowledged()) outputString.append("No");    
+            if (alert.isDangerAlertAcknowledged() == null) outputString.append("N/A");
+            else if (alert.isDangerAlertAcknowledged()) outputString.append("Yes");   
+            else if (!alert.isDangerAlertAcknowledged()) outputString.append("No");    
             outputString.append("<br>");
             
             outputString.append("<b>Danger First Triggered At</b> = ");

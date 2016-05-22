@@ -14,7 +14,7 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
     
     private static final Logger logger = LoggerFactory.getLogger(AlertInvokerThread.class.getName());
     
-    private final int threadExecutorShutdownWaitTime_;
+    private final long threadExecutorShutdownWaitTime_;
     
     public AlertInvokerThread() {
         threadExecutorShutdownWaitTime_ = ApplicationConfiguration.getAlertRoutineInterval() + 5000;
@@ -51,7 +51,7 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
     }
     
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
     

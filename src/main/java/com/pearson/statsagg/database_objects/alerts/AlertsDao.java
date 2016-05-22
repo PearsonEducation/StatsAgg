@@ -75,11 +75,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
                 alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
                 alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
-                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
+                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
                 alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
                 alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
-                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt()
+                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt()
         );
     }
     
@@ -94,11 +94,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
                 alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
                 alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
                 alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
-                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
+                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
                 alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
                 alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
                 alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
-                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt(), 
+                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt(), 
                 alert.getId());
     }
 
@@ -484,7 +484,7 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
     }
 
     public JSONObject getAlerts(int offset, int pageSize) {        
-        logger.debug("getAlerts");
+
         List<Object> parametersList = new ArrayList<>(2);
         
         JSONArray alertsList = new JSONArray();
@@ -506,12 +506,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             parametersList.add(pageSize);
             
             if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_MySQL,
-                                                           pageSize);
-            } else {
-                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby,
-                                                           pageSize);
+                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_MySQL, pageSize);
+            } 
+            else {
+                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby, pageSize);
             }
+            
             databaseInterface_.addPreparedStatementParameters(parametersList);
 
             databaseInterface_.executePreparedStatement();

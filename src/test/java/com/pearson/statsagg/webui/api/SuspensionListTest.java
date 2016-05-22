@@ -58,7 +58,7 @@ public class SuspensionListTest extends Mockito {
         when(request.getParameter("page_number")).thenReturn("5");
 
         SuspensionsList suspensionList = new SuspensionsList();
-        JSONObject result = suspensionList.getSuspensionsList(request, suspensionsDao);
+        JSONObject result = suspensionList.getSuspensionsList(request);
 
         verify(request, atLeast(1)).getParameter("page_size");
         verify(request, atLeast(1)).getParameter("page_number");

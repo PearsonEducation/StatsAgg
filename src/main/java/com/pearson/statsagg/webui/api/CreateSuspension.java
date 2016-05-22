@@ -13,6 +13,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (Prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name = "API_CreateSuspension", urlPatterns = {"/api/create-suspension"})
 public class CreateSuspension extends HttpServlet {
@@ -57,6 +58,7 @@ public class CreateSuspension extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateSuspension createSuspension) {
         String result = null;
+        
         JSONObject suspensionData = Helper.getRequestData(request);
 
         try {  

@@ -14,7 +14,7 @@ public class GraphiteAggregationInvokerThread extends InvokerThread {
     
     private static final Logger logger = LoggerFactory.getLogger(GraphiteAggregationInvokerThread.class.getName());
 
-    private final int threadExecutorShutdownWaitTime_;
+    private final long threadExecutorShutdownWaitTime_;
     
     public GraphiteAggregationInvokerThread() {
         threadExecutorShutdownWaitTime_ = (2 * ApplicationConfiguration.getFlushTimeAgg()) + 3000;
@@ -44,7 +44,7 @@ public class GraphiteAggregationInvokerThread extends InvokerThread {
     }
 
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
 

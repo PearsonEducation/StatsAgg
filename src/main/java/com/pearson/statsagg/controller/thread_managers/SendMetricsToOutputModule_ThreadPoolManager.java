@@ -71,9 +71,9 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             
             isOpenForBusiness.set(false);
             
-            Threads.shutdownThreadExecutor(threadExecutor_, ((2 * ApplicationConfiguration.getFlushTimeAgg()) + 3000), TimeUnit.MILLISECONDS, false, false);
+            Threads.shutdownThreadExecutor(threadExecutor_, (long) ((2 * ApplicationConfiguration.getFlushTimeAgg()) + 3000), TimeUnit.MILLISECONDS, false, false);
             forceShutdown_SendMetricsToOutputModuleThreads();
-            Threads.shutdownThreadExecutor(threadExecutor_, 1000, TimeUnit.MILLISECONDS, true, true);
+            Threads.shutdownThreadExecutor(threadExecutor_, 1000l, TimeUnit.MILLISECONDS, true, true);
             
             try {
                 continueRunningCleanup.set(false);
@@ -272,7 +272,8 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             for (OpenTsdbTelnetOutputModule openTsdbTelnetOutputModule : openTsdbTelnetOutputModules) {
                 if (!openTsdbTelnetOutputModule.isOutputEnabled()) continue;
                 
-                SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbTelnetOutputModule.isSanitizeMetrics(), 
+                SendMetricsToOpenTsdbThread sendMetricsToTelnetOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, 
+                        openTsdbTelnetOutputModule.isSanitizeMetrics(), null, null,
                         openTsdbTelnetOutputModule.getHost(), openTsdbTelnetOutputModule.getPort(), ApplicationConfiguration.getOutputModuleMaxConnectTime(),
                         openTsdbTelnetOutputModule.getNumSendRetryAttempts(), threadId);
                                 
@@ -324,7 +325,8 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             for (OpenTsdbHttpOutputModule openTsdbHttpOutputModule : openTsdbHttpOutputModules) {
                 if (!openTsdbHttpOutputModule.isOutputEnabled()) continue;
                                 
-                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, openTsdbHttpOutputModule.isSanitizeMetrics(), 
+                SendMetricsToOpenTsdbThread sendMetricsToHttpOpenTsdbThread = new SendMetricsToOpenTsdbThread(openTsdbMetrics, 
+                        openTsdbHttpOutputModule.isSanitizeMetrics(), null, null,
                         openTsdbHttpOutputModule.getUrl(), ApplicationConfiguration.getOutputModuleMaxConnectTime(), ApplicationConfiguration.getOutputModuleMaxReadTime(),  
                         openTsdbHttpOutputModule.getNumSendRetryAttempts(), openTsdbHttpOutputModule.getMaxMetricsPerMessage(), threadId);
                                 

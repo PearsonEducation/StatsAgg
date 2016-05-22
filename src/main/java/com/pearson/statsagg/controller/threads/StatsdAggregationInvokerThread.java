@@ -14,7 +14,7 @@ public class StatsdAggregationInvokerThread extends InvokerThread {
     
     private static final Logger logger = LoggerFactory.getLogger(StatsdAggregationInvokerThread.class.getName());
     
-    private final int threadExecutorShutdownWaitTime_;
+    private final long threadExecutorShutdownWaitTime_;
     
     public StatsdAggregationInvokerThread() {
         threadExecutorShutdownWaitTime_ = (2 * ApplicationConfiguration.getFlushTimeAgg()) + 3000;
@@ -44,7 +44,7 @@ public class StatsdAggregationInvokerThread extends InvokerThread {
     }
     
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
     

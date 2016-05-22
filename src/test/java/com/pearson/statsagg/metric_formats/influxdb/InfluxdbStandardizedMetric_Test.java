@@ -115,6 +115,10 @@ public class InfluxdbStandardizedMetric_Test {
         expected = "metricDb.metricPrefix.metricName.metricColumn 1436135662888 123.456 Format=InfluxDB";
         assertEquals(expected, influxdbMetric2.getOpenTsdbTelnetFormatString(true));
         
+        // no tags, but manual setting of opentsdb tag
+        expected = "metricDb.metricPrefix.metricName.metricColumn 1436135662888 123.456 Taco=Bell";
+        assertEquals(expected, influxdbMetric2.getOpenTsdbTelnetFormatString(true, "Taco", "Bell"));
+        
         // no tags, boolean value
         expected = "metricDb.metricPrefix.metricName.metricColumn 1436135662888 0 Format=InfluxDB";
         assertEquals(expected, influxdbMetric3.getOpenTsdbTelnetFormatString(true));
@@ -140,6 +144,11 @@ public class InfluxdbStandardizedMetric_Test {
         expected = "{\"metric\":\"metricDb.metricPrefix.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"Format\":\"InfluxDB\"}}";
         System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true)));
         assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true)));    
+        
+        // no tags, but manual setting of opentsdb tag
+        expected = "{\"metric\":\"metricDb.metricPrefix.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":123.456,\"tags\":{\"Taco\":\"Bell\"}}";
+        System.out.println(StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true, "Taco", "Bell")));
+        assertEquals(expected, StringEscapeUtils.unescapeJson(influxdbMetric2.getOpenTsdbJsonFormatString(true, "Taco", "Bell")));    
         
         // no tags
         expected = "{\"metric\":\"metricDb.metricPrefix.metricName.metricColumn\",\"timestamp\":1436135662888,\"value\":0,\"tags\":{\"Format\":\"InfluxDB\"}}";

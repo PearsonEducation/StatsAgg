@@ -14,7 +14,7 @@ public class OpenTsdbInvokerThread extends InvokerThread {
     
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdbInvokerThread.class.getName());
     
-    private final int threadExecutorShutdownWaitTime_;
+    private final long threadExecutorShutdownWaitTime_;
     
     public OpenTsdbInvokerThread() {
         threadExecutorShutdownWaitTime_ = (2 * ApplicationConfiguration.getFlushTimeAgg()) + 3000;
@@ -44,7 +44,7 @@ public class OpenTsdbInvokerThread extends InvokerThread {
     }
     
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
     

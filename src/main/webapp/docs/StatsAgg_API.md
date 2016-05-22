@@ -556,7 +556,7 @@
 
 	`SuspendNotificationOnly=[String] When checked, suspended alerts still evaluate their alert criteria (and display the caution/danger triggered status on the StatsAgg WebUI); they just don’t send out emails alerts. When unchecked, suspended alerts will not be evaluated at all. The most common approach is to have this field checked.`
 
-	`CreateSuspension_SuspendBy=[String] `	
+	`SuspendBy=[String] `	
 
 	`AlertName=[String] (optional) If you want to suspend a single alert, then suspend it by alert name.`	
 
@@ -564,7 +564,7 @@
 
 	`MetricGroupTagsExclusive=[String] `	
 
-	`CreateSuspension_Type=[String] `	
+	`Type=[String] `	
 
 	`StartDate=[String] `	
 
@@ -592,10 +592,10 @@
 
     ```   {"Name": "suspension","Description": "alert new created field","Enabled":"true",
 	"SuspendNotificationOnly": "true",
-	"CreateSuspension_SuspendBy":"true",
+	"SuspendBy":"true",
 	"MetricGroupTagsInclusive":"metric group tags inclusive",
 	"MetricGroupTagsExclusive": "metric grp tags exclusive",
-	"CreateSuspension_Type":"suspension type",
+	"Type":"suspension type",
     "StartDate": 5000,
 	"RecurSunday":"notification grp",
 	"RecurMonday": "positive notification grp1",

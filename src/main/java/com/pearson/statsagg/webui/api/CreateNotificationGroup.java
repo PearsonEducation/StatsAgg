@@ -58,9 +58,7 @@ public class CreateNotificationGroup extends HttpServlet {
      * @param createNotificationGroup CreateNotificationGroup object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) {
-        logger.debug("create notification request");
-        
+    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) {        
         String result = null;   
         JSONObject notificationData = Helper.getRequestData(request);
         

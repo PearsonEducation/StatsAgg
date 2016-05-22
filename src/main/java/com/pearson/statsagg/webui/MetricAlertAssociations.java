@@ -1,5 +1,7 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -7,13 +9,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -23,12 +24,12 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "RegexTester", urlPatterns = {"/RegexTester"})
-public class RegexTester extends HttpServlet {
+@WebServlet(name = "MetricAlertAssociations", urlPatterns = {"/MetricAlertAssociations"})
+public class MetricAlertAssociations extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(RegexTester.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricAlertAssociations.class.getName());
     
-    public static final String PAGE_NAME = "Regex Tester";
+    public static final String PAGE_NAME = "Metric - Alert Associations";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -107,16 +108,19 @@ public class RegexTester extends HttpServlet {
         response.setContentType("text/html");    
         
         try {
-            String parameter = request.getParameter("Regex");
-            Set<String> metricKeys = getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1000);
-            String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000);
-  
+            String regex = request.getParameter("Regex");
+            boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
+            
+            Set<String> metricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), regex, null, -1);
+            Set<Alert> alertsAssociatedWithMetrics = getAlertsAssociatedWithMetrics(metricKeys);
+            String alertMatchesHtml = getAlertMatchesHtml(alertsAssociatedWithMetrics, excludeNavbar);
+            
             StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            String htmlBodyContents = buildRegexTesterHtml(parameter, regexMatchesHtml);
+            String htmlBodyContents = buildRegexTesterHtml(regex, alertMatchesHtml);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -146,12 +150,12 @@ public class RegexTester extends HttpServlet {
             "  <div class=\"content-header\"> \n" +
             "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "  </div> " +
-            "  <form action=\"RegexTester\" method=\"POST\">\n");
+            "  <form action=\"MetricAlertAssociations\" method=\"POST\">\n");
         
         htmlBody.append(
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Regex to test</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex that you want to test against (or more) recently seen metrics.\" name=\"Regex\" ");
+            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex to match against metrics. Metrics that are associated with alerts will be displayed.\" name=\"Regex\" ");
         
         if ((regex != null) && (!regex.isEmpty())) {
             htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(regex)).append("\"");
@@ -176,97 +180,61 @@ public class RegexTester extends HttpServlet {
         return htmlBody.toString();
     }
     
-    // if metricMatchLimit < 0, then it is treated as infinite
-    public static Set<String> getRegexMatches(Set<String> metricKeys, String matchRegex, String blacklistRegex, int metricMatchLimit) {
+    private static Set<Alert> getAlertsAssociatedWithMetrics(Set<String> regexMatchedMetricKeys) {
         
-        if ((metricKeys == null) || (matchRegex == null)) {
+        if (regexMatchedMetricKeys == null) {
             return null;
         }
-        
-        Pattern matchPattern = null, blacklistPattern = null;
-        
-        try {
-            matchPattern = Pattern.compile(matchRegex.trim());
-            if ((blacklistRegex != null) && !blacklistRegex.isEmpty()) blacklistPattern = Pattern.compile(blacklistRegex.trim());
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        Set<String> matchingMetricKeys = new HashSet<>();
-        
-        if (matchPattern != null) {
-            int matchCounter = 0;
-            boolean isAnyMatchLimt = (metricMatchLimit >= 0);
-            
-            for (String metricKey : metricKeys) {
-                Matcher matcher = matchPattern.matcher(metricKey);
-                
-                if (matcher.matches()) {
-                    if (blacklistPattern != null) {
-                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
-                        
-                        if (!blacklistMatcher.matches()) {
-                            matchingMetricKeys.add(metricKey);
-                            matchCounter++;
-                        }
-                    }
-                    else {
-                        matchingMetricKeys.add(metricKey);
-                        matchCounter++;
-                    }
-                }
 
-                if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
-                    break;
+        Set<Integer> metricGroupIdsAssociatedWithMetrics = new HashSet<>();
+        for (Integer metricGroupId : GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.keySet()) {
+            Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+            if ((matchingMetricKeysAssociatedWithMetricGroup == null) || matchingMetricKeysAssociatedWithMetricGroup.isEmpty()) continue;
+            
+            for (String regexMatchedMetricKey : regexMatchedMetricKeys) {
+                if (matchingMetricKeysAssociatedWithMetricGroup.contains(regexMatchedMetricKey)) metricGroupIdsAssociatedWithMetrics.add(metricGroupId);
+            }
+        }
+                
+        AlertsDao alertsDao = new AlertsDao();
+        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        if ((alerts == null) || alerts.isEmpty()) return null;
+        
+        Set<Alert> alertsAssociatedWithMetrics = new HashSet<>();
+        for (Integer metricGroupIdAssociatedWithMetrics : metricGroupIdsAssociatedWithMetrics) {
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getMetricGroupId() != null) && (alert.getMetricGroupId().intValue() == metricGroupIdAssociatedWithMetrics.intValue())) {
+                    alertsAssociatedWithMetrics.add(alert);
                 }
             }
         }
- 
-        return matchingMetricKeys;
+        
+        return alertsAssociatedWithMetrics;
     }
     
-    public static String getRegexMatchesHtml(Set<String> metricKeys, int metricMatchLimit) {
-        List<String> metricKeysList = null;
+    private static String getAlertMatchesHtml(Set<Alert> alerts, boolean excludeNavbar) {
         
-        if (metricKeys != null) {
-            metricKeysList = new ArrayList<>(metricKeys);
-            Collections.sort(metricKeysList);
+        if (alerts == null) {
+            return "<b>Alert Match Count</b> = 0";
         }
         
-        return getRegexMatchesHtml(metricKeysList, metricMatchLimit);
-    }
-    
-    public static String getRegexMatchesHtml(List<String> metricKeys, int metricMatchLimit) {
-        
-        if (metricKeys == null) {
-            return "<b>Regex Match Count</b> = 0";
-        }
+        List<String> alertNames = new ArrayList<>();
+        for (Alert alert : alerts) if ((alert != null) && (alert.getName() != null)) alertNames.add(alert.getName());
+        Collections.sort(alertNames);
         
         StringBuilder outputString = new StringBuilder();
                 
-        String metricKeyCountString;
-        if (metricKeys.size() > metricMatchLimit) metricKeyCountString = "More than " + Integer.toString(metricMatchLimit);
-        else metricKeyCountString = Integer.toString(metricKeys.size());
-        
-        outputString.append("<b>Regex Match Count</b> = ").append(metricKeyCountString).append("<br><br>");
+        String metricKeyCountString = Integer.toString(alerts.size());
+        outputString.append("<b>Alert Match Count</b> = ").append(metricKeyCountString).append("<br><br>");
 
-        if (metricKeys.size() > 0) {
-            outputString.append("<b>Matching Metrics...</b>").append("<br>");
+        if (alerts.size() > 0) {
+            outputString.append("<b>Matching Alerts...</b>").append("<br>");
 
-            int outputCounter = 0;
             outputString.append("<ul>");
 
-            for (String metricKey : metricKeys) {
-
-                if (outputCounter < metricMatchLimit)  {
-                    outputString.append("<li>").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</li>");
-                }
-                else {
-                    break;
-                }
-
-                outputCounter++;
+            for (String alertName : alertNames) {
+                String alertDetailsUrl = "<a href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
+                outputString.append("<li>").append(alertDetailsUrl).append("</li>");
             }
             
             outputString.append("</ul>");

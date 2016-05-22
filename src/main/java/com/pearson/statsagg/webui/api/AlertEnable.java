@@ -1,5 +1,8 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -11,13 +14,14 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant4nov (Prashant Kumar)
+ * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Enable_Alert", urlPatterns = {"/api/alert-enable"})
-public class EnableAlert extends HttpServlet {
+@WebServlet(name = "API_Alert_Enable", urlPatterns = {"/api/alert-enable"})
+public class AlertEnable extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(EnableAlert.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertEnable.class.getName());
     
-    public static final String PAGE_NAME = "API_Enable_Alert";
+    public static final String PAGE_NAME = "API_Alert_Enable";
  
     /**
      * Returns a short description of the servlet.
@@ -30,16 +34,15 @@ public class EnableAlert extends HttpServlet {
     }
       
     /**
-     * Handles the HTTP <code>GET</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("doPost");
         try {    
-            String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.Alerts());       
+            String responseMsg = processPostRequest(request);       
             PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
@@ -55,23 +58,30 @@ public class EnableAlert extends HttpServlet {
      * successfully or error message if the request fails to enable/disable alert.
      * 
      * @param request servlet request
-     * @param alert Alerts object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.Alerts alert) {
-        logger.debug("Enable/Disable alert request");
-        String returnString = null;
+    protected String processPostRequest(HttpServletRequest request) {
+        
+        if (request == null) {
+            return Helper.ERROR_JSON;
+        }
+        
+        String returnString = Helper.ERROR_JSON;
 
         try {
-            String alertName = null;
-            logger.debug(request.getParameter(Helper.name));
-
-            if (request.getParameter(Helper.name) != null) {
-                alertName = request.getParameter(Helper.name);
+            JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
+            Integer id = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
+            String name = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+            Boolean isEnabled = Helper.getBooleanFieldFromJsonObject(jsonObject, "enabled");
+            
+            if (id != null) {
+                AlertsDao alertsDao = new AlertsDao();
+                Alert alert = alertsDao.getAlert(id);
+                name = alert.getName();
             }
-
-            Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
-            returnString = alert.changeAlertEnabled(alertName, isEnabled);
+            
+            com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts();
+            returnString = alerts.changeAlertEnabled(name, isEnabled);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

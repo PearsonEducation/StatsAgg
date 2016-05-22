@@ -61,7 +61,7 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
     }
     
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
     

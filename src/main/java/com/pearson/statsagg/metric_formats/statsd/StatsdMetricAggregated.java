@@ -58,20 +58,32 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
 
         return stringBuilder.toString();
     }
-
+    
     @Override
     public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbTelnetFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         StringBuilder stringBuilder = new StringBuilder();
         
         String metric = sanitizeMetric ? OpenTsdbMetric.getOpenTsdbSanitizedString(bucket_) : bucket_;
         
-        stringBuilder.append(metric).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" Format=StatsD");
+        String tag = (defaultOpenTsdbTagKey == null) ? "Format=StatsD" : (defaultOpenTsdbTagKey + "=" + defaultOpenTsdbTagValue);
+
+        stringBuilder.append(metric).append(" ").append(metricTimestampInMilliseconds_).append(" ").append(getMetricValueString()).append(" ").append(tag);
 
         return stringBuilder.toString();
     }
     
     @Override
     public String getOpenTsdbJsonFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbJsonFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         
         if ((bucket_ == null) || bucket_.isEmpty()) return null;
         if (getTimestampInMilliseconds() < 0) return null;
@@ -88,7 +100,8 @@ public class StatsdMetricAggregated implements GraphiteMetricFormat, OpenTsdbMet
         openTsdbJson.append("\"value\":").append(getMetricValueString()).append(",");
 
         openTsdbJson.append("\"tags\":{");
-        openTsdbJson.append("\"Format\":\"StatsD\"");
+        if ((defaultOpenTsdbTagKey == null) || (defaultOpenTsdbTagValue == null)) openTsdbJson.append("\"Format\":\"StatsD\"");
+        else openTsdbJson.append("\"").append(defaultOpenTsdbTagKey).append("\":\"").append(defaultOpenTsdbTagValue).append("\"");
         openTsdbJson.append("}");
 
         openTsdbJson.append("}");

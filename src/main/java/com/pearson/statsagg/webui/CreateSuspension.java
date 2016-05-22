@@ -241,19 +241,19 @@ public class CreateSuspension extends HttpServlet {
             
         
         // type selection
-        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_AlertName_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"AlertName\" ");
+        htmlBody.append("<input type=\"radio\" id=\"SuspendBy_AlertName_Radio\" name=\"SuspendBy\" value=\"AlertName\" ");
         if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Alert Name &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Tags_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Tags\" ");
+        htmlBody.append("<input type=\"radio\" id=\"SuspendBy_Tags_Radio\" name=\"SuspendBy\" value=\"Tags\" ");
         if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS)) htmlBody.append(" checked=\"checked\"");
         htmlBody.append("> Tags &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Everything_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Everything\" ");
+        htmlBody.append("<input type=\"radio\" id=\"SuspendBy_Everything_Radio\" name=\"SuspendBy\" value=\"Everything\" ");
         if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING)) htmlBody.append(" checked=\"checked\" ");
         htmlBody.append("> Everything &nbsp;&nbsp;&nbsp;\n");
         
-        htmlBody.append("<input type=\"radio\" id=\"CreateSuspension_SuspendBy_Metrics_Radio\" name=\"CreateSuspension_SuspendBy\" value=\"Metrics\" ");
+        htmlBody.append("<input type=\"radio\" id=\"SuspendBy_Metrics_Radio\" name=\"SuspendBy\" value=\"Metrics\" ");
         if ((suspension != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS)) htmlBody.append(" checked=\"checked\" ");
         htmlBody.append("> Metrics\n");
         
@@ -262,7 +262,7 @@ public class CreateSuspension extends HttpServlet {
         
         // alert name
         htmlBody.append("" +
-            "<div id=\"CreateSuspension_SuspendBy_AlertName_Div\">\n" +
+            "<div id=\"SuspendBy_AlertName_Div\">\n" +
             "  <div class=\"form-group\" id=\"AlertNameLookup\"> \n" +
             "    <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the name of the alert that you want to suspend.\" autocomplete=\"off\" name=\"AlertName\" id=\"AlertName\" ");
         
@@ -281,7 +281,7 @@ public class CreateSuspension extends HttpServlet {
         
         // metric group tags (inclusive)
         htmlBody.append("" +
-            "<div id=\"CreateSuspension_SuspendBy_Tags_Div\">\n" +
+            "<div id=\"SuspendBy_Tags_Div\">\n" +
             "  <div class=\"form-group\"> \n" +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"For an alert to be suspended, it must be tagged with ALL of the tags listed here. " +
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsInclusive\" id=\"MetricGroupTagsInclusive\" >");
@@ -298,7 +298,7 @@ public class CreateSuspension extends HttpServlet {
         
         // metric group tags (exclusive)
         htmlBody.append("" +
-            "<div id=\"CreateSuspension_SuspendBy_Everything_Div\">\n" +
+            "<div id=\"SuspendBy_Everything_Div\">\n" +
             "  <div class=\"form-group\"> \n" +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"For an alert to be excluded from suspension, it must be tagged with ANY of the tags listed here. " +
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsExclusive\" id=\"MetricGroupTagsExclusive\" >");
@@ -315,7 +315,7 @@ public class CreateSuspension extends HttpServlet {
         
         // metric suspension
         htmlBody.append("" +
-            "<div id=\"CreateSuspension_SuspendBy_Metrics_Div\">\n" +
+            "<div id=\"SuspendBy_Metrics_Div\">\n" +
             "  <div class=\"form-group\"> \n" +
             "    <textarea class=\"form-control-statsagg\" placeholder=\" " +
             "List one regex per line.\" rows=\"5\" name=\"MetricSuspensionRegexes\" id=\"MetricSuspensionRegexes\" >");
@@ -343,9 +343,9 @@ public class CreateSuspension extends HttpServlet {
         
         
         // one time or recurring?
-        String startSuspensionTypeRecurring = "<input type=\"radio\" id=\"CreateSuspension_Type_Recurring\" name=\"CreateSuspension_Type\" value=\"Recurring\" ";
+        String startSuspensionTypeRecurring = "<input type=\"radio\" id=\"Type_Recurring\" name=\"Type\" value=\"Recurring\" ";
         String endSuspensionTypeRecurring = " > Recurring (daily)&nbsp;&nbsp;&nbsp; \n";
-        String startSuspensionTypeOneTime = "<input type=\"radio\" id=\"CreateSuspension_Type_OneTime\" name=\"CreateSuspension_Type\" value=\"OneTime\" ";
+        String startSuspensionTypeOneTime = "<input type=\"radio\" id=\"Type_OneTime\" name=\"Type\" value=\"OneTime\" ";
         String endSuspensionTypeOneTime = " > One Time \n";
 
         if ((suspension != null) && (suspension.isOneTime() != null)) {
@@ -372,9 +372,9 @@ public class CreateSuspension extends HttpServlet {
         // start date
         htmlBody.append(        
             "<tr>\n" +
-            "  <th style=\"width:1%;\"><div class=\"create-suspension-th\" id=\"CreateSuspension_DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
+            "  <th style=\"width:1%;\"><div class=\"create-suspension-th\" id=\"DateTimePicker_StartDate_Label_Div\">Start Date:</div></th>\n" +
             "  <td>\n" +
-            "    <div class=\"input-group\" id=\"CreateSuspension_DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
+            "    <div class=\"input-group\" id=\"DateTimePicker_StartDate_Div\" style=\"width:100%;\"> \n" +
             "      <input class=\"form-control-datetime\" name=\"StartDate\" id=\"StartDate\" style=\"width:100%;\" type=\"text\" ");
         
         if ((suspension != null) && (suspension.getStartDate() != null)) {
@@ -393,9 +393,9 @@ public class CreateSuspension extends HttpServlet {
         // recur on days of week
         htmlBody.append(        
             "<tr>\n" +
-            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_RecurOnDays_Label_Div\">Recurs on:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"RecurOnDays_Label_Div\">Recurs on:</div></th>\n" +
             "  <td>\n" +
-            "    <div id=\"CreateSuspension_RecurOnDays_Div\">\n");
+            "    <div id=\"RecurOnDays_Div\">\n");
 
         htmlBody.append("<label class=\"checkbox-inline\"><input name=\"RecurSunday\" id=\"RecurSunday\" type=\"checkbox\" ");
         if ((suspension == null) || ((suspension.isRecurSunday() == null) || suspension.isRecurSunday())) htmlBody.append("checked=\"checked\"");
@@ -427,15 +427,15 @@ public class CreateSuspension extends HttpServlet {
         
         htmlBody.append("</div>\n" + "</td>\n" + "</tr>\n");
         
-        htmlBody.append("<tr id=\"CreateSuspension_Type_Spacer1\"><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
+        htmlBody.append("<tr id=\"Type_Spacer1\"><th>&nbsp;</th><td>&nbsp;</td></tr>\n");
         
         
         // start time
         htmlBody.append(
             "<tr>\n" +
-            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_DateTimePicker_StartTime_Label_Div\">Start Time:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"DateTimePicker_StartTime_Label_Div\">Start Time:</div></th>\n" +
             "    <td>\n" +
-            "      <div class=\"input-group\" id=\"CreateSuspension_DateTimePicker_StartTime_Div\" style=\"width:100%;\" > \n" +
+            "      <div class=\"input-group\" id=\"DateTimePicker_StartTime_Div\" style=\"width:100%;\" > \n" +
             "        <input class=\"form-control-datetime\" name=\"StartTime\" id=\"StartTime\" style=\"width:100%;\" type=\"text\" ");
         
         if ((suspension != null) && (suspension.getStartTime() != null)) {
@@ -454,9 +454,9 @@ public class CreateSuspension extends HttpServlet {
         // duration
         htmlBody.append(
             "<tr>\n" +
-            "  <th><div class=\"create-suspension-th\" id=\"CreateSuspension_Duration_Label_Div\">Duration:</div></th>\n" +
+            "  <th><div class=\"create-suspension-th\" id=\"Duration_Label_Div\">Duration:</div></th>\n" +
             "  <td>\n" +
-            "    <div style=\" padding-top: 3px;\" id=\"CreateSuspension_Duration_Div\">\n" +
+            "    <div style=\" padding-top: 3px;\" id=\"Duration_Div\">\n" +
             "      <div class=\"col-xs-6\"> <input class=\"form-control-statsagg\" name=\"Duration\" id=\"Duration\" ");
                     
         if ((suspension != null) && (suspension.getDuration() != null)) {
@@ -520,6 +520,7 @@ public class CreateSuspension extends HttpServlet {
         
         Suspension suspension = getSuspensionFromRequestParameters(request);
         String oldName = Common.getObjectParameter(request, "Old_Name");
+        if (oldName == null) oldName = Common.getObjectParameter(request, "old_name");
         
         // insert/update/delete records in the database
         if (suspension != null) {
@@ -580,7 +581,7 @@ public class CreateSuspension extends HttpServlet {
  
             
             // column #2 parameters
-            parameter = Common.getObjectParameter(request, "CreateSuspension_SuspendBy");
+            parameter = Common.getObjectParameter(request, "SuspendBy");
             if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(Suspension.SUSPEND_BY_ALERT_ID);
             else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
             else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(Suspension.SUSPEND_BY_EVERYTHING);
@@ -611,7 +612,7 @@ public class CreateSuspension extends HttpServlet {
             
             
             // column #3 parameters
-            parameter = Common.getObjectParameter(request, "CreateSuspension_Type");
+            parameter = Common.getObjectParameter(request, "Type");
             if ((parameter != null) && parameter.contains("Recurring")) suspension.setIsOneTime(false);
             else if ((parameter != null) && parameter.contains("OneTime")) suspension.setIsOneTime(true);
             
@@ -624,31 +625,31 @@ public class CreateSuspension extends HttpServlet {
             }
             
             parameter = Common.getObjectParameter(request, "RecurSunday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurSunday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurSunday(true);
             else suspension.setIsRecurSunday(false);
             
             parameter = Common.getObjectParameter(request, "RecurMonday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurMonday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurMonday(true);
             else suspension.setIsRecurMonday(false);
             
             parameter = Common.getObjectParameter(request, "RecurTuesday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurTuesday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurTuesday(true);
             else suspension.setIsRecurTuesday(false);
             
             parameter = Common.getObjectParameter(request, "RecurWednesday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurWednesday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurWednesday(true);
             else suspension.setIsRecurWednesday(false);
             
             parameter = Common.getObjectParameter(request, "RecurThursday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurThursday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurThursday(true);
             else suspension.setIsRecurThursday(false);
 
             parameter = Common.getObjectParameter(request, "RecurFriday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurFriday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurFriday(true);
             else suspension.setIsRecurFriday(false);
             
             parameter = Common.getObjectParameter(request, "RecurSaturday");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsRecurSaturday(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurSaturday(true);
             else suspension.setIsRecurSaturday(false);
 
             parameter = Common.getObjectParameter(request, "StartTime");

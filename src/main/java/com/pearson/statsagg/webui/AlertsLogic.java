@@ -48,7 +48,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                     
                     if (alertToUpsert.isCautionCriteriaEqual(alertFromDb)) {
                         alertFromDb.copyCautionMetadataFields(alertToUpsert);
-                        if (!isAcknowledgementChange) alertToUpsert.setIsCautionAcknowledged(alertFromDb.isCautionAcknowledged());
+                        if (!isAcknowledgementChange) alertToUpsert.setIsCautionAlertAcknowledged(alertFromDb.isCautionAlertAcknowledged());
                         logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
                     }
                     else {
@@ -57,7 +57,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                     
                     if (alertToUpsert.isDangerCriteriaEqual(alertFromDb)) {
                         alertFromDb.copyDangerMetadataFields(alertToUpsert);
-                        if (!isAcknowledgementChange) alertToUpsert.setIsDangerAcknowledged(alertFromDb.isDangerAcknowledged());
+                        if (!isAcknowledgementChange) alertToUpsert.setIsDangerAlertAcknowledged(alertFromDb.isDangerAlertAcknowledged());
 
                         logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
                     }
@@ -166,7 +166,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         Alert alert = alertsDao.getAlertByName(alertName);
         
         if ((alert != null) && (alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
-            alert.setIsCautionAcknowledged(isCautionAcknowledged);
+            alert.setIsCautionAlertAcknowledged(isCautionAcknowledged);
             AlertsLogic alertsLogic = new AlertsLogic();
             return alertsLogic.alterRecordInDatabase(alert, alertName, true);
         }
@@ -184,7 +184,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         Alert alert = alertsDao.getAlertByName(alertName);
         
         if ((alert != null) && (alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
-            alert.setIsDangerAcknowledged(isDangerAcknowledged);
+            alert.setIsDangerAlertAcknowledged(isDangerAcknowledged);
             AlertsLogic alertsLogic = new AlertsLogic();
             return alertsLogic.alterRecordInDatabase(alert, alertName, true);
         }
@@ -205,11 +205,11 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             boolean doAlertAlert = false;
             
             if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
-                alert.setIsCautionAcknowledged(isAcknowledged);
+                alert.setIsCautionAlertAcknowledged(isAcknowledged);
                 doAlertAlert = true;
             }
             if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
-                alert.setIsDangerAcknowledged(isAcknowledged);
+                alert.setIsDangerAlertAcknowledged(isAcknowledged);
                 doAlertAlert = true;
             }
             

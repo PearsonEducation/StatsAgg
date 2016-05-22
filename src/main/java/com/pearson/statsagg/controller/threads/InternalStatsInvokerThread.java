@@ -12,7 +12,7 @@ public class InternalStatsInvokerThread extends InvokerThread implements Runnabl
     
     private static final Logger logger = LoggerFactory.getLogger(InternalStatsInvokerThread.class.getName());
     
-    private final int threadExecutorShutdownWaitTime_;
+    private final long threadExecutorShutdownWaitTime_;
     
     public InternalStatsInvokerThread() {
         threadExecutorShutdownWaitTime_ = 1500;
@@ -40,7 +40,7 @@ public class InternalStatsInvokerThread extends InvokerThread implements Runnabl
     }
     
     @Override
-    public int getThreadExecutorShutdownWaitTime() {
+    public long getThreadExecutorShutdownWaitTime() {
         return threadExecutorShutdownWaitTime_;
     }
     

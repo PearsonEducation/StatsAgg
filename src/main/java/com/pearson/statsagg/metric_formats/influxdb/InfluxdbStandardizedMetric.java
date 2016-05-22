@@ -71,9 +71,14 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
 
         return graphiteMetric.toString();
     }
-
+    
     @Override
     public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbTelnetFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         StringBuilder openTsdbTelnetMetric = new StringBuilder();
         StringBuilder metric = new StringBuilder();
         
@@ -107,13 +112,19 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
             }
         }
         
-        if (!didWriteAnyTag) openTsdbTelnetMetric.append("Format").append("=").append("InfluxDB");
+        if (!didWriteAnyTag && (defaultOpenTsdbTagKey != null)) openTsdbTelnetMetric.append(defaultOpenTsdbTagKey).append("=").append(defaultOpenTsdbTagValue);
+        else if (!didWriteAnyTag) openTsdbTelnetMetric.append("Format").append("=").append("InfluxDB");
         
         return openTsdbTelnetMetric.toString();
     }
     
     @Override
     public String getOpenTsdbJsonFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbJsonFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
                         
         StringBuilder metric = new StringBuilder();
         
@@ -137,7 +148,7 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
         openTsdbJson.append("\"value\":").append(getMetricValueString()).append(",");
 
         openTsdbJson.append("\"tags\":{");
-        String openTsdbTags = getOpenTsdbTagsJsonFromInfluxColumnsAndPoints(sanitizeMetric);
+        String openTsdbTags = getOpenTsdbTagsJsonFromInfluxColumnsAndPoints(sanitizeMetric, defaultOpenTsdbTagKey, defaultOpenTsdbTagValue);
         if (openTsdbTags != null) openTsdbJson.append(openTsdbTags);
         openTsdbJson.append("}");
 
@@ -146,7 +157,7 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
         return openTsdbJson.toString();
     }
 
-    private String getOpenTsdbTagsJsonFromInfluxColumnsAndPoints(boolean sanitizeMetric) {
+    private String getOpenTsdbTagsJsonFromInfluxColumnsAndPoints(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         
         if ((columns_ == null) || (point_ == null) || (columns_.size() != point_.size()) || point_.isEmpty()) {
             return null;
@@ -177,8 +188,9 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
             }
         }
 
-        if (!didWriteAnyTag) openTsdbTagsJson.append("\"Format\":\"InfluxDB\"");
-        
+        if (!didWriteAnyTag && (defaultOpenTsdbTagKey != null)) openTsdbTagsJson.append("\"").append(defaultOpenTsdbTagKey).append("\":\"").append(defaultOpenTsdbTagValue).append("\"");
+        else if (!didWriteAnyTag) openTsdbTagsJson.append("\"Format\":\"InfluxDB\"");
+                        
         return openTsdbTagsJson.toString();
     }
    

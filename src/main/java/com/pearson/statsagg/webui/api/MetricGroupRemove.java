@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  */
 @WebServlet(name = "API_Remove_Metric", urlPatterns = {"/api/metric-remove"})
-public class RemoveMetricGroup extends HttpServlet {
+public class MetricGroupRemove extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveMetricGroup.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupRemove.class.getName());
     
     public static final String PAGE_NAME = "API_Remove_Metric";
     

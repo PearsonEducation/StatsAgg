@@ -146,6 +146,8 @@ public class Alerts extends HttpServlet {
             return "Invalid input!";
         }
         
+        boolean isSuccess = false;
+        
         AlertsDao alertsDao = new AlertsDao();
         Alert alert = alertsDao.getAlertByName(alertName);
         
@@ -155,12 +157,12 @@ public class Alerts extends HttpServlet {
             if (!isEnabled) {
                 alert.setIsCautionAlertActive(false);
                 alert.setCautionFirstActiveAt(null);
-                alert.setIsCautionAcknowledged(null);
+                alert.setIsCautionAlertAcknowledged(null);
                 alert.setCautionAlertLastSentTimestamp(null);
                 alert.setCautionActiveAlertsSet(null);
                 alert.setIsDangerAlertActive(false);
                 alert.setDangerFirstActiveAt(null);
-                alert.setIsDangerAcknowledged(null);
+                alert.setIsDangerAlertAcknowledged(null);
                 alert.setDangerAlertLastSentTimestamp(null);
                 alert.setDangerActiveAlertsSet(null);
             }
@@ -169,11 +171,14 @@ public class Alerts extends HttpServlet {
             alertsLogic.alterRecordInDatabase(alert, alertName, false);
             
             if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                isSuccess = true;
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
         
-        return "Successfully enabled alert.";
+        if (isSuccess && isEnabled) return "Successfully enabled alert";
+        if (isSuccess && !isEnabled) return "Successfully disabled alert";
+        else return "Error -- could not alter alert";
     }
     
     private void cloneAlert(String alertName) {
@@ -205,11 +210,11 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setIsEnabled(false);
                 clonedAlert.setIsCautionAlertActive(false);
                 clonedAlert.setCautionFirstActiveAt(null);
-                clonedAlert.setIsCautionAcknowledged(null);
+                clonedAlert.setIsCautionAlertAcknowledged(null);
                 clonedAlert.setCautionAlertLastSentTimestamp(null);
                 clonedAlert.setCautionActiveAlertsSet(null);
                 clonedAlert.setIsDangerAlertActive(false);
-                clonedAlert.setIsDangerAcknowledged(null);
+                clonedAlert.setIsDangerAlertAcknowledged(null);
                 clonedAlert.setDangerAlertLastSentTimestamp(null);
                 clonedAlert.setDangerActiveAlertsSet(null);
                 clonedAlert.setDangerFirstActiveAt(null);
@@ -397,12 +402,12 @@ public class Alerts extends HttpServlet {
             // decide whether the 'acknoledge' and/or 'unacknoledge' operations are presented 
             String acknowledge = "";
             if (                // caution & danger both acknowledged
-                ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) 
+                ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) 
                 ||              // danger acknowledged, caution not active (therefore not acknowledged)
-                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged()))
+                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()))
                 ||              // caution acknowledged, danger not active (therefore not acknowledged)
-                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()))
+                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()))
                )              
             {
                 List<KeyValue> keysAndValues = new ArrayList<>();
@@ -411,8 +416,8 @@ public class Alerts extends HttpServlet {
                 keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
                 acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "unacknowledge", keysAndValues);
             }
-            else if ((alert.isCautionAlertActive() && ((alert.isCautionAcknowledged() == null) || ((alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()))) || 
-                    (alert.isDangerAlertActive() && ((alert.isDangerAcknowledged() == null) || ((alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())))) {
+            else if ((alert.isCautionAlertActive() && ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()))) || 
+                    (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
                 keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
@@ -503,39 +508,39 @@ public class Alerts extends HttpServlet {
         String isAcknowledged = "N/A";
         
         try {
-            if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+            if ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) {
                 // caution & danger both acknowledged
                 isAcknowledged = "Yes";
             }
-            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())) {
                 // caution acknowledged, danger not acknowledged
                 isAcknowledged = "Caution Only";
             }
-            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) {
                 // caution & danger both acknowledged
                 isAcknowledged = "Danger Only";
             }
-            else if ((alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+            else if ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()) &&
+                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())) {
                 // caution & danger both active & unacknowledged
                 isAcknowledged = "No";
             }
-            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && alert.isDangerAcknowledged())) {
+            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) {
                 // danger acknowledged, caution not active (therefore not acknowledged)
                 isAcknowledged = "Yes";
             }
-            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && alert.isCautionAcknowledged())) {
+            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged())) {
                 // caution acknowledged, danger not active (therefore not acknowledged)
                 isAcknowledged = "Yes";
             }
-            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAcknowledged() != null) && !alert.isCautionAcknowledged())) {
+            else if (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged())) {
                 // caution not acknowledged, danger not active (therefore not acknowledged)
                 isAcknowledged = "No";
             }
-            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAcknowledged() != null) && !alert.isDangerAcknowledged())) {
+            else if (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())) {
                 // danger not acknowledged, caution not active (therefore not acknowledged)
                 isAcknowledged = "No";
             }

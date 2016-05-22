@@ -26,7 +26,11 @@ public class Common {
             }
             else if (object instanceof JSONObject) {
                 JSONObject jsonObject = (JSONObject) object;
-                return (String) jsonObject.get(parameterName);
+                return (String) jsonObject.get(parameterName).toString();
+            }
+            else if (object instanceof JSONObject) {
+                JSONObject jsonObject = (JSONObject) object;
+                return (String) jsonObject.get(parameterName).toString();
             }
         }
         catch (Exception e) {

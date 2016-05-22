@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (Prashant4nov)
+ * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_SuspensionsList", urlPatterns={"/api/SuspensionsList"})
+@WebServlet(name="API_SuspensionsList", urlPatterns={"/api/suspensions-list"})
 public class SuspensionsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionsList.class.getName());
@@ -42,7 +43,7 @@ public class SuspensionsList extends HttpServlet {
         logger.debug("doGet");
         
         try {    
-            JSONObject json = getSuspensionsList(request, new SuspensionsDao());       
+            JSONObject json = getSuspensionsList(request);       
             
             PrintWriter out = null;
             response.setContentType("application/json");
@@ -59,10 +60,9 @@ public class SuspensionsList extends HttpServlet {
      * Returns a json object containing a list of suspensions.
      * 
      * @param request servlet request
-     * @param suspensionsDao SuspensionsDao object
      * @return list of the suspensions
      */
-    protected JSONObject getSuspensionsList(HttpServletRequest request, SuspensionsDao suspensionsDao) {
+    protected JSONObject getSuspensionsList(HttpServletRequest request) {
         
         JSONObject errorMsg = null;
         JSONObject suspensionsJson = null;
@@ -76,9 +76,10 @@ public class SuspensionsList extends HttpServlet {
             if (request.getParameter(Helper.pageSize) != null) {
                 pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
             }
-            
-            suspensionsJson = suspensionsDao.getSuspension(pageNumber*pageSize, pageSize);
-        } 
+
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            suspensionsJson = suspensionsDao.getSuspension(pageNumber * pageSize, pageSize);
+        }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             errorMsg = new JSONObject();

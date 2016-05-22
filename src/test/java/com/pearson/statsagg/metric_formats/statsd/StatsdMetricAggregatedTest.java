@@ -72,6 +72,9 @@ public class StatsdMetricAggregatedTest {
         
         // sanitized
         assertEquals(("aggregated.counterMetric_123AaZz09 " + currentTime + " 1.2222 " + "Format=StatsD"), statsdMetricAggregated1.getOpenTsdbTelnetFormatString(true));
+        
+        // sanitized, non-default opentsdb tag
+        assertEquals(("aggregated.counterMetric_123AaZz09 " + currentTime + " 1.2222 " + "Taco=Bell"), statsdMetricAggregated1.getOpenTsdbTelnetFormatString(true, "Taco", "Bell"));
     }
     
     /**
@@ -91,6 +94,10 @@ public class StatsdMetricAggregatedTest {
         // sanitized
         assertEquals("{\"metric\":\"aggregated.counterMetric_123AaZz09\",\"timestamp\":" + currentTime + ",\"value\":1.2222,\"tags\":{\"Format\":\"StatsD\"}}", 
                 statsdMetricAggregated1.getOpenTsdbJsonFormatString(true));
+        
+        // sanitized, non-default opentsdb tag
+        assertEquals("{\"metric\":\"aggregated.counterMetric_123AaZz09\",\"timestamp\":" + currentTime + ",\"value\":1.2222,\"tags\":{\"Taco\":\"Bell\"}}", 
+                statsdMetricAggregated1.getOpenTsdbJsonFormatString(true, "Taco", "Bell"));
     }
     
     /**

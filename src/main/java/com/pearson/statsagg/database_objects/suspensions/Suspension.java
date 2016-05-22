@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.suspensions;
 
+import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
@@ -23,32 +24,32 @@ public class Suspension extends DatabaseObject<Suspension> {
     public static final int SUSPEND_BY_EVERYTHING = 3;
     public static final int SUSPEND_BY_METRICS = 4;
     
-    private Integer id_ = null;
-    private String name_ = null;
-    private String uppercaseName_ = null;
-    private String description_ = null;
-    private Boolean isEnabled_ = null;
-    private Integer suspendBy_ = null;
-    private Integer alertId_ = null;
-    private String metricGroupTagsInclusive_ = null;
-    private String metricGroupTagsExclusive_ = null;
-    private String metricSuspensionRegexes_ = null;
+    @SerializedName("id") private Integer id_ = null;
+    @SerializedName("name") private String name_ = null;
+    private transient String uppercaseName_ = null;
+    @SerializedName("description") private String description_ = null;
+    @SerializedName("enabled") private Boolean isEnabled_ = null;
+    @SerializedName("suspend_by") private Integer suspendBy_ = null;
+    @SerializedName("alert_id") private Integer alertId_ = null;
+    @SerializedName("metric_group_tags_inclusive") private String metricGroupTagsInclusive_ = null;
+    @SerializedName("metric_group_tags_exclusive") private String metricGroupTagsExclusive_ = null;
+    @SerializedName("metric_suspension_regexes") private String metricSuspensionRegexes_ = null;
     
-    private Boolean isOneTime_ = null;
-    private Boolean isSuspendNotificationOnly_ = null;
-    private Boolean isRecurSunday_ = null;
-    private Boolean isRecurMonday_ = null;
-    private Boolean isRecurTuesday_ = null;
-    private Boolean isRecurWednesday_ = null;
-    private Boolean isRecurThursday_ = null;
-    private Boolean isRecurFriday_ = null;
-    private Boolean isRecurSaturday_ = null;
-    private Timestamp startDate_ = null;
-    private Timestamp startTime_ = null;
-    private Long duration_ = null;  // native timeunit is milliseconds
-    private Integer durationTimeUnit_ = null; 
-    private Timestamp deleteAtTimestamp_ = null;    
-    
+    @SerializedName("one_time") private Boolean isOneTime_ = null;
+    @SerializedName("suspend_notification_only") private Boolean isSuspendNotificationOnly_ = null;
+    @SerializedName("recur_sunday") private Boolean isRecurSunday_ = null;
+    @SerializedName("recur_monday") private Boolean isRecurMonday_ = null;
+    @SerializedName("recur_tuesday") private Boolean isRecurTuesday_ = null;
+    @SerializedName("recur_wednesday") private Boolean isRecurWednesday_ = null;
+    @SerializedName("recur_thursday") private Boolean isRecurThursday_ = null;
+    @SerializedName("recur_friday") private Boolean isRecurFriday_ = null;
+    @SerializedName("recur_saturday") private Boolean isRecurSaturday_ = null;
+    @SerializedName("start_date") private Timestamp startDate_ = null;
+    @SerializedName("start_time") private Timestamp startTime_ = null;
+    @SerializedName("duration") private Long duration_ = null;  // native timeunit is milliseconds
+    @SerializedName("duration_time_unit") private Integer durationTimeUnit_ = null; 
+    @SerializedName("delete_at_timestamp") private Timestamp deleteAtTimestamp_ = null;    
+
     public Suspension() {
         this.id_ = -1;
     }
@@ -181,7 +182,7 @@ public class Suspension extends DatabaseObject<Suspension> {
                 .append(deleteAtTimestamp_, suspension.getDeleteAtTimestamp())
                 .isEquals();
     }
-     
+    
     public static boolean isValid(Suspension suspension) {
         
         if (suspension == null) return false;
@@ -460,6 +461,21 @@ public class Suspension extends DatabaseObject<Suspension> {
         return tagStringBuilder.toString().trim();
     }
     
+    public static String getSuspendByStringFromCode(Integer suspendByCode) {
+        
+        if ((suspendByCode == null)) {
+            return null;
+        }
+
+        if (suspendByCode == SUSPEND_BY_ALERT_ID) return "AlertName";
+        else if (suspendByCode == SUSPEND_BY_METRIC_GROUP_TAGS) return "Tags";
+        else if (suspendByCode == SUSPEND_BY_EVERYTHING) return "Everything";
+        else if (suspendByCode == SUSPEND_BY_METRICS) return "Metrics";
+        else logger.warn("Unrecognized suspend-by code");
+         
+        return null;
+    }
+    
     public Integer getId() {
         return id_;
     }
@@ -639,7 +655,7 @@ public class Suspension extends DatabaseObject<Suspension> {
     public void setDuration(Long duration) {
         this.duration_ = duration;
     }
-
+    
     public Integer getDurationTimeUnit() {
         return durationTimeUnit_;
     }

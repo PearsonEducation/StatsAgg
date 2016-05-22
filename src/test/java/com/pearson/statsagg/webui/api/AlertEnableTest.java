@@ -14,18 +14,19 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Prashant Kumar (prashant4nov)
  */
-public class RemoveAlertTest extends Mockito {
+public class AlertEnableTest extends Mockito {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveAlertTest.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertEnableTest.class.getName());
     
     private static com.pearson.statsagg.webui.Alerts alert;
-    private static final String mockReturnString = "Delete alert success. AlertName=\"alert_name\".";
+    private static final String mockReturnString = "Successfully enabled alert.";
     private static final String alertName = "alert_name";
+    private static final Boolean isEnabled = true;
 
     @BeforeClass
     public static void setUp() {
         alert = mock(com.pearson.statsagg.webui.Alerts.class);
-        when(alert.removeAlert(alertName)).thenReturn(mockReturnString);
+        when(alert.changeAlertEnabled(alertName, isEnabled)).thenReturn(mockReturnString);
     }
     
     @After
@@ -37,8 +38,9 @@ public class RemoveAlertTest extends Mockito {
         String responseMsg;
         HttpServletRequest request = mock(HttpServletRequest.class);
         when(request.getParameter("name")).thenReturn(alertName);
-        RemoveAlert removeAlert = new RemoveAlert();
-        responseMsg = removeAlert.processPostRequest(request, alert);
+        when(request.getParameter("Enabled")).thenReturn("true");
+        AlertEnable enableAlert = new AlertEnable();
+        responseMsg = enableAlert.processPostRequest(request);
         assertEquals(mockReturnString, responseMsg);     
     }
     

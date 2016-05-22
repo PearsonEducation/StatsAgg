@@ -208,4 +208,23 @@ public class MathUtilities {
         return input;
     }
     
+    public static BigDecimal safeGetBigDecimal(String numericString) {
+        
+        if (numericString == null) {
+            return null;
+        }
+        
+        BigDecimal bigDecimal;
+
+        try {
+            bigDecimal = new BigDecimal(numericString);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            bigDecimal = null;
+        }
+
+        return bigDecimal;
+    }
+    
 }

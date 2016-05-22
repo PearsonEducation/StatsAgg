@@ -131,9 +131,14 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         
         return stringBuilder.toString();
     }
-
+    
     @Override
     public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbTelnetFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbTelnetFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         StringBuilder stringBuilder = new StringBuilder();
         
         String metric = sanitizeMetric ? getOpenTsdbSanitizedString(getMetric()) : getMetric();
@@ -141,6 +146,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         stringBuilder.append(metric).append(" ").append(metricTimestamp_).append(" ").append(getMetricValueString()).append(" ");
 
         List<OpenTsdbTag> openTsdbTags = getMetricTagsFromMetricKey();
+        if ((openTsdbTags != null) && (defaultOpenTsdbTagKey != null)) openTsdbTags.add(new OpenTsdbTag(defaultOpenTsdbTagKey + "=" + defaultOpenTsdbTagValue));
         
         if (openTsdbTags != null) {
             for (int i = 0; i < openTsdbTags.size(); i++) {
@@ -154,12 +160,18 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         
         return stringBuilder.toString();
     }
-
+    
     @Override
     public String getOpenTsdbJsonFormatString(boolean sanitizeMetric) {
+        return getOpenTsdbJsonFormatString(sanitizeMetric, null, null);
+    }
+    
+    @Override
+    public String getOpenTsdbJsonFormatString(boolean sanitizeMetric, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
                 
         String metric = sanitizeMetric ? getOpenTsdbSanitizedString(getMetric()) : getMetric();
         List<OpenTsdbTag> openTsdbTags = getMetricTagsFromMetricKey();
+        if ((openTsdbTags != null) && (defaultOpenTsdbTagKey != null)) openTsdbTags.add(new OpenTsdbTag(defaultOpenTsdbTagKey + "=" + defaultOpenTsdbTagValue));
 
         if ((metric == null) || metric.isEmpty()) return null;
         if (metricTimestamp_ < 0) return null;
@@ -253,6 +265,10 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     }
     
     public static String getOpenTsdbJson(List<? extends OpenTsdbMetricFormat> openTsdbFormatMetrics, boolean sanitizeMetrics) {
+        return getOpenTsdbJson(openTsdbFormatMetrics, sanitizeMetrics, null, null);
+    }
+    
+    public static String getOpenTsdbJson(List<? extends OpenTsdbMetricFormat> openTsdbFormatMetrics, boolean sanitizeMetrics, String defaultOpenTsdbTagKey, String defaultOpenTsdbTagValue) {
         
         if (openTsdbFormatMetrics == null) return null;
 
@@ -262,7 +278,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         
         for (int i = 0; i < openTsdbFormatMetrics.size(); i++) {
             OpenTsdbMetricFormat openTsdbMetric = openTsdbFormatMetrics.get(i);
-            String openTsdbJsonString = openTsdbMetric.getOpenTsdbJsonFormatString(sanitizeMetrics);
+            String openTsdbJsonString = openTsdbMetric.getOpenTsdbJsonFormatString(sanitizeMetrics, defaultOpenTsdbTagKey, defaultOpenTsdbTagValue);
             
             if (openTsdbJsonString != null) {
                 openTsdbJson.append(openTsdbJsonString);

@@ -14,9 +14,9 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  */
 @WebServlet(name = "API_Remove_Notification", urlPatterns = {"/api/notification-remove"})
-public class RemoveNotificationGroup extends HttpServlet {
+public class NotificationGroupRemove extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(RemoveNotificationGroup.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupRemove.class.getName());
     
     public static final String PAGE_NAME = "API_Remove_Notification";
     
