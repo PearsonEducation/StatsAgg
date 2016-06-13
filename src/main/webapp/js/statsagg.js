@@ -252,3 +252,85 @@ function yadcf_init_NotificationGroupsTable(notificationGroupsTable) {
     ], 'footer');
 }
 
+// Setup for the table found on the 'Alerts Report' page
+$(document).ready(function () {
+    var table = document.getElementById('AlertsReportTable');
+
+    if (table !== null) {
+        var alertsReportTable = $('#AlertsReportTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000, // 30 days
+            "columnDefs": [
+                {
+                    "targets": [7],
+                    "visible": false
+                },
+                {
+                    "targets": [14],
+                    "visible": false
+                },
+                {
+                    "targets": [16],
+                    "visible": false
+                },
+                {
+                    "targets": [18],
+                    "visible": false
+                },
+                {
+                    "targets": [20],
+                    "visible": false
+                } 
+            ]});
+        
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertsReportTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_AlertsReportTable(alertsReportTable);
+
+        var colvis = new $.fn.dataTable.ColVis(alertsReportTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#AlertsReportTable_filter');
+        
+        // re-initialize yadcf when a column is unhidden
+        alertsReportTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_AlertsTable(alertsReportTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+                
+function yadcf_init_AlertsReportTable(alertsReportTable) {
+    yadcf.init(alertsReportTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 6, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 7, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 8, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 9, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 10, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 11, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 12, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 13, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 14, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 15, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 16, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 17, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 18, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 19, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 20, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 21, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+    
+}

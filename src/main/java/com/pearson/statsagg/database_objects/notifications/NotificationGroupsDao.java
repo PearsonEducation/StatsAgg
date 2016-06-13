@@ -276,6 +276,20 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
         
     }
 
+    public Map<Integer, NotificationGroup> getNotificationGroups_ById() {
+        
+        Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();
+        
+        List<NotificationGroup> notificationGroups = super.getAllDatabaseObjectsInTable();
+        if (notificationGroups == null) return notificationGroupsById;
+        
+        for (NotificationGroup notificationGroup : notificationGroups) {
+            if (notificationGroup.getId() != null) notificationGroupsById.put(notificationGroup.getId(), notificationGroup);
+        }
+        
+        return notificationGroupsById;
+    }
+    
     public JSONObject getNotificationGroups(int offset, int pageSize) {
         logger.debug("getNotificationGroups");
         List<Object> parametersList = new ArrayList<>(2);

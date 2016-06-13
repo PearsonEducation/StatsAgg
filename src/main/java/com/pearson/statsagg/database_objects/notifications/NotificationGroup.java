@@ -1,6 +1,11 @@
 package com.pearson.statsagg.database_objects.notifications;
 
 import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,6 +53,46 @@ public class NotificationGroup extends DatabaseObject<NotificationGroup> {
 
     }
 
+    public String getEmailAddressesCsv() {
+        
+        if (emailAddresses_ == null) {
+            return null;
+        }
+        
+        StringBuilder emailAddressesOutput = new StringBuilder();
+        
+        String[] emailAddresses = StringUtils.split(emailAddresses_, ",");
+        
+        if ((emailAddresses != null) && (emailAddresses.length != 0)) {
+            for (int i = 0; i < emailAddresses.length; i++) {
+                String trimmedEmailAddress = emailAddresses[i].trim();
+                emailAddressesOutput.append(trimmedEmailAddress);
+                if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");
+            }
+        }
+        
+        return emailAddressesOutput.toString();
+    }
+    
+    public List<String> getEmailAddressesList() {
+
+        if (emailAddresses_ == null) {
+            return new ArrayList<>();
+        }
+        
+        List<String> emailAddresses = new ArrayList<>();
+        
+        try {
+            String[] emailAddresses_Array = StringUtils.split(emailAddresses_, ",");
+            emailAddresses.addAll(Arrays.asList(emailAddresses_Array));
+        }
+        catch(Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return emailAddresses;
+    }
+    
     public static NotificationGroup copy(NotificationGroup notificationGroup) {
         
         if (notificationGroup == null) {

@@ -1,4 +1,5 @@
 StatsAgg 1.5
+ * Document 'Alerts Report'
  * Finish/refine API
    * Annotate field names in database classes (to avoid relying on class member names not changing)
    * Alert details -- positive notification group selective info hiding

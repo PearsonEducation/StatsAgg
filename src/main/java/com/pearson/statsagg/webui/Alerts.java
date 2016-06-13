@@ -399,7 +399,7 @@ public class Alerts extends HttpServlet {
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
             }
 
-            // decide whether the 'acknoledge' and/or 'unacknoledge' operations are presented 
+            // decide whether the 'acknowledge' and/or 'unacknowledge' operations are presented 
             String acknowledge = "";
             if (                // caution & danger both acknowledged
                 ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
@@ -425,7 +425,7 @@ public class Alerts extends HttpServlet {
                 acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "acknowledge", keysAndValues);
             }
             
-            String isAcknowledged = getIsAcknoledgedTableValue(alert);
+            String isAcknowledged = getIsAcknowledgedTableValue(alert);
             
             String alter = "<a href=\"CreateAlert?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">alter</a>";
             
@@ -499,7 +499,7 @@ public class Alerts extends HttpServlet {
     }
 
     // Gets value for Alerts 'Acknowledged?' column 
-    private String getIsAcknoledgedTableValue(Alert alert) {
+    protected static String getIsAcknowledgedTableValue(Alert alert) {
         
         if (alert == null) {
             return "N/A";

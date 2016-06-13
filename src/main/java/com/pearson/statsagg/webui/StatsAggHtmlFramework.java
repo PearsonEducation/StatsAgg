@@ -110,7 +110,8 @@ public class StatsAggHtmlFramework {
             body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
             body.append("<li><a href=\"MetricAlertAssociations\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Metric Alert Associations</a></li>\n");
             body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
-     
+            body.append("<li><a href=\"AlertsReport\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Alerts Report </a></li>\n");
+      
             for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
                 if ((httpLink.getUrl() == null) || httpLink.getLinkText().isEmpty() || (httpLink.getUrl() == null) || httpLink.getUrl().isEmpty()) continue;
                 body.append("<li><a href=\"").append(httpLink.getUrl()).append("\"><i class=\"fa fa-external-link\"></i>&nbsp;&nbsp;").append(httpLink.getLinkText()).append("</a></li>\n");
@@ -267,7 +268,7 @@ public class StatsAggHtmlFramework {
     
     public static String htmlEncode(String unencodedString) {
         
-        if (unencodedString == null || unencodedString.isEmpty()) {
+        if ((unencodedString == null) || unencodedString.isEmpty()) {
             return unencodedString;
         }
         

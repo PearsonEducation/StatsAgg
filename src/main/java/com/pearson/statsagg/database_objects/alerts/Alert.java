@@ -5,7 +5,12 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
 import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.StackTrace;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -675,7 +680,175 @@ public class Alert extends DatabaseObject<Alert> {
         
         return outputString;
     }
+    
+    public String getHumanReadable_AlertCriteria_MinimumSampleCount(int alertLevel) {
+        
+        if ((alertLevel == Alert.CAUTION) && (getCautionMinimumSampleCount() == null)) return null;
+        else if ((alertLevel == Alert.DANGER) && (getDangerMinimumSampleCount() == null)) return null;
+        else if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) return null;
+        
+        if (alertLevel == Alert.CAUTION) return "A minimum of " + getCautionMinimumSampleCount() + " sample(s)";
+        else if (alertLevel == Alert.DANGER) return "A minimum of " + getDangerMinimumSampleCount() + " sample(s)";
+        else return null;
+    }
+    
+    public String getHumanReadable_AlertCriteria_AvailabilityCriteria(int alertLevel) {
+        
+        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
+            return null;
+        }
+        
+        try {
+            if (alertLevel == Alert.CAUTION) {
+                if ((getCautionWindowDuration() == null) || (getCautionWindowDurationTimeUnit() == null)) return null;
+                
+                BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getCautionWindowDuration(), getCautionWindowDurationTimeUnit());
+                String cautionWindowDurationTimeUnit = "";
+                if (getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getCautionWindowDurationTimeUnit(), true);
+                
+                StringBuilder humanReadableAvailabilityCriteria = new StringBuilder();
+                humanReadableAvailabilityCriteria.append("No new data points were received during the last ")
+                        .append(cautionWindowDuration.stripTrailingZeros().toPlainString())
+                        .append(" ").append(cautionWindowDurationTimeUnit);
+                
+                return humanReadableAvailabilityCriteria.toString();
+            }
+            else if (alertLevel == Alert.DANGER) {
+                if ((getDangerWindowDuration() == null) || (getDangerWindowDurationTimeUnit() == null)) return null;
+                
+                BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getDangerWindowDuration(), getDangerWindowDurationTimeUnit());
+                String dangerWindowDurationTimeUnit = "";
+                if (getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getDangerWindowDurationTimeUnit(), true);
+                
+                StringBuilder humanReadableAvailabilityCriteria = new StringBuilder();
+                humanReadableAvailabilityCriteria.append("No new data points were received during the last ")
+                        .append(dangerWindowDuration.stripTrailingZeros().toPlainString())
+                        .append(" ").append(dangerWindowDurationTimeUnit);
+                
+                return humanReadableAvailabilityCriteria.toString();
+            }
+            else return null;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public String getHumanReadable_AlertCriteria_ThresholdCriteria(int alertLevel) {
+        
+        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
+            return null;
+        }
+        
+        try {
+            if (alertLevel == Alert.CAUTION) {
+                if ((getCautionWindowDuration() == null) || (getCautionWindowDurationTimeUnit() == null) || (getCautionThreshold() == null) || (getCautionOperator() == null)) return null;
+                
+                BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getCautionWindowDuration(), getCautionWindowDurationTimeUnit());
+                String cautionWindowDurationTimeUnit = "";
+                if (getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getCautionWindowDurationTimeUnit(), true);
 
+                StringBuilder humanReadableThresholdCriteria = new StringBuilder();
+                humanReadableThresholdCriteria.append(getHumanReadable_ThresholdCriteria_Combination(Alert.CAUTION)).append(" ").append(getOperatorString(Alert.CAUTION, false, true))
+                    .append(" ").append(getCautionThreshold().stripTrailingZeros().toPlainString())
+                    .append(" during the last ").append(cautionWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(cautionWindowDurationTimeUnit);
+
+                return humanReadableThresholdCriteria.toString();
+            }
+            else if (alertLevel == Alert.DANGER) {
+                if ((getDangerWindowDuration() == null) || (getDangerWindowDurationTimeUnit() == null) || (getDangerThreshold() == null) || (getDangerOperator() == null)) return null;
+                
+                BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getDangerWindowDuration(), getDangerWindowDurationTimeUnit());
+                String dangerWindowDurationTimeUnit = "";
+                if (getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getDangerWindowDurationTimeUnit(), true);
+
+                StringBuilder humanReadableThresholdCriteria = new StringBuilder();
+                humanReadableThresholdCriteria.append(getHumanReadable_ThresholdCriteria_Combination(Alert.DANGER)).append(" ").append(getOperatorString(Alert.DANGER, false, true))
+                    .append(" ").append(getDangerThreshold().stripTrailingZeros().toPlainString())
+                    .append(" during the last ").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(dangerWindowDurationTimeUnit);
+
+                return humanReadableThresholdCriteria.toString();
+            }
+            else return null;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+
+    private String getHumanReadable_ThresholdCriteria_Combination(int alertLevel) {
+        
+        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
+            return null;
+        }
+
+        Integer combination = null;
+        if (alertLevel == Alert.CAUTION) combination = getCautionCombination();
+        else if (alertLevel == Alert.DANGER) combination = getDangerCombination();
+        
+        Integer combinationCount = null;
+        if (alertLevel == Alert.CAUTION) combinationCount = getCautionCombinationCount();
+        else if (alertLevel == Alert.DANGER) combinationCount = getDangerCombinationCount();
+        
+        if (combination != null) {
+            if (Objects.equals(combination, Alert.COMBINATION_ANY)) return "Any metric value was";
+            else if (Objects.equals(combination, Alert.COMBINATION_ALL)) return "All metric values were";
+            else if (Objects.equals(combination, Alert.COMBINATION_AVERAGE)) return "The average metric value was";
+            else if (Objects.equals(combination, Alert.COMBINATION_AT_MOST_COUNT) && (combinationCount != null)) return "At most " + combinationCount + " metric values were";
+            else if (Objects.equals(combination, Alert.COMBINATION_AT_LEAST_COUNT) && (combinationCount != null)) return "At least " + combinationCount + " metric values were";
+            else return null;
+        }
+        else return null;
+    }
+
+    public String getHumanReadable_AmountOfTimeAlertIsTriggered(int alertLevel, Calendar currentDateAndTime) {
+        
+        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) return null;
+        if (currentDateAndTime == null) return null;
+        
+        Long secondsBetweenNowAndFirstAlerted = null;
+        if ((alertLevel == Alert.CAUTION) && (getCautionFirstActiveAt() != null)) secondsBetweenNowAndFirstAlerted = (long) ((currentDateAndTime.getTimeInMillis() - getCautionFirstActiveAt().getTime()) / 1000);
+        else if ((alertLevel == Alert.DANGER) && (getDangerFirstActiveAt() != null)) secondsBetweenNowAndFirstAlerted = (long) ((currentDateAndTime.getTimeInMillis() - getDangerFirstActiveAt().getTime()) / 1000);
+
+        if (secondsBetweenNowAndFirstAlerted != null) {
+            StringBuilder alertTriggeredAt = new StringBuilder();
+
+            long days = TimeUnit.SECONDS.toDays(secondsBetweenNowAndFirstAlerted);        
+            long hours = TimeUnit.SECONDS.toHours(secondsBetweenNowAndFirstAlerted) - (days * 24);
+            long minutes = TimeUnit.SECONDS.toMinutes(secondsBetweenNowAndFirstAlerted) - (TimeUnit.SECONDS.toHours(secondsBetweenNowAndFirstAlerted) * 60);
+            long seconds = TimeUnit.SECONDS.toSeconds(secondsBetweenNowAndFirstAlerted) - (TimeUnit.SECONDS.toMinutes(secondsBetweenNowAndFirstAlerted) * 60);
+
+            String daysString = "";
+            if (days == 1) daysString = days + " day, ";
+            else if (days > 1) daysString = days + " days, ";
+            alertTriggeredAt.append(daysString);
+
+            String hoursString = "";
+            if (hours == 1) hoursString = hours + " hour, ";
+            else if ((hours > 1) || ((alertTriggeredAt.length() > 0) && (hours == 0))) hoursString = hours + " hours, ";
+            alertTriggeredAt.append(hoursString);
+
+            String minutesString = "";
+            if (minutes == 1) minutesString = minutes + " minute, ";
+            else if ((minutes > 1) || ((alertTriggeredAt.length() > 0) && (minutes == 0))) minutesString = minutes + " minutes, ";
+            alertTriggeredAt.append(minutesString);
+
+            String secondsString = "";
+            if (seconds == 1) secondsString = seconds + " second";
+            else if ((seconds > 1) || (seconds == 0)) secondsString = seconds + " seconds";
+            alertTriggeredAt.append(secondsString);
+
+            return alertTriggeredAt.toString();
+        }
+        else {
+            return null;
+        }
+    }
+    
     public Integer getId() {
         return id_;
     }

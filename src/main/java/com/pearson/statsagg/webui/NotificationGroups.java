@@ -212,16 +212,8 @@ public class NotificationGroups extends HttpServlet {
             
             String notificationGroupDetails = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
             
-            StringBuilder emailAddressesOutput = new StringBuilder();
-            String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
-            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
-                for (int i = 0; i < emailAddresses.length; i++) {
-                    String trimmedEmailAddress = emailAddresses[i].trim();
-                    emailAddressesOutput.append(trimmedEmailAddress);
-                    if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");
-                }
-            }
-            
+            String emailAddressesCsv = notificationGroup.getEmailAddressesCsv();
+
             String alter = "<a href=\"CreateNotificationGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">alter</a>";
 
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
@@ -243,7 +235,7 @@ public class NotificationGroups extends HttpServlet {
             
             htmlBodyStringBuilder.append("<tr>\n")
                 .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupDetails).append("</td>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesOutput.toString())).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesCsv)).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
             
             if (notificationGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);
@@ -319,7 +311,7 @@ public class NotificationGroups extends HttpServlet {
         alertMetricValues.put("emailtest.metric3-99999", new BigDecimal(103));
         alertMetricValues.put("emailtest.metric4-99999", new BigDecimal(104));
         
-        EmailThread emailThread = new EmailThread(testAlert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
+        EmailThread emailThread = new EmailThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                 false, false, ApplicationConfiguration.getAlertStatsAggLocation());
         emailThread.buildAlertEmail(3, metricGroup);
         

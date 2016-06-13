@@ -154,7 +154,7 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
+                EmailThread emailThread = new EmailThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();
@@ -168,7 +168,7 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, EmailThread.WARNING_LEVEL_DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<String,String>(),
+                EmailThread emailThread = new EmailThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup);
                 return emailThread.getBody();

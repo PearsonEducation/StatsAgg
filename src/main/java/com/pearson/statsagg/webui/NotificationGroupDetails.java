@@ -10,7 +10,7 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao
 import com.pearson.statsagg.utilities.EmailUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
-import org.apache.commons.lang.StringUtils;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -131,27 +131,17 @@ public class NotificationGroupDetails extends HttpServlet {
 
             outputString.append("<b>Email addresses</b> = ");
             
-            StringBuilder emailAddressesOutput = new StringBuilder();
-            String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");
-            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
-                for (int i = 0; i < emailAddresses.length; i++) {
-                    String trimmedEmailAddress = emailAddresses[i].trim();
-                    emailAddressesOutput.append(trimmedEmailAddress);
-                    if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");;
-                }
-            }
-            if (notificationGroup.getEmailAddresses() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(emailAddressesOutput.toString())).append("<br>");
+            if (notificationGroup.getEmailAddresses() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddressesCsv())).append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<br>");
                         
-            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
-                for (String emailAddress : emailAddresses) {
-                    String trimmedEmailAddress = emailAddress.trim();
-                    boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
-                    outputString.append("<b>Is \"").append(StatsAggHtmlFramework.htmlEncode(trimmedEmailAddress)).
-                            append("\" a valid email address?</b> = ").append(isValidEmailAddress).append("<br>");
-                }
+            List<String> emailAddresses = notificationGroup.getEmailAddressesList();
+            for (String emailAddress : emailAddresses) {
+                String trimmedEmailAddress = emailAddress.trim();
+                boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
+                outputString.append("<b>Is \"").append(StatsAggHtmlFramework.htmlEncode(trimmedEmailAddress)).
+                        append("\" a valid email address?</b> = ").append(isValidEmailAddress).append("<br>");
             }
             
             return outputString.toString();
