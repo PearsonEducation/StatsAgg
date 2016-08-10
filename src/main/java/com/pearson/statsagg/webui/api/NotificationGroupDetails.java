@@ -1,11 +1,9 @@
 package com.pearson.statsagg.webui.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -17,6 +15,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name="API_NotificationGroupDetails", urlPatterns={"/api/notification-group-details"})
 public class NotificationGroupDetails extends HttpServlet {
@@ -58,16 +57,24 @@ public class NotificationGroupDetails extends HttpServlet {
     }
     
     private void processRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+
         try {
             String json = getNotificationGroupDetails(request);
             response.setContentType("application/json");
-            PrintWriter out;
             out = response.getWriter();
             out.println(json);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
 
     /**
@@ -79,7 +86,7 @@ public class NotificationGroupDetails extends HttpServlet {
     protected String getNotificationGroupDetails(HttpServletRequest request) {
         
         if (request == null) {
-            return Helper.ERROR_JSON;
+            return Helper.ERROR_UNKNOWN_JSON;
         }
         
         try {
@@ -90,9 +97,9 @@ public class NotificationGroupDetails extends HttpServlet {
             if (request.getParameter("name") != null) notificationGroupName = request.getParameter("name");
 
             if ((notificationGroupId == null) && (notificationGroupName == null)) {
-                JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-                notificationGroupId = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-                notificationGroupName = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+                JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+                notificationGroupId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+                notificationGroupName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             }
 
             NotificationGroup notificationGroup = null;
@@ -101,26 +108,14 @@ public class NotificationGroupDetails extends HttpServlet {
             else if (notificationGroupName != null) notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
             else notificationGroupsDao.close();
             
-            if (notificationGroup != null) return getApiFriendlyJsonObject(notificationGroup);
+            if (notificationGroup != null) return NotificationGroup.getJsonString_ApiFriendly(notificationGroup);
+            else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
         }
         
-        return Helper.ERROR_JSON;
+        return Helper.ERROR_UNKNOWN_JSON;
     }
-    
-    private String getApiFriendlyJsonObject(NotificationGroup notificationGroup) {
-        
-        if (notificationGroup == null) {
-            return null;
-        }
-        
-        Gson notificationGroup_Gson = new GsonBuilder().setFieldNamingStrategy(new JsonOutputFieldNamingStrategy()).setPrettyPrinting().create();   
-        JsonElement notificationGroup_JsonElement = notificationGroup_Gson.toJsonTree(notificationGroup);
-        JsonObject jsonObject = new Gson().toJsonTree(notificationGroup_JsonElement).getAsJsonObject();
-        
-        return notificationGroup_Gson.toJson(jsonObject);
-    }
-    
+
 }

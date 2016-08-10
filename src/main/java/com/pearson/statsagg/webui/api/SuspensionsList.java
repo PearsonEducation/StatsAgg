@@ -1,13 +1,22 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,12 +49,11 @@ public class SuspensionsList extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("doGet");
+        
+        PrintWriter out = null;
         
         try {    
-            JSONObject json = getSuspensionsList(request);       
-            
-            PrintWriter out = null;
+            String json = getSuspensionsList(request);       
             response.setContentType("application/json");
             out = response.getWriter();
             out.println(json);
@@ -53,42 +61,55 @@ public class SuspensionsList extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }     
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
         
     }
     
     /**
-     * Returns a json object containing a list of suspensions.
+     * Returns json containing a list of suspensions.
      * 
      * @param request servlet request
      * @return list of the suspensions
      */
-    protected JSONObject getSuspensionsList(HttpServletRequest request) {
+    protected String getSuspensionsList(HttpServletRequest request) {
         
-        JSONObject errorMsg = null;
-        JSONObject suspensionsJson = null;
-        int pageNumber = 0, pageSize = 0;
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
         
         try {
-            if (request.getParameter(Helper.pageNumber) != null) {
-                pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
+            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            List<Suspension> suspensions = suspensionsDao.getAllDatabaseObjectsInTable();
+            if (suspensions == null) suspensions = new ArrayList<>();
+            
+            List<JsonObject> suspensionsJsonObjects = new ArrayList<>();
+            AlertsDao alertsDao = new AlertsDao(suspensionsDao.getDatabaseInterface());
+            
+            for (Suspension suspension : suspensions) {
+                Alert alert = null;
+                if ((suspension != null) && suspension.getAlertId() != null) alert = alertsDao.getAlert(suspension.getAlertId());
+                JsonObject suspensionJsonObject = Suspension.getJsonObject_ApiFriendly(suspension, alert);
+                if (suspensionJsonObject != null) suspensionsJsonObjects.add(suspensionJsonObject);
             }
-
-            if (request.getParameter(Helper.pageSize) != null) {
-                pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
-            }
-
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            suspensionsJson = suspensionsDao.getSuspension(pageNumber * pageSize, pageSize);
+            
+            suspensionsDao.close();
+            
+            Gson suspensionsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+            JsonElement suspensions_JsonElement = suspensionsGson.toJsonTree(suspensionsJsonObjects);
+            JsonArray jsonArray = new Gson().toJsonTree(suspensions_JsonElement).getAsJsonArray();
+            String suspensionsJson = suspensionsGson.toJson(jsonArray);
+            
+            return suspensionsJson;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            errorMsg = new JSONObject();
-            errorMsg.put(Helper.error, Helper.errorMsg);
+            return Helper.ERROR_UNKNOWN_JSON;
         }
         
-        if (suspensionsJson != null) return suspensionsJson;
-        else if (errorMsg != null) return errorMsg;
-        else return null;
     }
     
 }

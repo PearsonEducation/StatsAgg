@@ -1,17 +1,18 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.JsonObject;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.StackTrace;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar(prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name = "API_CreateAlert", urlPatterns = {"/api/create-alert"})
 public class CreateAlert extends HttpServlet {
@@ -38,40 +39,38 @@ public class CreateAlert extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+        
         try {
-            JSONObject responseMsg = new JSONObject();
             response.setContentType("application/json");
-            PrintWriter out = null;
-            String result = processPostRequest(request, new com.pearson.statsagg.webui.CreateAlert());
-            responseMsg.put("response", result);
+            String result = processPostRequest(request);
             out = response.getWriter();
-            out.println(responseMsg);
+            out.println(result);
         } 
         catch (Exception ex) {
             logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
     
     /**
-     * Returns a string with success message if alert is 
-     * successfully created or error message if the request fails to create one.     
+     * Returns a string with success message if the alert was successfully created,
+     * or an error message if the request fails to create the alert.
      * 
      * @param request servlet request
-     * @param createAlert CreateAlert object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateAlert createAlert) {
-        String result = null;
-        
-        try {
-            JSONObject alertData = Helper.getRequestData(request);
-            result = createAlert.parseAndAlterAlert(alertData);
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        return result;
+    protected String processPostRequest(HttpServletRequest request) {
+        com.pearson.statsagg.webui.CreateAlert createAlert = new com.pearson.statsagg.webui.CreateAlert();
+        JsonObject alertJsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createAlert.parseAndAlterAlert(alertJsonObject);
+        return Helper.createSimpleJsonResponse(result);
     }
     
 }

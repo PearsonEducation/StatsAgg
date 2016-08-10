@@ -1,13 +1,24 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,52 +51,78 @@ public class AlertsList extends HttpServlet {
      */
     @Override
     protected void doGet(HttpServletRequest request, HttpServletResponse response) {
-        logger.debug("doGet");
+        
+        PrintWriter out = null;
+
         try {    
-            JSONObject json = getAlertsList(request, new AlertsDao());       
-            PrintWriter out = null;
+            String json = getAlertsList(request);       
             response.setContentType("application/json");
             out = response.getWriter();
             out.println(json);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }     
+        }   
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }    
     }
 
     /**
      * Returns a json object containing a list of alerts.
      * 
      * @param request servlet request
-     * @param alertsDao AlertsDao object
-     * @return list of alerts
+     * @return json string of alerts
      */ 
-    protected JSONObject getAlertsList(HttpServletRequest request, AlertsDao alertsDao) {
-
-        JSONObject errorMsg = null;
-        JSONObject alertsList = null;
-        int pageNumber = 0, pageSize = 0;
-
+    protected String getAlertsList(HttpServletRequest request) {
+        
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
+        
         try {
-            if (request.getParameter(Helper.pageNumber) != null) {
-                pageNumber = Integer.parseInt(request.getParameter(Helper.pageNumber));
+            AlertsDao alertsDao = new AlertsDao(false);
+            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+            if (alerts == null) alerts = new ArrayList<>();
+            
+            List<JsonObject> alertsJsonObjects = new ArrayList<>();
+            for (Alert alert : alerts) {
+                MetricGroup metricGroup = null;
+                if ((alert != null) && (alert.getMetricGroupId() != null)) {
+                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
+                    metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+                }
+                
+                NotificationGroup cautionNotificationGroup = null;
+                NotificationGroup cautionPositiveNotificationGroup = null;
+                NotificationGroup dangerNotificationGroup = null;
+                NotificationGroup dangerPositiveNotificationGroup = null;
+                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(alertsDao.getDatabaseInterface());
+                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+                if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
+                if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+                if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
+                
+                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+                if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
-
-            if (request.getParameter(Helper.pageSize) != null) {
-                pageSize = Integer.parseInt(request.getParameter(Helper.pageSize));
-            }
-
-            alertsList = alertsDao.getAlerts(pageNumber * pageSize, pageSize);
+            
+            alertsDao.close();
+            
+            Gson alertsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
+            JsonElement alerts_JsonElement = alertsGson.toJsonTree(alertsJsonObjects);
+            JsonArray jsonArray = new Gson().toJsonTree(alerts_JsonElement).getAsJsonArray();
+            String alertsJson = alertsGson.toJson(jsonArray);
+            
+            return alertsJson;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            errorMsg = new JSONObject();
-            errorMsg.put(Helper.error, Helper.errorMsg);
+            return Helper.ERROR_UNKNOWN_JSON;
         }
-
-        if (alertsList != null) return alertsList;
-        else if (errorMsg != null) return errorMsg;
-        else return null;
+        
     }
 
 }

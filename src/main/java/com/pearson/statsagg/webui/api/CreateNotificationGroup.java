@@ -1,17 +1,18 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar(prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name = "API_CreateNotificationGroup", urlPatterns = {"/api/create-notification-group"})
 public class CreateNotificationGroup extends HttpServlet {
@@ -28,16 +29,24 @@ public class CreateNotificationGroup extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+        
         try {
-            String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateNotificationGroup());
-            PrintWriter out = null;
             response.setContentType("application/json");
+            String result = processPostRequest(request);
             out = response.getWriter();
-            out.println(responseMsg);
+            out.println(result);
         } 
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
 
     /**
@@ -51,25 +60,17 @@ public class CreateNotificationGroup extends HttpServlet {
     }
     
     /**
-     * Returns a string with success message if notification group is 
-     * successfully created or error message if the request fails to create one.     
+     * Returns a string with success message if the notification group was successfully created,
+     * or an error message if the request fails to create the notification group.
      * 
      * @param request servlet request
-     * @param createNotificationGroup CreateNotificationGroup object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup) {        
-        String result = null;   
-        JSONObject notificationData = Helper.getRequestData(request);
-        
-        try {
-            result = createNotificationGroup.parseAndAlterNotificationGroup(notificationData);
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        return result;
+    protected String processPostRequest(HttpServletRequest request) {
+        com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.webui.CreateNotificationGroup();
+        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createNotificationGroup.parseAndAlterNotificationGroup(suspensionJsonObject);
+        return Helper.createSimpleJsonResponse(result);
     }
     
 }

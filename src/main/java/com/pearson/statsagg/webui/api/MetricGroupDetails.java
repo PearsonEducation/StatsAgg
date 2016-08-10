@@ -1,13 +1,17 @@
 package com.pearson.statsagg.webui.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
+import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -17,6 +21,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name="API_MetricGroupDetails", urlPatterns={"/api/metric-group-details"})
 public class MetricGroupDetails extends HttpServlet {
@@ -58,16 +63,24 @@ public class MetricGroupDetails extends HttpServlet {
     }
     
     private void processRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+
         try {
             String json = getMetricGroupDetails(request);
             response.setContentType("application/json");
-            PrintWriter out;
             out = response.getWriter();
             out.println(json);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
 
     /**
@@ -79,7 +92,7 @@ public class MetricGroupDetails extends HttpServlet {
     protected String getMetricGroupDetails(HttpServletRequest request) {
         
         if (request == null) {
-            return Helper.ERROR_JSON;
+            return Helper.ERROR_UNKNOWN_JSON;
         }
         
         try {
@@ -90,37 +103,35 @@ public class MetricGroupDetails extends HttpServlet {
             if (request.getParameter("name") != null) metricGroupName = request.getParameter("name");
 
             if ((metricGroupId == null) && (metricGroupName == null)) {
-                JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-                metricGroupId = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-                metricGroupName = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+                JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+                metricGroupId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+                metricGroupName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             }
 
             MetricGroup metricGroup = null;
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+            MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
             if (metricGroupId != null) metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
             else if (metricGroupName != null) metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
-            else metricGroupsDao.close();
             
-            if (metricGroup != null) return getApiFriendlyJsonObject(metricGroup);
+            List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
+            List<MetricGroupTag> metricGroupTags = new ArrayList<>();
+            if (metricGroup != null) {
+                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
+                metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(metricGroupsDao.getDatabaseInterface());
+                metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+            }
+            
+            metricGroupsDao.close();
+            
+            if (metricGroup != null) return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags);
+            else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
         }
         
-        return Helper.ERROR_JSON;
+        return Helper.ERROR_UNKNOWN_JSON;
     }
-    
-    private String getApiFriendlyJsonObject(MetricGroup metricGroup) {
-        
-        if (metricGroup == null) {
-            return null;
-        }
-        
-        Gson metricGroup_Gson = new GsonBuilder().setFieldNamingStrategy(new JsonOutputFieldNamingStrategy()).setPrettyPrinting().create();   
-        JsonElement metricGroup_JsonElement = metricGroup_Gson.toJsonTree(metricGroup);
-        JsonObject jsonObject = new Gson().toJsonTree(metricGroup_JsonElement).getAsJsonObject();
-        
-        return metricGroup_Gson.toJson(jsonObject);
-    }
-    
+
 }

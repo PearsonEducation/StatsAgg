@@ -1,11 +1,13 @@
 package com.pearson.statsagg.webui.api;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -17,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name="API_AlertDetails", urlPatterns={"/api/alert-details"})
 public class AlertDetails extends HttpServlet {
@@ -58,16 +61,24 @@ public class AlertDetails extends HttpServlet {
     }
     
     private void processRequest(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+        
         try {
             String json = getAlertDetails(request);
             response.setContentType("application/json");
-            PrintWriter out;
             out = response.getWriter();
             out.println(json);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }
+        
     }
 
     /**
@@ -79,7 +90,7 @@ public class AlertDetails extends HttpServlet {
     protected String getAlertDetails(HttpServletRequest request) {
         
         if (request == null) {
-            return Helper.ERROR_JSON;
+            return Helper.ERROR_UNKNOWN_JSON;
         }
         
         try {
@@ -90,161 +101,42 @@ public class AlertDetails extends HttpServlet {
             if (request.getParameter("name") != null) alertName = request.getParameter("name");
 
             if ((alertId == null) && (alertName == null)) {
-                JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-                alertId = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-                alertName = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+                JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+                alertId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+                alertName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             }
 
             Alert alert = null;
-            AlertsDao alertsDao = new AlertsDao();
+            AlertsDao alertsDao = new AlertsDao(false);
             if (alertId != null) alert = alertsDao.getAlert(alertId);
             else if (alertName != null) alert = alertsDao.getAlertByName(alertName);
-            else alertsDao.close();
+
+            MetricGroup metricGroup = null;
+            if ((alert != null) && (alert.getMetricGroupId() != null)) {
+                MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
+                metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+            }
+
+            NotificationGroup cautionNotificationGroup = null;
+            NotificationGroup cautionPositiveNotificationGroup = null;
+            NotificationGroup dangerNotificationGroup = null;
+            NotificationGroup dangerPositiveNotificationGroup = null;
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(alertsDao.getDatabaseInterface());
+            if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+            if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
+            if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+            if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
+                
+            alertsDao.close();
             
-            if (alert != null) return getApiFriendlyJsonObject(alert);
+            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
         }
         
-        return Helper.ERROR_JSON;
-    }
-    
-    private String getApiFriendlyJsonObject(Alert alert) {
-        
-        if (alert == null) {
-            return null;
-        }
-
-        Gson alert_Gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
-        JsonElement alert_JsonElement = alert_Gson.toJsonTree(alert);
-        JsonObject jsonObject = new Gson().toJsonTree(alert_JsonElement).getAsJsonObject();
-        String currentFieldToAlter;
-        JsonElement currentField_JsonElement;
-                    
-        currentFieldToAlter = "alert_type";
-        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, "Threshold");
-        }
-        else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, "Availability");
-        }
-        else jsonObject.remove(currentFieldToAlter);        
-
-        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "resend_alert_every", "resend_alert_every_time_unit");
-
-        currentFieldToAlter = "caution_operator";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            String operatorString = alert.getOperatorString(Alert.CAUTION, true, false);
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, operatorString);
-        }
-        
-        currentFieldToAlter = "caution_combination";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            String combinationString = alert.getCombinationString(Alert.CAUTION);
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, combinationString);
-        }
-        
-        currentFieldToAlter = "caution_threshold";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            jsonObject.remove(currentFieldToAlter);
-            JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getCautionThreshold());
-            jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
-        }
-        
-        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_window_duration", "caution_window_duration_time_unit");
-        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_stop_tracking_after", "caution_stop_tracking_after_time_unit");
-        
-        currentFieldToAlter = "danger_operator";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            String operatorString = alert.getOperatorString(Alert.DANGER, true, false);
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, operatorString);
-        }
-        
-        currentFieldToAlter = "danger_combination";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            String combinationString = alert.getCombinationString(Alert.DANGER);
-            jsonObject.remove(currentFieldToAlter);
-            jsonObject.addProperty(currentFieldToAlter, combinationString);
-        }
-        
-        currentFieldToAlter = "danger_threshold";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if (currentField_JsonElement != null) {
-            jsonObject.remove(currentFieldToAlter);
-            JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getDangerThreshold());
-            jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
-        }
-        
-        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_window_duration", "danger_window_duration_time_unit");
-        Helper.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_stop_tracking_after", "danger_stop_tracking_after_time_unit");
-        
-        currentFieldToAlter = "allow_resend_alert";
-        currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-        if ((currentField_JsonElement == null) || (alert.isAllowResendAlert() == null) || !alert.isAllowResendAlert()) {
-            jsonObject.remove("resend_alert_every");
-            jsonObject.remove("resend_alert_every_time_unit");
-        }
-        
-        if ((alert.isCautionEnabled() == null) || !alert.isCautionEnabled()) {
-            jsonObject.remove("caution_notification_group_id");
-            jsonObject.remove("caution_positive_notification_group_id");
-            jsonObject.remove("caution_minimum_sample_count");
-            jsonObject.remove("caution_combination");
-            jsonObject.remove("caution_alert_active");
-            jsonObject.remove("caution_window_duration");
-            jsonObject.remove("caution_window_duration_time_unit");
-            jsonObject.remove("caution_stop_tracking_after");
-            jsonObject.remove("caution_stop_tracking_after_time_unit");
-            jsonObject.remove("caution_operator");
-            jsonObject.remove("caution_threshold");
-        }
-        
-        if ((alert.isDangerEnabled() == null) || !alert.isDangerEnabled()) {
-            jsonObject.remove("danger_notification_group_id");
-            jsonObject.remove("danger_positive_notification_group_id");
-            jsonObject.remove("danger_minimum_sample_count");
-            jsonObject.remove("danger_combination");
-            jsonObject.remove("danger_alert_active");
-            jsonObject.remove("danger_window_duration");
-            jsonObject.remove("danger_window_duration_time_unit");
-            jsonObject.remove("danger_stop_tracking_after");
-            jsonObject.remove("danger_stop_tracking_after_time_unit");
-            jsonObject.remove("danger_operator");
-            jsonObject.remove("danger_threshold");
-        }
-        
-        if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
-            jsonObject.remove("caution_minimum_sample_count");
-            jsonObject.remove("caution_combination");
-            jsonObject.remove("caution_operator");
-            jsonObject.remove("caution_threshold");
-            
-            jsonObject.remove("danger_minimum_sample_count");
-            jsonObject.remove("danger_combination");
-            jsonObject.remove("danger_operator");
-            jsonObject.remove("danger_threshold");
-        }
-        
-        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
-            jsonObject.remove("caution_stop_tracking_after");
-            jsonObject.remove("caution_stop_tracking_after_time_unit");
-            
-            jsonObject.remove("danger_stop_tracking_after");
-            jsonObject.remove("danger_stop_tracking_after_time_unit");
-        }        
-        
-        return alert_Gson.toJson(jsonObject);
+        return Helper.ERROR_UNKNOWN_JSON;
     }
     
 }

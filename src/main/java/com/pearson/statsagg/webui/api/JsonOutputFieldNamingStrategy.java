@@ -2,7 +2,6 @@ package com.pearson.statsagg.webui.api;
 
 import com.google.gson.FieldNamingStrategy;
 import java.lang.reflect.Field;
-import java.math.BigDecimal;
 import java.util.Locale;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

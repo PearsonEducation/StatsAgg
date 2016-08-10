@@ -1,12 +1,12 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -40,39 +40,37 @@ public class CreateMetricGroup extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         logger.debug("doPost");
         
+        PrintWriter out = null;
+        
         try {
-          String responseMsg = processPostRequest(request, new com.pearson.statsagg.webui.CreateMetricGroup());
-          PrintWriter out = null;
-          response.setContentType("application/json");
-          out = response.getWriter();
-          out.println(responseMsg);
+            response.setContentType("application/json");
+            String result = processPostRequest(request);
+            out = response.getWriter();
+            out.println(result);
         } 
         catch(Exception e) {
-              logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
         
     }
 
     /**
-     * Returns a string with success message if metric group is
-     * successfully created or error message if the request fails to create one.
+     * Returns a string with success message if the metric group was successfully created,
+     * or an error message if the request fails to create the metric group.
      * 
      * @param request servlet request
-     * @param createMetricGroup CreateMetricGroup object
      * @return success or error message
      */
-    protected String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup) {
-        String result = null;
-        JSONObject metricData = Helper.getRequestData(request);
-        
-        try {
-            result = createMetricGroup.parseMetricGroup(metricData);
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        return result;
-    }    
+    protected String processPostRequest(HttpServletRequest request) {
+        com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
+        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createMetricGroup.parseAndAlterMetricGroup(suspensionJsonObject);
+        return Helper.createSimpleJsonResponse(result);
+    }
     
 }

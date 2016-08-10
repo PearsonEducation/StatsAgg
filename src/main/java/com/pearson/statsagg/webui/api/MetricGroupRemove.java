@@ -1,17 +1,21 @@
 package com.pearson.statsagg.webui.api;
 
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar (prashant4nov)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name = "API_Remove_Metric", urlPatterns = {"/api/metric-remove"})
 public class MetricGroupRemove extends HttpServlet {
@@ -38,49 +42,64 @@ public class MetricGroupRemove extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+        
         try {    
-            PrintWriter out = null;
-            String returnString = processPostRequest(request, new com.pearson.statsagg.webui.MetricGroups());       
-            JSONObject responseMsg = new JSONObject();
-            responseMsg.put("response", returnString);
+            String returnString = processPostRequest(request);       
             response.setContentType("application/json");
             out = response.getWriter();
-            out.println(responseMsg);
+            out.println(returnString);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }  
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
     
     /**
-     * Returns a string with success message if metric group is deleted 
-     * successfully or error message if the request fails to delete metric group.
+     * Returns a string with a success message if metric group is deleted successfully, 
+     * or an error message if the request fails to delete the metric group.
      * 
      * @param request servlet request
-     * @param metricGroup MetricGroups object
      * @return success or error message
      */
-    String processPostRequest(HttpServletRequest request, com.pearson.statsagg.webui.MetricGroups metricGroup) {
-        logger.debug("Remove metricGroup request");
+    protected String processPostRequest(HttpServletRequest request) {
         
-        String returnString = null;
-        
-        try {
-            String metricName = null;
-            
-            logger.debug(request.getParameter(Helper.name));
-            
-            if (request.getParameter(Helper.name) != null) {
-                metricName = request.getParameter(Helper.name);
-            }
-            
-            returnString = metricGroup.removeMetricGroup(metricName);
-        } 
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
         }
         
-        return returnString;
+        try {
+            JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+            Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+            String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
+            
+            if (id != null) {
+                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
+                name = metricGroup.getName();
+            }
+            
+            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+            MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(name);
+            if (metricGroup == null) return Helper.ERROR_NOTFOUND_JSON;
+            
+            com.pearson.statsagg.webui.MetricGroups metricGroups = new com.pearson.statsagg.webui.MetricGroups(); 
+            String result = metricGroups.removeMetricGroup(name);
+            
+            return Helper.createSimpleJsonResponse(result);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
+        
     }
     
 }

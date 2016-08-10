@@ -3,6 +3,7 @@ package com.pearson.statsagg.webui.api;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -40,9 +41,11 @@ public class SuspensionEnable extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        
+        PrintWriter out = null;
+
         try {    
             String responseMsg = processPostRequest(request);       
-            PrintWriter out = null;
             response.setContentType("application/json");
             out = response.getWriter();
             out.println(responseMsg);
@@ -50,23 +53,32 @@ public class SuspensionEnable extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }  
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
 
     /**
-     * Returns a string with success message if suspension is enabled/disabled 
-     * successfully or error message if the request fails to enable/disable suspension.
+     * Returns a string with a success message if suspension is enabled/disabled successfully,
+     * or an error message if the request fails to enable/disable the suspension.
      * 
      * @param request servlet request
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        String returnString = null;
-
+      
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
+        
         try {
-            JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-            Integer id = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-            String name = Helper.getStringFieldFromJsonObject(jsonObject, "name");
-            Boolean isEnabled = Helper.getBooleanFieldFromJsonObject(jsonObject, "enabled");
+            JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+            Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+            String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
+            Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
             if (id != null) {
                 SuspensionsDao suspensionsDao = new SuspensionsDao();
@@ -74,14 +86,20 @@ public class SuspensionEnable extends HttpServlet {
                 name = suspension.getName();
             }
             
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            Suspension suspension = suspensionsDao.getSuspensionByName(name);
+            if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
+            
             com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions();
-            returnString = suspensions.changeSuspensionEnabled(name, isEnabled);
+            String result = suspensions.changeSuspensionEnabled(name, isEnabled);
+            
+            return Helper.createSimpleJsonResponse(result);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return Helper.ERROR_UNKNOWN_JSON;
         }
-
-        return returnString;
+        
     }
 
 }

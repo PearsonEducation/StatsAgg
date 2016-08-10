@@ -3,20 +3,19 @@ package com.pearson.statsagg.webui.api;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.database_objects.suspensions.Suspension;
-import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant4nov (Prashant Kumar)
+ * @author Jeffrey Schmidt
  */
 @WebServlet(name = "API_Alert_Remove", urlPatterns = {"/api/alert-remove"})
 public class AlertRemove extends HttpServlet {
@@ -43,8 +42,10 @@ public class AlertRemove extends HttpServlet {
      */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {        
+        
+        PrintWriter out = null;
+        
         try {    
-            PrintWriter out = null;
             String returnString = processPostRequest(request);       
             response.setContentType("application/json");
             out = response.getWriter();
@@ -53,10 +54,16 @@ public class AlertRemove extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }   
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        }
+        
     }
 
     /**
-     * Returns a string with success message if alert is deleted successfully, 
+     * Returns a string with a success message if the alert is deleted successfully, 
      * or an error message if the request fails to delete the alert.
      * 
      * @param request servlet request
@@ -64,12 +71,14 @@ public class AlertRemove extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         
-        String returnString = null;
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
 
         try {
-            JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-            Integer id = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-            String name = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+            JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+            Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+            String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if (id != null) {
                 AlertsDao alertsDao = new AlertsDao();
@@ -77,14 +86,20 @@ public class AlertRemove extends HttpServlet {
                 name = alert.getName();
             }
             
+            AlertsDao alertsDao = new AlertsDao();
+            Alert alert = alertsDao.getAlertByName(name);
+            if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
+            
             com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts(); 
-            returnString = alerts.removeAlert(name);
+            String result = alerts.removeAlert(name);
+            
+            return Helper.createSimpleJsonResponse(result);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return Helper.ERROR_UNKNOWN_JSON;
         }
-
-        return returnString;
+        
     }
     
 }

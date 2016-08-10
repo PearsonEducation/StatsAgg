@@ -3,6 +3,7 @@ package com.pearson.statsagg.webui.api;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -40,9 +41,11 @@ public class SuspensionRemove extends HttpServlet {
      * @param response servlet response
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {        
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {     
+        
+        PrintWriter out = null;
+
         try {    
-            PrintWriter out = null;
             String returnString = processPostRequest(request);       
             response.setContentType("application/json");
             out = response.getWriter();
@@ -51,10 +54,16 @@ public class SuspensionRemove extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }   
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
     }
 
     /**
-     * Returns a string with success message if suspension is deleted successfully, 
+     * Returns a string with a success message if the suspension is deleted successfully,
      * or an error message if the request fails to delete the suspension.
      * 
      * @param request servlet request
@@ -62,12 +71,14 @@ public class SuspensionRemove extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         
-        String returnString = null;
-
+        if (request == null) {
+            return Helper.ERROR_UNKNOWN_JSON;
+        }
+        
         try {
-            JsonObject jsonObject = Helper.getJsonObjectFromRequetBody(request);
-            Integer id = Helper.getIntegerFieldFromJsonObject(jsonObject, "id");
-            String name = Helper.getStringFieldFromJsonObject(jsonObject, "name");
+            JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+            Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+            String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if (id != null) {
                 SuspensionsDao suspensionsDao = new SuspensionsDao();
@@ -75,14 +86,20 @@ public class SuspensionRemove extends HttpServlet {
                 name = suspension.getName();
             }
             
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            Suspension suspension = suspensionsDao.getSuspensionByName(name);
+            if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
+            
             com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions(); 
-            returnString = suspensions.removeSuspension(name);
+            String result = suspensions.removeSuspension(name);
+            
+            return Helper.createSimpleJsonResponse(result);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return Helper.ERROR_UNKNOWN_JSON;
         }
-
-        return returnString;
+        
     }
-
+    
 }
