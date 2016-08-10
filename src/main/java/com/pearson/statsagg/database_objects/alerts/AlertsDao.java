@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.alerts;
 
+import com.pearson.statsagg.database_engine.DatabaseInterface;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
@@ -10,8 +11,6 @@ import java.util.Set;
 import com.pearson.statsagg.database_engine.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +27,10 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             
     public AlertsDao(boolean closeConnectionAfterOperation) {
         databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
+    }
+    
+    public AlertsDao(DatabaseInterface databaseInterface) {
+        super(databaseInterface);
     }
     
     public boolean dropTable() {
@@ -483,66 +486,4 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         
     }
 
-    public JSONObject getAlerts(int offset, int pageSize) {        
-
-        List<Object> parametersList = new ArrayList<>(2);
-        
-        JSONArray alertsList = new JSONArray();
-        JSONObject alertsJson = new JSONObject();
-        int alertsCount = 0;
-        
-        try {
-            if (!isConnectionValid()) {
-                return null;
-            }
-            
-            if ((offset == 0) && (pageSize == 0)) {
-                alertsJson.put("alerts", alertsList);
-                alertsJson.put("count", alertsCount);
-                return alertsJson;
-            }
-            
-            parametersList.add(offset);
-            parametersList.add(pageSize);
-            
-            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_MySQL, pageSize);
-            } 
-            else {
-                databaseInterface_.createPreparedStatement(AlertsSql.Select_Alerts_ByPageNumberAndPageSize_Derby, pageSize);
-            }
-            
-            databaseInterface_.addPreparedStatementParameters(parametersList);
-
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                logger.debug("Invalid resultset");
-                return null;
-            }
-            
-            ResultSet resultSet = databaseInterface_.getResults();
-            
-            while(resultSet.next()) {
-                JSONObject alert = new JSONObject();
-                alert.put("name", resultSet.getString("NAME"));
-                alert.put("id", resultSet.getString("ID"));
-                alertsList.add(alert);
-                alertsCount++;
-            }
-            
-            alertsJson.put("alerts", alertsList);
-            alertsJson.put("count", alertsCount);
-            
-            return alertsJson;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
-    }
-     
 }
