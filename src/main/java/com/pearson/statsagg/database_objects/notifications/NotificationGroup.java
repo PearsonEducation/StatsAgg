@@ -1,7 +1,13 @@
 package com.pearson.statsagg.database_objects.notifications;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.annotations.SerializedName;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.webui.api.JsonOutputFieldNamingStrategy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -17,10 +23,10 @@ public class NotificationGroup extends DatabaseObject<NotificationGroup> {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroup.class.getName());
 
-    private Integer id_;
-    private String name_ = null;
-    private String uppercaseName_ = null;
-    private String emailAddresses_ = null;
+    @SerializedName("id") private Integer id_;
+    @SerializedName("name") private String name_ = null;
+    private transient String uppercaseName_ = null;
+    @SerializedName("email_addresses") private String emailAddresses_ = null;
     
     public NotificationGroup() {
         this.id_ = -1;
@@ -107,6 +113,45 @@ public class NotificationGroup extends DatabaseObject<NotificationGroup> {
         notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
         
         return notificationGroupCopy;
+    }
+    
+    public static JsonObject getJsonObject_ApiFriendly(NotificationGroup notificationGroup) {
+        
+        if (notificationGroup == null) {
+            return null;
+        }
+        
+        try {
+            Gson notificationGroup_Gson = new GsonBuilder().setFieldNamingStrategy(new JsonOutputFieldNamingStrategy()).setPrettyPrinting().create();   
+            JsonElement notificationGroup_JsonElement = notificationGroup_Gson.toJsonTree(notificationGroup);
+            JsonObject jsonObject = new Gson().toJsonTree(notificationGroup_JsonElement).getAsJsonObject();
+            return jsonObject;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public static String getJsonString_ApiFriendly(NotificationGroup notificationGroup){
+        
+        if (notificationGroup == null) {
+            return null;
+        }
+        
+        try {
+            JsonObject jsonObject = getJsonObject_ApiFriendly(notificationGroup);
+            if (jsonObject == null) return null;
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
+            return gson.toJson(jsonObject);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     public Integer getId() {
