@@ -1,6 +1,5 @@
 package com.pearson.statsagg.alerts;
 
-import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -10,6 +9,8 @@ import java.util.Map;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
@@ -67,7 +68,10 @@ public class EmailThread implements Runnable  {
         MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
         MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert_.getMetricGroupId());
         
-        buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup);
+        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
+        List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert_.getMetricGroupId());
+        
+        buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup, metricGroupTags);
         
         List<String> emailAddesses;
         if ((alertLevel_ == Alert.CAUTION) && !isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
@@ -81,7 +85,7 @@ public class EmailThread implements Runnable  {
         }
     }
     
-    public void buildAlertEmail(int numMetricKeysPerEmail, MetricGroup metricGroup) {
+    public void buildAlertEmail(int numMetricKeysPerEmail, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags) {
     
         if ((alert_ == null) || ((alertLevel_ != Alert.CAUTION) && (alertLevel_ != Alert.DANGER)) || (metricGroup == null)) {
             logger.error("Failed to create email alert message.");
@@ -133,8 +137,22 @@ public class EmailThread implements Runnable  {
         else body.append("<br>");
         
         body.append("<b>Metric Group Description</b> = ");
-        if (metricGroup.getDescription() != null) body.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getDescription()).replaceAll("\n", "<br>&nbsp;&nbsp;&nbsp;")).append("<br><br>");
+        if (metricGroup.getDescription() != null) body.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getDescription()).replaceAll("\n", "<br>&nbsp;&nbsp;&nbsp;"));
+        
+        if ((metricGroupTags == null) || metricGroupTags.isEmpty()) body.append("<br><br>");
         else body.append("<br>");
+        
+        if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
+            body.append("<b>Tags</b> = ");
+            
+            for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                if ((metricGroupTag != null) && (metricGroupTag.getTag() != null) && !metricGroupTag.getTag().trim().isEmpty()) {
+                    body.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTag.getTag().trim())).append("</u>&nbsp;");
+                }
+            }
+            
+            body.append("<br><br>");
+        }
         
         if (isPositiveAlert_) {
             body.append("<b>No metrics associated with the metric group \"").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName()))
