@@ -1,11 +1,19 @@
 package com.pearson.statsagg.database_objects.suspensions;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
 import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.utilities.DateAndTime;
+import com.pearson.statsagg.utilities.JsonUtils;
+import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.Date;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -48,7 +56,7 @@ public class Suspension extends DatabaseObject<Suspension> {
     @SerializedName("start_time") private Timestamp startTime_ = null;
     @SerializedName("duration") private Long duration_ = null;  // native timeunit is milliseconds
     @SerializedName("duration_time_unit") private Integer durationTimeUnit_ = null; 
-    @SerializedName("delete_at_timestamp") private Timestamp deleteAtTimestamp_ = null;    
+    private transient Timestamp deleteAtTimestamp_ = null;    
 
     public Suspension() {
         this.id_ = -1;
@@ -476,6 +484,168 @@ public class Suspension extends DatabaseObject<Suspension> {
         return null;
     }
     
+    public static JsonObject getJsonObject_ApiFriendly(Suspension suspension) {
+        return getJsonObject_ApiFriendly(suspension, null);
+    }
+    
+    public static JsonObject getJsonObject_ApiFriendly(Suspension suspension, Alert alert) {
+        
+        if (suspension == null) {
+            return null;
+        }
+        
+        try {
+            Gson suspension_Gson = new GsonBuilder().disableHtmlEscaping().setPrettyPrinting().create();   
+            JsonElement suspension_JsonElement = suspension_Gson.toJsonTree(suspension);
+            JsonObject jsonObject = new Gson().toJsonTree(suspension_JsonElement).getAsJsonObject();
+            String currentFieldToAlter;
+            JsonElement currentField_JsonElement;
+
+            if ((alert != null) && (suspension.getAlertId() != null) && (alert.getId() != null) && 
+                    (suspension.getAlertId().intValue() == alert.getId().intValue())) {
+                jsonObject.addProperty("alert_name", alert.getName());
+            }
+            else if ((alert != null) && (suspension.getAlertId() != null) && (alert.getId() != null)) {
+                logger.error("'Alert Id' from the 'suspension' object must match the Alert's 'Id'");
+            }
+            
+            currentFieldToAlter = "suspend_by";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                int currentField_JsonElement_Int = currentField_JsonElement.getAsInt();
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, Suspension.getSuspendByStringFromCode(currentField_JsonElement_Int));
+            }
+
+            currentFieldToAlter = "metric_group_tags_inclusive";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String currentField_JsonElement_String = currentField_JsonElement.getAsString();
+                if (currentField_JsonElement_String.trim().isEmpty()) jsonObject.remove(currentFieldToAlter);
+                else {
+                    List<String> fieldArrayValues = StringUtilities.getListOfStringsFromDelimitedString(currentField_JsonElement_String.trim(), '\n');
+                    JsonArray jsonArray = new JsonArray();
+                    if (fieldArrayValues != null) for (String metricGroupTag : fieldArrayValues) jsonArray.add(metricGroupTag);
+                    jsonObject.add(currentFieldToAlter, jsonArray);
+                }
+            }
+
+            currentFieldToAlter = "metric_group_tags_exclusive";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String currentField_JsonElement_String = currentField_JsonElement.getAsString();
+                if (currentField_JsonElement_String.trim().isEmpty()) jsonObject.remove(currentFieldToAlter);
+                else {
+                    List<String> fieldArrayValues = StringUtilities.getListOfStringsFromDelimitedString(currentField_JsonElement_String.trim(), '\n');
+                    JsonArray jsonArray = new JsonArray();
+                    if (fieldArrayValues != null) for (String metricGroupTag : fieldArrayValues) jsonArray.add(metricGroupTag);
+                    jsonObject.add(currentFieldToAlter, jsonArray);
+                }
+            }
+
+            currentFieldToAlter = "metric_suspension_regexes";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String currentField_JsonElement_String = currentField_JsonElement.getAsString();
+                if (currentField_JsonElement_String.trim().isEmpty()) jsonObject.remove(currentFieldToAlter);
+                else {
+                    List<String> fieldArrayValues = StringUtilities.getListOfStringsFromDelimitedString(currentField_JsonElement_String.trim(), '\n');
+                    JsonArray jsonArray = new JsonArray();
+                    if (fieldArrayValues != null) for (String metricGroupTag : fieldArrayValues) jsonArray.add(metricGroupTag);
+                    jsonObject.add(currentFieldToAlter, jsonArray);
+                }
+            }
+
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "duration", "duration_time_unit");
+
+            currentFieldToAlter = "start_date";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String startDateString = DateAndTime.getFormattedDateAndTime(suspension.getStartDate(), "yyyy-MM-dd");
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, startDateString);
+            }
+
+            currentFieldToAlter = "start_time";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String startTimeString = DateAndTime.getFormattedDateAndTime(suspension.getStartTime(), "h:mm a");
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, startTimeString);
+            }
+
+            
+            if ((suspension.getSuspendBy() != null) && suspension.getSuspendBy().equals(Suspension.SUSPEND_BY_ALERT_ID)) {
+                jsonObject.remove("metric_group_tags_inclusive");
+                jsonObject.remove("metric_group_tags_exclusive");
+                jsonObject.remove("metric_suspension_regexes");
+            }
+
+            if ((suspension.getSuspendBy() != null) && suspension.getSuspendBy().equals(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS)) {
+                jsonObject.remove("alert_id");
+                jsonObject.remove("alert_name");
+                jsonObject.remove("metric_group_tags_exclusive");
+                jsonObject.remove("metric_suspension_regexes");
+                jsonObject.remove("suspend_notification_only");
+            }
+
+            if ((suspension.getSuspendBy() != null) && suspension.getSuspendBy().equals(Suspension.SUSPEND_BY_EVERYTHING)) {
+                jsonObject.remove("alert_id");
+                jsonObject.remove("alert_name");
+                jsonObject.remove("metric_group_tags_inclusive");
+                jsonObject.remove("metric_suspension_regexes");
+            }
+
+            if ((suspension.getSuspendBy() != null) && suspension.getSuspendBy().equals(Suspension.SUSPEND_BY_METRICS)) {
+                jsonObject.remove("alert_id");
+                jsonObject.remove("alert_name");
+                jsonObject.remove("metric_group_tags_inclusive");
+                jsonObject.remove("metric_group_tags_exclusive");
+            }
+
+            if ((suspension.isOneTime() != null) && suspension.isOneTime()) {
+                jsonObject.remove("recur_sunday");
+                jsonObject.remove("recur_monday");
+                jsonObject.remove("recur_tuesday");
+                jsonObject.remove("recur_wednesday");
+                jsonObject.remove("recur_thursday");
+                jsonObject.remove("recur_friday");
+                jsonObject.remove("recur_saturday");
+            }
+
+            return jsonObject;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public static String getJsonString_ApiFriendly(Suspension suspension) {
+        return getJsonString_ApiFriendly(suspension, null);
+    }
+    
+    public static String getJsonString_ApiFriendly(Suspension suspension, Alert alert) {
+        
+        if (suspension == null) {
+            return null;
+        }
+        
+        try {
+            JsonObject jsonObject = getJsonObject_ApiFriendly(suspension, alert);
+            if (jsonObject == null) return null;
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
+            return gson.toJson(jsonObject);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+
     public Integer getId() {
         return id_;
     }
