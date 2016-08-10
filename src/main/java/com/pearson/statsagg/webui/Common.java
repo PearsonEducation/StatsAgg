@@ -1,13 +1,14 @@
 package com.pearson.statsagg.webui;
 
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.StackTrace;
 import javax.servlet.http.HttpServletRequest;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant4nov (Prashant Kumar)
+ * @author Jeffrey Schmidt
  */
 public class Common {
     
@@ -24,13 +25,9 @@ public class Common {
                 HttpServletRequest httpServletRequest = (HttpServletRequest) object;
                 return (String) httpServletRequest.getParameter(parameterName);
             }
-            else if (object instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) object;
-                return (String) jsonObject.get(parameterName).toString();
-            }
-            else if (object instanceof JSONObject) {
-                JSONObject jsonObject = (JSONObject) object;
-                return (String) jsonObject.get(parameterName).toString();
+            else if (object instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) object;
+                return (String) jsonObject.get(parameterName).getAsString();
             }
         }
         catch (Exception e) {
