@@ -136,6 +136,7 @@ public class Home extends HttpServlet {
         long numAssociatedMetricsWithValues = GlobalVariables.associatedMetricsWithValuesCount.longValue();
         long numMetricKeysTrackedLast24Hrs = GlobalVariables.metricKeysLastSeenTimestamp.size();
         long avgIncomingMetricsProcessedPerSecond = GlobalVariables.incomingMetricsRollingAverage.longValue();
+        long currentDatapointsInMemory = GlobalVariables.currentDatapointsInMemory.longValue();
         
         Calendar homeLastRefreshedTimestamp = Calendar.getInstance();
   
@@ -201,6 +202,7 @@ public class Home extends HttpServlet {
             "            <p><b>Active danger alerts:</b> " + numDangerAlertsActive + "</p>\n" +
             "            <p><b>Last alert routine execution time:</b> " + alertRoutineLastExecuted + "</p>\n" +
             "            <p><b>Recent/unique metric keys associated with metric groups:</b> " + numAssociatedMetricsWithValues + "</p>\n" +
+            "            <p><b>Unique metric datapoints in StatsAgg memory:</b> " + currentDatapointsInMemory + "</p>\n" +
             "            <p><b>Unique metric keys outputted (last 24hrs):</b> " + numMetricKeysTrackedLast24Hrs + "</p>\n" +
             "            <p><b>Average incoming metrics processed per second (last 15sec):</b> " + avgIncomingMetricsProcessedPerSecond + "</p>\n" +
             "        </div>\n" +

@@ -56,6 +56,9 @@ public class GlobalVariables {
     // Used to track how many metrics are flowing into StatsAgg
     public final static AtomicLong incomingMetricsRollingAverage = new AtomicLong(0);
     
+    // Used to track how many metric datapoints are currently in statsagg
+    public final static AtomicLong currentDatapointsInMemory = new AtomicLong(0);
+    
     // Used to track how many metrics are known to StatsAgg that have a valid association & a stored datapoint
     public final static AtomicLong associatedMetricsWithValuesCount = new AtomicLong(0);
     
