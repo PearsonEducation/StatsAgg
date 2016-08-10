@@ -3,12 +3,10 @@ package com.pearson.statsagg.database_engine;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import java.sql.Connection;
 import java.sql.Driver;
 import java.sql.DriverManager;
-import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,16 +54,7 @@ public class DatabaseConnections {
         config.setUsername(DatabaseConfiguration.getUsername());
         config.setPassword(DatabaseConfiguration.getPassword());
         config.setDefaultAutoCommit(DatabaseConfiguration.getCpDefaultAutoCommit());
- 
-        if (ApplicationConfiguration.isDebugModeEnabled()) {
-            config.setCloseConnectionWatch(true);
-            config.setCloseConnectionWatchTimeout(10, TimeUnit.SECONDS);
-            config.setDetectUnresolvedTransactions(true);
-            config.setDetectUnclosedStatements(true);
-            config.setCloseOpenStatements(false);
-            config.setDisableConnectionTracking(false); 
-        }
-        
+
         try {
             connectionPool_ = new BoneCP(config);
         }
