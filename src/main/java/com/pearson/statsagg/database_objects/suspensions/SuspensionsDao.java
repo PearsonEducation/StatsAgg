@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.suspensions;
 
+import com.pearson.statsagg.database_engine.DatabaseInterface;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -10,8 +11,6 @@ import com.pearson.statsagg.database_engine.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,6 +27,10 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
             
     public SuspensionsDao(boolean closeConnectionAfterOperation) {
         databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
+    }
+    
+    public SuspensionsDao(DatabaseInterface databaseInterface) {
+        super(databaseInterface);
     }
     
     public boolean dropTable() {
@@ -384,68 +387,6 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
         }
         
         return suspensions_SuspendByMetricGroupTag_ByMetricGroupTag;
-    }
-    
-    public JSONObject getSuspension(int offset, int pageSize) {
-
-        List<Object> parametersList = new ArrayList<>(2);
-
-        JSONArray suspensionList = new JSONArray();
-        JSONObject suspensionJson = new JSONObject();
-        int suspensionCount = 0;
-
-        try {
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            if ((offset == 0) && (pageSize == 0)) {
-                suspensionJson.put("suspensions", suspensionList);
-                suspensionJson.put("count", suspensionCount);
-                return suspensionJson;
-            }
-
-            parametersList.add(offset);
-            parametersList.add(pageSize);
-
-            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                databaseInterface_.createPreparedStatement(SuspensionsSql.Select_Suspension_ByPageNumberAndPageSize_MySQL, pageSize);
-            }
-            else {
-                databaseInterface_.createPreparedStatement(SuspensionsSql.Select_Suspension_ByPageNumberAndPageSize_Derby, pageSize);
-            }
-            
-            databaseInterface_.addPreparedStatementParameters(parametersList);
-
-            databaseInterface_.executePreparedStatement();
-
-            if (!databaseInterface_.isResultSetValid()) {
-                logger.debug("Invalid resultset");
-                return null;
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
-
-            while (resultSet.next()) {
-                JSONObject suspension = new JSONObject();
-                suspension.put("name", resultSet.getString("NAME"));
-                suspension.put("id", resultSet.getString("ID"));
-                suspensionList.add(suspension);
-                suspensionCount++;
-            }
-
-            suspensionJson.put("alerts", suspensionList);
-            suspensionJson.put("count", suspensionCount);
-
-            return suspensionJson;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        finally {
-            databaseInterface_.cleanupAutomatic();
-        }
     }
 
 }
