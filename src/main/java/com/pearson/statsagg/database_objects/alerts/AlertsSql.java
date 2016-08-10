@@ -211,11 +211,8 @@ public class AlertsSql {
     protected final static String Delete_Alert_ByPrimaryKey =
                     "DELETE FROM ALERTS " +
                     "WHERE ID = ?";
-    
-    protected final static String Select_Alerts_ByPageNumberAndPageSize_Derby = 
-                    "SELECT ID, NAME FROM ALERTS ORDER BY ID OFFSET ? ROWS FETCH NEXT ? ROWS ONLY";
-    
-    protected final static String Select_Alerts_ByPageNumberAndPageSize_MySQL = 
-                    "SELECT ID, NAME FROM ALERTS ORDER BY ID ASC LIMIT ?,?";
+
+    protected final static String Select_Alerts_IdAndName = 
+                    "SELECT ID, NAME FROM ALERTS ORDER BY ID";
     
 }
