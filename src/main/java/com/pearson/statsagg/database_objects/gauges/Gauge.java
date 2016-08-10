@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.gauges;
 
+import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import com.pearson.statsagg.database_engine.DatabaseObject;
@@ -15,10 +16,10 @@ public class Gauge extends DatabaseObject<Gauge> {
     
     private static final Logger logger = LoggerFactory.getLogger(Gauge.class.getName());
    
-    private final String bucketSha1_;
-    private final String bucket_;
-    private final BigDecimal metricValue_;
-    private final Timestamp lastModified_;
+    @SerializedName("bucket_sha1") private final String bucketSha1_;
+    @SerializedName("bucket") private final String bucket_;
+    @SerializedName("metric_value") private final BigDecimal metricValue_;
+    @SerializedName("last_modified") private final Timestamp lastModified_;
     
     public Gauge(String bucketSha1, String bucket, BigDecimal metricValue, Timestamp lastModified) {
         this.bucketSha1_ = bucketSha1;
