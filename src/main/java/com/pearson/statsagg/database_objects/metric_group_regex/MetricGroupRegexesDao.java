@@ -64,7 +64,7 @@ public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
         if (metricGroupRegex == null) return false;
         
         return insert(MetricGroupRegexesSql.Insert_MetricGroupRegex, 
-                metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
+                metricGroupRegex.getMetricGroupId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
     }
     
     @Override
@@ -72,7 +72,7 @@ public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
         if (metricGroupRegex == null) return false;
 
         return update(MetricGroupRegexesSql.Update_MetricGroupRegex_ByPrimaryKey, 
-                metricGroupRegex.getMgId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
+                metricGroupRegex.getMetricGroupId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
     }
 
     @Override
@@ -133,7 +133,7 @@ public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
         Map<Integer,List<MetricGroupRegex>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
 
         for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
-            Integer metricGroupId = metricGroupRegex.getMgId();
+            Integer metricGroupId = metricGroupRegex.getMetricGroupId();
             
             if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
                 List<MetricGroupRegex> databaseObjects = databaseObjectsInTableByMetricGroupId.get(metricGroupId);
