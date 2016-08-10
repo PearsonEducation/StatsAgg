@@ -1,14 +1,21 @@
 package com.pearson.statsagg.database_objects.alerts;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.text.SimpleDateFormat;
+import com.pearson.statsagg.webui.api.JsonBigDecimal;
 import java.util.Calendar;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -847,6 +854,232 @@ public class Alert extends DatabaseObject<Alert> {
         else {
             return null;
         }
+    }
+    
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert) {
+        return getJsonObject_ApiFriendly(alert, null, null, null, null, null);
+    }
+    
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert, MetricGroup metricGroup, 
+            NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
+            NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
+        
+        if (alert == null) {
+            return null;
+        }
+        
+        try {
+            Gson alert_Gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
+            JsonElement alert_JsonElement = alert_Gson.toJsonTree(alert);
+            JsonObject jsonObject = new Gson().toJsonTree(alert_JsonElement).getAsJsonObject();
+            String currentFieldToAlter;
+            JsonElement currentField_JsonElement;
+
+            if ((metricGroup != null) && (metricGroup.getId() != null) && (alert.getMetricGroupId() != null) && (metricGroup.getId().intValue() == alert.getMetricGroupId().intValue())) {
+                jsonObject.addProperty("metric_group_name", metricGroup.getName());
+            }
+            else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert.getMetricGroupId() != null)) {
+                logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
+            }
+            
+            if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert.getCautionNotificationGroupId() != null) 
+                    && (cautionNotificationGroup.getId().intValue() == alert.getCautionNotificationGroupId().intValue())) {
+                jsonObject.addProperty("caution_notification_group_name", cautionNotificationGroup.getName());
+            }
+            else if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert.getCautionNotificationGroupId() != null)) {
+                logger.error("'Caution Notification Group Id' from the 'cautionNotificationGroup' object must match the Alert's 'Caution Notification Group Id'");
+            }
+            
+            if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert.getCautionPositiveNotificationGroupId() != null) 
+                    && (cautionPositiveNotificationGroup.getId().intValue() == alert.getCautionPositiveNotificationGroupId().intValue())) {
+                jsonObject.addProperty("caution_positive_notification_group_name", cautionPositiveNotificationGroup.getName());
+            }
+            else if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
+                logger.error("'Caution Positive Notification Group Id' from the 'cautionPositiveNotificationGroup' object must match the Alert's 'Caution Positive Notification Group Id'");
+            }
+            
+            if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert.getDangerNotificationGroupId() != null) 
+                    && (dangerNotificationGroup.getId().intValue() == alert.getDangerNotificationGroupId().intValue())) {
+                jsonObject.addProperty("danger_notification_group_name", dangerNotificationGroup.getName());
+            }
+            else if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert.getDangerNotificationGroupId() != null)) {
+                logger.error("'Danger Notification Group Id' from the 'dangerNotificationGroup' object must match the Alert's 'Danger Notification Group Id'");
+            }
+            
+            if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert.getDangerPositiveNotificationGroupId() != null) 
+                    && (dangerPositiveNotificationGroup.getId().intValue() == alert.getDangerPositiveNotificationGroupId().intValue())) {
+                jsonObject.addProperty("danger_positive_notification_group_name", dangerPositiveNotificationGroup.getName());
+            }
+            else if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {
+                logger.error("'Danger Positive Notification Group Id' from the 'dangerPositiveNotificationGroup' object must match the Alert's 'Danger Positive Notification Group Id'");
+            }
+            
+            currentFieldToAlter = "alert_type";
+            if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, "Threshold");
+            }
+            else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, "Availability");
+            }
+            else jsonObject.remove(currentFieldToAlter);        
+
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "resend_alert_every", "resend_alert_every_time_unit");
+
+            currentFieldToAlter = "caution_operator";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String operatorString = alert.getOperatorString(Alert.CAUTION, true, false);
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, operatorString);
+            }
+
+            currentFieldToAlter = "caution_combination";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String combinationString = alert.getCombinationString(Alert.CAUTION);
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, combinationString);
+            }
+
+            currentFieldToAlter = "caution_threshold";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                jsonObject.remove(currentFieldToAlter);
+                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getCautionThreshold());
+                jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
+            }
+
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_window_duration", "caution_window_duration_time_unit");
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_stop_tracking_after", "caution_stop_tracking_after_time_unit");
+
+            currentFieldToAlter = "danger_operator";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String operatorString = alert.getOperatorString(Alert.DANGER, true, false);
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, operatorString);
+            }
+
+            currentFieldToAlter = "danger_combination";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                String combinationString = alert.getCombinationString(Alert.DANGER);
+                jsonObject.remove(currentFieldToAlter);
+                jsonObject.addProperty(currentFieldToAlter, combinationString);
+            }
+
+            currentFieldToAlter = "danger_threshold";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if (currentField_JsonElement != null) {
+                jsonObject.remove(currentFieldToAlter);
+                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getDangerThreshold());
+                jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
+            }
+
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_window_duration", "danger_window_duration_time_unit");
+            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_stop_tracking_after", "danger_stop_tracking_after_time_unit");
+
+            currentFieldToAlter = "allow_resend_alert";
+            currentField_JsonElement = jsonObject.get(currentFieldToAlter);
+            if ((currentField_JsonElement == null) || (alert.isAllowResendAlert() == null) || !alert.isAllowResendAlert()) {
+                jsonObject.remove("resend_alert_every");
+                jsonObject.remove("resend_alert_every_time_unit");
+            }
+
+            if ((alert.isCautionEnabled() == null) || !alert.isCautionEnabled()) {
+                jsonObject.remove("caution_notification_group_id");
+                jsonObject.remove("caution_positive_notification_group_id");
+                jsonObject.remove("caution_minimum_sample_count");
+                jsonObject.remove("caution_combination");
+                jsonObject.remove("caution_alert_active");
+                jsonObject.remove("caution_window_duration");
+                jsonObject.remove("caution_window_duration_time_unit");
+                jsonObject.remove("caution_stop_tracking_after");
+                jsonObject.remove("caution_stop_tracking_after_time_unit");
+                jsonObject.remove("caution_operator");
+                jsonObject.remove("caution_threshold");
+            }
+
+            if ((alert.isDangerEnabled() == null) || !alert.isDangerEnabled()) {
+                jsonObject.remove("danger_notification_group_id");
+                jsonObject.remove("danger_positive_notification_group_id");
+                jsonObject.remove("danger_minimum_sample_count");
+                jsonObject.remove("danger_combination");
+                jsonObject.remove("danger_alert_active");
+                jsonObject.remove("danger_window_duration");
+                jsonObject.remove("danger_window_duration_time_unit");
+                jsonObject.remove("danger_stop_tracking_after");
+                jsonObject.remove("danger_stop_tracking_after_time_unit");
+                jsonObject.remove("danger_operator");
+                jsonObject.remove("danger_threshold");
+            }
+
+            if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+                jsonObject.remove("caution_minimum_sample_count");
+                jsonObject.remove("caution_combination");
+                jsonObject.remove("caution_operator");
+                jsonObject.remove("caution_threshold");
+
+                jsonObject.remove("danger_minimum_sample_count");
+                jsonObject.remove("danger_combination");
+                jsonObject.remove("danger_operator");
+                jsonObject.remove("danger_threshold");
+            }
+
+            if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+                jsonObject.remove("caution_stop_tracking_after");
+                jsonObject.remove("caution_stop_tracking_after_time_unit");
+
+                jsonObject.remove("danger_stop_tracking_after");
+                jsonObject.remove("danger_stop_tracking_after_time_unit");
+            }        
+            
+            if ((alert.isAlertOnPositive() != null) && !alert.isAlertOnPositive()) {
+                jsonObject.remove("caution_notification_group_name");
+                jsonObject.remove("caution_notification_group_id");
+                jsonObject.remove("caution_positive_notification_group_name");
+                jsonObject.remove("caution_positive_notification_group_id");
+                jsonObject.remove("danger_notification_group_name");
+                jsonObject.remove("danger_notification_group_id");
+                jsonObject.remove("danger_positive_notification_group_name");
+                jsonObject.remove("danger_positive_notification_group_id");        
+            }
+
+            return jsonObject;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public static String getJsonString_ApiFriendly(Alert alert) {
+        return getJsonString_ApiFriendly(alert, null, null, null, null, null);
+    }
+    
+    public static String getJsonString_ApiFriendly(Alert alert, MetricGroup metricGroup,
+            NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
+            NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
+        
+        if (alert == null) {
+            return null;
+        }
+        
+        try {
+            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            if (jsonObject == null) return null;
+
+            Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
+            return gson.toJson(jsonObject);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     public Integer getId() {
