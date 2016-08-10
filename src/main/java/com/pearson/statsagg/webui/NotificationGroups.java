@@ -18,6 +18,7 @@ import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
@@ -25,7 +26,6 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.concurrent.ConcurrentHashMap;
-import org.apache.commons.lang.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -311,9 +311,14 @@ public class NotificationGroups extends HttpServlet {
         alertMetricValues.put("emailtest.metric3-99999", new BigDecimal(103));
         alertMetricValues.put("emailtest.metric4-99999", new BigDecimal(104));
         
+        List<MetricGroupTag> metricGroupTags = new ArrayList<>();
+        metricGroupTags.add(new MetricGroupTag(777, 88888, "tag1"));
+        metricGroupTags.add(new MetricGroupTag(778, 88888, "tag2"));
+        metricGroupTags.add(new MetricGroupTag(779, 88888, "tag3"));
+        
         EmailThread emailThread = new EmailThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                 false, false, ApplicationConfiguration.getAlertStatsAggLocation());
-        emailThread.buildAlertEmail(3, metricGroup);
+        emailThread.buildAlertEmail(3, metricGroup, metricGroupTags);
         
         List<String> emailsAddresses = EmailThread.getToEmailsAddressesForAlert(notificationGroup.getId());
         
