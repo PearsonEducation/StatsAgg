@@ -64,7 +64,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         if (metricGroupTag == null) return false;
         
         return insert(MetricGroupTagsSql.Insert_MetricGroupTag, 
-                metricGroupTag.getMgId(), metricGroupTag.getTag());
+                metricGroupTag.getMetricGroupId(), metricGroupTag.getTag());
     }
     
     @Override
@@ -72,7 +72,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         if (metricGroupTag == null) return false;
         
         return update(MetricGroupTagsSql.Update_MetricGroupTag_ByPrimaryKey, 
-                metricGroupTag.getMgId(), metricGroupTag.getTag(), metricGroupTag.getId());
+                metricGroupTag.getMetricGroupId(), metricGroupTag.getTag(), metricGroupTag.getId());
     }
 
     @Override
@@ -130,7 +130,7 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         Map<Integer,List<MetricGroupTag>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
 
         for (MetricGroupTag metricGroupTag : metricGroupTags) {
-            Integer metricGroupId = metricGroupTag.getMgId();
+            Integer metricGroupId = metricGroupTag.getMetricGroupId();
             
             if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
                 List<MetricGroupTag> databaseObjects = databaseObjectsInTableByMetricGroupId.get(metricGroupId);
