@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.metric_group_tags;
 
+import com.google.gson.annotations.SerializedName;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -12,17 +13,17 @@ public class MetricGroupTag extends DatabaseObject<MetricGroupTag> {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupTag.class.getName());
     
-    private Integer id_;
-    private Integer mgId_;
-    private String tag_;
+    @SerializedName("id") private transient Integer id_;
+    @SerializedName("metric_group_id") private transient Integer metricGroupId_;
+    @SerializedName("tag") private String tag_;
     
     public MetricGroupTag() {
         this.id_ = -1;
     }
     
-    public MetricGroupTag(Integer id, Integer mgId, String tag) {
+    public MetricGroupTag(Integer id, Integer metricGroupId, String tag) {
         this.id_ = id;
-        this.mgId_ = mgId;
+        this.metricGroupId_ = metricGroupId;
         this.tag_ = tag;
     } 
     
@@ -35,7 +36,7 @@ public class MetricGroupTag extends DatabaseObject<MetricGroupTag> {
         
         return new EqualsBuilder()
                 .append(id_, metricGroupTag.getId())
-                .append(mgId_, metricGroupTag.getMgId())
+                .append(metricGroupId_, metricGroupTag.getMetricGroupId())
                 .append(tag_, metricGroupTag.getTag())
                 .isEquals();
     }
@@ -49,7 +50,7 @@ public class MetricGroupTag extends DatabaseObject<MetricGroupTag> {
         MetricGroupTag metricGroupTagCopy = new MetricGroupTag();
         
         metricGroupTagCopy.setId(metricGroupTag.getId());
-        metricGroupTagCopy.setMgId(metricGroupTag.getMgId());
+        metricGroupTagCopy.setMetricGroupId(metricGroupTag.getMetricGroupId());
         metricGroupTagCopy.setTag(metricGroupTag.getTag());
         
         return metricGroupTagCopy;
@@ -63,12 +64,12 @@ public class MetricGroupTag extends DatabaseObject<MetricGroupTag> {
         this.id_ = id;
     }
 
-    public Integer getMgId() {
-        return mgId_;
+    public Integer getMetricGroupId() {
+        return metricGroupId_;
     }
 
-    public void setMgId(Integer mgId) {
-        this.mgId_ = mgId;
+    public void setMetricGroupId(Integer mgId) {
+        this.metricGroupId_ = mgId;
     }
 
     public String getTag() {
