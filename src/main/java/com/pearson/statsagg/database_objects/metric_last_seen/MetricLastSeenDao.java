@@ -1,6 +1,7 @@
 package com.pearson.statsagg.database_objects.metric_last_seen;
 
 import com.google.common.collect.Lists;
+import com.pearson.statsagg.database_engine.DatabaseInterface;
 import java.sql.ResultSet;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -24,6 +25,10 @@ public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
             
     public MetricLastSeenDao(boolean closeConnectionAfterOperation) {
         databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
+    }
+    
+    public MetricLastSeenDao(DatabaseInterface databaseInterface) {
+        super(databaseInterface);
     }
     
     public boolean dropTable() {
