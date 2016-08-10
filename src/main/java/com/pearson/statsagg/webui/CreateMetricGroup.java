@@ -116,7 +116,7 @@ public class CreateMetricGroup extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseMetricGroup(request);
+            String result = parseAndAlterMetricGroup(request);
             
             response.setContentType("text/html");     
             
@@ -262,7 +262,7 @@ public class CreateMetricGroup extends HttpServlet {
         return htmlBody.toString();
     }
     
-    public String parseMetricGroup(Object request) {
+    public String parseAndAlterMetricGroup(Object request) {
         
         if (request == null) {
             return null;
