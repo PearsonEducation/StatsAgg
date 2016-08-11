@@ -1,9 +1,12 @@
-StatsAgg 1.5  - released 2015-xx-xx
- * Added a new feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
+StatsAgg 1.5  - released 2016-xx-xx
+ * New feature : A json-based API for programatically interacting with StatsAgg
+ * New feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
+ * New feature -- 'Alerts Report'. A page in the WebUI that shows all the important details of an alert on in a table view.
  * Renamed 'Alert Suspensions' to 'Suspensions'. This was done to accomidate the 'metric suspension' feature.
  * Changed several pages in the WebUI to load via on-page iframes (instead of transitioning different page). This improves the flow of the UI, as it significantly reduces the need use the browser back/forward buttons.
  * Minor performance enhancements
-
+ * Email alerts now include tags
+ 
 StatsAgg 1.4  - released 2015-08-20
  * Added support for receiving & outputting InfluxDB metrics
    * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported (just in time for it to be depreciated)

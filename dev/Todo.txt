@@ -1,18 +1,13 @@
 StatsAgg 1.5
  * Document 'Alerts Report'
+ * Document API
+ * Update screenshots of 'suspensions' 
  * Finish/refine API
-   * Annotate field names in database classes (to avoid relying on class member names not changing)
-   * Alert details -- positive notification group selective info hiding
-   * Alert details -- names for notification groups & metric group
-   * Suspension details -- metric suspension, selective hide 'suspend notification only'
-   * Suspension details -- alert name
-   * Enable suspension
+   * Alert details -- include MG & NG info
  * Expose "number of datapoints in memory" (home page)
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
- * Metric group tags in email alert output
  * Alert details -- say "associated with these suspensions..."
  * Notification details -- say "associated with these alerts..."
- * Update screenshots of 'suspensions' 
 
 StatsAgg 1.6
  * Alter buttons on 'details' pages (only when not hiding the navbar)
@@ -23,12 +18,9 @@ StatsAgg 1.6
  * Alert status output 'is suspended' tags for OpenTSDB & InfluxDB
  * "debug don't output" for output modules. Run output module logic without actually connecting to external dbs.
  * Fix issue with popover help buttons not displaying text after click-on-->click-off-->click-on
- * Advanced options
-   * (optional) Incoming metric rate limits
-   * Make optional output HTTP error response bodies to log file
+ * Make optional output HTTP error response bodies to log file
    
 Medium term
- * Notification groups that inherit other notification group properties
  * Manual injection of metrics via a new servlet w/ a WebUI component
  * Multi-thread StatsD aggregation routine & Graphite aggregation routine
  * Apply column-sort to WebUI tables via parameter in URI
@@ -38,11 +30,13 @@ Medium term
  * Let the user control the number of metrics to return on 'Regex Tester' and 'Metric Group - Metric Key Associations' 
  * Advanced options
    * Cleanup metrics after... (currently hardcoded to 24hrs)
+   * (optional) Incoming metric rate limits
    * (optional) Limit metric-key length displayed in StatsAgg WebUI
    * (optional) Limit metric group association count
    * (optional) Limit max # datapoints for in memory for a single metric-key
    
 Long-term / Wishlist / Brainstorming
+ * Notification groups that inherit other notification group properties
  * Support for KariosDB?
  * Reduce JS code for typeahead & update typeahead library?
    * Worth the time? This library is a huge pain.
@@ -67,9 +61,6 @@ Long-term / Wishlist / Brainstorming
    * Will likely lose functionality
  * Calculator (add/multiply/etc) all the most recent values of a metric group)?
  * Alert by individual metric?
- * OpenTSDB -- send back a list of 'metrics with errors' on HTTP requests with the 'details' parameter
-   * Exact formatting of OpenTSDB output would be difficult to replicate.
-   * Little pay-off for the effort involved.
  * Convert to a regular Java app & use embedded Tomcat for the WebUI
    * Simplifies installation, but removes all the nice stuff we get from Tomcat.
    * Would need to be a separate git repo
