@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_objects.metric_group_regex;
 
-import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -46,9 +45,9 @@ public class MetricGroupRegexTest {
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
         metricGroupRegex1.setId(1);
         
-        metricGroupRegex1.setMgId(66);
+        metricGroupRegex1.setMetricGroupId(66);
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
-        metricGroupRegex1.setMgId(55);
+        metricGroupRegex1.setMetricGroupId(55);
         
         metricGroupRegex1.setPattern("SomePattern Bad");
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
@@ -76,10 +75,10 @@ public class MetricGroupRegexTest {
         assertTrue(metricGroupRegex2.getId() == 1);
         metricGroupRegex1.setId(1);
         
-        metricGroupRegex1.setMgId(66);
+        metricGroupRegex1.setMetricGroupId(66);
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));
-        assertTrue(metricGroupRegex2.getMgId() == 55);
-        metricGroupRegex1.setMgId(55);
+        assertTrue(metricGroupRegex2.getMetricGroupId() == 55);
+        metricGroupRegex1.setMetricGroupId(55);
         
         metricGroupRegex1.setIsBlacklistRegex(false);
         assertFalse(metricGroupRegex1.isEqual(metricGroupRegex2));

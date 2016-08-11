@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_objects.notifications;
 
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

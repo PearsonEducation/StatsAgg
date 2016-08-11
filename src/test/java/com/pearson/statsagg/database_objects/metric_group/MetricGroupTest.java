@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_objects.metric_group;
 
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
