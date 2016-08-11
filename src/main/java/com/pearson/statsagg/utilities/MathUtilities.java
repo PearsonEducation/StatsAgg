@@ -19,6 +19,35 @@ public class MathUtilities {
     
     private static final BigDecimal ONE_HUNDRED = new BigDecimal("100");
     
+    public static double computeSmallerNumber(double number1, double number2) {
+        if (number1 <= number2) {
+            return number1;
+        }
+        else {
+            return number2;
+        }
+    }
+    
+    public static double computeLargerNumber(double number1, double number2) {
+        if (number1 >= number2) {
+            return number1;
+        }
+        else {
+            return number2;
+        }
+    }
+
+    public static double computePercentChange(double oldValue, double newValue) {
+        
+        if (oldValue == 0) {
+            throw new IllegalArgumentException("oldValue cannot be 0");
+        }
+        
+        double percentChange = ((newValue - oldValue) / oldValue) * 100;
+        
+        return percentChange;
+    }
+    
     public static boolean areBigDecimalsNumericallyEqual(BigDecimal bigDecimal1, BigDecimal bigDecimal2) {
         
         boolean isEqual = false;

@@ -1,5 +1,10 @@
 package com.pearson.statsagg.utilities;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonPrimitive;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.webui.api.JsonBigDecimal;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import org.slf4j.Logger;
@@ -84,6 +89,103 @@ public class JsonUtils {
         else if ((object instanceof Boolean) && treatBooleanAsNumeric) return true;
         
         return false;
+    }
+    
+    public static Integer getIntegerFieldFromJsonObject(JsonObject jsonObject, String fieldName) {
+        
+        if (jsonObject == null) {
+            return null;
+        }
+        
+        Integer returnInteger = null;
+        
+        try {
+            JsonElement jsonElement = jsonObject.get(fieldName);
+            if (jsonElement != null) returnInteger = jsonElement.getAsInt();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));    
+        }
+
+        return returnInteger;
+    }
+    
+    public static String getStringFieldFromJsonObject(JsonObject jsonObject, String fieldName) {
+        
+        if (jsonObject == null) {
+            return null;
+        }
+        
+        String returnString = null;
+        
+        try {
+            JsonElement jsonElement = jsonObject.get(fieldName);
+            
+            if (jsonElement != null) {
+                JsonPrimitive jsonPrimitive = jsonElement.getAsJsonPrimitive();
+                returnString = jsonPrimitive.getAsString();
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));    
+        }
+
+        return returnString;
+    }
+    
+    public static Boolean getBooleanFieldFromJsonObject(JsonObject jsonObject, String fieldName) {
+        
+        if (jsonObject == null) {
+            return null;
+        }
+        
+        Boolean returnBoolean = null;
+        
+        try {
+            JsonElement jsonElement = jsonObject.get(fieldName);
+            if (jsonElement != null) returnBoolean = jsonElement.getAsBoolean();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));    
+        }
+
+        return returnBoolean;
+    }
+    
+    public static JsonObject getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(JsonObject jsonObject, String time_FieldName, String timeUnit_FieldName) {
+        
+        if (jsonObject == null) {
+            return null;
+        }
+        
+        try {
+            JsonElement time_jsonElement = jsonObject.get(time_FieldName);
+            JsonElement timeUnit_JsonElement = jsonObject.get(timeUnit_FieldName);
+
+            if ((time_jsonElement != null) && (timeUnit_JsonElement != null)) {
+                long currentField_JsonElement_Long = time_jsonElement.getAsLong();
+                int timeUnit_Int = timeUnit_JsonElement.getAsInt();
+                BigDecimal time_BigDecimal = DatabaseObjectCommon.getValueForTimeFromMilliseconds(currentField_JsonElement_Long, timeUnit_Int);
+                
+                jsonObject.remove(time_FieldName);
+                JsonBigDecimal time_JsonBigDecimal = new JsonBigDecimal(time_BigDecimal);
+                jsonObject.addProperty(time_FieldName, time_JsonBigDecimal);
+                
+                jsonObject.remove(timeUnit_FieldName);
+                jsonObject.addProperty(timeUnit_FieldName, DatabaseObjectCommon.getTimeUnitStringFromCode(timeUnit_Int, false));
+            }
+            else if (time_jsonElement != null) {
+                jsonObject.remove(time_FieldName);
+            }
+            else if (timeUnit_JsonElement != null) {
+                jsonObject.remove(timeUnit_FieldName);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return jsonObject;
     }
     
 }

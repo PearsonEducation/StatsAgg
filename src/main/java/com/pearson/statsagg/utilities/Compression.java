@@ -3,13 +3,25 @@ package com.pearson.statsagg.utilities;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
+import org.apache.commons.compress.archivers.ArchiveStreamFactory;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.compress.compressors.deflate.DeflateCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipParameters;
+import org.apache.commons.compress.compressors.xz.XZCompressorInputStream;
+import org.apache.commons.compress.compressors.xz.XZCompressorOutputStream;
+import org.apache.commons.compress.utils.IOUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +31,347 @@ import org.slf4j.LoggerFactory;
 public class Compression {
     
     private static final Logger logger = LoggerFactory.getLogger(Compression.class.getName());
+    public static boolean createTar(String tarFilePathAndName, String parentPath, Set<String> tarEntryFilePathsAndNames) {
         
+        if ((tarFilePathAndName == null) || (parentPath == null) || (tarEntryFilePathsAndNames == null)) {
+            return false;
+        }
+         
+        boolean tarSuccess = true;
+        
+        OutputStream outputStream = null;
+        TarArchiveOutputStream tarArchiveOutputStream = null;
+        
+        try {
+            String sanitizedParentPath = new File(parentPath).getAbsolutePath() + File.separator;
+            
+            File tarFile = new File(tarFilePathAndName);
+            outputStream = new FileOutputStream(tarFile);
+            tarArchiveOutputStream = (TarArchiveOutputStream) new ArchiveStreamFactory().createArchiveOutputStream("tar", outputStream);
+
+            for (String tarEntryFilePathAndName : tarEntryFilePathsAndNames){
+                File file = new File(tarEntryFilePathAndName);
+
+                String tarEntryRelativePathFilePathAndName = file.getAbsolutePath().replace(sanitizedParentPath, "");
+                TarArchiveEntry entry = new TarArchiveEntry(file, tarEntryRelativePathFilePathAndName);
+                tarArchiveOutputStream.putArchiveEntry(entry);
+                
+                if (!file.isDirectory()) {
+                    FileInputStream fileInputStream = new FileInputStream(file);
+                    IOUtils.copy(fileInputStream, tarArchiveOutputStream);
+                    fileInputStream.close();
+                }
+               
+                tarArchiveOutputStream.closeArchiveEntry();
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            tarSuccess = false;
+        }
+        finally {
+            try {
+                if (tarArchiveOutputStream != null) tarArchiveOutputStream.finish();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                tarSuccess = false;
+            }
+            
+            try {
+                if (tarArchiveOutputStream != null) tarArchiveOutputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                tarSuccess = false;
+            }
+            
+            try {
+                if (outputStream != null) outputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                tarSuccess = false;
+            }
+            
+            return tarSuccess;
+        }
+    }
+  
+    /* modified from code on this page: http://stackoverflow.com/questions/315618/how-do-i-extract-a-tar-file-in-java */
+    public static boolean unTar(String outputDirectory, String inputTarFile) {
+        
+        if ((outputDirectory == null) || (inputTarFile == null)) {
+            return false;
+        }
+        
+        boolean unTarDirectoriesSuccess = unTar_Directories(outputDirectory, inputTarFile);
+        
+        boolean unTarFilesSuccess = false;
+        if (unTarDirectoriesSuccess) {
+            unTarFilesSuccess = unTar_Files(outputDirectory, inputTarFile);
+        }
+        
+        return unTarDirectoriesSuccess && unTarFilesSuccess;
+    }
+
+    private static boolean unTar_Directories(String outputDirectory, String inputTarFile) {
+        
+        if ((outputDirectory == null) || (inputTarFile == null)) {
+            return false;
+        }
+        
+        boolean untarSuccess = true;
+        
+        InputStream inputStream = null;
+        TarArchiveInputStream tarArchiveInputStream = null;
+    
+        try {
+            inputStream = new FileInputStream(inputTarFile);
+            tarArchiveInputStream = (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar", inputStream);
+            TarArchiveEntry entry = tarArchiveInputStream.getNextTarEntry();
+            
+            while (entry != null) {
+                File outputFile = new File(outputDirectory, entry.getName());
+                
+                if (entry.isDirectory()) {
+                    if (!outputFile.exists()) {
+                        outputFile.mkdirs();
+                    }
+                }
+
+                entry = tarArchiveInputStream.getNextTarEntry();
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            untarSuccess = false;
+        }
+        finally {            
+            try {
+                if (tarArchiveInputStream != null) tarArchiveInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                untarSuccess = false;
+            }
+            
+            try {
+                if (inputStream != null) inputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                untarSuccess = false;
+            }
+            
+            return untarSuccess;
+        }
+    }
+    
+    private static boolean unTar_Files(String outputDirectory, String inputTarFile) {
+        
+        if ((outputDirectory == null) || (inputTarFile == null)) {
+            return false;
+        }
+        
+        boolean untarSuccess = true;
+        
+        InputStream inputStream = null;
+        TarArchiveInputStream tarArchiveInputStream = null;
+    
+        try {
+            inputStream = new FileInputStream(inputTarFile);
+            tarArchiveInputStream = (TarArchiveInputStream) new ArchiveStreamFactory().createArchiveInputStream("tar", inputStream);
+            TarArchiveEntry entry = tarArchiveInputStream.getNextTarEntry();
+            
+            while (entry != null) {
+                File outputFile = new File(outputDirectory, entry.getName());
+                
+                if (!entry.isDirectory()) {
+                    OutputStream outputStream = new FileOutputStream(outputFile);
+                    IOUtils.copy(tarArchiveInputStream, outputStream);
+                    outputStream.close();
+                }
+                
+                outputFile.setLastModified(entry.getModTime().getTime());
+                
+                entry = tarArchiveInputStream.getNextTarEntry();
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            untarSuccess = false;
+        }
+        finally {            
+            try {
+                if (tarArchiveInputStream != null) tarArchiveInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                untarSuccess = false;
+            }
+            
+            try {
+                if (inputStream != null) inputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                untarSuccess = false;
+            }
+            
+            return untarSuccess;
+        }
+    }
+    
+    public static boolean createXZ(String fileToCompressPathAndName, String xzFilePathAndName) {
+        return createXZ(fileToCompressPathAndName, xzFilePathAndName, 9);
+    }
+    
+    public static boolean createXZ(String fileToCompressPathAndName, String xzFilePathAndName, int compressionPreset) {
+        
+        if ((fileToCompressPathAndName == null) || (xzFilePathAndName == null) || (compressionPreset < 0)) {
+            return false;
+        }
+                
+        try {     
+            File file = new File(fileToCompressPathAndName);
+            if (file.isDirectory()) {
+                return false;
+            }
+        }
+        catch (Exception e) {
+            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        
+        boolean compressSuccess = true;
+        
+        FileInputStream fileInputStream = null;
+        BufferedInputStream bufferedInputStream = null;
+        FileOutputStream fileOutputStream = null;
+        XZCompressorOutputStream xzCompressorOutputStream = null;
+            
+        try {
+            fileInputStream = new FileInputStream(fileToCompressPathAndName);
+            bufferedInputStream = new BufferedInputStream(fileInputStream);
+            fileOutputStream = new FileOutputStream(xzFilePathAndName);
+            xzCompressorOutputStream = new XZCompressorOutputStream(fileOutputStream, compressionPreset);
+
+            byte[] buffer = new byte[1024 * 8];
+            
+            int n = 0;
+            while (-1 != (n = bufferedInputStream.read(buffer))) {
+                xzCompressorOutputStream.write(buffer, 0, n);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            compressSuccess = false;
+        }
+        finally {
+            try {
+                if (xzCompressorOutputStream  != null) xzCompressorOutputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                compressSuccess = false;
+            }
+            
+            try {
+                if (fileOutputStream  != null) fileOutputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                compressSuccess = false;
+            }
+            
+            try {
+                if (bufferedInputStream  != null) bufferedInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                compressSuccess = false;
+            }
+            
+            try {
+                if (fileInputStream  != null) fileInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                compressSuccess = false;
+            }
+            
+            return compressSuccess;
+        }
+    }
+   
+    public static boolean decompressXZ(String decompressFilename, String xzFilePathAndName) {
+        
+        if ((decompressFilename == null) || (xzFilePathAndName == null)) {
+            return false;
+        }
+        
+        boolean decompressSuccess = true;
+        
+        FileInputStream fileInputStream = null;
+        BufferedInputStream bufferedInputStream = null;
+        XZCompressorInputStream xzCompressorInputStream = null;
+        FileOutputStream fileOutputStream = null;
+        
+        try {
+            fileInputStream = new FileInputStream(xzFilePathAndName);
+            bufferedInputStream = new BufferedInputStream(fileInputStream);
+            xzCompressorInputStream = new XZCompressorInputStream(bufferedInputStream);
+            fileOutputStream = new FileOutputStream(decompressFilename);
+
+            byte[] buffer = new byte[1024 * 8];
+            
+            int n = 0;
+            while (-1 != (n = xzCompressorInputStream.read(buffer))) {
+                fileOutputStream.write(buffer, 0, n);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            decompressSuccess = false;
+        }
+        finally {
+            try {
+                if (fileOutputStream != null) fileOutputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                decompressSuccess = false;
+            }
+            
+            try {
+                if (xzCompressorInputStream != null) xzCompressorInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                decompressSuccess = false;
+            }
+            
+            try {
+                if (bufferedInputStream != null) bufferedInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                decompressSuccess = false;
+            }
+            
+            try {
+                if (fileInputStream != null) fileInputStream.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                decompressSuccess = false;
+            }
+            
+            return decompressSuccess;
+        }
+    }
+
     public static String decompressDeflateToString(InputStream compressedData, String charsetString) {
         
         if ((compressedData == null) || (charsetString == null)) {
