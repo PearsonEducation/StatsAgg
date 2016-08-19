@@ -1,5 +1,8 @@
 package com.pearson.statsagg.webui;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -12,6 +15,7 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -518,9 +522,26 @@ public class CreateSuspension extends HttpServlet {
         
         String returnString;
         
+        // create a new suspension based on the input parameters of the request
         Suspension suspension = getSuspensionFromRequestParameters(request);
-        String oldName = Common.getObjectParameter(request, "Old_Name");
-        if (oldName == null) oldName = Common.getObjectParameter(request, "old_name");
+        
+        // help determine if the suspension is being renamed by getting the previous name of the suspension (if it exists)
+        String oldName = Common.getParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        if (oldName == null) {
+            String id = Common.getParameterAsString(request, "Id");
+            if (id == null) id = Common.getParameterAsString(request, "id");
+            
+            if (id != null) {
+                try {
+                    Integer id_Integer = Integer.parseInt(id.trim());
+                    SuspensionsDao suspensionsDao = new SuspensionsDao();
+                    Suspension oldSuspension = suspensionsDao.getSuspension(id_Integer);
+                    oldName = oldSuspension.getName();
+                }
+                catch (Exception e){}
+            }
+        }
         
         // insert/update/delete records in the database
         if (suspension != null) {
@@ -555,13 +576,15 @@ public class CreateSuspension extends HttpServlet {
             String parameter;
 
             // column #1 parameters
-            parameter = Common.getObjectParameter(request, "Name");
+            parameter = Common.getParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             suspension.setName(trimmedName);
             suspension.setUppercaseName(trimmedName.toUpperCase());
             if ((suspension.getName() == null) || suspension.getName().isEmpty()) didEncounterError = true;
             
-            parameter = Common.getObjectParameter(request, "Description");
+            parameter = Common.getParameterAsString(request, "Description");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -571,88 +594,136 @@ public class CreateSuspension extends HttpServlet {
             }
             else suspension.setDescription("");
             
-            parameter = Common.getObjectParameter(request, "Enabled");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsEnabled(true);
+            parameter = Common.getParameterAsString(request, "Enabled");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "enabled");
+            if ((parameter != null) && (parameter.contains("on") || parameter.contains("true"))) suspension.setIsEnabled(true);
             else suspension.setIsEnabled(false);
 
-            parameter = Common.getObjectParameter(request, "SuspendNotificationOnly");
-            if ((parameter != null) && parameter.contains("on")) suspension.setIsSuspendNotificationOnly(true);
+            parameter = Common.getParameterAsString(request, "SuspendNotificationOnly");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "suspend_notification_only");
+            if ((parameter != null) && (parameter.contains("on") || parameter.contains("true")) ) suspension.setIsSuspendNotificationOnly(true);
             else suspension.setIsSuspendNotificationOnly(false);
  
             
             // column #2 parameters
-            parameter = Common.getObjectParameter(request, "SuspendBy");
+            parameter = Common.getParameterAsString(request, "SuspendBy");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "suspend_by");
             if ((parameter != null) && parameter.contains("AlertName")) suspension.setSuspendBy(Suspension.SUSPEND_BY_ALERT_ID);
             else if ((parameter != null) && parameter.contains("Tags")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
             else if ((parameter != null) && parameter.contains("Everything")) suspension.setSuspendBy(Suspension.SUSPEND_BY_EVERYTHING);
             else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRICS);
 
-            parameter = Common.getObjectParameter(request, "AlertName");
+            parameter = Common.getParameterAsString(request, "AlertName");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "alert_name");
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlertByName(parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
 
-            parameter = Common.getObjectParameter(request, "MetricGroupTagsInclusive");
+            parameter = Common.getParameterAsString(request, "MetricGroupTagsInclusive");
             if (parameter != null) {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
+            else {
+                if (request instanceof JsonObject) {
+                    JsonObject jsonObject = (JsonObject) request;
+                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_inclusive");
+                    if (jsonArray != null) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                        suspension.setMetricGroupTagsInclusive(stringBuilder.toString().trim()); 
+                    }
+                }
+            }
             
-            parameter = Common.getObjectParameter(request, "MetricGroupTagsExclusive");
+            parameter = Common.getParameterAsString(request, "MetricGroupTagsExclusive");
             if (parameter != null) {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsExclusive(trimmedTags);
             }
+            else {
+                if (request instanceof JsonObject) {
+                    JsonObject jsonObject = (JsonObject) request;
+                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_exclusive");
+                    if (jsonArray != null) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                        suspension.setMetricGroupTagsExclusive(stringBuilder.toString().trim()); 
+                    }
+                }
+            }
             
-            parameter = Common.getObjectParameter(request, "MetricSuspensionRegexes");
+            parameter = Common.getParameterAsString(request, "MetricSuspensionRegexes");
             if (parameter != null) {
                 String metricSuspensionRegexes = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricSuspensionRegexes(metricSuspensionRegexes);
             }
-            
+            else {
+                if (request instanceof JsonObject) {
+                    JsonObject jsonObject = (JsonObject) request;
+                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_suspension_regexes");
+                    if (jsonArray != null) {
+                        StringBuilder stringBuilder = new StringBuilder();
+                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                        suspension.setMetricSuspensionRegexes(stringBuilder.toString().trim()); 
+                    }
+                }
+            }
             
             // column #3 parameters
-            parameter = Common.getObjectParameter(request, "Type");
+            parameter = Common.getParameterAsString(request, "Type");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "one_time");
             if ((parameter != null) && parameter.contains("Recurring")) suspension.setIsOneTime(false);
             else if ((parameter != null) && parameter.contains("OneTime")) suspension.setIsOneTime(true);
+            else if ((parameter != null) && parameter.contains("true")) suspension.setIsOneTime(true);
+            else if ((parameter != null) && parameter.contains("false")) suspension.setIsOneTime(false);
             
-            parameter = Common.getObjectParameter(request, "StartDate");
+            parameter = Common.getParameterAsString(request, "StartDate");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "start_date");
             if (parameter != null) {
                 String startDateStringTrimmed = parameter.trim();
                 Calendar startDateCalendar = DateAndTime.getCalendarFromFormattedString(startDateStringTrimmed, "MM/dd/yyyy");
                 Timestamp startDateTimestamp = new Timestamp(startDateCalendar.getTimeInMillis());
                 suspension.setStartDate(startDateTimestamp);
             }
-            
-            parameter = Common.getObjectParameter(request, "RecurSunday");
+                        
+            parameter = Common.getParameterAsString(request, "RecurSunday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_sunday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurSunday(true);
             else suspension.setIsRecurSunday(false);
             
-            parameter = Common.getObjectParameter(request, "RecurMonday");
+            parameter = Common.getParameterAsString(request, "RecurMonday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_monday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurMonday(true);
             else suspension.setIsRecurMonday(false);
             
-            parameter = Common.getObjectParameter(request, "RecurTuesday");
+            parameter = Common.getParameterAsString(request, "RecurTuesday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_tuesday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurTuesday(true);
             else suspension.setIsRecurTuesday(false);
             
-            parameter = Common.getObjectParameter(request, "RecurWednesday");
+            parameter = Common.getParameterAsString(request, "RecurWednesday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_wednesday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurWednesday(true);
             else suspension.setIsRecurWednesday(false);
             
-            parameter = Common.getObjectParameter(request, "RecurThursday");
+            parameter = Common.getParameterAsString(request, "RecurThursday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_thursday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurThursday(true);
             else suspension.setIsRecurThursday(false);
 
-            parameter = Common.getObjectParameter(request, "RecurFriday");
+            parameter = Common.getParameterAsString(request, "RecurFriday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_friday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurFriday(true);
             else suspension.setIsRecurFriday(false);
             
-            parameter = Common.getObjectParameter(request, "RecurSaturday");
+            parameter = Common.getParameterAsString(request, "RecurSaturday");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "recur_saturday");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) suspension.setIsRecurSaturday(true);
             else suspension.setIsRecurSaturday(false);
 
-            parameter = Common.getObjectParameter(request, "StartTime");
+            parameter = Common.getParameterAsString(request, "StartTime");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "start_time");
             if (parameter != null) {
                 String startTimeStringTrimmed = parameter.trim();
                 String startTimeStringTrimmedWithDate = "01/01/1970" + " " + startTimeStringTrimmed;
@@ -661,7 +732,8 @@ public class CreateSuspension extends HttpServlet {
                 suspension.setStartTime(startTimeTimestamp);
             }
             
-            parameter = Common.getObjectParameter(request, "DurationTimeUnit");
+            parameter = Common.getParameterAsString(request, "DurationTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 
@@ -671,7 +743,8 @@ public class CreateSuspension extends HttpServlet {
                 }
             }
             
-            parameter = Common.getObjectParameter(request, "Duration");
+            parameter = Common.getParameterAsString(request, "Duration");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 

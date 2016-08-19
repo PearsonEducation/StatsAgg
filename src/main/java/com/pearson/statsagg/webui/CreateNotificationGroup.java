@@ -190,7 +190,22 @@ public class CreateNotificationGroup extends HttpServlet {
         String returnString;
         
         NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(request);
-        String oldName = Common.getObjectParameter(request, "Old_Name");
+        String oldName = Common.getParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        if (oldName == null) {
+            String id = Common.getParameterAsString(request, "Id");
+            if (id == null) id = Common.getParameterAsString(request, "id");
+            
+            if (id != null) {
+                try {
+                    Integer id_Integer = Integer.parseInt(id.trim());
+                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                    NotificationGroup oldNotificationGroup = notificationGroupsDao.getNotificationGroup(id_Integer);
+                    oldName = oldNotificationGroup.getName();
+                }
+                catch (Exception e){}
+            }
+        }
         
         // insert/update/delete records in the database
         if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
@@ -218,13 +233,14 @@ public class CreateNotificationGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = Common.getObjectParameter(request, "Name");
+            parameter = Common.getParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             notificationGroup.setName(trimmedName);
             notificationGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = Common.getObjectParameter(request, "EmailAddresses");
+            parameter = Common.getParameterAsString(request, "EmailAddresses");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String emailAddresses;

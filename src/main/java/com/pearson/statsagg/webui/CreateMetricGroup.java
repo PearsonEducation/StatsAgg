@@ -1,5 +1,8 @@
 package com.pearson.statsagg.webui;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Scanner;
@@ -271,10 +274,49 @@ public class CreateMetricGroup extends HttpServlet {
         String returnString;
         
         MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(request);
-        String oldName = Common.getObjectParameter(request, "Old_Name");
-        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
-        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
-        TreeSet<String> tags = getMetricGroupNewlineDelimitedParameterValues(request, "Tags");
+        String oldName = Common.getParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        if (oldName == null) {
+            String id = Common.getParameterAsString(request, "Id");
+            if (id == null) id = Common.getParameterAsString(request, "id");
+            
+            if (id != null) {
+                try {
+                    Integer id_Integer = Integer.parseInt(id.trim());
+                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+                    MetricGroup oldMetricGroup = metricGroupsDao.getMetricGroup(id_Integer);
+                    oldName = oldMetricGroup.getName();
+                }
+                catch (Exception e){}
+            }
+        }
+
+        TreeSet<String> matchRegexes = null;
+        TreeSet<String> matchRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
+        TreeSet<String> matchRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "match_regexes");
+        if ((matchRegexes_Ui != null) || (matchRegexes_Api != null)) {
+            matchRegexes = new TreeSet<>();
+            if (matchRegexes_Ui != null) matchRegexes.addAll(matchRegexes_Ui);
+            if (matchRegexes_Api != null) matchRegexes.addAll(matchRegexes_Api);
+        }
+        
+        TreeSet<String> blacklistRegexes = null;
+        TreeSet<String> blacklistRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> blacklistRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist_regexes");
+        if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api != null)) {
+            blacklistRegexes = new TreeSet<>();
+            if (blacklistRegexes_Ui != null) blacklistRegexes.addAll(blacklistRegexes_Ui);
+            if (blacklistRegexes_Api != null) blacklistRegexes.addAll(blacklistRegexes_Api);
+        }
+        
+        TreeSet<String> tags = null;
+        TreeSet<String> tags_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "Tags");
+        TreeSet<String> tags_Api = getMetricGroupNewlineDelimitedParameterValues(request, "tags");
+        if ((tags_Ui != null) || (tags_Api != null)) {
+            tags = new TreeSet<>();
+            if (tags_Ui != null) tags.addAll(tags_Ui);
+            if (tags_Api != null) tags.addAll(tags_Api);
+        }
         
         // insert/update records in the database
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
@@ -306,13 +348,15 @@ public class CreateMetricGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = Common.getObjectParameter(request, "Name");
+            parameter = Common.getParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             metricGroup.setName(trimmedName);
             metricGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = Common.getObjectParameter(request, "Description");
+            parameter = Common.getParameterAsString(request, "Description");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -344,7 +388,7 @@ public class CreateMetricGroup extends HttpServlet {
         TreeSet<String> parameterValues = new TreeSet<>();
 
         try {
-            String parameter = Common.getObjectParameter(request, parameterName);
+            String parameter = Common.getParameterAsString(request, parameterName);
             
             if (parameter != null) {
                 Scanner scanner = new Scanner(parameter);
@@ -352,6 +396,11 @@ public class CreateMetricGroup extends HttpServlet {
                 while (scanner.hasNext()) {
                     parameterValues.add(scanner.nextLine().trim());
                 }
+            }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray(parameterName);
+                if (jsonArray != null) for (JsonElement jsonElement : jsonArray) parameterValues.add(jsonElement.getAsString());
             }
         }
         catch (Exception e) {

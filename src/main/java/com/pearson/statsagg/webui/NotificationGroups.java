@@ -123,7 +123,7 @@ public class NotificationGroups extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getObjectParameter(request, "Name");
+            String name = Common.getParameterAsString(request, "Name");
             removeNotificationGroup(name);
         }
         

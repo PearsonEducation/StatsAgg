@@ -561,7 +561,7 @@ public class Suspension extends DatabaseObject<Suspension> {
             currentFieldToAlter = "start_date";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
-                String startDateString = DateAndTime.getFormattedDateAndTime(suspension.getStartDate(), "yyyy-MM-dd");
+                String startDateString = DateAndTime.getFormattedDateAndTime(suspension.getStartDate(), "MM/dd/yyyy");
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, startDateString);
             }

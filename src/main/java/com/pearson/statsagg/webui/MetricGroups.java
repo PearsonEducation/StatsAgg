@@ -113,7 +113,7 @@ public class MetricGroups extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getObjectParameter(request, "Name");
+            String name = Common.getParameterAsString(request, "Name");
             removeMetricGroup(name);
         }
         

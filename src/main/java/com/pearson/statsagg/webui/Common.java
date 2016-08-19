@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.StackTrace;
 import javax.servlet.http.HttpServletRequest;
@@ -14,7 +15,7 @@ public class Common {
     
     private static final Logger logger = LoggerFactory.getLogger(Common.class.getName());
 
-    public static String getObjectParameter(Object object, String parameterName) {
+    public static String getParameterAsString(Object object, String parameterName) {
         
         if ((object == null) || (parameterName == null)) {
             return null;
@@ -27,7 +28,10 @@ public class Common {
             }
             else if (object instanceof JsonObject) {
                 JsonObject jsonObject = (JsonObject) object;
-                return (String) jsonObject.get(parameterName).getAsString();
+                JsonElement jsonElement = jsonObject.get(parameterName);
+                
+                if (jsonElement == null) return null;
+                else return (String) jsonElement.getAsString();
             }
         }
         catch (Exception e) {

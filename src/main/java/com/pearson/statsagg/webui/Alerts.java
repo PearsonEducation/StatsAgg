@@ -106,11 +106,11 @@ public class Alerts extends HttpServlet {
             return;
         }
         
-        String operation = Common.getObjectParameter(request, "Operation");
+        String operation = Common.getParameterAsString(request, "Operation");
 
         if ((operation != null) && operation.equals("Enable")) {
-            String name = Common.getObjectParameter(request, "Name");
-            Boolean isEnabled = Boolean.parseBoolean(Common.getObjectParameter(request, "Enabled"));
+            String name = Common.getParameterAsString(request, "Name");
+            Boolean isEnabled = Boolean.parseBoolean(Common.getParameterAsString(request, "Enabled"));
             changeAlertEnabled(name, isEnabled);
         }
         
@@ -120,7 +120,7 @@ public class Alerts extends HttpServlet {
         }
         
         if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getObjectParameter(request, "Name");
+            String name = Common.getParameterAsString(request, "Name");
             removeAlert(name);
         }
         
