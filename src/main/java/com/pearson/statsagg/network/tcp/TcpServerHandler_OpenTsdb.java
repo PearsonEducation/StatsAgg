@@ -33,6 +33,7 @@ public class TcpServerHandler_OpenTsdb extends SimpleChannelInboundHandler<Strin
                 for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {
                     long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
                     openTsdbMetric.setHashKey(hashKey);
+                    if (openTsdbMetric.getMetricKey() != null) openTsdbMetric.getMetricKey().hashCode();
                     GlobalVariables.openTsdbMetrics.put(openTsdbMetric.getHashKey(), openTsdbMetric);
                     GlobalVariables.incomingMetricsCount.incrementAndGet();
                 }

@@ -28,6 +28,7 @@ public class TcpServerHandler_GraphitePassthrough extends SimpleChannelInboundHa
             for (GraphiteMetric graphiteMetric : graphiteMetrics) {
                 long hashKey = GlobalVariables.metricHashKeyGenerator.incrementAndGet();
                 graphiteMetric.setHashKey(hashKey);
+                if (graphiteMetric.getMetricKey() != null) graphiteMetric.getMetricKey().hashCode();
                 GlobalVariables.graphitePassthroughMetrics.put(graphiteMetric.getHashKey(), graphiteMetric);
                 GlobalVariables.incomingMetricsCount.incrementAndGet();
             }
