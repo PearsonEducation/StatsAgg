@@ -21,12 +21,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_AlertDetails", urlPatterns={"/api/alert-details"})
+@WebServlet(name="API_Alert_Details", urlPatterns={"/api/alert-details"})
 public class AlertDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(AlertDetails.class.getName());
     
-    public static final String PAGE_NAME = "API_AlertDetails";
+    public static final String PAGE_NAME = "API_Alert_Details";
     
     /**
      * Returns a short description of the servlet.

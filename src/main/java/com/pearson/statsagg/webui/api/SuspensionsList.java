@@ -24,12 +24,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (Prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_SuspensionsList", urlPatterns={"/api/suspensions-list"})
+@WebServlet(name="API_Suspensions_List", urlPatterns={"/api/suspensions-list"})
 public class SuspensionsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionsList.class.getName());
     
-    public static final String PAGE_NAME = "API_SuspensionsList";
+    public static final String PAGE_NAME = "API_Suspensions_List";
     
     /**
      * Returns a short description of the servlet.

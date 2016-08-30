@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Remove_Metric", urlPatterns = {"/api/metric-remove"})
+@WebServlet(name = "API_MetricGroup_Remove", urlPatterns = {"/api/metric-group-remove"})
 public class MetricGroupRemove extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupRemove.class.getName());
     
-    public static final String PAGE_NAME = "API_Remove_Metric";
+    public static final String PAGE_NAME = "API_MetricGroup_Remove";
     
     /**
      * Returns a short description of the servlet.

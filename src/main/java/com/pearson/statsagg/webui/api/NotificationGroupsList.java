@@ -22,12 +22,12 @@ import org.slf4j.LoggerFactory;
  * @author Prashant Kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_NotificationGroupsList", urlPatterns={"/api/notification-groups-list"})
+@WebServlet(name="API_NotificationGroups_List", urlPatterns={"/api/notification-groups-list"})
 public class NotificationGroupsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsList.class.getName());
     
-    public static final String PAGE_NAME = "API_NotificationGroupsList";
+    public static final String PAGE_NAME = "API_NotificationGroups_List";
  
     /**
      * Returns a short description of the servlet.

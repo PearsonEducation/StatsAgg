@@ -23,12 +23,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_MetricGroupDetails", urlPatterns={"/api/metric-group-details"})
+@WebServlet(name="API_MetricGroup_Details", urlPatterns={"/api/metric-group-details"})
 public class MetricGroupDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupDetails.class.getName());
     
-    public static final String PAGE_NAME = "API_MetricGroupDetails";
+    public static final String PAGE_NAME = "API_MetricGroup_Details";
     
     /**
      * Returns a short description of the servlet.

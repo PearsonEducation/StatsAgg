@@ -26,12 +26,12 @@ import org.slf4j.LoggerFactory;
  * @author Prashant Kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_MetricGroupsList", urlPatterns={"/api/metric-groups-list"})
+@WebServlet(name="API_MetricGroups_List", urlPatterns={"/api/metric-groups-list"})
 public class MetricGroupsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupsList.class.getName());
     
-    public static final String PAGE_NAME = "API_MetricGroupsList";
+    public static final String PAGE_NAME = "API_MetricGroups_List";
  
     /**
      * Returns a short description of the servlet.

@@ -12,42 +12,13 @@ import org.slf4j.LoggerFactory;
 
 /**
  * @author prashant kumar(prashant4nov)
- * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_CreateNotificationGroup", urlPatterns = {"/api/create-notification-group"})
-public class CreateNotificationGroup extends HttpServlet {
+@WebServlet(name = "API_MetricGroup_Create", urlPatterns = {"/api/metric-group-create"})
+public class MetricGroupCreate extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(CreateNotificationGroup.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupCreate.class.getName());
     
-    public static final String PAGE_NAME = "API_CreateNotificationGroup";
-    
-    /**
-     * Handles the HTTP <code>POST</code> method.
-     *
-     * @param request servlet request
-     * @param response servlet response
-     */
-    @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
-        
-        PrintWriter out = null;
-        
-        try {
-            response.setContentType("application/json");
-            String result = processPostRequest(request);
-            out = response.getWriter();
-            out.println(result);
-        } 
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        finally {            
-            if (out != null) {
-                out.close();
-            }
-        } 
-        
-    }
+    public static final String PAGE_NAME = "API_MetricGroup_Create";
 
     /**
      * Returns a short description of the servlet.
@@ -60,16 +31,45 @@ public class CreateNotificationGroup extends HttpServlet {
     }
     
     /**
-     * Returns a string with success message if the notification group was successfully created,
-     * or an error message if the request fails to create the notification group.
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     */
+    @Override
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        logger.debug("doPost");
+        
+        PrintWriter out = null;
+        
+        try {
+            response.setContentType("application/json");
+            String result = processPostRequest(request);
+            out = response.getWriter();
+            out.println(result);
+        } 
+        catch(Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {            
+            if (out != null) {
+                out.close();
+            }
+        } 
+        
+    }
+
+    /**
+     * Returns a string with success message if the metric group was successfully created,
+     * or an error message if the request fails to create the metric group.
      * 
      * @param request servlet request
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        com.pearson.statsagg.webui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.webui.CreateNotificationGroup();
+        com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
         JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createNotificationGroup.parseAndAlterNotificationGroup(suspensionJsonObject);
+        String result = createMetricGroup.parseAndAlterMetricGroup(suspensionJsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

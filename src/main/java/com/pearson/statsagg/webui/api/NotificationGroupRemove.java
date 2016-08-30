@@ -17,12 +17,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Remove_Notification", urlPatterns = {"/api/notification-remove"})
+@WebServlet(name = "API_NotificationGroup_Remove", urlPatterns = {"/api/notification-group-remove"})
 public class NotificationGroupRemove extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupRemove.class.getName());
     
-    public static final String PAGE_NAME = "API_Remove_Notification";
+    public static final String PAGE_NAME = "API_NotificationGroup_Remove";
     
     /**
      * Returns a short description of the servlet.
