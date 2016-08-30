@@ -2,10 +2,15 @@ StatsAgg 1.5  - released 2016-xx-xx
  * New feature : A json-based API for programatically interacting with StatsAgg
  * New feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
  * New feature -- 'Alerts Report'. A page in the WebUI that shows all the important details of an alert on in a table view.
+ * New feature -- 'Output Blacklist'. A way to prevent metrics that are processed by StatsAgg from being output by StatsAgg to metric storage platforms (Graphite, OpenTSDB, etc).
  * Renamed 'Alert Suspensions' to 'Suspensions'. This was done to accomidate the 'metric suspension' feature.
  * Changed several pages in the WebUI to load via on-page iframes (instead of transitioning different page). This improves the flow of the UI, as it significantly reduces the need use the browser back/forward buttons.
  * Minor performance enhancements
+ * The 'Home' page now outputs the number of metric datapoints that are residing in StatsAgg's memory.
  * Email alerts now include tags
+ * Apache Derby databases will be upgraded to version 10.12.1.1 (this happens automatically)
+ * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.5.txt" against your StatsAgg database
+   * Located @ StatsAgg\WEB-INF\sql
  
 StatsAgg 1.4  - released 2015-08-20
  * Added support for receiving & outputting InfluxDB metrics

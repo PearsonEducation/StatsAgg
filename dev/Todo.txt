@@ -3,7 +3,9 @@ StatsAgg 1.5
  * Document API
  * Update screenshots of 'suspensions' 
  * Finish/refine API
-   * Alert details -- include MG & NG info
+   * Triggered metrics for an alert
+   * Regex tester
+   * Acknowledge alert 
  * Expose "number of datapoints in memory" (home page)
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
  * Alert details -- say "associated with these suspensions..."
