@@ -18,6 +18,7 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -233,6 +234,12 @@ public class MetricGroups extends HttpServlet {
         AlertsDao alertsDao = new AlertsDao();
         Set<Integer> metricGroupIdsAssociatedWithAlerts = alertsDao.getDistinctMetricGroupIds();
         
+        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+                
+        Set<Integer> metricGroupIdsWithAssociations = new HashSet<>();
+        if (metricGroupIdsAssociatedWithAlerts != null) metricGroupIdsWithAssociations.addAll(metricGroupIdsAssociatedWithAlerts);
+        if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) metricGroupIdsWithAssociations.add(outputBlacklist.getMetricGroupId());
+        
         MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
         Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
         
@@ -289,8 +296,7 @@ public class MetricGroups extends HttpServlet {
                 .append("<td>").append(metricAssociationsLink).append("</td>\n")    
                 .append("<td>").append(alter).append(", ").append(clone);
             
-            if (metricGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);
-            else if (!metricGroupIdsAssociatedWithAlerts.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+            if (!metricGroupIdsWithAssociations.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
             
             htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
         }
