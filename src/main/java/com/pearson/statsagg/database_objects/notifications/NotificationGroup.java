@@ -2,6 +2,7 @@ package com.pearson.statsagg.database_objects.notifications;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
@@ -125,6 +126,20 @@ public class NotificationGroup extends DatabaseObject<NotificationGroup> {
             Gson notificationGroup_Gson = new GsonBuilder().setFieldNamingStrategy(new JsonOutputFieldNamingStrategy()).setPrettyPrinting().create();   
             JsonElement notificationGroup_JsonElement = notificationGroup_Gson.toJsonTree(notificationGroup);
             JsonObject jsonObject = new Gson().toJsonTree(notificationGroup_JsonElement).getAsJsonObject();
+            
+            JsonArray emailAddresses_JsonArray = new JsonArray();
+            List<String> emailAddresses_List = notificationGroup.getEmailAddressesList();
+            
+            if (emailAddresses_List != null) {
+                for (String emailAddress : emailAddresses_List) {
+                    if (emailAddress == null) continue;
+                    emailAddresses_JsonArray.add(emailAddress.trim());
+                }
+            }
+                    
+            jsonObject.remove("email_addresses");
+            jsonObject.add("email_addresses", emailAddresses_JsonArray);
+            
             return jsonObject;
         }
         catch (Exception e) {
