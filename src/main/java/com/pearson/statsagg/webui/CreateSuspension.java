@@ -736,7 +736,6 @@ public class CreateSuspension extends HttpServlet {
             if (parameter == null) parameter = Common.getParameterAsString(request, "duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     suspension.setDurationTimeUnit(intValue);
@@ -747,7 +746,6 @@ public class CreateSuspension extends HttpServlet {
             if (parameter == null) parameter = Common.getParameterAsString(request, "duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, suspension.getDurationTimeUnit());

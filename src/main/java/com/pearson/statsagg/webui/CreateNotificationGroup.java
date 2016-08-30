@@ -1,5 +1,8 @@
 package com.pearson.statsagg.webui;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -8,6 +11,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.StackTrace;
+import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -247,6 +251,17 @@ public class CreateNotificationGroup extends HttpServlet {
                 if (trimmedParameter.length() > 65535) emailAddresses = trimmedParameter.substring(0, 65534);
                 else emailAddresses = trimmedParameter;
                 notificationGroup.setEmailAddresses(emailAddresses);
+            }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("email_addresses");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append(", ");
+                    String emailsCsv = StringUtils.removeEnd(stringBuilder.toString(), ", ").trim();
+                    notificationGroup.setEmailAddresses(emailsCsv);
+                }
+                else notificationGroup.setEmailAddresses("");
             }
             else notificationGroup.setEmailAddresses("");
         }

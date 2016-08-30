@@ -995,48 +995,60 @@ public class CreateAlert extends HttpServlet {
                 alert.setDescription(description);
             }
             else alert.setDescription("");
-                
+            
             parameter = Common.getParameterAsString(request, "MetricGroupName");
             if (parameter == null) parameter = Common.getParameterAsString(request, "metric_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
                     MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(parameterTrimmed);
                     if (metricGroup != null) alert.setMetricGroupId(metricGroup.getId());
                 }
             }
+            else {
+                parameter = Common.getParameterAsString(request, "MetricGroupId");
+                if (parameter == null) parameter = Common.getParameterAsString(request, "metric_group_id");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) alert.setMetricGroupId(Integer.parseInt(parameterTrimmed));
+                }
+            }
 
             parameter = Common.getParameterAsString(request, "Enabled");
             if (parameter == null) parameter = Common.getParameterAsString(request, "enabled");
-            if ((parameter != null) && parameter.contains("on")) alert.setIsEnabled(true);
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsEnabled(true);
             else alert.setIsEnabled(false);
 
             parameter = Common.getParameterAsString(request, "CautionEnabled");
-            if ((parameter != null) && parameter.contains("on")) alert.setIsCautionEnabled(true);
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_enabled");
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsCautionEnabled(true);
             else alert.setIsCautionEnabled(false);
             
             parameter = Common.getParameterAsString(request, "DangerEnabled");
-            if ((parameter != null) && parameter.contains("on")) alert.setIsDangerEnabled(true);
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_enabled");
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsDangerEnabled(true);
             else alert.setIsDangerEnabled(false);
             
             parameter = Common.getParameterAsString(request, "Type");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "alert_type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             
             parameter = Common.getParameterAsString(request, "AlertOnPositive");
-            if ((parameter != null) && parameter.contains("on")) alert.setAlertOnPositive(true);
+            if (parameter == null) parameter = Common.getParameterAsString(request, "alert_on_positive");
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setAlertOnPositive(true);
             else alert.setAlertOnPositive(false);
 
             parameter = Common.getParameterAsString(request, "AllowResendAlert");
-            if ((parameter != null) && parameter.contains("on")) alert.setAllowResendAlert(true);
+            if (parameter == null) parameter = Common.getParameterAsString(request, "allow_resend_alert");
+            if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setAllowResendAlert(true);
             else alert.setAllowResendAlert(false);
 
             parameter = Common.getParameterAsString(request, "ResendAlertEveryTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "resend_alert_every_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setResendAlertEveryTimeUnit(intValue);
@@ -1044,9 +1056,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "ResendAlertEvery");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "resend_alert_every");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getResendAlertEveryTimeUnit());
@@ -1055,31 +1067,47 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionNotificationGroupName");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {
                     NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
                     NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionNotificationGroupId(notificationGroup.getId());
                 }
             }
+            else {
+                parameter = Common.getParameterAsString(request, "CautionNotificationGroupId");
+                if (parameter == null) parameter = Common.getParameterAsString(request, "caution_notification_group_id");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) alert.setCautionNotificationGroupId(Integer.parseInt(parameterTrimmed));
+                }
+            }
             
             parameter = Common.getParameterAsString(request, "CautionPositiveNotificationGroupName");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_positive_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {
                     NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
                     NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionPositiveNotificationGroupId(notificationGroup.getId());
                 }
             }
+            else {
+                parameter = Common.getParameterAsString(request, "CautionPositiveNotificationGroupId");
+                if (parameter == null) parameter = Common.getParameterAsString(request, "caution_positive_notification_group_id");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) alert.setCautionPositiveNotificationGroupId(Integer.parseInt(parameterTrimmed));
+                }
+            }
             
             parameter = Common.getParameterAsString(request, "CautionWindowDurationTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_window_duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setCautionWindowDurationTimeUnit(intValue);
@@ -1087,9 +1115,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionWindowDuration");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_window_duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionWindowDurationTimeUnit());
@@ -1098,9 +1126,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionStopTrackingAfterTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_stop_tracking_after_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setCautionStopTrackingAfterTimeUnit(intValue);
@@ -1108,9 +1136,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionStopTrackingAfter");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_stop_tracking_after");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {     
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getCautionStopTrackingAfterTimeUnit());
@@ -1119,9 +1147,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionMinimumSampleCount");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_minimum_sample_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = Integer.parseInt(parameterTrimmed);
                     alert.setCautionMinimumSampleCount(intValue);
@@ -1129,9 +1157,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionOperator");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_operator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = Alert.getOperatorCodeFromOperatorString(parameterTrimmed);
                     alert.setCautionOperator(intValue);
@@ -1139,9 +1167,9 @@ public class CreateAlert extends HttpServlet {
             }
 
             parameter = Common.getParameterAsString(request, "CautionCombination");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_combination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = Alert.getCombinationCodeFromString(parameterTrimmed);
                     alert.setCautionCombination(intValue);                
@@ -1149,9 +1177,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "CautionCombinationCount");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_combination_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {                    
                     Integer intValue = Integer.parseInt(parameterTrimmed);
                     alert.setCautionCombinationCount(intValue);
@@ -1159,9 +1187,9 @@ public class CreateAlert extends HttpServlet {
             }
 
             parameter = Common.getParameterAsString(request, "CautionThreshold");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_threshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal bigDecimalValue = new BigDecimal(parameterTrimmed);
                     alert.setCautionThreshold(bigDecimalValue);
@@ -1169,31 +1197,47 @@ public class CreateAlert extends HttpServlet {
             }
 
             parameter = Common.getParameterAsString(request, "DangerNotificationGroupName");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
                     NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
                 }
             }
+            else {
+                parameter = Common.getParameterAsString(request, "DangerNotificationGroupId");
+                if (parameter == null) parameter = Common.getParameterAsString(request, "danger_notification_group_id");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) alert.setDangerNotificationGroupId(Integer.parseInt(parameterTrimmed));
+                }
+            }
             
             parameter = Common.getParameterAsString(request, "DangerPositiveNotificationGroupName");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_positive_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
                     NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerPositiveNotificationGroupId(notificationGroup.getId());
                 }
             }
+            else {
+                parameter = Common.getParameterAsString(request, "DangerPositiveNotificationGroupId");
+                if (parameter == null) parameter = Common.getParameterAsString(request, "danger_positive_notification_group_id");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) alert.setDangerPositiveNotificationGroupId(Integer.parseInt(parameterTrimmed));
+                }
+            }
             
             parameter = Common.getParameterAsString(request, "DangerWindowDurationTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_window_duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setDangerWindowDurationTimeUnit(intValue);
@@ -1201,9 +1245,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "DangerWindowDuration");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_window_duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerWindowDurationTimeUnit());
@@ -1212,9 +1256,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "DangerStopTrackingAfterTimeUnit");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_stop_tracking_after_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {      
                     Integer intValue = DatabaseObjectCommon.getTimeUnitCodeFromString(parameterTrimmed);
                     alert.setDangerStopTrackingAfterTimeUnit(intValue);
@@ -1222,9 +1266,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "DangerStopTrackingAfter");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_stop_tracking_after");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed, DatabaseObjectCommon.TIME_UNIT_MATH_CONTEXT);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, alert.getDangerStopTrackingAfterTimeUnit());
@@ -1233,9 +1277,9 @@ public class CreateAlert extends HttpServlet {
             }
            
             parameter = Common.getParameterAsString(request, "DangerMinimumSampleCount");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_minimum_sample_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     Integer intValue = Integer.parseInt(parameterTrimmed);
                     alert.setDangerMinimumSampleCount(intValue);
@@ -1243,9 +1287,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "DangerOperator");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_operator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     Integer intValue = Alert.getOperatorCodeFromOperatorString(parameterTrimmed);
                     alert.setDangerOperator(intValue);
@@ -1253,9 +1297,9 @@ public class CreateAlert extends HttpServlet {
             }
 
             parameter = Common.getParameterAsString(request, "DangerCombination");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_combination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     Integer intValue = Alert.getCombinationCodeFromString(parameterTrimmed);
                     alert.setDangerCombination(intValue);
@@ -1263,9 +1307,9 @@ public class CreateAlert extends HttpServlet {
             }
             
             parameter = Common.getParameterAsString(request, "DangerCombinationCount");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_combination_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     Integer intValue = Integer.parseInt(parameterTrimmed);
                     alert.setDangerCombinationCount(intValue);
@@ -1273,9 +1317,9 @@ public class CreateAlert extends HttpServlet {
             }
 
             parameter = Common.getParameterAsString(request, "DangerThreshold");
+            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_threshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                
                 if (!parameterTrimmed.isEmpty()) {    
                     BigDecimal bigDecimalValue = new BigDecimal(parameterTrimmed);
                     alert.setDangerThreshold(bigDecimalValue);
