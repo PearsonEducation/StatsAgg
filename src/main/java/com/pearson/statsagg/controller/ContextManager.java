@@ -43,6 +43,7 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeen;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
@@ -228,13 +229,8 @@ public class ContextManager implements ServletContextListener {
         // set the start time for statsagg
         GlobalVariables.statsaggStartTimestamp.set(System.currentTimeMillis());
 
-        // return true if all startup routines were successful 
-        if (isLogbackSuccess && isApplicationConfigurationSuccess && initializeDatabaseSuccess && isStartupServerListenersSuccess) {
-            return true;
-        }
-        else {
-            return false;
-        }
+        // return true if all startup routines were successful
+        return isLogbackSuccess && isApplicationConfigurationSuccess && initializeDatabaseSuccess && isStartupServerListenersSuccess;
     }
     
     private boolean readAndSetLogbackConfiguration() {
@@ -517,6 +513,9 @@ public class ContextManager implements ServletContextListener {
         SuspensionsDao suspensionsDao = new SuspensionsDao();
         boolean isSuspensionsCreateSuccess = suspensionsDao.createTable();
         
+        OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
+        boolean isOutputBlacklistCreateSuccess = outputBlacklistDao.createTable();
+        
         boolean isSchemaCreateSuccess = isMetricLastSeenDaoCreateSuccess 
                 && isGaugesCreateSuccess 
                 && isMetricGroupsCreateSuccess 
@@ -524,7 +523,8 @@ public class ContextManager implements ServletContextListener {
                 && isMetricGroupTagsCreateSuccess
                 && isNotificationGroupsCreateSuccess
                 && isAlertsCreateSuccess 
-                && isSuspensionsCreateSuccess;
+                && isSuspensionsCreateSuccess
+                && isOutputBlacklistCreateSuccess;
         
         return isSchemaCreateSuccess;
     }
