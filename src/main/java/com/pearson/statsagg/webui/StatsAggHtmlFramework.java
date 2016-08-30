@@ -110,6 +110,7 @@ public class StatsAggHtmlFramework {
             body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
             body.append("<li><a href=\"MetricAlertAssociations\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Metric Alert Associations</a></li>\n");
             body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
+            body.append("<li><a href=\"OutputBlacklist\"><i class=\"fa fa-thumbs-down\"></i>&nbsp;&nbsp;Output Blacklist </a></li>\n");
             body.append("<li><a href=\"AlertsReport\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Alerts Report </a></li>\n");
       
             for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
