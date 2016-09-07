@@ -586,7 +586,6 @@ public class Suspension extends DatabaseObject<Suspension> {
                 jsonObject.remove("alert_name");
                 jsonObject.remove("metric_group_tags_exclusive");
                 jsonObject.remove("metric_suspension_regexes");
-                jsonObject.remove("suspend_notification_only");
             }
 
             if ((suspension.getSuspendBy() != null) && suspension.getSuspendBy().equals(Suspension.SUSPEND_BY_EVERYTHING)) {
@@ -601,6 +600,7 @@ public class Suspension extends DatabaseObject<Suspension> {
                 jsonObject.remove("alert_name");
                 jsonObject.remove("metric_group_tags_inclusive");
                 jsonObject.remove("metric_group_tags_exclusive");
+                jsonObject.remove("suspend_notification_only");
             }
 
             if ((suspension.isOneTime() != null) && suspension.isOneTime()) {
