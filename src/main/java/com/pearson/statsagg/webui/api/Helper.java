@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.BufferedReader;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,13 +18,6 @@ public class Helper {
     
     private static final Logger logger = LoggerFactory.getLogger(Helper.class.getName());
 
-    protected final static String pageNumber = "page_number";
-    protected final static String pageSize = "page_size";
-    protected final static String error = "error";
-    protected final static String errorMsg = "Invalid request parameters.";
-    protected final static String noResult = "No results found!";
-    protected final static String name = "name";
-    
     protected final static String ERROR_UNKNOWN_JSON = "{\"Error\":\"An unexpected error has occurred\"}";
     protected final static String ERROR_NOTFOUND_JSON = "{\"Error\":\"Not Found\"}";
 
@@ -32,7 +26,7 @@ public class Helper {
     where 'myMessage' is the 'message' parameter
     */
     public static String createSimpleJsonResponse(String message) {
-        return "{\"Message\":\"" + message + "\"}";
+        return "{\"Message\":\"" + StringEscapeUtils.escapeJson(message) + "\"}";
     }
     
     /*
@@ -40,7 +34,7 @@ public class Helper {
     where 'myMessage' is the 'myError' parameter
     */
     public static String createSimpleJsonErrorResponse(String errorMessage) {
-        return "{\"Error\":\"" + errorMessage + "\"}";
+        return "{\"Error\":\"" + StringEscapeUtils.escapeJson(errorMessage) + "\"}";
     }
     
     public static JsonObject getJsonObjectFromRequestBody(HttpServletRequest request) {

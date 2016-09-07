@@ -49,7 +49,7 @@ public class AlertRemove extends HttpServlet {
             String returnString = processPostRequest(request);       
             response.setContentType("application/json");
             out = response.getWriter();
-            out.println(Helper.createSimpleJsonResponse(returnString));
+            out.println(returnString);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
