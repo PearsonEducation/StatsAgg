@@ -870,70 +870,76 @@ public class Alert extends DatabaseObject<Alert> {
         if (alert == null) {
             return null;
         }
-        
+
         try {
+            Alert alert_Local = Alert.copy(alert);
+            
+            // ensures that alert acknowledgement statuses are output
+            if ((alert_Local.isDangerAlertActive() != null) && alert_Local.isDangerAlertActive() && (alert_Local.isDangerAlertAcknowledged() == null)) alert_Local.setIsDangerAlertAcknowledged(false);
+            if ((alert_Local.isCautionAlertActive() != null) && alert_Local.isCautionAlertActive() && (alert_Local.isCautionAlertAcknowledged() == null)) alert_Local.setIsCautionAlertAcknowledged(false);
+            
             Gson alert_Gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
-            JsonElement alert_JsonElement = alert_Gson.toJsonTree(alert);
+            JsonElement alert_JsonElement = alert_Gson.toJsonTree(alert_Local);
             JsonObject jsonObject = new Gson().toJsonTree(alert_JsonElement).getAsJsonObject();
             String currentFieldToAlter;
             JsonElement currentField_JsonElement;
 
-            if ((metricGroup != null) && (metricGroup.getId() != null) && (alert.getMetricGroupId() != null) && (metricGroup.getId().intValue() == alert.getMetricGroupId().intValue())) {
+            if ((metricGroup != null) && (metricGroup.getId() != null) && (alert_Local.getMetricGroupId() != null) && (metricGroup.getId().intValue() == alert_Local.getMetricGroupId().intValue())) {
                 jsonObject.addProperty("metric_group_name", metricGroup.getName());
             }
-            else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert.getMetricGroupId() != null)) {
+            else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert_Local.getMetricGroupId() != null)) {
                 logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
             }
             
             JsonArray metricGroupTags_JsonArray = new JsonArray();
             if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
                 for (MetricGroupTag metricGroupTag : metricGroupTags) {
-                    if ((metricGroupTag.getTag() != null) && (metricGroupTag.getMetricGroupId() != null) && (alert.getMetricGroupId() != null) && 
-                            (metricGroupTag.getMetricGroupId().intValue() == alert.getMetricGroupId().intValue())) {
+                    if ((metricGroupTag.getTag() != null) && (metricGroupTag.getMetricGroupId() != null) && (alert_Local.getMetricGroupId() != null) && 
+                            (metricGroupTag.getMetricGroupId().intValue() == alert_Local.getMetricGroupId().intValue())) {
                         metricGroupTags_JsonArray.add(metricGroupTag.getTag());
                     }
                 }
             }
             jsonObject.add("metric_group_tags", metricGroupTags_JsonArray);
             
-            if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert.getCautionNotificationGroupId() != null) 
-                    && (cautionNotificationGroup.getId().intValue() == alert.getCautionNotificationGroupId().intValue())) {
+            if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert_Local.getCautionNotificationGroupId() != null) 
+                    && (cautionNotificationGroup.getId().intValue() == alert_Local.getCautionNotificationGroupId().intValue())) {
                 jsonObject.addProperty("caution_notification_group_name", cautionNotificationGroup.getName());
             }
-            else if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert.getCautionNotificationGroupId() != null)) {
+            else if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert_Local.getCautionNotificationGroupId() != null)) {
                 logger.error("'Caution Notification Group Id' from the 'cautionNotificationGroup' object must match the Alert's 'Caution Notification Group Id'");
             }
             
-            if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert.getCautionPositiveNotificationGroupId() != null) 
-                    && (cautionPositiveNotificationGroup.getId().intValue() == alert.getCautionPositiveNotificationGroupId().intValue())) {
+            if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert_Local.getCautionPositiveNotificationGroupId() != null) 
+                    && (cautionPositiveNotificationGroup.getId().intValue() == alert_Local.getCautionPositiveNotificationGroupId().intValue())) {
                 jsonObject.addProperty("caution_positive_notification_group_name", cautionPositiveNotificationGroup.getName());
             }
-            else if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
+            else if ((cautionPositiveNotificationGroup != null) && (cautionPositiveNotificationGroup.getId() != null) && (alert_Local.getCautionPositiveNotificationGroupId() != null)) {
                 logger.error("'Caution Positive Notification Group Id' from the 'cautionPositiveNotificationGroup' object must match the Alert's 'Caution Positive Notification Group Id'");
             }
             
-            if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert.getDangerNotificationGroupId() != null) 
-                    && (dangerNotificationGroup.getId().intValue() == alert.getDangerNotificationGroupId().intValue())) {
+            if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert_Local.getDangerNotificationGroupId() != null) 
+                    && (dangerNotificationGroup.getId().intValue() == alert_Local.getDangerNotificationGroupId().intValue())) {
                 jsonObject.addProperty("danger_notification_group_name", dangerNotificationGroup.getName());
             }
-            else if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert.getDangerNotificationGroupId() != null)) {
+            else if ((dangerNotificationGroup != null) && (dangerNotificationGroup.getId() != null) && (alert_Local.getDangerNotificationGroupId() != null)) {
                 logger.error("'Danger Notification Group Id' from the 'dangerNotificationGroup' object must match the Alert's 'Danger Notification Group Id'");
             }
             
-            if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert.getDangerPositiveNotificationGroupId() != null) 
-                    && (dangerPositiveNotificationGroup.getId().intValue() == alert.getDangerPositiveNotificationGroupId().intValue())) {
+            if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert_Local.getDangerPositiveNotificationGroupId() != null) 
+                    && (dangerPositiveNotificationGroup.getId().intValue() == alert_Local.getDangerPositiveNotificationGroupId().intValue())) {
                 jsonObject.addProperty("danger_positive_notification_group_name", dangerPositiveNotificationGroup.getName());
             }
-            else if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {
+            else if ((dangerPositiveNotificationGroup != null) && (dangerPositiveNotificationGroup.getId() != null) && (alert_Local.getDangerPositiveNotificationGroupId() != null)) {
                 logger.error("'Danger Positive Notification Group Id' from the 'dangerPositiveNotificationGroup' object must match the Alert's 'Danger Positive Notification Group Id'");
             }
             
             currentFieldToAlter = "alert_type";
-            if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+            if (alert_Local.getAlertType() == Alert.TYPE_THRESHOLD) {
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, "Threshold");
             }
-            else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+            else if (alert_Local.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, "Availability");
             }
@@ -944,7 +950,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentFieldToAlter = "caution_operator";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
-                String operatorString = alert.getOperatorString(Alert.CAUTION, true, false);
+                String operatorString = alert_Local.getOperatorString(Alert.CAUTION, true, false);
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, operatorString);
             }
@@ -952,7 +958,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentFieldToAlter = "caution_combination";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
-                String combinationString = alert.getCombinationString(Alert.CAUTION);
+                String combinationString = alert_Local.getCombinationString(Alert.CAUTION);
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, combinationString);
             }
@@ -961,7 +967,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
                 jsonObject.remove(currentFieldToAlter);
-                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getCautionThreshold());
+                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert_Local.getCautionThreshold());
                 jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
             }
 
@@ -971,7 +977,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentFieldToAlter = "danger_operator";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
-                String operatorString = alert.getOperatorString(Alert.DANGER, true, false);
+                String operatorString = alert_Local.getOperatorString(Alert.DANGER, true, false);
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, operatorString);
             }
@@ -979,7 +985,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentFieldToAlter = "danger_combination";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
-                String combinationString = alert.getCombinationString(Alert.DANGER);
+                String combinationString = alert_Local.getCombinationString(Alert.DANGER);
                 jsonObject.remove(currentFieldToAlter);
                 jsonObject.addProperty(currentFieldToAlter, combinationString);
             }
@@ -988,7 +994,7 @@ public class Alert extends DatabaseObject<Alert> {
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
             if (currentField_JsonElement != null) {
                 jsonObject.remove(currentFieldToAlter);
-                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert.getDangerThreshold());
+                JsonBigDecimal jsonBigDecimal = new JsonBigDecimal(alert_Local.getDangerThreshold());
                 jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
             }
 
@@ -997,40 +1003,46 @@ public class Alert extends DatabaseObject<Alert> {
 
             currentFieldToAlter = "allow_resend_alert";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
-            if ((currentField_JsonElement == null) || (alert.isAllowResendAlert() == null) || !alert.isAllowResendAlert()) {
+            if ((currentField_JsonElement == null) || (alert_Local.isAllowResendAlert() == null) || !alert_Local.isAllowResendAlert()) {
                 jsonObject.remove("resend_alert_every");
                 jsonObject.remove("resend_alert_every_time_unit");
             }
 
-            if ((alert.isCautionEnabled() == null) || !alert.isCautionEnabled()) {
+            if ((alert_Local.isCautionEnabled() == null) || !alert_Local.isCautionEnabled()) {
                 jsonObject.remove("caution_notification_group_id");
                 jsonObject.remove("caution_positive_notification_group_id");
                 jsonObject.remove("caution_minimum_sample_count");
                 jsonObject.remove("caution_combination");
-                jsonObject.remove("caution_alert_active");
                 jsonObject.remove("caution_window_duration");
                 jsonObject.remove("caution_window_duration_time_unit");
                 jsonObject.remove("caution_stop_tracking_after");
                 jsonObject.remove("caution_stop_tracking_after_time_unit");
                 jsonObject.remove("caution_operator");
                 jsonObject.remove("caution_threshold");
+                jsonObject.remove("caution_alert_active");
+                jsonObject.remove("caution_alert_acknowledged_status");
+                jsonObject.remove("caution_alert_last_sent_timestamp");
+                jsonObject.remove("caution_first_active_at");
             }
 
-            if ((alert.isDangerEnabled() == null) || !alert.isDangerEnabled()) {
+            if ((alert_Local.isDangerEnabled() == null) || !alert_Local.isDangerEnabled()) {
                 jsonObject.remove("danger_notification_group_id");
                 jsonObject.remove("danger_positive_notification_group_id");
                 jsonObject.remove("danger_minimum_sample_count");
                 jsonObject.remove("danger_combination");
-                jsonObject.remove("danger_alert_active");
                 jsonObject.remove("danger_window_duration");
                 jsonObject.remove("danger_window_duration_time_unit");
                 jsonObject.remove("danger_stop_tracking_after");
                 jsonObject.remove("danger_stop_tracking_after_time_unit");
                 jsonObject.remove("danger_operator");
                 jsonObject.remove("danger_threshold");
+                jsonObject.remove("danger_alert_active");
+                jsonObject.remove("danger_alert_acknowledged_status");
+                jsonObject.remove("danger_alert_last_sent_timestamp");
+                jsonObject.remove("danger_first_active_at");
             }
 
-            if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
+            if (alert_Local.getAlertType() == Alert.TYPE_AVAILABILITY) {
                 jsonObject.remove("caution_minimum_sample_count");
                 jsonObject.remove("caution_combination");
                 jsonObject.remove("caution_operator");
@@ -1042,7 +1054,7 @@ public class Alert extends DatabaseObject<Alert> {
                 jsonObject.remove("danger_threshold");
             }
 
-            if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
+            if (alert_Local.getAlertType() == Alert.TYPE_THRESHOLD) {
                 jsonObject.remove("caution_stop_tracking_after");
                 jsonObject.remove("caution_stop_tracking_after_time_unit");
 
@@ -1050,7 +1062,7 @@ public class Alert extends DatabaseObject<Alert> {
                 jsonObject.remove("danger_stop_tracking_after_time_unit");
             }        
             
-            if ((alert.isAlertOnPositive() != null) && !alert.isAlertOnPositive()) {
+            if ((alert_Local.isAlertOnPositive() != null) && !alert_Local.isAlertOnPositive()) {
                 jsonObject.remove("caution_notification_group_name");
                 jsonObject.remove("caution_notification_group_id");
                 jsonObject.remove("caution_positive_notification_group_name");
