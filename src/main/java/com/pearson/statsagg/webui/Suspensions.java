@@ -147,9 +147,9 @@ public class Suspensions extends HttpServlet {
             }
         }
         
-        if (isSuccess && isEnabled) return "Successfully enabled alert";
-        if (isSuccess && !isEnabled) return "Successfully disabled alert";
-        else return "Error -- could not alter alert";
+        if (isSuccess && isEnabled) return "Successfully enabled suspension";
+        if (isSuccess && !isEnabled) return "Successfully disabled suspension";
+        else return "Error -- could not alter suspension";
     }
 
     private void cloneSuspension(String suspensionName) {
