@@ -6,7 +6,6 @@ StatsAgg 1.5
    * Triggered metrics for an alert
    * Regex tester
    * Acknowledge alert 
- * Expose "number of datapoints in memory" (home page)
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
  * Alert details -- say "associated with these suspensions..."
  * Notification details -- say "associated with these alerts..."
