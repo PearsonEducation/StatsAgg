@@ -2,6 +2,7 @@ package com.pearson.statsagg.database_objects.alerts;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
@@ -11,12 +12,14 @@ import java.util.Objects;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.webui.api.JsonBigDecimal;
 import java.util.Calendar;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -857,10 +860,10 @@ public class Alert extends DatabaseObject<Alert> {
     }
     
     public static JsonObject getJsonObject_ApiFriendly(Alert alert) {
-        return getJsonObject_ApiFriendly(alert, null, null, null, null, null);
+        return getJsonObject_ApiFriendly(alert, null, null, null, null, null, null);
     }
     
-    public static JsonObject getJsonObject_ApiFriendly(Alert alert, MetricGroup metricGroup, 
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -881,6 +884,17 @@ public class Alert extends DatabaseObject<Alert> {
             else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert.getMetricGroupId() != null)) {
                 logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
             }
+            
+            JsonArray metricGroupTags_JsonArray = new JsonArray();
+            if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
+                for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                    if ((metricGroupTag.getTag() != null) && (metricGroupTag.getMetricGroupId() != null) && (alert.getMetricGroupId() != null) && 
+                            (metricGroupTag.getMetricGroupId().intValue() == alert.getMetricGroupId().intValue())) {
+                        metricGroupTags_JsonArray.add(metricGroupTag.getTag());
+                    }
+                }
+            }
+            jsonObject.add("metric_group_tags", metricGroupTags_JsonArray);
             
             if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert.getCautionNotificationGroupId() != null) 
                     && (cautionNotificationGroup.getId().intValue() == alert.getCautionNotificationGroupId().intValue())) {
@@ -1057,10 +1071,10 @@ public class Alert extends DatabaseObject<Alert> {
     }
     
     public static String getJsonString_ApiFriendly(Alert alert) {
-        return getJsonString_ApiFriendly(alert, null, null, null, null, null);
+        return getJsonString_ApiFriendly(alert, null, null, null, null, null, null);
     }
     
-    public static String getJsonString_ApiFriendly(Alert alert, MetricGroup metricGroup,
+    public static String getJsonString_ApiFriendly(Alert alert, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -1069,7 +1083,7 @@ public class Alert extends DatabaseObject<Alert> {
         }
         
         try {
-            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             if (jsonObject == null) return null;
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
