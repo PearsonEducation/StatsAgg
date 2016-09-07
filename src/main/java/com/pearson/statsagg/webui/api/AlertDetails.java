@@ -5,11 +5,14 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.io.PrintWriter;
+import java.util.List;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -112,9 +115,13 @@ public class AlertDetails extends HttpServlet {
             else if (alertName != null) alert = alertsDao.getAlertByName(alertName);
 
             MetricGroup metricGroup = null;
+            List<MetricGroupTag> metricGroupTags = null;
             if ((alert != null) && (alert.getMetricGroupId() != null)) {
                 MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
                 metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+                
+                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(alertsDao.getDatabaseInterface());
+                metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
             }
 
             NotificationGroup cautionNotificationGroup = null;
@@ -129,7 +136,7 @@ public class AlertDetails extends HttpServlet {
                 
             alertsDao.close();
             
-            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
