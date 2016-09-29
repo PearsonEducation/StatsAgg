@@ -293,7 +293,7 @@ public class CreateMetricGroup extends HttpServlet {
 
         TreeSet<String> matchRegexes = null;
         TreeSet<String> matchRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
-        TreeSet<String> matchRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "match_regexes");
+        TreeSet<String> matchRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "match-regexes");
         if ((matchRegexes_Ui != null) || (matchRegexes_Api != null)) {
             matchRegexes = new TreeSet<>();
             if (matchRegexes_Ui != null) matchRegexes.addAll(matchRegexes_Ui);
@@ -302,7 +302,7 @@ public class CreateMetricGroup extends HttpServlet {
         
         TreeSet<String> blacklistRegexes = null;
         TreeSet<String> blacklistRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
-        TreeSet<String> blacklistRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist_regexes");
+        TreeSet<String> blacklistRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist-regexes");
         if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api != null)) {
             blacklistRegexes = new TreeSet<>();
             if (blacklistRegexes_Ui != null) blacklistRegexes.addAll(blacklistRegexes_Ui);
