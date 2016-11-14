@@ -11,6 +11,7 @@ Without this configuration present, some functionality in the IDE may be limited
             <configuration id="Production" profiles=""/>
         </configurations>
     </config-data>
+    <libraries xmlns="http://www.netbeans.org/ns/cdnjs-libraries/1"/>
     <properties xmlns="http://www.netbeans.org/ns/maven-properties-data/1">
         <!--
 Properties that influence various parts of the IDE, especially code formatting and the like. 
