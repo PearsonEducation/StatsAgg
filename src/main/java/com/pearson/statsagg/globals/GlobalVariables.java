@@ -18,6 +18,7 @@ import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Jeffrey Schmidt
@@ -65,6 +66,9 @@ public class GlobalVariables {
     // Used to generate hash keys for incoming metrics
     public final static AtomicLong metricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
 
+    // The current metric group id that is associated with the output blacklist
+    public final static AtomicInteger outputBlacklistMetricGroupId = new AtomicInteger(-1);
+    
     // k="Value assigned at metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="metric object"
     public final static ConcurrentHashMap<Long,StatsdMetric> statsdNotGaugeMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,StatsdMetric> statsdGaugeMetrics = new ConcurrentHashMap<>();

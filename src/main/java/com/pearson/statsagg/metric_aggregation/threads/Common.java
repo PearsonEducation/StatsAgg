@@ -86,20 +86,17 @@ public class Common {
         }
         
     }
-    
-    public static boolean updateAlertMetricRecentValues(List<? extends GenericMetricFormat> metrics) {
+
+    public static void updateAlertMetricRecentValues(List<? extends GenericMetricFormat> metrics) {
         
         if ((metrics == null) || metrics.isEmpty()) {
-            return false;
+            return;
         }
-        
-        boolean didDoAnyUpdates = false;
-        
+                
         for (GenericMetricFormat metric : metrics) {
             String metricKey = metric.getMetricKey();
 
-            MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(
-                    metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
+            MetricTimestampAndValue metricTimestampAndValue = new MetricTimestampAndValue(metric.getMetricTimestampInMilliseconds(), metric.getMetricValueBigDecimal(), metric.getMetricHashKey());
 
             List<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricKey);
 
@@ -107,15 +104,12 @@ public class Common {
                 metricTimestampsAndValues.add(metricTimestampAndValue);
             }
             else {
-                metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<MetricTimestampAndValue>());
+                metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<>());
                 metricTimestampsAndValues.add(metricTimestampAndValue);
                 GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricKey, metricTimestampsAndValues);
             }
-
-            didDoAnyUpdates = true;
         }
-        
-        return didDoAnyUpdates;
+
     }
     
     public static void removeMetricKeysFromGraphiteMetricsList(List<GraphiteMetric> graphiteMetrics, Set<String> metricKeysToRemove) {
