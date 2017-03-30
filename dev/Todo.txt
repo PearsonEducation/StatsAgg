@@ -1,16 +1,21 @@
 StatsAgg 1.5
  * Document 'Alerts Report'
  * Document API
+ * Document Metric Benchmark
  * Update screenshots of 'suspensions' 
- * Finish/refine API
-   * Triggered metrics for an alert
-   * Regex tester
-   * Acknowledge alert 
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
  * Alert details -- say "associated with these suspensions..."
  * Notification details -- say "associated with these alerts..."
-
+ * Output blacklist 
+   * Toss out metrics if too many have built up
+   
 StatsAgg 1.6
+ * New APIs
+   * Triggered metrics for an alert
+   * Regex tester
+   * Acknowledge alert 
+ * Fix race conditions for 'forget metrics'
+ * End date for reoccurring alerts
  * Alter buttons on 'details' pages (only when not hiding the navbar)
  * 'Last modified at' for alerts, suspensions, etc 
  * InfluxDB 0.9+ support
