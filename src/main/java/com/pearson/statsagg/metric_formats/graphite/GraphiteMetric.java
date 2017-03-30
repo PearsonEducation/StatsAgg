@@ -212,11 +212,9 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         if (!sanitizeMetric && !substituteCharacters) return unsanitizedInput;
         
         StringBuilder sanitizedInput = new StringBuilder();
- 
-        char[] unsanitizedInputChars = unsanitizedInput.toCharArray();
-        
-        for (int i = 0; i < unsanitizedInputChars.length; i++) {
-            char character = unsanitizedInputChars[i];
+
+        for (int i = 0; i < unsanitizedInput.length(); i++) {
+            char character = unsanitizedInput.charAt(i);
             
             if (substituteCharacters && Character.isLetterOrDigit(character)) {
                 sanitizedInput.append(character);
@@ -226,7 +224,7 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             if (sanitizeMetric && (character == '.')) {
                 int iPlusOne = i + 1;
                 
-                if (((iPlusOne < unsanitizedInputChars.length) && (unsanitizedInputChars[iPlusOne] != '.')) || (iPlusOne == unsanitizedInputChars.length)) {
+                if (((iPlusOne < unsanitizedInput.length()) && (unsanitizedInput.charAt(iPlusOne) != '.')) || (iPlusOne == unsanitizedInput.length())) {
                     sanitizedInput.append(character);
                     continue;
                 }

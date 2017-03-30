@@ -99,8 +99,9 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
         StringBuilder sanitizedInput = new StringBuilder();
  
-        for (char character : unsanitizedInput.toCharArray()) {
-            
+        for (int i = 0; i < unsanitizedInput.length(); i++) {
+            char character = unsanitizedInput.charAt(i);
+                    
             if (Character.isLetterOrDigit(character)) {
                 sanitizedInput.append(character);
                 continue;
@@ -110,7 +111,6 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 sanitizedInput.append(character);
                 continue;
             }
-
         }
 
         return sanitizedInput.toString();
