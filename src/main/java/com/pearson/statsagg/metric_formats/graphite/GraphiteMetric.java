@@ -215,7 +215,7 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
         for (int i = 0; i < unsanitizedInput.length(); i++) {
             char character = unsanitizedInput.charAt(i);
-            
+
             if (substituteCharacters && Character.isLetterOrDigit(character)) {
                 sanitizedInput.append(character);
                 continue;
