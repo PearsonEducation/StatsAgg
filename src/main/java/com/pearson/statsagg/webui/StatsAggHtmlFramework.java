@@ -111,6 +111,7 @@ public class StatsAggHtmlFramework {
             body.append("<li><a href=\"MetricAlertAssociations\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Metric Alert Associations</a></li>\n");
             body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
             body.append("<li><a href=\"OutputBlacklist\"><i class=\"fa fa-thumbs-down\"></i>&nbsp;&nbsp;Output Blacklist </a></li>\n");
+            body.append("<li><a href=\"Benchmark\"><i class=\"fa fa-wheelchair-alt\"></i>&nbsp;&nbsp;Metric Benchmark </a></li>\n");
             body.append("<li><a href=\"AlertsReport\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Alerts Report </a></li>\n");
       
             for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
