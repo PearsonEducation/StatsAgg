@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
@@ -111,7 +112,7 @@ public class MetricAlertAssociations extends HttpServlet {
             String regex = request.getParameter("Regex");
             boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
             
-            Set<String> metricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), regex, null, -1);
+            Set<String> metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), regex, null, -1);
             Set<Alert> alertsAssociatedWithMetrics = getAlertsAssociatedWithMetrics(metricKeys);
             String alertMatchesHtml = getAlertMatchesHtml(alertsAssociatedWithMetrics, excludeNavbar);
             

@@ -1,11 +1,10 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
@@ -55,35 +54,44 @@ public class InfluxdbV1Thread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeInfluxdbThreadStartGetMetricsTimestamps);
             activeInfluxdbThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
             
-            // returns a list of metric-keys that need to be disregarded by this routine.
-            long forgetInfluxdbStandardizedMetricsTimeStart = System.currentTimeMillis();
-            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
-            long forgetInfluxdbStandardizedMetricsTimeElasped = System.currentTimeMillis() - forgetInfluxdbStandardizedMetricsTimeStart;  
-            
-            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
-            long createMetricsTimeStart = System.currentTimeMillis();
+            // get metrics
+            long getMetricsTimeStart = System.currentTimeMillis();
             List[] influxdbMetrics_OriginalAndStandardized = getCurrentInfluxdbMetricsAndRemoveMetricsFromGlobal();
             List<InfluxdbMetric_v1> influxdbMetrics = influxdbMetrics_OriginalAndStandardized[0];
             List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics = influxdbMetrics_OriginalAndStandardized[1];
-            removeMetricKeysFromInfluxdbStandardizedMetricsList(influxdbStandardizedMetrics, metricKeysToForget);
-            long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
-                    
+            long getMetricsTimeElasped = System.currentTimeMillis() - getMetricsTimeStart; 
+            
+            // returns a list of metric-keys that need to be disregarded by this routine.
+            long forgetInfluxdbStandardizedMetricsTimeStart = System.currentTimeMillis();
+            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics_RemovedForgottenMetrics = removeMetricKeysFromInfluxdbStandardizedMetricsList(influxdbStandardizedMetrics, metricKeysToForget);
+            // todo -- support 'forgetting' InfluxdbMetric_v1 (influxdb native)
+            long forgetInfluxdbStandardizedMetricsTimeElasped = System.currentTimeMillis() - forgetInfluxdbStandardizedMetricsTimeStart;  
+            
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(influxdbStandardizedMetrics);
+            Common.updateMetricLastSeenTimestamps(influxdbStandardizedMetrics_RemovedForgottenMetrics);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
-            Common.updateAlertMetricRecentValues(influxdbStandardizedMetrics);
+            Common.updateAlertMetricRecentValues(influxdbStandardizedMetrics_RemovedForgottenMetrics);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
             
+            // // make sure metric-keys that should be output-blacklist are blacklisted & remove output-blacklist metrics prior to outputting
+            long outputBlacklistTimeStart = System.currentTimeMillis();
+            long outputBlacklistNewlyProcessedMetricsCount = MetricAssociation.associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(threadId_, Common.getMetricKeysFromMetrics_List(influxdbStandardizedMetrics_RemovedForgottenMetrics));
+            List<String> outputBlacklistMetricKeys = Common.getOutputBlacklistMetricKeys();
+            if (outputBlacklistMetricKeys != null) metricKeysToForget.addAll(outputBlacklistMetricKeys);
+            List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics = removeMetricKeysFromInfluxdbStandardizedMetricsList(influxdbStandardizedMetrics_RemovedForgottenMetrics, metricKeysToForget);
+            long outputBlacklistTimeElasped = System.currentTimeMillis() - outputBlacklistTimeStart; 
+            
             // send metrics to output modules
-            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics, threadId_);
-            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics, threadId_);
-            if (!influxdbStandardizedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+            if (!influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
             if (!influxdbMetrics.isEmpty()) SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_Native(influxdbMetrics, threadId_);
-                        
+ 
             // total time for this thread took to get & send the metrics
             long threadTimeElasped = System.currentTimeMillis() - threadTimeStart - waitInMsCounter;
             String rate = "0";
@@ -93,8 +101,11 @@ public class InfluxdbV1Thread implements Runnable {
                     + ", AggTotalTime=" + threadTimeElasped 
                     + ", RawMetricCount=" + influxdbStandardizedMetrics.size() 
                     + ", RawMetricRatePerSec=" + (influxdbStandardizedMetrics.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", OutputMetricCount=" + influxdbStandardizedMetrics_RemovedForgottenAndOutputBlacklistedMetrics.size() 
                     + ", MetricsProcessedPerSec=" + rate
-                    + ", CreateMetricsTime=" + createMetricsTimeElasped
+                    + ", GetMetricsTime=" + getMetricsTimeElasped
+                    + ", OutputBlacklistTime=" + outputBlacklistTimeElasped
+                    + ", OutputBlacklistNewAssociationCount=" + outputBlacklistNewlyProcessedMetricsCount
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", ForgetMetricsTime=" + forgetInfluxdbStandardizedMetricsTimeElasped
@@ -104,7 +115,7 @@ public class InfluxdbV1Thread implements Runnable {
             else logger.info(aggregationStatistics);
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics) {
+                for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics_RemovedForgottenMetrics) {
                     logger.info("InfluxDB metric= " + influxdbStandardizedMetric.toString());
                 }
             }
@@ -146,26 +157,23 @@ public class InfluxdbV1Thread implements Runnable {
         return influxdbMetrics_OriginalAndStandardized;
     }
     
-    public static void removeMetricKeysFromInfluxdbStandardizedMetricsList(List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics, Set<String> metricKeysToRemove) {
+    public static List<InfluxdbStandardizedMetric> removeMetricKeysFromInfluxdbStandardizedMetricsList(List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics, Set<String> metricKeysToRemove) {
         
         if ((influxdbStandardizedMetrics == null) || influxdbStandardizedMetrics.isEmpty() || (metricKeysToRemove == null) || metricKeysToRemove.isEmpty()) {
-            return;
+            return influxdbStandardizedMetrics;
         }
         
-        Map<String,InfluxdbStandardizedMetric> metricsMap = new HashMap<>();
-        
+        List<InfluxdbStandardizedMetric> influxdbStandardizedMetrics_WithMetricsRemoved = new ArrayList<>(influxdbStandardizedMetrics.size());
+
         for (InfluxdbStandardizedMetric influxdbStandardizedMetric : influxdbStandardizedMetrics) {
             String metricKey = influxdbStandardizedMetric.getMetricKey();
-            if (metricKey != null) metricsMap.put(metricKey, influxdbStandardizedMetric);
+            
+            if ((metricKey != null) && !metricKeysToRemove.contains(metricKey)) {
+                influxdbStandardizedMetrics_WithMetricsRemoved.add(influxdbStandardizedMetric);
+            }
         }
-                
-        for (String metricKeyToRemove : metricKeysToRemove) {
-            Object metric = metricsMap.get(metricKeyToRemove);
-            if (metric != null) metricsMap.remove(metricKeyToRemove);
-        }
-        
-        influxdbStandardizedMetrics.clear();
-        influxdbStandardizedMetrics.addAll(metricsMap.values());
+
+        return influxdbStandardizedMetrics_WithMetricsRemoved;
     }
     
 }

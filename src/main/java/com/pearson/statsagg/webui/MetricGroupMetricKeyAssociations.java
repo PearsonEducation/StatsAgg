@@ -185,7 +185,7 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
         return outputString.toString();
     }
 
-    private List<MetricTimestampAndValue> getSortedMetricTimestampsAndValues(String metricKey) {
+    protected static List<MetricTimestampAndValue> getSortedMetricTimestampsAndValues(String metricKey) {
         
         if (metricKey == null) {
             return new ArrayList<>();

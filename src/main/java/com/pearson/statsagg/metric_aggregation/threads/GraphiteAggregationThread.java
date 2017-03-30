@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,39 +53,47 @@ public class GraphiteAggregationThread implements Runnable {
             // wait until this is the youngest active thread
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeGraphiteAggregationThreadStartGetMetricsTimestamps);
             activeGraphiteAggregationThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
-            
-            // returns a list of metric-keys that need to be disregarded by this routine.
-            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
-            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
-            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
-            
-            // get metrics for aggregation, then remove any aggregated metrics that need to be 'forgotten'
-            long createMetricsTimeStart = System.currentTimeMillis();
+
+            // get metrics
+            long getMetricsTimeStart = System.currentTimeMillis();
             List<GraphiteMetric> graphiteMetrics = getCurrentGraphiteAggregatorMetricsAndRemoveMetricsFromGlobal();
-            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetrics, metricKeysToForget);
-            long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
+            long getMetricsTimeElasped = System.currentTimeMillis() - getMetricsTimeStart; 
             
             // aggregate graphite metrics
             long aggregateTimeStart = System.currentTimeMillis();
             List<GraphiteMetric> graphiteMetricsAggregated = GraphiteMetricAggregator.aggregateGraphiteMetrics(graphiteMetrics);
             long aggregateTimeElasped = System.currentTimeMillis() - aggregateTimeStart; 
 
+            // gets a list of metric-keys that need to be disregarded by this routine & removes them
+            long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
+            Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            List<GraphiteMetric> graphiteMetricsAggregated_RemovedForgottenMetrics = Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsAggregated, metricKeysToForget);
+            long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart; 
+            
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(graphiteMetricsAggregated);
+            Common.updateMetricLastSeenTimestamps(graphiteMetricsAggregated_RemovedForgottenMetrics);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
-            Common.updateAlertMetricRecentValues(graphiteMetricsAggregated);
+            Common.updateAlertMetricRecentValues(graphiteMetricsAggregated_RemovedForgottenMetrics);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
+            
+            // // make sure metric-keys that should be output-blacklist are blacklisted & remove output-blacklist metrics prior to outputting
+            long outputBlacklistTimeStart = System.currentTimeMillis();
+            long outputBlacklistNewlyProcessedMetricsCount = MetricAssociation.associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(threadId_, Common.getMetricKeysFromMetrics_List(graphiteMetricsAggregated_RemovedForgottenMetrics));
+            List<String> outputBlacklistMetricKeys = Common.getOutputBlacklistMetricKeys();
+            if (outputBlacklistMetricKeys != null) metricKeysToForget.addAll(outputBlacklistMetricKeys);
+            List<GraphiteMetric> graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics = Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetricsAggregated_RemovedForgottenMetrics, metricKeysToForget);
+            long outputBlacklistTimeElasped = System.currentTimeMillis() - outputBlacklistTimeStart; 
 
             // send to metrics to output modules
-            if (!graphiteMetricsAggregated.isEmpty()) {
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetricsAggregated, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetricsAggregated, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetricsAggregated, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(graphiteMetricsAggregated, threadId_);
+            if (!graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
             }
             
             // total time for this thread took to aggregate the metrics
@@ -97,9 +106,12 @@ public class GraphiteAggregationThread implements Runnable {
                     + ", RawMetricCount=" + graphiteMetrics.size() 
                     + ", RawMetricRatePerSec=" + (graphiteMetrics.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
                     + ", AggMetricCount=" + graphiteMetricsAggregated.size() 
+                    + ", OutputMetricCount=" + graphiteMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics.size() 
                     + ", MetricsProcessedPerSec=" + aggregationRate
-                    + ", CreateMetricsTime=" + createMetricsTimeElasped 
+                    + ", GetMetricsTime=" + getMetricsTimeElasped 
                     + ", AggTime=" + aggregateTimeElasped 
+                    + ", OutputBlacklistTime=" + outputBlacklistTimeElasped
+                    + ", OutputBlacklistNewAssociationCount=" + outputBlacklistNewlyProcessedMetricsCount
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped;
@@ -108,7 +120,7 @@ public class GraphiteAggregationThread implements Runnable {
             else logger.info(aggregationStatistics);
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (GraphiteMetric graphiteMetricAggregated : graphiteMetricsAggregated) {
+                for (GraphiteMetric graphiteMetricAggregated : graphiteMetricsAggregated_RemovedForgottenMetrics) {
                     logger.info("Graphite aggregated metric= " + graphiteMetricAggregated.toString());
                 }
             }

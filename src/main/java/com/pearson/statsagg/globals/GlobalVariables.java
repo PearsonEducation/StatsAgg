@@ -2,6 +2,7 @@ package com.pearson.statsagg.globals;
 
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
+import com.pearson.statsagg.controller.threads.MetricAssociationOutputBlacklistInvokerThread;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,7 +19,6 @@ import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Jeffrey Schmidt
@@ -41,6 +41,9 @@ public class GlobalVariables {
     
     // the 'invoker' thread for the cleanup routine. this is global so that the webui can trigger the cleanup-routine.
     public static CleanupInvokerThread cleanupInvokerThread = null;
+    
+    // the 'invoker' thread for the metric-association output blacklist routine. this is global so that the webui can trigger this routine.
+    public static MetricAssociationOutputBlacklistInvokerThread metricAssociationOutputBlacklistInvokerThread = null;
     
     // A flag indicating whether statsagg has finished going through its initialization routine. This will only be true if it has gone through the initialization routine successfully.
     public static AtomicBoolean isApplicationInitializeSuccess = new AtomicBoolean(false);
@@ -66,9 +69,6 @@ public class GlobalVariables {
     // Used to generate hash keys for incoming metrics
     public final static AtomicLong metricHashKeyGenerator = new AtomicLong(Long.MIN_VALUE);
 
-    // The current metric group id that is associated with the output blacklist
-    public final static AtomicInteger outputBlacklistMetricGroupId = new AtomicInteger(-1);
-    
     // k="Value assigned at metric arrival from the appropriate 'MetricsHashKeyGenerator' object", v="metric object"
     public final static ConcurrentHashMap<Long,StatsdMetric> statsdNotGaugeMetrics = new ConcurrentHashMap<>();
     public final static ConcurrentHashMap<Long,StatsdMetric> statsdGaugeMetrics = new ConcurrentHashMap<>();
@@ -102,11 +102,17 @@ public class GlobalVariables {
     // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with a specific metric group? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithMetricGroup = new ConcurrentHashMap<>(); 
     
+    // k=MetricGroupId, v=Set<MetricKey> "is the metric key associated with the output blacklist metric group? only include in the set if the assocation/match is true.">
+    public static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup = new ConcurrentHashMap<>(); 
+    
     // k=SuspensionId, v=Set<MetricKey> "is the metric key associated with a specific suspension? only include in the set if the assocation/match is true.">
     public final static ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithSuspension = new ConcurrentHashMap<>(); 
     
     // k=MetricKey, v="Boolean for "is this metric key associated with ANY metric group"?"
     public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnyMetricGroup = new ConcurrentHashMap<>(); 
+    
+    // k=MetricKey, v="Boolean for "is this metric key associated with the output blacklist"?"
+    public static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithOutputBlacklistMetricGroup = new ConcurrentHashMap<>(); 
     
     // k=MetricKey, v="Boolean for "is this metric key associated with ANY suspension"?"
     public final static ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithAnySuspension = new ConcurrentHashMap<>(); 

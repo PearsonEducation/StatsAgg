@@ -27,10 +27,12 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.alerts.MetricAssociationOutputBlacklistThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
 import com.pearson.statsagg.controller.threads.InternalStatsInvokerThread;
+import com.pearson.statsagg.controller.threads.MetricAssociationOutputBlacklistInvokerThread;
 import com.pearson.statsagg.controller.threads.OpenTsdbInvokerThread;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
@@ -82,6 +84,7 @@ public class ContextManager implements ServletContextListener {
     private GraphitePassthroughInvokerThread graphitePassthroughInvokerThread_ = null;
     private OpenTsdbInvokerThread openTsdbInvokerThread_ = null;
     private InfluxdbV1InvokerThread influxdbInvokerThread_ = null;
+    private MetricAssociationOutputBlacklistInvokerThread metricAssociationOutputBlacklistInvokerThread_ = null;
     private AlertInvokerThread alertInvokerThread_ = null;
     private CleanupInvokerThread cleanupInvokerThread_ = null;
     private InternalStatsInvokerThread internalStatsInvokerThread_ = null;
@@ -207,6 +210,11 @@ public class ContextManager implements ServletContextListener {
         influxdbInvokerThread_ = new InfluxdbV1InvokerThread();
         Thread influxdbInvokerThread = new Thread(influxdbInvokerThread_);
         influxdbInvokerThread.start();
+        
+        metricAssociationOutputBlacklistInvokerThread_ = new MetricAssociationOutputBlacklistInvokerThread();
+        Thread metricAssociationOutputBlacklistInvokerThread = new Thread(metricAssociationOutputBlacklistInvokerThread_);
+        metricAssociationOutputBlacklistInvokerThread.start();
+        GlobalVariables.metricAssociationOutputBlacklistInvokerThread = metricAssociationOutputBlacklistInvokerThread_;
         
         AlertThread.reset();
         alertInvokerThread_ = new AlertInvokerThread();
@@ -598,7 +606,7 @@ public class ContextManager implements ServletContextListener {
                     List<MetricTimestampAndValue> metricTimestampsAndValues = GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.get(metricLastSeen.getMetricKey());
 
                     if (metricTimestampsAndValues == null) {
-                        metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<MetricTimestampAndValue>());
+                        metricTimestampsAndValues = Collections.synchronizedList(new ArrayList<>());
                         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.put(metricLastSeen.getMetricKey(), metricTimestampsAndValues);
                     }
                 }
@@ -818,6 +826,10 @@ public class ContextManager implements ServletContextListener {
         ShutdownInvokerThread_Thread shutdownInfluxdbInvokerThread = new ShutdownInvokerThread_Thread(influxdbInvokerThread_);
         Thread shutdownInfluxdbAggregationInvokerThread_Thread = new Thread(shutdownInfluxdbInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownInfluxdbAggregationInvokerThread_Thread);
+        
+        ShutdownInvokerThread_Thread shutdownMetricAssociationOutputBlacklistInvokerThread = new ShutdownInvokerThread_Thread(metricAssociationOutputBlacklistInvokerThread_);
+        Thread shutdownMetricAssociationOutputBlacklistInvokerThread_Thread = new Thread(shutdownMetricAssociationOutputBlacklistInvokerThread);
+        shutdownThreadInvokerThreads.add(shutdownMetricAssociationOutputBlacklistInvokerThread_Thread);
         
         ShutdownInvokerThread_Thread shutdownAlertInvokerThread = new ShutdownInvokerThread_Thread(alertInvokerThread_);
         Thread shutdownAlertInvokerThread_Thread = new Thread(shutdownAlertInvokerThread);

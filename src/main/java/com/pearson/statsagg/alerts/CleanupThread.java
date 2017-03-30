@@ -65,7 +65,7 @@ public class CleanupThread implements Runnable {
             String cleanupSubroutineOutputMessages = cleanupRecentMetricTimestampsAndValuesOutput;
 
             // don't cleanup metric keys when the metric association routine is running
-            if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get()) {
+            if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get() && !MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get()) {
                 String cleanupMetricsAssociationsOutput = cleanupMetricsAssociations();
                 cleanupSubroutineOutputMessages = cleanupSubroutineOutputMessages + ", " + cleanupMetricsAssociationsOutput;
             }
@@ -183,6 +183,10 @@ public class CleanupThread implements Runnable {
             if (matchingMetricKeyAssociationWithMetricGroup != null) matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
         }
         
+        for (Set<String> matchingMetricKeyAssociationWithMetricGroup : GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup.values()) {
+            if (matchingMetricKeyAssociationWithMetricGroup != null) matchingMetricKeyAssociationWithMetricGroup.remove(metricKey);
+        }
+        
         for (Set<String> matchingMetricKeyAssociationWithSuspension : GlobalVariables.matchingMetricKeysAssociatedWithSuspension.values()) {
             if (matchingMetricKeyAssociationWithSuspension != null) matchingMetricKeyAssociationWithSuspension.remove(metricKey);
         }
@@ -193,6 +197,7 @@ public class CleanupThread implements Runnable {
         
         GlobalVariables.statsdMetricsAggregatedMostRecentValue.remove(metricKey);
         GlobalVariables.metricKeysAssociatedWithAnyMetricGroup.remove(metricKey);
+        GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup.remove(metricKey);
         GlobalVariables.metricKeysAssociatedWithAnySuspension.remove(metricKey);
         GlobalVariables.metricKeysLastSeenTimestamp.remove(metricKey);
         GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.remove(metricKey);

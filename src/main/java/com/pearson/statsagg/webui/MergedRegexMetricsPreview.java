@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -79,7 +80,7 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes_List);
         String mergedBlacklistRegex = StringUtilities.createMergedRegex(blacklistRegexes_List);
 
-        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, mergedBlacklistRegex, 1001);
+        Set<String> matchMetricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, mergedBlacklistRegex, 1001);
         String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
             
         try {  

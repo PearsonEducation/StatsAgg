@@ -1,7 +1,6 @@
 package com.pearson.statsagg.database_objects.output_blacklist;
 
 import com.google.gson.annotations.SerializedName;
-import java.sql.Timestamp;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;

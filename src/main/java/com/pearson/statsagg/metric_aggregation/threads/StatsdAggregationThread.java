@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -68,23 +69,17 @@ public class StatsdAggregationThread implements Runnable {
             // wait until this is the youngest active thread
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeStatsdAggregationThreadStartGetMetricsTimestamps);
             activeStatsdAggregationThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
-            
-            // returns a list of buckets that need to be disregarded by this routine.
-            long forgetStatsdMetricsTimeStart = System.currentTimeMillis();
-            Set<String> bucketsToForget = new HashSet<>(GlobalVariables.immediateCleanupMetrics.keySet());
-            long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
-            
-            // get metrics for aggregation
-            long createMetricsTimeStart = System.currentTimeMillis();
+
+            // get metrics
+            long getMetricsTimeStart = System.currentTimeMillis();
             List<StatsdMetric> statsdMetricsGauges = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal(GlobalVariables.statsdGaugeMetrics);
             List<StatsdMetric> statsdMetricsNotGauges = getCurrentStatsdMetricsAndRemoveMetricsFromGlobal(GlobalVariables.statsdNotGaugeMetrics);
             long totalNumberOfStatsdMetrics = statsdMetricsGauges.size() + statsdMetricsNotGauges.size();
-            long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
+            long getMetricsTimeElasped = System.currentTimeMillis() - getMetricsTimeStart; 
             
             // aggregate everything except gauges, then remove any aggregated metrics that need to be 'forgotten'
             long aggregateNotGaugeTimeStart = System.currentTimeMillis();
             List<StatsdMetricAggregated> statsdMetricsAggregatedNotGauges = StatsdMetricAggregator.aggregateStatsdMetrics(statsdMetricsNotGauges);
-            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedNotGauges, bucketsToForget);
             long aggregateNotGaugeTimeElasped = System.currentTimeMillis() - aggregateNotGaugeTimeStart; 
             
             // wait until this is the youngest active thread
@@ -93,47 +88,65 @@ public class StatsdAggregationThread implements Runnable {
            // aggregate gauges, then remove any aggregated metrics that need to be 'forgotten'
             long aggregateGaugeTimeStart = System.currentTimeMillis();
             List<StatsdMetricAggregated> statsdMetricsAggregatedGauges = StatsdMetricAggregator.aggregateStatsdMetrics(statsdMetricsGauges);
-            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedGauges, bucketsToForget);
             long aggregateGaugeTimeElasped = System.currentTimeMillis() - aggregateGaugeTimeStart; 
+            
+            // gets a list of buckets that need to be disregarded by this routine & removes them 
+            long forgetStatsdMetricsTimeStart = System.currentTimeMillis();
+            Set<String> bucketsToForget = new HashSet<>(GlobalVariables.immediateCleanupMetrics.keySet());
+            List<StatsdMetricAggregated> statsdMetricsAggregatedNotGauges_RemovedForgottenMetrics = removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedNotGauges, bucketsToForget);
+            List<StatsdMetricAggregated> statsdMetricsAggregatedGauges_RemovedForgottenMetrics = removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedGauges, bucketsToForget);
+            long forgetStatsdMetricsTimeElasped = System.currentTimeMillis() - forgetStatsdMetricsTimeStart;  
             
             // merge aggregated non-aggregatedGauge & aggregateGauge metrics
             long mergeAggregatedMetricsTimeStart = System.currentTimeMillis();
-            List<StatsdMetricAggregated> statsdMetricsAggregated = new ArrayList<>(statsdMetricsAggregatedNotGauges);
-            statsdMetricsAggregated.addAll(statsdMetricsAggregatedGauges);
+            List<StatsdMetricAggregated> statsdMetricsAggregated_RemovedForgottenMetrics = new ArrayList<>(statsdMetricsAggregatedNotGauges_RemovedForgottenMetrics);
+            statsdMetricsAggregated_RemovedForgottenMetrics.addAll(statsdMetricsAggregatedGauges_RemovedForgottenMetrics);
             long mergeAggregatedMetricsTimeElasped = System.currentTimeMillis() - mergeAggregatedMetricsTimeStart; 
             
             // updates gauges db (blocking)
             long updateDatabaseTimeStart = System.currentTimeMillis();
-            updateStatsdGaugesInDatabaseAndCache(statsdMetricsAggregatedGauges);
+            updateStatsdGaugesInDatabaseAndCache(statsdMetricsAggregatedGauges_RemovedForgottenMetrics);
             long updateDatabaseTimeElasped = System.currentTimeMillis() - updateDatabaseTimeStart; 
             
             // update the global lists of statsd's most recent aggregated values
             long updateMostRecentDataValueForMetricsTimeStart = System.currentTimeMillis();
-            updateMetricMostRecentValues(statsdMetricsAggregated);
+            updateMetricMostRecentValues(statsdMetricsAggregated_RemovedForgottenMetrics);
             long updateMostRecentDataValueForMetricsTimeElasped = System.currentTimeMillis() - updateMostRecentDataValueForMetricsTimeStart; 
             
             // merge current aggregated values with the previous aggregated window's values (if the application is configured to do this)
             long mergeRecentValuesTimeStart = System.currentTimeMillis();
-            List<StatsdMetricAggregated> statsdMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(statsdMetricsAggregated, GlobalVariables.statsdMetricsAggregatedMostRecentValue);
-            removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedMerged, bucketsToForget);
+            List<StatsdMetricAggregated> statsdMetricsAggregatedMerged = mergePreviouslyAggregatedValuesWithCurrentAggregatedValues(statsdMetricsAggregated_RemovedForgottenMetrics, GlobalVariables.statsdMetricsAggregatedMostRecentValue);
             long mergeRecentValuesTimeElasped = System.currentTimeMillis() - mergeRecentValuesTimeStart; 
 
+            // removes any metrics that should have been discarded, but weren't because they were merged with the last run's values
+            long forgetStatsdMetrics_Merged_TimeStart = System.currentTimeMillis();
+            List<StatsdMetricAggregated> statsdMetricsAggregatedMerged_RemovedForgottenMetrics = removeBucketsFromStatsdMetricsList(statsdMetricsAggregatedMerged, bucketsToForget);
+            long forgetStatsdMetrics_Merged_TimeElasped = System.currentTimeMillis() - forgetStatsdMetrics_Merged_TimeStart;  
+            
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregated, statsdMetricsAggregatedMerged);
+            Common.updateMetricLastSeenTimestamps(statsdMetricsAggregated_RemovedForgottenMetrics, statsdMetricsAggregatedMerged_RemovedForgottenMetrics);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
-            Common.updateAlertMetricRecentValues(statsdMetricsAggregatedMerged);
+            Common.updateAlertMetricRecentValues(statsdMetricsAggregatedMerged_RemovedForgottenMetrics);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart;                 
 
+            // // make sure metric-keys that should be output-blacklist are blacklisted & remove output-blacklist metrics prior to outputting
+            long outputBlacklistTimeStart = System.currentTimeMillis();
+            long outputBlacklistNewlyProcessedMetricsCount = MetricAssociation.associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(threadId_, Common.getMetricKeysFromMetrics_List(statsdMetricsAggregated_RemovedForgottenMetrics));
+            List<String> outputBlacklistMetricKeys = Common.getOutputBlacklistMetricKeys();
+            if (outputBlacklistMetricKeys != null) bucketsToForget.addAll(outputBlacklistMetricKeys);
+            List<StatsdMetricAggregated> statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics = removeBucketsFromStatsdMetricsList(statsdMetricsAggregated_RemovedForgottenMetrics, bucketsToForget);
+            long outputBlacklistTimeElasped = System.currentTimeMillis() - outputBlacklistTimeStart; 
+            
             // send metrics to output modules
-            if (!statsdMetricsAggregatedMerged.isEmpty()) {
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregatedMerged, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregatedMerged, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregatedMerged, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(statsdMetricsAggregatedMerged, threadId_);
+            if (!statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
             }
             
             // total time for this thread took to aggregate the metrics
@@ -147,25 +160,28 @@ public class StatsdAggregationThread implements Runnable {
                     + ", AggTotalTime=" + timeAggregationTimeElasped 
                     + ", RawMetricCount=" + totalNumberOfStatsdMetrics 
                     + ", RawMetricRatePerSec=" + (totalNumberOfStatsdMetrics / ApplicationConfiguration.getFlushTimeAgg() * 1000)
-                    + ", AggMetricCount=" + statsdMetricsAggregated.size()                    
+                    + ", AggMetricCount=" + statsdMetricsAggregatedMerged.size()       
+                    + ", OutputMetricCount=" + statsdMetricsAggregated_RemovedForgottenAndOutputBlacklistedMetrics.size() 
                     + ", MetricsProcessedPerSec=" + aggregationRate
-                    + ", CreateMetricsTime=" + createMetricsTimeElasped 
+                    + ", GetMetricsTime=" + getMetricsTimeElasped 
                     + ", UpdateDbTime=" + updateDatabaseTimeElasped 
                     + ", AggNotGaugeTime=" + aggregateNotGaugeTimeElasped 
                     + ", AggGaugeTime=" + aggregateGaugeTimeElasped 
                     + ", AggMergeMetricTime=" + mergeAggregatedMetricsTimeElasped 
+                    + ", OutputBlacklistTime=" + outputBlacklistTimeElasped
+                    + ", OutputBlacklistNewAssociationCount=" + outputBlacklistNewlyProcessedMetricsCount
                     + ", UpdateRecentValuesTime=" + updateMostRecentDataValueForMetricsTimeElasped 
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", MergeNewAndOldMetricsTime=" + mergeRecentValuesTimeElasped 
-                    + ", AggNewAndOldMetricCount=" + statsdMetricsAggregatedMerged.size() 
-                    + ", ForgetMetricsTime=" + forgetStatsdMetricsTimeElasped;
+                    + ", AggNewAndOldMetricCount=" + statsdMetricsAggregatedMerged_RemovedForgottenMetrics.size() 
+                    + ", ForgetMetricsTime=" + (forgetStatsdMetricsTimeElasped + forgetStatsdMetrics_Merged_TimeElasped);
             
             if (statsdMetricsAggregatedMerged.isEmpty()) logger.debug(aggregationStatistics);
             else logger.info(aggregationStatistics);
 
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregatedMerged) {
+                for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregatedMerged_RemovedForgottenMetrics) {
                     logger.info("StatsdAggregatedMetric=\"" + statsdMetricAggregated.toString() + "\"");
                 }
             }
@@ -317,27 +333,24 @@ public class StatsdAggregationThread implements Runnable {
         
         return statsdMetricsAggregatedMerged;
     }
-    
-    public static void removeBucketsFromStatsdMetricsList(List<StatsdMetricAggregated> statsdMetricsAggregated, Set<String> bucketsToRemove) {
+
+    public static List<StatsdMetricAggregated> removeBucketsFromStatsdMetricsList(List<StatsdMetricAggregated> statsdMetrics, Set<String> bucketsToRemove) {
         
-        if ((statsdMetricsAggregated == null) || statsdMetricsAggregated.isEmpty() || (bucketsToRemove == null) || bucketsToRemove.isEmpty()) {
-            return;
+        if ((statsdMetrics == null) || statsdMetrics.isEmpty() || (bucketsToRemove == null) || bucketsToRemove.isEmpty()) {
+            return statsdMetrics;
         }
         
-        Map<String, StatsdMetricAggregated> metricsMap = new HashMap<>();
-        
-        for (StatsdMetricAggregated statsdMetricAggregated : statsdMetricsAggregated) {
-            String metricKey = statsdMetricAggregated.getMetricKey();
-            if (metricKey != null) metricsMap.put(metricKey, statsdMetricAggregated);
+        List<StatsdMetricAggregated> statsdMetrics_WithMetricsRemoved = new ArrayList<>(statsdMetrics.size());
+
+        for (StatsdMetricAggregated statsdMetricAggregated : statsdMetrics) {
+            String bucket = statsdMetricAggregated.getBucket();
+            
+            if ((bucket != null) && !bucketsToRemove.contains(bucket)) {
+                statsdMetrics_WithMetricsRemoved.add(statsdMetricAggregated);
+            }
         }
-                
-        for (String metricKeyToRemove : bucketsToRemove) {
-            Object metric = metricsMap.get(metricKeyToRemove);
-            if (metric != null) metricsMap.remove(metricKeyToRemove);
-        }
-        
-        statsdMetricsAggregated.clear();
-        statsdMetricsAggregated.addAll(metricsMap.values());
+
+        return statsdMetrics_WithMetricsRemoved;
     }
     
 }

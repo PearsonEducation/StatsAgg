@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,33 +53,41 @@ public class GraphitePassthroughThread implements Runnable {
             int waitInMsCounter = Common.waitUntilThisIsYoungestActiveThread(threadStartTimestampInMilliseconds_, activeGraphitePassthroughThreadStartGetMetricsTimestamps);
             activeGraphitePassthroughThreadStartGetMetricsTimestamps.remove(threadStartTimestampInMilliseconds_);
 
-            // returns a list of metric-keys that need to be disregarded by this routine.
+            // get metrics
+            long getMetricsTimeStart = System.currentTimeMillis();
+            List<GraphiteMetric> graphiteMetrics = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
+            long getMetricsTimeElasped = System.currentTimeMillis() - getMetricsTimeStart; 
+
+            // gets a list of metric-keys that need to be disregarded by this routine & removes them
             long forgetGraphiteMetricsTimeStart = System.currentTimeMillis();
             Set<String> metricKeysToForget = new HashSet(GlobalVariables.immediateCleanupMetrics.keySet());
+            List<GraphiteMetric> graphiteMetrics_RemovedForgottenMetrics = Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetrics, metricKeysToForget);
             long forgetGraphiteMetricsTimeElasped = System.currentTimeMillis() - forgetGraphiteMetricsTimeStart;  
             
-            // get metrics, remove any metrics that need to be 'forgotten'
-            long createMetricsTimeStart = System.currentTimeMillis();
-            List<GraphiteMetric> graphiteMetrics = getCurrentGraphitePassthroughMetricsAndRemoveMetricsFromGlobal();
-            Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetrics, metricKeysToForget);
-            long createMetricsTimeElasped = System.currentTimeMillis() - createMetricsTimeStart; 
-
             // updates the global lists that track the last time a metric was received. 
             long updateMetricLastSeenTimestampTimeStart = System.currentTimeMillis();
-            Common.updateMetricLastSeenTimestamps(graphiteMetrics);
+            Common.updateMetricLastSeenTimestamps(graphiteMetrics_RemovedForgottenMetrics);
             long updateMetricLastSeenTimestampTimeElasped = System.currentTimeMillis() - updateMetricLastSeenTimestampTimeStart; 
             
             // updates metric value recent value history. this stores the values that are used by the alerting thread.
             long updateAlertMetricKeyRecentValuesTimeStart = System.currentTimeMillis();
-            Common.updateAlertMetricRecentValues(graphiteMetrics);
+            Common.updateAlertMetricRecentValues(graphiteMetrics_RemovedForgottenMetrics);
             long updateAlertMetricKeyRecentValuesTimeElasped = System.currentTimeMillis() - updateAlertMetricKeyRecentValuesTimeStart; 
 
+            // // make sure metric-keys that should be output-blacklist are blacklisted & remove output-blacklist metrics prior to outputting
+            long outputBlacklistTimeStart = System.currentTimeMillis();
+            long outputBlacklistNewlyProcessedMetricsCount = MetricAssociation.associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(threadId_, Common.getMetricKeysFromMetrics_List(graphiteMetrics_RemovedForgottenMetrics));
+            List<String> outputBlacklistMetricKeys = Common.getOutputBlacklistMetricKeys();
+            if (outputBlacklistMetricKeys != null) metricKeysToForget.addAll(outputBlacklistMetricKeys);
+            List<GraphiteMetric> graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics = Common.removeMetricKeysFromGraphiteMetricsList(graphiteMetrics_RemovedForgottenMetrics, metricKeysToForget);
+            long outputBlacklistTimeElasped = System.currentTimeMillis() - outputBlacklistTimeStart; 
+            
             // send to metrics output modules
-            if (!graphiteMetrics.isEmpty()) {
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetrics, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetrics, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetrics, threadId_);
-                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(graphiteMetrics, threadId_);
+            if (!graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics.isEmpty()) {
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllGraphiteOutputModules(graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbTelnetOutputModules(graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllOpenTsdbHttpOutputModules(graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
+                SendMetricsToOutputModule_ThreadPoolManager.sendMetricsToAllInfluxdbV1HttpOutputModules_NonNative(graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics, threadId_);
             }
             
             // total time for this thread took to get & send the metrics
@@ -90,8 +99,11 @@ public class GraphitePassthroughThread implements Runnable {
                     + ", AggTotalTime=" + threadTimeElasped 
                     + ", RawMetricCount=" + graphiteMetrics.size() 
                     + ", RawMetricRatePerSec=" + (graphiteMetrics.size() / ApplicationConfiguration.getFlushTimeAgg() * 1000)
+                    + ", OutputMetricCount=" + graphiteMetrics_RemovedForgottenAndOutputBlacklistedMetrics.size() 
                     + ", MetricsProcessedPerSec=" + rate
-                    + ", CreateMetricsTime=" + createMetricsTimeElasped
+                    + ", GetMetricsTime=" + getMetricsTimeElasped
+                    + ", OutputBlacklistTime=" + outputBlacklistTimeElasped
+                    + ", OutputBlacklistNewAssociationCount=" + outputBlacklistNewlyProcessedMetricsCount
                     + ", UpdateMetricsLastSeenTime=" + updateMetricLastSeenTimestampTimeElasped 
                     + ", UpdateAlertRecentValuesTime=" + updateAlertMetricKeyRecentValuesTimeElasped
                     + ", ForgetMetricsTime=" + forgetGraphiteMetricsTimeElasped
@@ -101,7 +113,7 @@ public class GraphitePassthroughThread implements Runnable {
             else logger.info(aggregationStatistics);
             
             if (ApplicationConfiguration.isDebugModeEnabled()) {
-                for (GraphiteMetric graphiteMetric : graphiteMetrics) {
+                for (GraphiteMetric graphiteMetric : graphiteMetrics_RemovedForgottenMetrics) {
                     logger.info("Graphite metric= " + graphiteMetric.toString());
                 }
             }

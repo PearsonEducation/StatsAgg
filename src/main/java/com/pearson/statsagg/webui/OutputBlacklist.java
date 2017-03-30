@@ -1,8 +1,11 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.controller.threads.MetricAssociationOutputBlacklistInvokerThread;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
+import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +14,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -79,7 +83,7 @@ public class OutputBlacklist extends HttpServlet {
             String htmlBodyContents = buildOutputBlacklistHtml();
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
-            
+
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
             String htmlFormatted  = htmlDocument.toString();
             out = response.getWriter();
@@ -107,7 +111,11 @@ public class OutputBlacklist extends HttpServlet {
 
         String metricGroupName = request.getParameter("MetricGroupName");
         boolean updateSuccess = updateOutputBlacklistMetricGroupId(metricGroupName);
-            
+        if (updateSuccess) {
+            MetricAssociation.IsMetricGroupChangeOutputBlacklist.set(true);
+            GlobalVariables.metricAssociationOutputBlacklistInvokerThread.runMetricAssociationOutputBlacklistThread();
+        }
+                
         try {
             String result;
             if (updateSuccess) result = "Successfully updated the output blacklist's metric group association.";
@@ -145,23 +153,36 @@ public class OutputBlacklist extends HttpServlet {
             "   <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "     <div class=\"content-header\"> \n" +
             "       <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
-            "     </div> " +
-            "     <form action=\"OutputBlacklist\" method=\"POST\">\n");
+            "     </div> ");
 
+        String metricGroupName = getMetricGroupNameAssociatedWithOutputBlacklist();
+        
+        String metricAssociationsLink = "";
+        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null) && (outputBlacklist.getMetricGroupId() >= 0)) {
+            Set<String> matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup.get(outputBlacklist.getMetricGroupId());
+            int matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Count = 0;
+            if (matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup != null) matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Count = matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup.size();
+            metricAssociationsLink = "<b>Current Output Blacklist Metric Associations: </b>" + 
+                    "<a class=\"iframe cboxElement\" href=\"MetricGroupMetricKeyAssociations?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(metricGroupName) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Count)) + "</a>";
+        }
+        
+        htmlBody.append(metricAssociationsLink);
+        if (!metricAssociationsLink.isEmpty()) htmlBody.append("<br><br>").append("\n"); 
+        
         htmlBody.append(
+            "<form action=\"OutputBlacklist\" method=\"POST\">\n" +
             "<div class=\"form-group\" id=\"MetricGroupName_Lookup\">\n" +
             "  <label class=\"label_small_margin\">Metric group name</label>\n" +
             "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"MetricGroupName\" id=\"MetricGroupName\" ");
 
-        String metricGroupName = getMetricGroupNameAssociatedWithOutputBlacklist();
         if ((metricGroupName != null)) htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(metricGroupName)).append("\"");
         htmlBody.append(">\n</div>\n");
         
-        htmlBody.append(
-            "  <button type=\"submit\" class=\"btn btn-default statsagg_page_content_font\">Submit</button>\n" +
-            "</form>\n"       +          
-            "</div>\n" +
-            "</div>\n");
+        htmlBody.append("<button type=\"submit\" class=\"btn btn-default statsagg_page_content_font\">Submit</button>\n");
+        htmlBody.append("</form>\n</div>\n</div>\n");
             
         return htmlBody.toString();
     }

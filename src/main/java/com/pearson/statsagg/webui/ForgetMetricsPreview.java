@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -66,7 +67,7 @@ public class ForgetMetricsPreview extends HttpServlet {
         
         String parameter = request.getParameter("Regex");
         if (parameter != null && !parameter.isEmpty()) parameter = parameter.trim();
-        Set<String> metricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1001);
+        Set<String> metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1001);
         String regexMatchesHtml = RegexTester.getRegexMatchesHtml(metricKeys, 1000);
         
         try {  

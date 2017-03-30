@@ -108,6 +108,10 @@ public class OutputBlacklistDao extends DatabaseObjectDao<OutputBlacklist> {
         OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
         List<OutputBlacklist> outputBlacklists = outputBlacklistDao.getAllDatabaseObjectsInTable();
         
+        if ((outputBlacklists != null) && outputBlacklists.size() > 1) {
+            logger.warn("There should not be more than one output blacklist row in the database.");
+        }
+        
         if ((outputBlacklists != null) && !outputBlacklists.isEmpty()) {
             for (OutputBlacklist outputBlacklistFromDb : outputBlacklists) {
                 outputBlacklist = outputBlacklistFromDb;
@@ -117,5 +121,5 @@ public class OutputBlacklistDao extends DatabaseObjectDao<OutputBlacklist> {
         
         return outputBlacklist;
     }
-    
+
 }

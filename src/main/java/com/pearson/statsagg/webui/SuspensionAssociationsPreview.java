@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
@@ -231,7 +232,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
         List<String> matchRegexes = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
         String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes);
         
-        Set<String> matchMetricKeys = RegexTester.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, null, 1001);
+        Set<String> matchMetricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, null, 1001);
         String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
         
         return regexMatchesHtml;

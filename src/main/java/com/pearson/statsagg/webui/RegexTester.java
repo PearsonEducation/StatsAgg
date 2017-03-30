@@ -1,19 +1,19 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.alerts.MetricAssociation;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.owasp.encoder.Encode;
@@ -108,7 +108,7 @@ public class RegexTester extends HttpServlet {
         
         try {
             String parameter = request.getParameter("Regex");
-            Set<String> metricKeys = getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1000);
+            Set<String> metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1001);
             String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000);
   
             StringBuilder htmlBuilder = new StringBuilder();
@@ -176,56 +176,6 @@ public class RegexTester extends HttpServlet {
         return htmlBody.toString();
     }
     
-    // if metricMatchLimit < 0, then it is treated as infinite
-    public static Set<String> getRegexMatches(Set<String> metricKeys, String matchRegex, String blacklistRegex, int metricMatchLimit) {
-        
-        if ((metricKeys == null) || (matchRegex == null)) {
-            return null;
-        }
-        
-        Pattern matchPattern = null, blacklistPattern = null;
-        
-        try {
-            matchPattern = Pattern.compile(matchRegex.trim());
-            if ((blacklistRegex != null) && !blacklistRegex.isEmpty()) blacklistPattern = Pattern.compile(blacklistRegex.trim());
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        Set<String> matchingMetricKeys = new HashSet<>();
-        
-        if (matchPattern != null) {
-            int matchCounter = 0;
-            boolean isAnyMatchLimt = (metricMatchLimit >= 0);
-            
-            for (String metricKey : metricKeys) {
-                Matcher matcher = matchPattern.matcher(metricKey);
-                
-                if (matcher.matches()) {
-                    if (blacklistPattern != null) {
-                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
-                        
-                        if (!blacklistMatcher.matches()) {
-                            matchingMetricKeys.add(metricKey);
-                            matchCounter++;
-                        }
-                    }
-                    else {
-                        matchingMetricKeys.add(metricKey);
-                        matchCounter++;
-                    }
-                }
-
-                if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
-                    break;
-                }
-            }
-        }
- 
-        return matchingMetricKeys;
-    }
-    
     public static String getRegexMatchesHtml(Set<String> metricKeys, int metricMatchLimit) {
         List<String> metricKeysList = null;
         
@@ -254,21 +204,24 @@ public class RegexTester extends HttpServlet {
         if (metricKeys.size() > 0) {
             outputString.append("<b>Matching Metrics...</b>").append("<br>");
 
-            int outputCounter = 0;
+            int associationOutputCounter = 0;
             outputString.append("<ul>");
 
             for (String metricKey : metricKeys) {
+                List<MetricTimestampAndValue> metricTimestampsAndValues = MetricGroupMetricKeyAssociations.getSortedMetricTimestampsAndValues(metricKey);
+                BigDecimal mostRecentValue = null;
+                if ((metricTimestampsAndValues != null) && !metricTimestampsAndValues.isEmpty()) mostRecentValue = metricTimestampsAndValues.get(metricTimestampsAndValues.size() - 1).getMetricValue();
 
-                if (outputCounter < metricMatchLimit)  {
-                    outputString.append("<li>").append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</li>");
-                }
-                else {
-                    break;
-                }
+                outputString.append("<li>");
+                outputString.append("<a class=\"iframe cboxElement\" href=\"MetricRecentValues?ExcludeNavbar=true&amp;MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
+                outputString.append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</a>");
+                if (mostRecentValue != null) outputString.append(" = ").append(mostRecentValue.stripTrailingZeros().toPlainString()).append(" (most recent value)");
+                outputString.append("</li>");
 
-                outputCounter++;
+                associationOutputCounter++;
+                if (associationOutputCounter >= metricMatchLimit) break;
             }
-            
+
             outputString.append("</ul>");
         }
         

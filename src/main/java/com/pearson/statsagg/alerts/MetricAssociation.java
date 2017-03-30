@@ -13,6 +13,8 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
@@ -33,14 +35,18 @@ public class MetricAssociation {
     private static final byte REGEX_TYPE_MATCH = 2;
     
     // k=Regex_String, v="Regex compiled pattern. This is a cache for compiled regex patterns."
-    private final static ConcurrentHashMap<String,Pattern> regexPatterns = new ConcurrentHashMap<>(); 
+    private final static ConcurrentHashMap<String,MetricAssociationPattern> regexPatterns_ = new ConcurrentHashMap<>(); 
     
     // k=Regex_String, v="Regex_String. If a regex pattern is bad (doesn't compile), then it is stored here so we don't try to recompile it."
-    private final static ConcurrentHashMap<String,String> regexBlacklist = new ConcurrentHashMap<>(); 
+    private final static ConcurrentHashMap<String,String> regexBlacklist_ = new ConcurrentHashMap<>(); 
     
     public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning = new AtomicBoolean(false);
     public static final AtomicBoolean IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating = new AtomicBoolean(false);
+    public static final AtomicBoolean IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning = new AtomicBoolean(false);
+    public static final AtomicBoolean IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning_CurrentlyAssociating = new AtomicBoolean(false);
+    public static final AtomicBoolean IsMetricGroupChangeOutputBlacklist = new AtomicBoolean(false); 
     
+    // the core routine that associates metrics with metric-groups & suspensions. this is called periodically by the alert routine
     protected static void associateMetricKeysWithMetricGroups(String threadId) {
         
         // stops multiple metric association methods from running simultaneously 
@@ -77,6 +83,153 @@ public class MetricAssociation {
         IsMetricAssociationRoutineCurrentlyRunning.set(false);
     }
     
+    // associates a set of metric-keys with the metric output blacklist. this is intended to be called periodically, and only 1 call to this method can run at a time
+    // returns null on error, otherwise returns the count of newly processed metrics (which had regex matching ran against them)
+    public static Long associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(String threadId) {
+
+        // stops multiple output blacklist metric association methods from running simultaneously 
+        if (!IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning.compareAndSet(false, true)) {
+            logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation_OutputBlacklist, Message=\"Only 1 metric association routine can run at a time\"");
+            return null;
+        }
+        
+        long numNewKeysProcessed = 0;
+        ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithOutputBlacklistMetricGroup_Local = new ConcurrentHashMap<>(); 
+        ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Local = new ConcurrentHashMap<>();  
+        
+        //  wait until the the cleanup thread is done running
+        if (CleanupThread.isCleanupThreadCurrentlyRunning.get()) Threads.sleepMilliseconds(50, false);
+        
+        // set a flag to indicate that the output blacklist metric association routine is running -- prevents other threads from running at the same time
+        IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning_CurrentlyAssociating.set(true);
+
+        boolean isMetricGroupChangeDetected = IsMetricGroupChangeOutputBlacklist.getAndSet(false);
+        if (!isMetricGroupChangeDetected) {
+            metricKeysAssociatedWithOutputBlacklistMetricGroup_Local = GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup;
+            matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Local = GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup;
+        }
+            
+        // identify & store metrics that are on the output blacklist metric group
+        OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        
+        // if a output blacklist metric group exists, associate metrics-keys with it
+        if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) {
+            
+            // update the output blacklist regex
+            List<Integer> outputBlacklistMetricGroupId_List = new ArrayList<>();
+            outputBlacklistMetricGroupId_List.add(outputBlacklist.getMetricGroupId());
+            updateMergedRegexesForMetricGroups(outputBlacklistMetricGroupId_List);
+                
+            // associate metrics-keys with the output blacklist
+            for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
+                ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
+                if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) continue;
+
+                if (!metricKeysAssociatedWithOutputBlacklistMetricGroup_Local.containsKey(metricKey)) {
+                    Boolean didMatch = associateMetricKeyWithId(metricKey, outputBlacklist.getMetricGroupId(), 
+                            matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Local, 
+                            GlobalVariables.mergedMatchRegexesByMetricGroupId, 
+                            GlobalVariables.mergedBlacklistRegexesByMetricGroupId);
+
+                    if (didMatch != null) {
+                        GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup.put(metricKey, didMatch);
+                        numNewKeysProcessed++;
+                    }
+                }
+            }
+        }
+        
+        GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup = metricKeysAssociatedWithOutputBlacklistMetricGroup_Local;
+        GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup = matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Local;
+        
+        IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning_CurrentlyAssociating.set(false);
+
+        IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning.set(false);
+        
+        return numNewKeysProcessed;
+    }
+    
+    // associates a list of metric-keys with the metric output blacklist. this is intended to be called by the various metric aggregation routines
+    // returns the number of metric keys that were newly processed
+    public static Long associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(String threadId, List<String> metricKeys) {
+        
+        if (metricKeys == null) {
+            return new Long(0);
+        }
+
+        boolean restartRoutineRequred = true;
+        long numNewKeysProcessed = 0;
+        
+        while (restartRoutineRequred) {
+            // don't run this loop a second time unless this variable is changed below
+            restartRoutineRequred = false;
+            
+            String matchRegex_BeforeMatching = null, matchRegex_AfterMatching = null, blacklistRegex_BeforeMatching = null, blacklistRegex_AfterMatching = null;
+            MetricAssociationPattern metricAssociationPattern_Match_BeforeMatching = null, metricAssociationPattern_Blacklist_BeforeMatching = null;
+            MetricAssociationPattern metricAssociationPattern_Match_AfterMatching = null, metricAssociationPattern_Blacklist_AfterMatching = null;
+            
+            //  get the metric-group id of the output blacklist (if one exists)
+            OutputBlacklist outputBlacklist_BeforeMatching = OutputBlacklistDao.getSingleOutputBlacklistRow();
+            Integer outputBlacklist_BeforeMatching_MetricGroupId = null;
+            if ((outputBlacklist_BeforeMatching != null) && (outputBlacklist_BeforeMatching.getMetricGroupId() != null)) outputBlacklist_BeforeMatching_MetricGroupId = outputBlacklist_BeforeMatching.getMetricGroupId();
+            
+            // if a output blacklist metric group exists, associate metrics-keys with it
+            if (outputBlacklist_BeforeMatching_MetricGroupId != null) {
+                // update the output blacklist regex
+                List<Integer> outputBlacklistMetricGroupId_List = new ArrayList<>();
+                outputBlacklistMetricGroupId_List.add(outputBlacklist_BeforeMatching_MetricGroupId);
+                updateMergedRegexesForMetricGroups(outputBlacklistMetricGroupId_List);
+
+                // used in checking if the output-blacklist was altered while this routine was running
+                matchRegex_BeforeMatching = GlobalVariables.mergedMatchRegexesByMetricGroupId.get(outputBlacklist_BeforeMatching_MetricGroupId);
+                if (matchRegex_BeforeMatching != null) metricAssociationPattern_Match_BeforeMatching = regexPatterns_.get(matchRegex_BeforeMatching);
+                blacklistRegex_BeforeMatching = GlobalVariables.mergedBlacklistRegexesByMetricGroupId.get(outputBlacklist_BeforeMatching_MetricGroupId);
+                if (blacklistRegex_BeforeMatching != null) metricAssociationPattern_Blacklist_BeforeMatching = regexPatterns_.get(blacklistRegex_BeforeMatching);
+
+                // associate metrics-keys with the output blacklist
+                for (String metricKey : metricKeys) {
+                    ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
+                    if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) continue;
+
+                    if (!GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup.containsKey(metricKey)) {
+                        Boolean didMatch = associateMetricKeyWithId(metricKey, outputBlacklist_BeforeMatching_MetricGroupId, 
+                                GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup, 
+                                GlobalVariables.mergedMatchRegexesByMetricGroupId, 
+                                GlobalVariables.mergedBlacklistRegexesByMetricGroupId);
+
+                        if (didMatch != null) {
+                            GlobalVariables.metricKeysAssociatedWithOutputBlacklistMetricGroup.put(metricKey, didMatch);
+                            numNewKeysProcessed++;
+                        }
+                    }
+                }
+                
+                // used in checking if the output-blacklist was altered while this routine was running
+                OutputBlacklist outputBlacklist_AfterMatching = OutputBlacklistDao.getSingleOutputBlacklistRow();
+                Integer outputBlacklist_AfterMatching_MetricGroupId = null;
+                if ((outputBlacklist_AfterMatching != null) && outputBlacklist_AfterMatching.getMetricGroupId() != null) outputBlacklist_AfterMatching_MetricGroupId = outputBlacklist_BeforeMatching_MetricGroupId;
+                if (outputBlacklist_AfterMatching_MetricGroupId != null) matchRegex_AfterMatching = GlobalVariables.mergedMatchRegexesByMetricGroupId.get(outputBlacklist_AfterMatching_MetricGroupId);
+                if (matchRegex_AfterMatching != null) metricAssociationPattern_Match_AfterMatching = regexPatterns_.get(matchRegex_AfterMatching);
+                if (outputBlacklist_AfterMatching_MetricGroupId != null) blacklistRegex_AfterMatching = GlobalVariables.mergedBlacklistRegexesByMetricGroupId.get(outputBlacklist_AfterMatching_MetricGroupId);
+                if (blacklistRegex_AfterMatching != null) metricAssociationPattern_Blacklist_AfterMatching = regexPatterns_.get(blacklistRegex_AfterMatching);
+                
+                // check if the output-blacklist was altered while this routine was running. if it was, then re-run this routine
+                if (((metricAssociationPattern_Match_BeforeMatching != null) && (metricAssociationPattern_Blacklist_BeforeMatching != null) &&
+                        (metricAssociationPattern_Match_AfterMatching != null) && (metricAssociationPattern_Blacklist_AfterMatching != null)) && 
+                        ((outputBlacklist_BeforeMatching_MetricGroupId != null) && (outputBlacklist_AfterMatching_MetricGroupId != null) && 
+                        (outputBlacklist_BeforeMatching_MetricGroupId.intValue() == outputBlacklist_AfterMatching_MetricGroupId.intValue())) &&
+                        ((metricAssociationPattern_Match_BeforeMatching.getTimestamp() != metricAssociationPattern_Match_AfterMatching.getTimestamp()) || 
+                        (metricAssociationPattern_Blacklist_BeforeMatching.getTimestamp() != metricAssociationPattern_Blacklist_AfterMatching.getTimestamp()))) {
+                    logger.info("ThreadId=" + threadId + ", Routine=MetricAssociation_OutputBlacklist_MetricSet, Message=\"Detected output-blacklist metric-group change. Restarting association routine.\"");
+                    restartRoutineRequred = true;
+                    numNewKeysProcessed = 0;
+                }
+            }
+        }
+
+        return numNewKeysProcessed;
+    }
+    
     private static List<Integer> getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups() {
         
         List<String> metricsToReassociateWithAlteredMetricGroups = new ArrayList<>();
@@ -84,6 +237,11 @@ public class MetricAssociation {
         List<Integer> allMetricGroupIds;
 
         synchronized(GlobalVariables.metricGroupChanges) {
+            OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+            if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null) && GlobalVariables.metricGroupChanges.containsKey(outputBlacklist.getMetricGroupId())) {
+                IsMetricGroupChangeOutputBlacklist.set(true);
+            }
+            
             associateMetricKeysWithNewOrAlteredIds_DetectChanges(GlobalVariables.metricGroupChanges, 
                     GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup, 
                     GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId,
@@ -249,18 +407,21 @@ public class MetricAssociation {
     /*
      For a specific id (suspension id or metric-group id), determine if this metric key is associated with it. 
      If the association is true, then the association is cached in "matchingMetricKeysAssociatedWithId".
+     Returns null on error, false if the metric-key did not match the regex, true if the metric-key did match the regex
     */
-    private static void associateMetricKeyWithId(String metricKey, Integer id, 
+    private static Boolean associateMetricKeyWithId(String metricKey, Integer id, 
             ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithId,
             ConcurrentHashMap<Integer,String> mergedMatchRegexesById,
             ConcurrentHashMap<Integer,String> mergedBlacklistRegexesById) {
 
         ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
-        if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) return;
+        if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) return null;
+        
+        boolean didMatch = false;
         
         try {
             String matchRegex = mergedMatchRegexesById.get(id);
-            if (matchRegex == null) return;
+            if (matchRegex == null) return null;
 
             Pattern matchPattern = getPatternFromRegexString(matchRegex);
 
@@ -291,11 +452,15 @@ public class MetricAssociation {
 
                     matchingMetricKeyAssociations.add(metricKey);
                 }
+                
+                didMatch = isMetricKeyAssociatedWithId;
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
+        return didMatch;
     }
     
     /*
@@ -366,19 +531,22 @@ public class MetricAssociation {
             return null;
         }
 
-        Pattern pattern = regexPatterns.get(regex);
-
+        Pattern pattern = null; 
+        MetricAssociationPattern metricAssociationPattern = regexPatterns_.get(regex);
+        if (metricAssociationPattern != null) pattern = metricAssociationPattern.getPattern();
+        
         if (pattern == null) {
-            boolean isRegexBad = regexBlacklist.containsKey(regex);
+            boolean isRegexBad = regexBlacklist_.containsKey(regex);
             if (isRegexBad) return null;
             
             try {
                 pattern = Pattern.compile(regex);
-                regexPatterns.put(regex, pattern);
+                MetricAssociationPattern newMetricAssociationPattern = new MetricAssociationPattern(pattern, System.currentTimeMillis());
+                regexPatterns_.put(regex, newMetricAssociationPattern);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                regexBlacklist.put(regex, regex);
+                regexBlacklist_.put(regex, regex);
             }
         }
 
@@ -386,6 +554,7 @@ public class MetricAssociation {
     }
     
     // update GlobalVariables.mergedMatchRegexesByMetricGroupId & GlobalVariables.mergedBlacklistRegexesByMetricGroupId with the latest merged regexes
+    // also update regexPatterns_ & regexBlacklist_ with the latest patterns
     public static void updateMergedRegexesForMetricGroups(List<Integer> metricGroupIds) {
 
         if (metricGroupIds == null) {
@@ -404,12 +573,18 @@ public class MetricAssociation {
                 
             if (mergedMatchRegex == null) {
                 mergedMatchRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_MATCH);
-                if (mergedMatchRegex != null) GlobalVariables.mergedMatchRegexesByMetricGroupId.put(metricGroupId, mergedMatchRegex);
+                if (mergedMatchRegex != null) {
+                    GlobalVariables.mergedMatchRegexesByMetricGroupId.put(metricGroupId, mergedMatchRegex);
+                    getPatternFromRegexString(mergedMatchRegex);
+                }
             }
             
             if (mergedBlacklistRegex == null) {
                 mergedBlacklistRegex = createMergedMetricGroupRegex(metricGroupRegexes, REGEX_TYPE_BLACKLIST);
-                if (mergedBlacklistRegex != null) GlobalVariables.mergedBlacklistRegexesByMetricGroupId.put(metricGroupId, mergedBlacklistRegex);
+                if (mergedBlacklistRegex != null) {
+                    GlobalVariables.mergedBlacklistRegexesByMetricGroupId.put(metricGroupId, mergedBlacklistRegex);
+                    getPatternFromRegexString(mergedMatchRegex);
+                }
             }
         }
         
@@ -495,4 +670,54 @@ public class MetricAssociation {
         return new ArrayList<>(metricKeysAssociatedWithAlert);
     }
 
+    // if metricMatchLimit < 0, then it is treated as infinite
+    public static Set<String> getRegexMatches(Set<String> metricKeys, String matchRegex, String blacklistRegex, int metricMatchLimit) {
+        
+        if ((metricKeys == null) || (matchRegex == null)) {
+            return null;
+        }
+        
+        Pattern matchPattern = null, blacklistPattern = null;
+        
+        try {
+            matchPattern = Pattern.compile(matchRegex.trim());
+            if ((blacklistRegex != null) && !blacklistRegex.isEmpty()) blacklistPattern = Pattern.compile(blacklistRegex.trim());
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        Set<String> matchingMetricKeys = new HashSet<>();
+        
+        if (matchPattern != null) {
+            int matchCounter = 0;
+            boolean isAnyMatchLimt = (metricMatchLimit >= 0);
+            
+            for (String metricKey : metricKeys) {
+                Matcher matcher = matchPattern.matcher(metricKey);
+                
+                if (matcher.matches()) {
+                    if (blacklistPattern != null) {
+                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
+                        
+                        if (!blacklistMatcher.matches()) {
+                            matchingMetricKeys.add(metricKey);
+                            matchCounter++;
+                        }
+                    }
+                    else {
+                        matchingMetricKeys.add(metricKey);
+                        matchCounter++;
+                    }
+                }
+
+                if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
+                    break;
+                }
+            }
+        }
+ 
+        return matchingMetricKeys;
+    }
+    
 }
