@@ -75,7 +75,15 @@ public class Benchmark extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         PrintWriter out = null;
     
         try {  
@@ -110,9 +118,17 @@ public class Benchmark extends HttpServlet {
             return;
         }
         
-        PrintWriter out = null;
-        response.setContentType("text/html");    
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
         
+        PrintWriter out = null;
+
         try {
             String parameter = request.getParameter("MetricCount");
             if (parameter != null) parameter = parameter.trim();
