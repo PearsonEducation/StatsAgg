@@ -15,7 +15,6 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.DateAndTime;
 import com.pearson.statsagg.utilities.StackTrace;
-import java.lang.annotation.Annotation;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -23,7 +22,6 @@ import java.util.Calendar;
 import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +73,15 @@ public class CreateSuspension extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -119,12 +125,19 @@ public class CreateSuspension extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterSuspension(request);
-            
-            response.setContentType("text/html");     
+            String result = parseAndAlterSuspension(request);   
             
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
@@ -164,7 +177,7 @@ public class CreateSuspension extends HttpServlet {
         htmlBody.append("<div class=\"row create-alert-form-row\">"); 
 
         if ((suspension != null) && (suspension.getName() != null) && !suspension.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(suspension.getName())).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(suspension.getName(), true)).append("\">");
         }
         
         
@@ -182,7 +195,7 @@ public class CreateSuspension extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\".\" name=\"Name\" id=\"Name\"");
         
         if ((suspension != null) && (suspension.getName() != null)) {
-            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(suspension.getName())).append("\"");
+            htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(suspension.getName(), true)).append("\"");
         }
 
         htmlBody.append(">\n" + "</div>\n");
@@ -195,7 +208,7 @@ public class CreateSuspension extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
 
         if ((suspension != null) && (suspension.getDescription() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(suspension.getDescription()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(suspension.getDescription(), true));
         }
 
         htmlBody.append("</textarea>\n");
@@ -274,7 +287,7 @@ public class CreateSuspension extends HttpServlet {
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlert(suspension.getAlertId());
             
-            if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
+            if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\"");
         }
  
         htmlBody.append("" +
@@ -291,7 +304,7 @@ public class CreateSuspension extends HttpServlet {
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsInclusive\" id=\"MetricGroupTagsInclusive\" >");
         
         if ((suspension != null) && (suspension.getMetricGroupTagsInclusive() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricGroupTagsInclusive()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(suspension.getMetricGroupTagsInclusive(), true));
         }
  
         htmlBody.append("" +
@@ -308,7 +321,7 @@ public class CreateSuspension extends HttpServlet {
             "List one tag per line.\" rows=\"5\" name=\"MetricGroupTagsExclusive\" id=\"MetricGroupTagsExclusive\" >");
         
         if ((suspension != null) && (suspension.getMetricGroupTagsExclusive() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricGroupTagsExclusive()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(suspension.getMetricGroupTagsExclusive(), true));
         }
  
         htmlBody.append("" +
@@ -325,7 +338,7 @@ public class CreateSuspension extends HttpServlet {
             "List one regex per line.\" rows=\"5\" name=\"MetricSuspensionRegexes\" id=\"MetricSuspensionRegexes\" >");
         
         if ((suspension != null) && (suspension.getMetricSuspensionRegexes() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(suspension.getMetricSuspensionRegexes()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(suspension.getMetricSuspensionRegexes(), true));
         }
  
         htmlBody.append("" +
