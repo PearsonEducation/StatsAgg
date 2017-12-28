@@ -60,11 +60,18 @@ public class HealthCheck extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/plain");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
 
         try {
-            response.setContentType("text/plain");
-            
             AlertsDao alertsDao = new AlertsDao();
             boolean isDatabaseConnected = alertsDao.isConnectionValid();
             alertsDao.close();
