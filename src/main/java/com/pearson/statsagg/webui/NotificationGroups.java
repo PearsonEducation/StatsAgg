@@ -82,7 +82,15 @@ public class NotificationGroups extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
 
         try {
@@ -110,35 +118,48 @@ public class NotificationGroups extends HttpServlet {
             return;
         }
         
-        String operation = request.getParameter("Operation");
-        
-        if ((operation != null) && operation.equals("Clone")) {
-            String name = request.getParameter("Name");
-            cloneNotificationGroup(name);
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
         }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
         
-        if ((operation != null) && operation.equals("Test")) {
-            String name = request.getParameter("Name");
-            testNotificationGroup(name);
+        try {
+            String operation = request.getParameter("Operation");
+
+            if ((operation != null) && operation.equals("Clone")) {
+                Integer id = Integer.parseInt(request.getParameter("Id"));
+                cloneNotificationGroup(id);
+            }
+
+            if ((operation != null) && operation.equals("Test")) {
+                Integer id = Integer.parseInt(request.getParameter("Id"));
+                testNotificationGroup(id);
+            }
+
+            if ((operation != null) && operation.equals("Remove")) {
+                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                removeNotificationGroup(id);
+            }
         }
-        
-        if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getParameterAsString(request, "Name");
-            removeNotificationGroup(name);
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        
         StatsAggHtmlFramework.redirectAndGet(response, 303, "NotificationGroups");
     }
     
-    private void cloneNotificationGroup(String notificationGroupName) {
+    private void cloneNotificationGroup(Integer notificationGroupId) {
         
-        if (notificationGroupName == null) {
+        if (notificationGroupId == null) {
             return;
         }
         
         try {
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
             List<NotificationGroup> allNotificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
             notificationGroupsDao.close();
 
@@ -163,16 +184,24 @@ public class NotificationGroups extends HttpServlet {
         }
     }
     
-    public String removeNotificationGroup(String notificationGroupName) {
-        String returnString = "Notification Group Name can't be null.";
-        if (notificationGroupName == null) {
+    public String removeNotificationGroup(Integer notificationGroupId) {
+        
+        String returnString = "Notification Group ID field can't be null.";
+        if (notificationGroupId == null) return returnString;
+        
+        try {
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);   
+            NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
+            returnString = notificationGroupsLogic.deleteRecordInDatabase(notificationGroup.getName());
             return returnString;
         }
-        
-        NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-        returnString = notificationGroupsLogic.deleteRecordInDatabase(notificationGroupName);
-        
-        return returnString;
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            returnString = "Error removing metric group";
+            return returnString;
+        }
+
     }
     
     private String buildNotificationGroupsHtml() {
@@ -218,18 +247,18 @@ public class NotificationGroups extends HttpServlet {
 
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
+            cloneKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + notificationGroup.getName(), "NotificationGroups", "clone", cloneKeysAndValues);
             
             List<KeyValue> testKeysAndValues = new ArrayList<>();
             testKeysAndValues.add(new KeyValue("Operation", "Test"));
-            testKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
+            testKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String test = StatsAggHtmlFramework.buildJavaScriptPostLink("Test_" + notificationGroup.getName(), "NotificationGroups", "test", 
                     testKeysAndValues, true, "Are you sure you want to send a test email alert to \\'" + Encode.forJavaScript(notificationGroup.getName()) + "\\'?");
             
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(notificationGroup.getName())));
+            removeKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + notificationGroup.getName(), "NotificationGroups", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this notification group?");       
             
@@ -269,19 +298,18 @@ public class NotificationGroups extends HttpServlet {
         return html.toString();
     }
     
-    public void testNotificationGroup(String notificationGroupName) {
+    public void testNotificationGroup(Integer notificationGroupId) {
         
-        if (notificationGroupName == null) {
-            logger.info("Failed to send email alert to notification group. Name cannot be null" );
+        if (notificationGroupId == null) {
+            logger.info("Failed to send email alert to notification group. ID cannot be null" );
             return;
         }
 
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
+        NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
         
         if ((notificationGroup == null) || (notificationGroup.getName() == null) || (notificationGroup.getId() == null)) {
-            String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroupName, ' ');
-            logger.warn("Failed to send email alert to notification group '" + cleanNotificationGroupName + "'. Notification group does not exist." );
+            logger.warn("Failed to send email alert to notification group id=" + notificationGroupId + ". Notification group does not exist." );
             return;
         }
         
