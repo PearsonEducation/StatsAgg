@@ -22,7 +22,6 @@ import java.util.HashSet;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -76,7 +75,15 @@ public class AlertAssociations extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         PrintWriter out = null;
     
         String name = request.getParameter("Name");
@@ -158,6 +165,15 @@ public class AlertAssociations extends HttpServlet {
         
         if ((request == null) || (response == null)) {
             return;
+        }
+        
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         String name = request.getParameter("Name");
@@ -326,7 +342,7 @@ public class AlertAssociations extends HttpServlet {
         StringBuilder htmlBodyBuilder = new StringBuilder();
         
         htmlBodyBuilder.append("<form style=\"display: inline;\" action=\"AlertAssociations\" method=\"POST\" id=\"AlertAssociations_ClearAll\" name=\"AlertAssociations_ClearAll\"> ");
-        htmlBodyBuilder.append("<input type=\"hidden\" name=\"Name\" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\">");
+        htmlBodyBuilder.append("<input type=\"hidden\" name=\"Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\">");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"Level\" value=\"").append(level).append("\">");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"ExcludeNavbar\" value=\"").append(excludeNavbar).append("\">");
         htmlBodyBuilder.append("<input type=\"hidden\" name=\"ClearAll\" value=\"").append("True").append("\">");         
@@ -475,8 +491,8 @@ public class AlertAssociations extends HttpServlet {
 
                     if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                         List<KeyValue> keysAndValues = new ArrayList<>();
-                        keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeCautionAlertMetricKey)));
-                        keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                        keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey, true)));
+                        keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));
                         forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeCautionAlertMetricKey + "Caution"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
@@ -589,8 +605,8 @@ public class AlertAssociations extends HttpServlet {
 
                     if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
                         List<KeyValue> keysAndValues = new ArrayList<>();
-                        keysAndValues.add(new KeyValue("ForgetMetric", Encode.forHtmlAttribute(activeDangerAlertMetricKey)));
-                        keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                        keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey, true)));
+                        keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));
                         forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeDangerAlertMetricKey + "Danger"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
