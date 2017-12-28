@@ -71,7 +71,15 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         Suspension suspension = getSuspensionFromParameters(request);
@@ -137,6 +145,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             else if ((parameter != null) && parameter.contains("Metrics")) suspension.setSuspendBy(Suspension.SUSPEND_BY_METRICS);
             
             parameter = request.getParameter("AlertName");
+            if (parameter != null) parameter = parameter.trim();
             AlertsDao alertsDao = new AlertsDao();
             Alert alert = alertsDao.getAlertByName(parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
