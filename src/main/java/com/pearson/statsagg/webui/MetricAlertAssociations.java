@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -70,7 +69,15 @@ public class MetricAlertAssociations extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -105,8 +112,16 @@ public class MetricAlertAssociations extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
-        response.setContentType("text/html");    
         
         try {
             String regex = request.getParameter("Regex");
@@ -159,7 +174,7 @@ public class MetricAlertAssociations extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex to match against metrics. Metrics that are associated with alerts will be displayed.\" name=\"Regex\" ");
         
         if ((regex != null) && (!regex.isEmpty())) {
-            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(regex)).append("\"");
+            htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(regex, true)).append("\"");
         }
         
         htmlBody.append(">\n</div>\n");
