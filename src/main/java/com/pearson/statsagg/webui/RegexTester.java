@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -68,7 +67,15 @@ public class RegexTester extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+
         PrintWriter out = null;
     
         try {  
@@ -103,8 +110,16 @@ public class RegexTester extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
-        response.setContentType("text/html");    
         
         try {
             String parameter = request.getParameter("Regex");
@@ -154,7 +169,7 @@ public class RegexTester extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex that you want to test against (or more) recently seen metrics.\" name=\"Regex\" ");
         
         if ((regex != null) && (!regex.isEmpty())) {
-            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(regex)).append("\"");
+            htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(regex, true)).append("\"");
         }
         
         htmlBody.append(">\n</div>\n");
