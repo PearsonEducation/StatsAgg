@@ -22,7 +22,6 @@ import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,15 @@ public class CreateMetricGroup extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -116,12 +123,19 @@ public class CreateMetricGroup extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterMetricGroup(request);
-            
-            response.setContentType("text/html");     
+            String result = parseAndAlterMetricGroup(request);  
             
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
@@ -159,7 +173,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <form action=\"CreateMetricGroup\" method=\"POST\">\n");
         
         if ((metricGroup != null) && (metricGroup.getName() != null) && !metricGroup.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName(), true)).append("\">");
         }
         
         htmlBody.append(
@@ -168,7 +182,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this metric group.\" name=\"Name\" id=\"Name\" ");
 
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
-            htmlBody.append("value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\"");
+            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName(), true)).append("\"");
         }
 
         htmlBody.append(      
@@ -178,7 +192,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
 
         if ((metricGroup != null) && (metricGroup.getDescription() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(metricGroup.getDescription()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getDescription(), true));
         }
 
         htmlBody.append(
@@ -201,7 +215,7 @@ public class CreateMetricGroup extends HttpServlet {
             }
             
             for (int i = 0; i < matchMetricGroupRegexes.size(); i++) {
-                htmlBody.append(Encode.forHtmlAttribute(matchMetricGroupRegexes.get(i).getPattern()));
+                htmlBody.append(StatsAggHtmlFramework.htmlEncode(matchMetricGroupRegexes.get(i).getPattern(), true));
                 if ((i + 1) < matchMetricGroupRegexes.size()) htmlBody.append("\n");
             }
         }
@@ -226,7 +240,7 @@ public class CreateMetricGroup extends HttpServlet {
             }
             
             for (int i = 0; i < blacklistMetricGroupRegexes.size(); i++) {
-                htmlBody.append(Encode.forHtmlAttribute(blacklistMetricGroupRegexes.get(i).getPattern()));
+                htmlBody.append(StatsAggHtmlFramework.htmlEncode(blacklistMetricGroupRegexes.get(i).getPattern(), true));
                 if ((i + 1) < blacklistMetricGroupRegexes.size()) htmlBody.append("\n");
             }
         }
@@ -244,7 +258,7 @@ public class CreateMetricGroup extends HttpServlet {
             
             if (metricGroupTags != null) {
                 for (int i = 0; i < metricGroupTags.size(); i++) {
-                    htmlBody.append(Encode.forHtmlAttribute(metricGroupTags.get(i).getTag()));
+                    htmlBody.append(StatsAggHtmlFramework.htmlEncode(metricGroupTags.get(i).getTag(), true));
                     if ((i + 1) < metricGroupTags.size()) {
                         htmlBody.append("\n");
                     }
