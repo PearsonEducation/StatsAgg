@@ -80,18 +80,18 @@ public class MetricGroupRemove extends HttpServlet {
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
-                name = metricGroup.getName();
+                MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(name);
+                id = metricGroup.getId();
             }
             
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(name);
+            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
             if (metricGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.MetricGroups metricGroups = new com.pearson.statsagg.webui.MetricGroups(); 
-            String result = metricGroups.removeMetricGroup(name);
+            String result = metricGroups.removeMetricGroup(metricGroup.getId());
             
             return Helper.createSimpleJsonResponse(result);
         }

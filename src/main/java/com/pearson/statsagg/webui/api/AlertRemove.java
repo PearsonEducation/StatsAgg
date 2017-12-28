@@ -80,18 +80,18 @@ public class AlertRemove extends HttpServlet {
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 AlertsDao alertsDao = new AlertsDao();
-                Alert alert = alertsDao.getAlert(id);
-                name = alert.getName();
+                Alert alert = alertsDao.getAlertByName(name);
+                id = alert.getId();
             }
             
             AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(name);
+            Alert alert = alertsDao.getAlert(id);
             if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts(); 
-            String result = alerts.removeAlert(name);
+            String result = alerts.removeAlert(id);
             
             return Helper.createSimpleJsonResponse(result);
         }

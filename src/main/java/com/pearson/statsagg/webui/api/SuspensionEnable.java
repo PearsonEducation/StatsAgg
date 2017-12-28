@@ -80,18 +80,18 @@ public class SuspensionEnable extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspension(id);
-                name = suspension.getName();
+                Suspension suspension = suspensionsDao.getSuspensionByName(name);
+                id = suspension.getId();
             }
             
             SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspensionByName(name);
+            Suspension suspension = suspensionsDao.getSuspension(id);
             if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions();
-            String result = suspensions.changeSuspensionEnabled(name, isEnabled);
+            String result = suspensions.changeSuspensionEnabled(id, isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }

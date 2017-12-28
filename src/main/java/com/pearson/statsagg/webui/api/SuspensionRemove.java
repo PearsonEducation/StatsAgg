@@ -80,18 +80,18 @@ public class SuspensionRemove extends HttpServlet {
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspension(id);
-                name = suspension.getName();
+                Suspension suspension = suspensionsDao.getSuspensionByName(name);
+                id = suspension.getId();
             }
             
             SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspensionByName(name);
+            Suspension suspension = suspensionsDao.getSuspension(id);
             if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions(); 
-            String result = suspensions.removeSuspension(name);
+            String result = suspensions.removeSuspension(id);
             
             return Helper.createSimpleJsonResponse(result);
         }

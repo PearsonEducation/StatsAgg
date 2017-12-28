@@ -80,18 +80,18 @@ public class AlertEnable extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 AlertsDao alertsDao = new AlertsDao();
-                Alert alert = alertsDao.getAlert(id);
-                name = alert.getName();
+                Alert alert = alertsDao.getAlertByName(name);
+                id = alert.getId();
             }
             
             AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(name);
+            Alert alert = alertsDao.getAlert(id);
             if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts();
-            String result = alerts.changeAlertEnabled(name, isEnabled);
+            String result = alerts.changeAlertEnabled(alert.getId(), isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }

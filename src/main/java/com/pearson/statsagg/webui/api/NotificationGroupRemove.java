@@ -80,18 +80,18 @@ public class NotificationGroupRemove extends HttpServlet {
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
-            if (id != null) {
+            if ((id == null) && (name != null)) {
                 NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(id);
-                name = notificationGroup.getName();
+                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(name);
+                id = notificationGroup.getId();
             }
             
             NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(name);
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(id);
             if (notificationGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.webui.NotificationGroups notificationGroups = new com.pearson.statsagg.webui.NotificationGroups(); 
-            String result = notificationGroups.removeNotificationGroup(name);
+            String result = notificationGroups.removeNotificationGroup(id);
             
             return Helper.createSimpleJsonResponse(result);
         }
