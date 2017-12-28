@@ -61,7 +61,15 @@ public class ForgetMetrics extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -96,13 +104,20 @@ public class ForgetMetrics extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
         
         try {
             String result = parseParametersAndReturnResultMessage(request);
-            
-            response.setContentType("text/html");     
-            
+
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
