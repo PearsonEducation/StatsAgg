@@ -54,6 +54,10 @@ public abstract class InvokerThread implements Runnable {
         return isShutdown_;
     }
     
+    public ExecutorService getThreadExecutorService() {
+        return threadExecutor_;
+    }
+    
     public abstract long getThreadExecutorShutdownWaitTime();
     
 }
