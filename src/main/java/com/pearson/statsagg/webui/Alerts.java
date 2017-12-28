@@ -24,7 +24,6 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +77,15 @@ public class Alerts extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         PrintWriter out = null;
                 
         try {
@@ -106,50 +113,64 @@ public class Alerts extends HttpServlet {
             return;
         }
         
-        String operation = Common.getParameterAsString(request, "Operation");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        try {
+            String operation = Common.getParameterAsString(request, "Operation");
 
-        if ((operation != null) && operation.equals("Enable")) {
-            String name = Common.getParameterAsString(request, "Name");
-            Boolean isEnabled = Boolean.parseBoolean(Common.getParameterAsString(request, "Enabled"));
-            changeAlertEnabled(name, isEnabled);
-        }
-        
-        if ((operation != null) && operation.equals("Clone")) {
-            String name = request.getParameter("Name");
-            cloneAlert(name);
-        }
-        
-        if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getParameterAsString(request, "Name");
-            removeAlert(name);
-        }
-        
-        if ((operation != null) && operation.equals("Acknowledge")) {
-            String isAcknowledged_String = request.getParameter("IsAcknowledged");
-            String name = request.getParameter("Name");
-            
-            try {
-                Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);
-                AlertsLogic.changeAlertAcknowledge(name, isAcknowledged_Boolean);
+            if ((operation != null) && operation.equals("Enable")) {
+                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Boolean isEnabled = Boolean.parseBoolean(Common.getParameterAsString(request, "Enabled"));
+                changeAlertEnabled(alertId, isEnabled);
             }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+
+            if ((operation != null) && operation.equals("Clone")) {
+                Integer alertId = Integer.parseInt(request.getParameter("Id"));
+                cloneAlert(alertId);
             }
+
+            if ((operation != null) && operation.equals("Remove")) {
+                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                removeAlert(alertId);
+            }
+
+            if ((operation != null) && operation.equals("Acknowledge")) {
+                String isAcknowledged_String = request.getParameter("IsAcknowledged");
+                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+
+                try {
+                    Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);
+                    AlertsLogic.changeAlertAcknowledge(alertId, isAcknowledged_Boolean);
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Alerts");
     }
 
-    public String changeAlertEnabled(String alertName, Boolean isEnabled) {
+    public String changeAlertEnabled(Integer alertId, Boolean isEnabled) {
 
-        if ((alertName == null) || (isEnabled == null)) {
+        if ((alertId == null) || (isEnabled == null)) {
             return "Invalid input!";
         }
         
         boolean isSuccess = false;
         
         AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = alertsDao.getAlert(alertId);
         
         if (alert != null) {
             alert.setIsEnabled(isEnabled);
@@ -168,7 +189,7 @@ public class Alerts extends HttpServlet {
             }
 
             AlertsLogic alertsLogic = new AlertsLogic();
-            alertsLogic.alterRecordInDatabase(alert, alertName, false);
+            alertsLogic.alterRecordInDatabase(alert, alert.getName(), false);
             
             if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
                 isSuccess = true;
@@ -181,15 +202,15 @@ public class Alerts extends HttpServlet {
         else return "Error -- could not alter alert";
     }
     
-    private void cloneAlert(String alertName) {
+    private void cloneAlert(Integer alertId) {
         
-        if (alertName == null) {
+        if (alertId == null) {
             return;
         }
         
         try {
             AlertsDao alertsDao = new AlertsDao(false);
-            Alert alert = alertsDao.getAlertByName(alertName);
+            Alert alert = alertsDao.getAlert(alertId);
             List<Alert> allAlerts = alertsDao.getAllDatabaseObjectsInTable();
             alertsDao.close();
 
@@ -232,21 +253,29 @@ public class Alerts extends HttpServlet {
         }
     }
     
-    public String removeAlert(String alertName) {
+    public String removeAlert(Integer alertId) {
         
-        if (alertName == null) {
+        if (alertId == null) {
             return null;
         }
         
         String returnString = null;
         
-        AlertsLogic alertsLogic = new AlertsLogic();
-        returnString = alertsLogic.deleteRecordInDatabase(alertName);
-        
-	if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
-            GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+        try {
+            AlertsDao alertsDao = new AlertsDao();
+            Alert alert = alertsDao.getAlert(alertId);
+            String alertName = alert.getName();
+
+            AlertsLogic alertsLogic = new AlertsLogic();
+            returnString = alertsLogic.deleteRecordInDatabase(alertName);
+
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
+                GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            }
         }
-        
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
         return returnString;
     }
     
@@ -348,7 +377,8 @@ public class Alerts extends HttpServlet {
             }
             
             String cautionNotificationGroupNameAndLink;
-            if ((notificationGroupNames_ById == null) || (alert.getCautionNotificationGroupId() == null) || !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
+            if ((notificationGroupNames_ById == null) || (alert.getCautionNotificationGroupId() == null) || ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) || 
+                    !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
                 cautionNotificationGroupNameAndLink = "N/A";
             }
             else {
@@ -358,7 +388,8 @@ public class Alerts extends HttpServlet {
             }
 
             String dangerNotificationGroupNameAndLink;
-            if ((notificationGroupNames_ById == null) || (alert.getDangerNotificationGroupId() == null) || !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
+            if ((notificationGroupNames_ById == null) || (alert.getDangerNotificationGroupId() == null) || ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) || 
+                    !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
                 dangerNotificationGroupNameAndLink = "N/A";
             }
             else {
@@ -387,14 +418,14 @@ public class Alerts extends HttpServlet {
             if (alert.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "disable", keysAndValues);
             }
             else {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
             }
@@ -412,7 +443,7 @@ public class Alerts extends HttpServlet {
             {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
                 acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "unacknowledge", keysAndValues);
             }
@@ -420,7 +451,7 @@ public class Alerts extends HttpServlet {
                     (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("IsAcknowledged", "true"));
                 acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "acknowledge", keysAndValues);
             }
@@ -431,12 +462,12 @@ public class Alerts extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+            cloneKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alert.getName(), "Alerts", "clone", cloneKeysAndValues);
                     
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(alert.getName())));
+            removeKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alert.getName(), "Alerts", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this alert?");
 
