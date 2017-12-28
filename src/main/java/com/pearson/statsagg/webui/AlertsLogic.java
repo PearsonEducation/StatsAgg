@@ -192,14 +192,14 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         return null;
     }
     
-    protected static String changeAlertAcknowledge(String alertName, Boolean isAcknowledged) {
+    protected static String changeAlertAcknowledge(Integer alertId, Boolean isAcknowledged) {
         
-        if ((alertName == null) || (isAcknowledged == null)) {
+        if ((alertId == null) || (isAcknowledged == null)) {
             return null;
         }
         
         AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = alertsDao.getAlert(alertId);
         
         if (alert != null) {
             boolean doAlertAlert = false;
@@ -215,7 +215,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             
             if (doAlertAlert) {
                 AlertsLogic alertsLogic = new AlertsLogic();
-                return alertsLogic.alterRecordInDatabase(alert, alertName, true);
+                return alertsLogic.alterRecordInDatabase(alert, alert.getName(), true);
             }
         }
         
