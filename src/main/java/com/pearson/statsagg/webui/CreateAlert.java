@@ -17,9 +17,9 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.util.ArrayList;
 import java.util.List;
+import org.apache.commons.codec.binary.Hex;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,7 +71,15 @@ public class CreateAlert extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -115,13 +123,20 @@ public class CreateAlert extends HttpServlet {
             return;
         }
         
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+
         PrintWriter out = null;
         
         try {
             String result = parseAndAlterAlert(request);
-            
-            response.setContentType("text/html");     
-            
+
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
@@ -159,7 +174,7 @@ public class CreateAlert extends HttpServlet {
             "    <div class=\"row create-alert-form-row\">\n");
 
         if ((alert != null) && (alert.getName() != null) && !alert.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\">");
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\">");
         }
         
         
@@ -179,7 +194,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
         
         if ((alert != null) && (alert.getName() != null)) {
-            htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(alert.getName())).append("\"");
+            htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\"");
         }
 
         htmlBody.append(">\n</div>\n");
@@ -192,7 +207,7 @@ public class CreateAlert extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
 
         if ((alert != null) && (alert.getDescription() != null)) {
-            htmlBody.append(Encode.forHtmlAttribute(alert.getDescription()));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(alert.getDescription(), true));
         }
 
         htmlBody.append("</textarea>\n");
@@ -211,7 +226,7 @@ public class CreateAlert extends HttpServlet {
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
 
             if ((metricGroup != null) && (metricGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(metricGroup.getName())).append("\"");
+                htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName(), true)).append("\"");
             }
         }
 
@@ -387,7 +402,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+                htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
             }
         }
         
@@ -407,7 +422,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+                htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
             }
         }
         
@@ -661,7 +676,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+                htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
             }
         }
         
@@ -681,7 +696,7 @@ public class CreateAlert extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-                htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(notificationGroup.getName())).append("\"");
+                htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
             }
         }
         
