@@ -1,7 +1,6 @@
 package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
-import com.pearson.statsagg.controller.threads.MetricAssociationOutputBlacklistInvokerThread;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
@@ -17,7 +16,6 @@ import java.util.List;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -69,7 +67,15 @@ public class OutputBlacklist extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
     
         try {  
@@ -106,7 +112,15 @@ public class OutputBlacklist extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
 
         String metricGroupName = request.getParameter("MetricGroupName");
@@ -178,7 +192,7 @@ public class OutputBlacklist extends HttpServlet {
             "  <label class=\"label_small_margin\">Metric group name</label>\n" +
             "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"MetricGroupName\" id=\"MetricGroupName\" ");
 
-        if ((metricGroupName != null)) htmlBody.append(" value=\"").append(Encode.forHtmlAttribute(metricGroupName)).append("\"");
+        if ((metricGroupName != null)) htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroupName, true)).append("\"");
         htmlBody.append(">\n</div>\n");
         
         htmlBody.append("<button type=\"submit\" class=\"btn btn-default statsagg_page_content_font\">Submit</button>\n");
