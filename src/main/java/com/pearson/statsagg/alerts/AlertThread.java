@@ -94,56 +94,62 @@ public class AlertThread implements Runnable {
     
     @Override
     public void run() {
-  
+        //todo-- detect alert thread running, fix if broken
+        
         // stops multiple alert threads from running simultaneously 
         if (!isThreadCurrentlyRunning_.compareAndSet(false, true)) {
             logger.warn("ThreadId=" + threadId_ + ", Routine=Alert, Message=\"Only 1 alert thread can run at a time\"");
             return;
         }
         
-        // run the metric association routine
-        long metricAssociationTimeElasped = 0;
-        if (ApplicationConfiguration.isAlertRoutineEnabled() && runMetricAssociationRoutine_) {
-            long metricAssociationStartTime = System.currentTimeMillis();
-            MetricAssociation.associateMetricKeysWithMetricGroups(threadId_);
-            metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
+        try {
+            // run the metric association routine
+            long metricAssociationTimeElasped = 0;
+            if (ApplicationConfiguration.isAlertRoutineEnabled() && runMetricAssociationRoutine_) {
+                long metricAssociationStartTime = System.currentTimeMillis();
+                MetricAssociation.associateMetricKeysWithMetricGroups(threadId_);
+                metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
+            }
+
+            long alertRoutineTimeElasped = 0, suspensionRoutineTimeElapsed;
+            synchronized (GlobalVariables.alertRoutineLock) {
+                // gets all alerts from the database.
+                AlertsDao alertsDao = new AlertsDao();
+                List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+                alertsByAlertId_ = getAlertsByAlertId(alerts);
+
+                // run the suspension routine
+                long suspensionRoutineStartTime = System.currentTimeMillis();
+                suspensions_ = new Suspensions(alertsByAlertId_);
+                suspensions_.runSuspensionRoutine();
+                suspensionRoutineTimeElapsed = System.currentTimeMillis() - suspensionRoutineStartTime; 
+
+                // run the alerting routine
+                if (ApplicationConfiguration.isAlertRoutineEnabled() && runAlertRoutine_) {
+                    long alertRoutineStartTime = System.currentTimeMillis();
+                    runAlertRoutine(alerts);
+                    alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
+
+                    // generate alert statuses for output, and send to enabled output modules
+                    sendAlertStatusesToOutputModules(alerts);
+                }
+            }
+
+            String outputMessage = "ThreadId=" + threadId_
+                    + ", Routine=Alert"
+                    + ", MetricAssociationTime=" + metricAssociationTimeElasped
+                    + ", AlertRoutineTime=" + alertRoutineTimeElasped
+                    + ", SuspensionRoutineTime=" + suspensionRoutineTimeElapsed
+                    ;
+
+            logger.info(outputMessage);
+
+            GlobalVariables.associatedMetricsWithValuesCount.set(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.size());
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
-        long alertRoutineTimeElasped = 0, suspensionRoutineTimeElapsed;
-        synchronized (GlobalVariables.alertRoutineLock) {
-            // gets all alerts from the database.
-            AlertsDao alertsDao = new AlertsDao();
-            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
-            alertsByAlertId_ = getAlertsByAlertId(alerts);
-            
-            // run the suspension routine
-            long suspensionRoutineStartTime = System.currentTimeMillis();
-            suspensions_ = new Suspensions(alertsByAlertId_);
-            suspensions_.runSuspensionRoutine();
-            suspensionRoutineTimeElapsed = System.currentTimeMillis() - suspensionRoutineStartTime; 
-            
-            // run the alerting routine
-            if (ApplicationConfiguration.isAlertRoutineEnabled() && runAlertRoutine_) {
-                long alertRoutineStartTime = System.currentTimeMillis();
-                runAlertRoutine(alerts);
-                alertRoutineTimeElasped = System.currentTimeMillis() - alertRoutineStartTime; 
-                
-                // generate alert statuses for output, and send to enabled output modules
-                sendAlertStatusesToOutputModules(alerts);
-            }
-        }
-
-        String outputMessage = "ThreadId=" + threadId_
-                + ", Routine=Alert"
-                + ", MetricAssociationTime=" + metricAssociationTimeElasped
-                + ", AlertRoutineTime=" + alertRoutineTimeElasped
-                + ", SuspensionRoutineTime=" + suspensionRoutineTimeElapsed
-                ;
-
-        logger.info(outputMessage);
-
-        GlobalVariables.associatedMetricsWithValuesCount.set(GlobalVariables.recentMetricTimestampsAndValuesByMetricKey.size());
-
         isThreadCurrentlyRunning_.set(false);
     }
 
