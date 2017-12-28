@@ -24,7 +24,6 @@ import com.pearson.statsagg.utilities.KeyValue;
 import com.pearson.statsagg.utilities.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +77,15 @@ public class MetricGroups extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
 
         try {
@@ -106,30 +113,44 @@ public class MetricGroups extends HttpServlet {
             return;
         }
         
-        String operation = request.getParameter("Operation");
-        
-        if ((operation != null) && operation.equals("Clone")) {
-            String name = request.getParameter("Name");
-            cloneMetricGroup(name);
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
         }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
         
-        if ((operation != null) && operation.equals("Remove")) {
-            String name = Common.getParameterAsString(request, "Name");
-            removeMetricGroup(name);
+        try {
+            String operation = request.getParameter("Operation");
+
+            if ((operation != null) && operation.equals("Clone")) {
+                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                cloneMetricGroup(id);
+            }
+
+            if ((operation != null) && operation.equals("Remove")) {
+                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                removeMetricGroup(id);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         StatsAggHtmlFramework.redirectAndGet(response, 303, "MetricGroups");
     }
 
-    private void cloneMetricGroup(String metricGroupName) {
+    private void cloneMetricGroup(Integer metricGroupId) {
         
-        if (metricGroupName == null) {
+        if (metricGroupId == null) {
             return;
         }
         
         try {
             MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
             List<MetricGroup> allMetricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
             metricGroupsDao.close();
 
@@ -180,19 +201,28 @@ public class MetricGroups extends HttpServlet {
         }
     }
     
-    public String removeMetricGroup(String metricGroupName) {
-        String returnString = "Metric Group Name field can't be null.";
-        if (metricGroupName == null) {
+    public String removeMetricGroup(Integer metricGroupId) {
+        
+        String returnString = "Metric Group ID field can't be null.";
+        if (metricGroupId == null) return returnString;
+        
+        try {
+            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);                
+            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
+            returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroup.getName());
+
+            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
+                GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+            }
+            
             return returnString;
         }
-        
-        MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-        returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroupName);
-        
-        if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
-            GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            returnString = "Error removing metric group";
+            return returnString;
         }
-        return returnString;
     }
     
     private String buildMetricGroupsHtml() {
@@ -279,12 +309,12 @@ public class MetricGroups extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(metricGroup.getName())));
+            cloneKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + metricGroup.getName(), "MetricGroups", "clone", cloneKeysAndValues);
             
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(metricGroup.getName())));
+            removeKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroup.getName(), "MetricGroups", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this metric group?");
             
