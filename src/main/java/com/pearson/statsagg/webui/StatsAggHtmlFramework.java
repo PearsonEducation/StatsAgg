@@ -269,6 +269,10 @@ public class StatsAggHtmlFramework {
     }
     
     public static String htmlEncode(String unencodedString) {
+        return htmlEncode(unencodedString, false);
+    }
+    
+    public static String htmlEncode(String unencodedString, boolean isFormValue) {
         
         if ((unencodedString == null) || unencodedString.isEmpty()) {
             return unencodedString;
@@ -276,20 +280,25 @@ public class StatsAggHtmlFramework {
         
         String htmlEscapedString = StringEscapeUtils.escapeHtml(unencodedString);
         
-        StringBuilder htmlEscapedString_StringBuilder = new StringBuilder();
-        
-        for (int i = 0; i < htmlEscapedString.length(); i++) {
-            if ((i > 0) && (htmlEscapedString.charAt(i - 1) == ' ') && (htmlEscapedString.charAt(i) == ' ')) {
-                htmlEscapedString_StringBuilder.append("&nbsp;");
+        if (!isFormValue) {
+            StringBuilder htmlEscapedString_StringBuilder = new StringBuilder();
+
+            for (int i = 0; i < htmlEscapedString.length(); i++) {
+                if ((i > 0) && (htmlEscapedString.charAt(i - 1) == ' ') && (htmlEscapedString.charAt(i) == ' ')) {
+                    htmlEscapedString_StringBuilder.append("&nbsp;");
+                }
+                else {
+                    htmlEscapedString_StringBuilder.append(htmlEscapedString.charAt(i));
+                }
             }
-            else {
-                htmlEscapedString_StringBuilder.append(htmlEscapedString.charAt(i));
-            }
+
+            return htmlEscapedString_StringBuilder.toString();
         }
-        
-        return htmlEscapedString_StringBuilder.toString();
+        else {
+            return htmlEscapedString;
+        }
     }
-    
+
     public static void redirectAndGet(HttpServletResponse response, int httpStatusCode, String redirectToPath) {
         
         if (response == null) {
