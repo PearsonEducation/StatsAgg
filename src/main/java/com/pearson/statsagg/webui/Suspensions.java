@@ -20,7 +20,6 @@ import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
-import org.owasp.encoder.Encode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -74,7 +73,15 @@ public class Suspensions extends HttpServlet {
             return;
         }
         
-        response.setContentType("text/html");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
         PrintWriter out = null;
                 
         try {
@@ -102,43 +109,57 @@ public class Suspensions extends HttpServlet {
             return;
         }
         
-        String operation = request.getParameter("Operation");
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("text/html");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        
+        try {
+            String operation = request.getParameter("Operation");
 
-        if ((operation != null) && operation.equals("Enable")) {
-            String name = request.getParameter("Name");
-            Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
-            changeSuspensionEnabled(name, isEnabled);
+            if ((operation != null) && operation.equals("Enable")) {
+                Integer suspensionId = Integer.parseInt(request.getParameter("Id"));
+                Boolean isEnabled = Boolean.parseBoolean(request.getParameter("Enabled"));
+                changeSuspensionEnabled(suspensionId, isEnabled);
+            }
+
+            if ((operation != null) && operation.equals("Clone")) {
+                Integer suspensionId = Integer.parseInt(request.getParameter("Id"));
+                cloneSuspension(suspensionId);
+            }
+
+            if ((operation != null) && operation.equals("Remove")) {
+                Integer suspensionId = Integer.parseInt(request.getParameter("Id"));
+                removeSuspension(suspensionId);
+            }
         }
-        
-        if ((operation != null) && operation.equals("Clone")) {
-            String name = request.getParameter("Name");
-            cloneSuspension(name);
-        }
-        
-        if ((operation != null) && operation.equals("Remove")) {
-            String name = request.getParameter("Name");
-            removeSuspension(name);
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Suspensions");
     }
         
-    public String changeSuspensionEnabled(String suspensionName, Boolean isEnabled) {
+    public String changeSuspensionEnabled(Integer suspensionId, Boolean isEnabled) {
         
-        if ((suspensionName == null) || (isEnabled == null)) {
+        if ((suspensionId == null) || (isEnabled == null)) {
             return "Invalid input!";
         }
         
         boolean isSuccess = false;
         
         SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
+        Suspension suspension = suspensionsDao.getSuspension(suspensionId);
         
         if (suspension != null) {
             suspension.setIsEnabled(isEnabled);
 
             SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-            suspensionsLogic.alterRecordInDatabase(suspension, suspensionName);
+            suspensionsLogic.alterRecordInDatabase(suspension, suspension.getName());
 
             if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
                 isSuccess = true;
@@ -152,15 +173,15 @@ public class Suspensions extends HttpServlet {
         else return "Error -- could not alter suspension";
     }
 
-    private void cloneSuspension(String suspensionName) {
+    private void cloneSuspension(Integer suspensionId) {
         
-        if (suspensionName == null) {
+        if (suspensionId == null) {
             return;
         }
         
         try {
             SuspensionsDao suspensionsDao = new SuspensionsDao(false);
-            Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
+            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
             List<Suspension> allSuspensions = suspensionsDao.getAllDatabaseObjectsInTable();
             suspensionsDao.close();
 
@@ -190,20 +211,29 @@ public class Suspensions extends HttpServlet {
         }
     }
     
-    public String removeSuspension(String suspensionName) {
+    public String removeSuspension(Integer suspensionId) {
         
-        if (suspensionName == null) {
-            return null;
+        String returnString = "Suspension id can't be null";
+        if (suspensionId == null) return returnString;
+
+        try{
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+            if (suspension == null) return null;    
+
+            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
+            returnString = suspensionsLogic.deleteRecordInDatabase(suspension.getName());
+
+            com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+            suspensions.runSuspensionRoutine();
+            
+            return returnString;
         }
-        
-        String returnString = null;
-        SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-        returnString = suspensionsLogic.deleteRecordInDatabase(suspensionName);
-        
-        com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
-        suspensions.runSuspensionRoutine();
-        
-        return returnString;
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            returnString = "Error removing suspension";
+            return returnString;
+        }
     }
     
     private String buildSuspensionsHtml() {
@@ -261,7 +291,11 @@ public class Suspensions extends HttpServlet {
                 if (suspension.getAlertId() != null) {
                     AlertsDao alertsDao = new AlertsDao();
                     Alert alert = alertsDao.getAlert(suspension.getAlertId());
-                    if ((alert != null) && (alert.getName() != null)) suspendByDetails.append(StatsAggHtmlFramework.htmlEncode(alert.getName()));
+                    if ((alert != null) && (alert.getName() != null)) {
+                        String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
+                            StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
+                        suspendByDetails.append(alertDetails);
+                    }
                 }
             }
             else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
@@ -323,14 +357,14 @@ public class Suspensions extends HttpServlet {
             if (suspension.isEnabled()) {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+                keysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + suspension.getName(), "Suspensions", "disable", keysAndValues);
             }
             else {
                 List<KeyValue> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+                keysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + suspension.getName(), "Suspensions", "enable", keysAndValues);
             }
@@ -339,12 +373,12 @@ public class Suspensions extends HttpServlet {
             
             List<KeyValue> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+            cloneKeysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + suspension.getName(), "Suspensions", "clone", cloneKeysAndValues);
                     
             List<KeyValue> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Name", Encode.forHtmlAttribute(suspension.getName())));
+            removeKeysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + suspension.getName(), "Suspensions", "remove", 
                     removeKeysAndValues, true, "Are you sure you want to remove this suspension?");
 
