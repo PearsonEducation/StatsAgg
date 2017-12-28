@@ -41,6 +41,7 @@ public class OutputBlacklistDao extends DatabaseObjectDao<OutputBlacklist> {
         }
         else {
             databaseCreationSqlStatements.add(OutputBlacklistSql.CreateTable_OutputBlacklist_Derby);
+            databaseCreationSqlStatements.add(OutputBlacklistSql.CreateIndex_OutputBlacklist_PrimaryKey);
         }
         
         databaseCreationSqlStatements.add(OutputBlacklistSql.CreateIndex_OutputBlacklist_ForeignKey_MetricGroupId);

@@ -25,6 +25,10 @@ public class OutputBlacklistSql {
                     "METRIC_GROUP_ID INTEGER" +
                     ")";
     
+    protected final static String CreateIndex_OutputBlacklist_PrimaryKey =
+                    "ALTER TABLE OUTPUT_BLACKLIST " +
+                    "ADD CONSTRAINT OB_PK PRIMARY KEY (ID)";
+    
     protected final static String CreateIndex_OutputBlacklist_ForeignKey_MetricGroupId =
                     "ALTER TABLE OUTPUT_BLACKLIST " +
                     "ADD CONSTRAINT OB_MGID_FK FOREIGN KEY (METRIC_GROUP_ID) " + 
