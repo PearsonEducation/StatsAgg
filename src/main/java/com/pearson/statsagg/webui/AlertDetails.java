@@ -314,9 +314,8 @@ public class AlertDetails extends HttpServlet {
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution acknowledged?</b> = ");
-            String isCautionAcknowledged = "No";
-            if ((alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) isCautionAcknowledged = "Yes";
-            else if (alert.isCautionAlertAcknowledged() != null) outputString.append(isCautionAcknowledged).append("<br>");
+            if ((alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) outputString.append("Yes ").append("<br>");
+            else if (alert.isCautionAlertAcknowledged() != null) outputString.append("No ").append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Caution alert last notification timestamp</b> = ");
@@ -417,9 +416,8 @@ public class AlertDetails extends HttpServlet {
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger acknowledged?</b> = ");
-            String isDangerAcknowledged = "No";
-            if ((alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()) isDangerAcknowledged = "Yes";
-            else if (alert.isDangerAlertAcknowledged() != null) outputString.append(isDangerAcknowledged).append("<br>");
+            if ((alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()) outputString.append("Yes ").append("<br>");
+            else if (alert.isDangerAlertAcknowledged() != null) outputString.append("No ").append("<br>");
             else outputString.append("N/A <br>");
             
             outputString.append("<b>Danger alert last notification timestamp</b> = ");
