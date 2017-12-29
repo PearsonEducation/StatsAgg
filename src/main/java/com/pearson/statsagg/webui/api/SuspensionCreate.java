@@ -26,9 +26,17 @@ public class SuspensionCreate extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         
         PrintWriter out = null;
-
-        try {
+        
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
             response.setContentType("application/json");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        try {
             String result = processPostRequest(request);
             out = response.getWriter();
             out.println(result);

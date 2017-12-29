@@ -61,10 +61,18 @@ public class SuspensionDetails extends HttpServlet {
     private void processRequest(HttpServletRequest request, HttpServletResponse response) {
         
         PrintWriter out = null;
-
+        
+        try {  
+            request.setCharacterEncoding("UTF-8");
+            response.setCharacterEncoding("UTF-8");
+            response.setContentType("application/json");
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         try {
             String json = getSuspensionDetails(request);
-            response.setContentType("application/json");
             out = response.getWriter();
             out.println(json);
         }
