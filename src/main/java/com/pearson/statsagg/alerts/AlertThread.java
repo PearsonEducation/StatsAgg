@@ -53,7 +53,8 @@ public class AlertThread implements Runnable {
     public static final RoundingMode ALERT_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext ALERT_MATH_CONTEXT = new MathContext(ALERT_PRECISION, ALERT_ROUNDING_MODE);
 
-    private static final AtomicBoolean isThreadCurrentlyRunning_ = new AtomicBoolean(false);
+    public static final AtomicBoolean isThreadCurrentlyRunning_ = new AtomicBoolean(false);
+    
     private static final AtomicLong alertRoutineExecutionCounter_ = new AtomicLong(0);
     private static final Map<Integer, Alert> pendingCautionAlertsByAlertId_ = new HashMap<>();
     private static final Map<Integer, Alert> pendingDangerAlertsByAlertId_ = new HashMap<>();
