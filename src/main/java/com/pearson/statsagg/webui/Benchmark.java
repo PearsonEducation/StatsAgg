@@ -216,21 +216,25 @@ public class Benchmark extends HttpServlet {
         List<BenchmarkResult> benchmarkResults = new ArrayList<>();
         
         // run benchmark
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
         for (Integer metricGroupId : mergedMatchRegexesByMetricGroupId_Local.keySet()) {
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
-            if ((metricGroup == null) || (metricGroup.getName() == null)) continue;
-            
-            long startTime = System.currentTimeMillis();
-            String regex = mergedMatchRegexesByMetricGroupId_Local.get(metricGroupId);
-            Set<String> regexMatches = MetricAssociation.getRegexMatches(metricKeysToBenchmark, regex, null, -1);
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            BenchmarkResult benchmarkResult = new BenchmarkResult(metricGroup.getName(), elapsedTime);
-            benchmarkResults.add(benchmarkResult);
+            try {
+                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
+                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+                if ((metricGroup == null) || (metricGroup.getName() == null)) continue;
+
+                long startTime = System.currentTimeMillis();
+                String regex = mergedMatchRegexesByMetricGroupId_Local.get(metricGroupId);
+                Set<String> regexMatches = MetricAssociation.getRegexMatches(metricKeysToBenchmark, regex, null, -1);
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                BenchmarkResult benchmarkResult = new BenchmarkResult(metricGroup.getName(), elapsedTime);
+                benchmarkResults.add(benchmarkResult);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
-        metricGroupsDao.close();
-        
-        
+
+                
         // generate output html 
         benchmarkResults.sort(BenchmarkResult.COMPARE_BY_BENCHMARK_RESULT_DESC);
         StringBuilder outputHtmlString = new StringBuilder();
@@ -259,20 +263,24 @@ public class Benchmark extends HttpServlet {
         List<BenchmarkResult> benchmarkResults = new ArrayList<>();
         
         // run benchmark
-        SuspensionsDao suspensionsDao = new SuspensionsDao(false);
         for (Integer suspensionId : mergedMatchRegexesBySuspensionId_Local.keySet()) {
-            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
-            if ((suspension == null) || (suspension.getName() == null)) continue;
-            
-            long startTime = System.currentTimeMillis();
-            String regex = mergedMatchRegexesBySuspensionId_Local.get(suspensionId);
-            Set<String> regexMatches = MetricAssociation.getRegexMatches(metricKeysToBenchmark, regex, null, -1);
-            long elapsedTime = System.currentTimeMillis() - startTime;
-            BenchmarkResult benchmarkResult = new BenchmarkResult(suspension.getName(), elapsedTime);
-            benchmarkResults.add(benchmarkResult);
+            try {
+                SuspensionsDao suspensionsDao = new SuspensionsDao();
+                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                if ((suspension == null) || (suspension.getName() == null)) continue;
+
+                long startTime = System.currentTimeMillis();
+                String regex = mergedMatchRegexesBySuspensionId_Local.get(suspensionId);
+                Set<String> regexMatches = MetricAssociation.getRegexMatches(metricKeysToBenchmark, regex, null, -1);
+                long elapsedTime = System.currentTimeMillis() - startTime;
+                BenchmarkResult benchmarkResult = new BenchmarkResult(suspension.getName(), elapsedTime);
+                benchmarkResults.add(benchmarkResult);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
-        suspensionsDao.close();
-        
+
         
         // generate output html 
         benchmarkResults.sort(BenchmarkResult.COMPARE_BY_BENCHMARK_RESULT_DESC);
