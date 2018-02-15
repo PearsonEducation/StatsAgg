@@ -2,6 +2,7 @@ package com.pearson.statsagg.utilities;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,11 +14,16 @@ public abstract class InvokerThread implements Runnable {
     
     private static final Logger logger = LoggerFactory.getLogger(InvokerThread.class.getName());
     
+    protected final ExecutorService threadExecutor_ = Executors.newCachedThreadPool();
+    protected final ThreadPoolExecutor threadPoolExecutor_;
     protected boolean continueRunning_ = true;
     protected boolean isShutdown_ = false;
-    protected ExecutorService threadExecutor_ = Executors.newCachedThreadPool();
 
     protected final Object lockObject_ = new Object();
+    
+    public InvokerThread() {
+        threadPoolExecutor_ = (ThreadPoolExecutor) threadExecutor_;
+    }
     
     @Override
     public void run() {}
