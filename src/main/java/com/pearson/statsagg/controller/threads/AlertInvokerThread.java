@@ -28,19 +28,8 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
         synchronized (lockObject_) {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
-                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds, true, true));
+                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds, true, true, threadPoolExecutor_));
                 alertThread.setPriority(3);
-                
-                try {
-                    ThreadPoolExecutor threadPoolExecutor = (ThreadPoolExecutor) threadExecutor_;
-                    if (AlertThread.isThreadCurrentlyRunning_.get() && (threadPoolExecutor.getActiveCount() == 0)) {
-                        logger.warn("Invalid thread state detected (alert thread thinks it is running, but it is not.");
-                        AlertThread.isThreadCurrentlyRunning_.set(false);
-                    }
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
                 
                 threadExecutor_.execute(alertThread);
 
@@ -59,7 +48,7 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
     }
     
     public void runAlertThread(boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
-        Thread alertThread = new Thread(new AlertThread(System.currentTimeMillis(), runMetricAssociationRoutine, runAlertRoutine));
+        Thread alertThread = new Thread(new AlertThread(System.currentTimeMillis(), runMetricAssociationRoutine, runAlertRoutine, threadPoolExecutor_));
         alertThread.setPriority(3);
         if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(alertThread);
     }

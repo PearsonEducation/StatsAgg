@@ -26,7 +26,7 @@ public class MetricAssociationOutputBlacklistInvokerThread extends InvokerThread
         synchronized (lockObject_) {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
-                Thread metricAssociationOutputBlacklistThread = new Thread(new MetricAssociationOutputBlacklistThread(currentTimeInMilliseconds));
+                Thread metricAssociationOutputBlacklistThread = new Thread(new MetricAssociationOutputBlacklistThread(currentTimeInMilliseconds, threadPoolExecutor_));
                 metricAssociationOutputBlacklistThread.setPriority(3);
                 threadExecutor_.execute(metricAssociationOutputBlacklistThread);
 
@@ -50,7 +50,7 @@ public class MetricAssociationOutputBlacklistInvokerThread extends InvokerThread
     }
     
     public void runMetricAssociationOutputBlacklistThread() {
-        Thread metricAssociationOutputBlacklistThread = new Thread(new MetricAssociationOutputBlacklistThread(System.currentTimeMillis()));
+        Thread metricAssociationOutputBlacklistThread = new Thread(new MetricAssociationOutputBlacklistThread(System.currentTimeMillis(), null));
         metricAssociationOutputBlacklistThread.setPriority(3);
         if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(metricAssociationOutputBlacklistThread);
     }

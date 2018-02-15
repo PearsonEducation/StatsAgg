@@ -29,7 +29,7 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
 
-                threadExecutor_.execute(new CleanupThread(currentTimeInMilliseconds));
+                threadExecutor_.execute(new CleanupThread(currentTimeInMilliseconds, threadPoolExecutor_));
 
                 try {
                     // the delay between cleanup routine invokations has been randomized to avoid having the cleanup routine 
@@ -56,7 +56,7 @@ public class CleanupInvokerThread extends InvokerThread implements Runnable {
     }
     
     public void runCleanupThread() {
-        Thread cleanupThread = new Thread(new CleanupThread(System.currentTimeMillis()));
+        Thread cleanupThread = new Thread(new CleanupThread(System.currentTimeMillis(), threadPoolExecutor_));
         if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(cleanupThread);
     }
     

@@ -16,6 +16,7 @@ import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import java.util.HashSet;
 import java.util.Map.Entry;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -31,24 +32,37 @@ public class CleanupThread implements Runnable {
     public static final long NUM_MILLISECONDS_IN_ONE_DAY = 86400000;
     
     public static final AtomicBoolean isCleanupThreadCurrentlyRunning = new AtomicBoolean(false);
-
+    
+    protected final ThreadPoolExecutor threadPoolExecutor_;
     protected final Long threadStartTimestampInMilliseconds_;
     protected final String threadId_;
 
     private Set<String> immediateCleanupMetricKeys_;
     
-    public CleanupThread(Long threadStartTimestampInMilliseconds) {
+    public CleanupThread(Long threadStartTimestampInMilliseconds, ThreadPoolExecutor threadPoolExecutor) {
         this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
         this.threadId_ = "C-" + threadStartTimestampInMilliseconds_.toString();
+        this.threadPoolExecutor_ = threadPoolExecutor;
     }
     
     @Override
     public void run() {
         
-        // stops multiple alert threads from running simultaneously 
-        if (!isCleanupThreadCurrentlyRunning.compareAndSet(false, true)) {
-            logger.warn("ThreadId=" + threadId_ + ", Routine=Cleanup, Message=\"Only 1 cleanup thread can run at a time\"");
-            return;
+        try {
+            // stops multiple alert threads from running simultaneously 
+            if (!isCleanupThreadCurrentlyRunning.compareAndSet(false, true)) {
+                if ((threadPoolExecutor_ != null) && (threadPoolExecutor_.getActiveCount() <= 1)) {
+                    logger.warn("Invalid clean-thread state detected (detected that statsagg thinks another cleanup-thread is running, but it is not.");
+                    isCleanupThreadCurrentlyRunning.set(false);
+                }
+                else {
+                    logger.warn("ThreadId=" + threadId_ + ", Routine=Cleanup, Message=\"Only 1 cleanup thread can run at a time\"");
+                    return;
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         long threadStartTime = System.currentTimeMillis();

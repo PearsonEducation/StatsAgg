@@ -20,6 +20,7 @@ import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import com.pearson.statsagg.utilities.Threads;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,12 +48,23 @@ public class MetricAssociation {
     public static final AtomicBoolean IsMetricGroupChangeOutputBlacklist = new AtomicBoolean(false); 
     
     // the core routine that associates metrics with metric-groups & suspensions. this is called periodically by the alert routine
-    protected static void associateMetricKeysWithMetricGroups(String threadId) {
+    protected static void associateMetricKeysWithMetricGroups(String threadId, ThreadPoolExecutor threadPoolExecutor) {
         
-        // stops multiple metric association methods from running simultaneously 
-        if (!IsMetricAssociationRoutineCurrentlyRunning.compareAndSet(false, true)) {
-            logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation, Message=\"Only 1 metric association routine can run at a time\"");
-            return;
+        try {
+            // stops multiple metric association routines from running simultaneously 
+            if (!IsMetricAssociationRoutineCurrentlyRunning.compareAndSet(false, true)) {
+                if ((threadPoolExecutor != null) && (threadPoolExecutor.getActiveCount() <= 1)) {
+                    logger.warn("Invalid state detected (detected that statsagg thinks another thread is running the metric association routine, but it is not.");
+                    IsMetricAssociationRoutineCurrentlyRunning.set(false);
+                }
+                else {
+                    logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation, Message=\"Only 1 metric association routine can run at a time\"");
+                    return;
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         //  wait until the the cleanup thread is done running
@@ -85,14 +97,25 @@ public class MetricAssociation {
     
     // associates a set of metric-keys with the metric output blacklist. this is intended to be called periodically, and only 1 call to this method can run at a time
     // returns null on error, otherwise returns the count of newly processed metrics (which had regex matching ran against them)
-    public static Long associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(String threadId) {
+    public static Long associateMetricKeysWithMetricGroups_OutputBlacklistMetricGroup(String threadId, ThreadPoolExecutor threadPoolExecutor) {
 
-        // stops multiple output blacklist metric association methods from running simultaneously 
-        if (!IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning.compareAndSet(false, true)) {
-            logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation_OutputBlacklist, Message=\"Only 1 metric association routine can run at a time\"");
-            return null;
+        try {
+            // stops multiple output blacklist metric association routines from running simultaneously 
+            if (!IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning.compareAndSet(false, true)) {
+                if ((threadPoolExecutor != null) && (threadPoolExecutor.getActiveCount() <= 1)) {
+                    logger.warn("Invalid state detected (detected that statsagg thinks another thread is running the output blacklist metric association routine, but it is not.");
+                    IsMetricAssociationRoutineForOutputBlacklistCurrentlyRunning.set(false);
+                }
+                else {
+                    logger.warn("ThreadId=" + threadId + ", Routine=MetricAssociation_OutputBlacklist, Message=\"Only 1 output blacklist metric association routine can run at a time\"");
+                    return null;
+                }
+            }
         }
-        
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+
         long numNewKeysProcessed = 0;
         ConcurrentHashMap<String,Boolean> metricKeysAssociatedWithOutputBlacklistMetricGroup_Local = new ConcurrentHashMap<>(); 
         ConcurrentHashMap<Integer,Set<String>> matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Local = new ConcurrentHashMap<>();  
@@ -619,16 +642,24 @@ public class MetricAssociation {
         }
         
         for (Integer suspensionId : suspensionIds) {
-            String mergedMatchRegex = GlobalVariables.mergedMatchRegexesBySuspensionId.get(suspensionId);
+            if (suspensionId == null) continue;
+            
+            try {
+                String mergedMatchRegex = GlobalVariables.mergedMatchRegexesBySuspensionId.get(suspensionId);
 
-            if (mergedMatchRegex == null) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
-                
-                List<String> regexPatterns = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
-                mergedMatchRegex = StringUtilities.createMergedRegex(regexPatterns);
+                if (mergedMatchRegex == null) {
+                    SuspensionsDao suspensionsDao = new SuspensionsDao();
+                    Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                    if (suspension == null) continue;
+                    
+                    List<String> regexPatterns = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');
+                    mergedMatchRegex = StringUtilities.createMergedRegex(regexPatterns);
 
-                if (mergedMatchRegex != null) GlobalVariables.mergedMatchRegexesBySuspensionId.put(suspensionId, mergedMatchRegex);
+                    if (mergedMatchRegex != null) GlobalVariables.mergedMatchRegexesBySuspensionId.put(suspensionId, mergedMatchRegex);
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
         
@@ -689,34 +720,39 @@ public class MetricAssociation {
         
         Set<String> matchingMetricKeys = new HashSet<>();
         
-        if (matchPattern != null) {
-            int matchCounter = 0;
-            boolean isAnyMatchLimt = (metricMatchLimit >= 0);
-            
-            for (String metricKey : metricKeys) {
-                Matcher matcher = matchPattern.matcher(metricKey);
-                
-                if (matcher.matches()) {
-                    if (blacklistPattern != null) {
-                        Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
-                        
-                        if (!blacklistMatcher.matches()) {
+        try {
+            if (matchPattern != null) {
+                int matchCounter = 0;
+                boolean isAnyMatchLimt = (metricMatchLimit >= 0);
+
+                for (String metricKey : metricKeys) {
+                    Matcher matcher = matchPattern.matcher(metricKey);
+
+                    if (matcher.matches()) {
+                        if (blacklistPattern != null) {
+                            Matcher blacklistMatcher = blacklistPattern.matcher(metricKey);
+
+                            if (!blacklistMatcher.matches()) {
+                                matchingMetricKeys.add(metricKey);
+                                matchCounter++;
+                            }
+                        }
+                        else {
                             matchingMetricKeys.add(metricKey);
                             matchCounter++;
                         }
                     }
-                    else {
-                        matchingMetricKeys.add(metricKey);
-                        matchCounter++;
-                    }
-                }
 
-                if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
-                    break;
+                    if (isAnyMatchLimt && (matchCounter == metricMatchLimit)) {
+                        break;
+                    }
                 }
             }
         }
- 
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
         return matchingMetricKeys;
     }
     

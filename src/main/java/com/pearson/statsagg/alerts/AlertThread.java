@@ -35,6 +35,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.TreeSet;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -53,14 +54,14 @@ public class AlertThread implements Runnable {
     public static final RoundingMode ALERT_ROUNDING_MODE = RoundingMode.HALF_UP;
     public static final MathContext ALERT_MATH_CONTEXT = new MathContext(ALERT_PRECISION, ALERT_ROUNDING_MODE);
 
-    public static final AtomicBoolean isThreadCurrentlyRunning_ = new AtomicBoolean(false);
-    
+    private static final AtomicBoolean isThreadCurrentlyRunning_ = new AtomicBoolean(false);
     private static final AtomicLong alertRoutineExecutionCounter_ = new AtomicLong(0);
     private static final Map<Integer, Alert> pendingCautionAlertsByAlertId_ = new HashMap<>();
     private static final Map<Integer, Alert> pendingDangerAlertsByAlertId_ = new HashMap<>();
     private static final ConcurrentHashMap<Integer,Map<String,String>> positiveAlertReasons_Caution_ByAlertId_ = new ConcurrentHashMap<>();
     private static final ConcurrentHashMap<Integer,Map<String,String>> positiveAlertReasons_Danger_ByAlertId_ = new ConcurrentHashMap<>();
     
+    protected final ThreadPoolExecutor threadPoolExecutor_;
     protected final Long threadStartTimestampInMilliseconds_;
     protected final boolean runMetricAssociationRoutine_;
     protected final boolean runAlertRoutine_;
@@ -84,23 +85,34 @@ public class AlertThread implements Runnable {
     
     private Suspensions suspensions_ = null;
     
-    public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
+    public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine, ThreadPoolExecutor threadPoolExecutor) {
         this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
         this.runMetricAssociationRoutine_ = runMetricAssociationRoutine;
         this.runAlertRoutine_ = runAlertRoutine;
-
+        this.threadPoolExecutor_ = threadPoolExecutor;
+        
         this.threadId_ = "A-" + threadStartTimestampInMilliseconds_.toString();
         this.statsAggLocation_ = ApplicationConfiguration.getAlertStatsAggLocation();
     }
     
     @Override
     public void run() {
-        //todo-- detect alert thread running, fix if broken
-        
-        // stops multiple alert threads from running simultaneously 
-        if (!isThreadCurrentlyRunning_.compareAndSet(false, true)) {
-            logger.warn("ThreadId=" + threadId_ + ", Routine=Alert, Message=\"Only 1 alert thread can run at a time\"");
-            return;
+
+        try {
+            // stops multiple alert threads from running simultaneously 
+            if (!isThreadCurrentlyRunning_.compareAndSet(false, true)) {
+                if ((threadPoolExecutor_ != null) && (threadPoolExecutor_.getActiveCount() <= 1)) {
+                    logger.warn("Invalid alert-thread state detected (detected that statsagg thinks another alert-thread it is running, but it is not.");
+                    isThreadCurrentlyRunning_.set(false);
+                }
+                else {
+                    logger.warn("ThreadId=" + threadId_ + ", Routine=Alert, Message=\"Only 1 alert thread can run at a time\"");
+                    return;
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         try {
@@ -108,7 +120,7 @@ public class AlertThread implements Runnable {
             long metricAssociationTimeElasped = 0;
             if (ApplicationConfiguration.isAlertRoutineEnabled() && runMetricAssociationRoutine_) {
                 long metricAssociationStartTime = System.currentTimeMillis();
-                MetricAssociation.associateMetricKeysWithMetricGroups(threadId_);
+                MetricAssociation.associateMetricKeysWithMetricGroups(threadId_, threadPoolExecutor_);
                 metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
             }
 
@@ -975,14 +987,22 @@ public class AlertThread implements Runnable {
         }
         
         if (doUpdateAlertInDb) {
-            AlertsDao alertDao = new AlertsDao(false);
-            Alert alertFromDb = alertDao.getAlert(alert.getId());
+            AlertsDao alertDao = null;
+            
+            try {
+                alertDao = new AlertsDao(false);
+                Alert alertFromDb = alertDao.getAlert(alert.getId());
 
-            if (alertFromDb != null) {
-                alertDao.upsert(alert);
+                if (alertFromDb != null) {
+                    alertDao.upsert(alert);
+                }
             }
-
-            alertDao.close();
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                if (alertDao != null) alertDao.close();
+            }
         }
 
     }
@@ -1073,14 +1093,23 @@ public class AlertThread implements Runnable {
         }
         
         if (doUpdateAlertInDb) {
-            AlertsDao alertDao = new AlertsDao(false);
-            Alert alertFromDb = alertDao.getAlert(alert.getId());
+            AlertsDao alertDao = null;
+            
+            try {
+                alertDao = new AlertsDao(false);
+                Alert alertFromDb = alertDao.getAlert(alert.getId());
 
-            if (alertFromDb != null) {
-                alertDao.upsert(alert);
+                if (alertFromDb != null) {
+                    alertDao.upsert(alert);
+                }
             }
-
-            alertDao.close();
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                if (alertDao != null) alertDao.close();
+            }
+            
         }
         
     }
