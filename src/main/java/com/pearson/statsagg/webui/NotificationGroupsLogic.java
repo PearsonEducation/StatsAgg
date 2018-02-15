@@ -2,6 +2,7 @@ package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,35 +30,46 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         }
         
         String returnString;
+        boolean isNewNotificationGroup = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
+        NotificationGroupsDao notificationGroupsDao = null;
+        NotificationGroup newNotificationGroupFromDb = null;
+         
+        try {
+            notificationGroupsDao = new NotificationGroupsDao(false);
+            NotificationGroup notificationGroupFromDb;
 
-        boolean isNewNotificationGroup = true, isOverwriteExistingAttempt = false;
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-        NotificationGroup notificationGroupFromDb;
+            if ((oldName != null) && !oldName.isEmpty()) {
+                notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(oldName);
 
-        if ((oldName != null) && !oldName.isEmpty()) {
-            notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(oldName);
-
-            if (notificationGroupFromDb != null) {
-                notificationGroup.setId(notificationGroupFromDb.getId());
-                isNewNotificationGroup = false;
+                if (notificationGroupFromDb != null) {
+                    notificationGroup.setId(notificationGroupFromDb.getId());
+                    isNewNotificationGroup = false;
+                }
+                else {
+                    isNewNotificationGroup = true;
+                }
             }
             else {
-                isNewNotificationGroup = true;
+                notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
+                if (notificationGroupFromDb != null) isOverwriteExistingAttempt = true;
+            }
+
+            if (!isOverwriteExistingAttempt) {
+                isUpsertSuccess = notificationGroupsDao.upsert(notificationGroup);
+                newNotificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
             }
         }
-        else {
-            notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
-            if (notificationGroupFromDb != null) isOverwriteExistingAttempt = true;
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-
-        boolean isUpsertSuccess = false;
-        NotificationGroup newNotificationGroupFromDb = null;
-        if (!isOverwriteExistingAttempt) {
-            isUpsertSuccess = notificationGroupsDao.upsert(notificationGroup);
-            newNotificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
+        finally {
+            try {
+                if (notificationGroupsDao != null) notificationGroupsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
-
-        notificationGroupsDao.close();
                 
         if (isOverwriteExistingAttempt) {
             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -95,35 +107,47 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             return returnString;
         }
 
-        String returnString;
+        String returnString = "Error deleting notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
+        NotificationGroupsDao notificationGroupsDao = null;
         
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-        NotificationGroup notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
-                
-        if (notificationGroupFromDb != null) {
-            boolean didDeleteSucceed = notificationGroupsDao.delete(notificationGroupFromDb);
-            
-            if (!didDeleteSucceed) {
+        try {
+            notificationGroupsDao = new NotificationGroupsDao(false);
+            NotificationGroup notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
+
+            if (notificationGroupFromDb != null) {
+                boolean didDeleteSucceed = notificationGroupsDao.delete(notificationGroupFromDb);
+
+                if (!didDeleteSucceed) {
+                    lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
+                    returnString = "Failed to delete notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
+                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                    logger.warn(cleanReturnString);
+                }
+                else {
+                    lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
+                    returnString = "Delete notification group success. NotificationGroupName=\"" + notificationGroupName + "\".";
+                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                    logger.info(cleanReturnString);
+                }
+            }
+            else {
                 lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                returnString = "Failed to delete notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
+                returnString = "Notification group not found. NotificationGroupName=\"" + notificationGroupName + "\". Cancelling delete operation.";
                 String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
-            else {
-                lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
-                returnString = "Delete notification group success. NotificationGroupName=\"" + notificationGroupName + "\".";
-                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                logger.info(cleanReturnString);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            try {
+                if (notificationGroupsDao != null) notificationGroupsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
-        else {
-            lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-            returnString = "Notification group not found. NotificationGroupName=\"" + notificationGroupName + "\". Cancelling delete operation.";
-            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-            logger.warn(cleanReturnString);
-        }
-        
-        notificationGroupsDao.close();
         
         return returnString;
     }

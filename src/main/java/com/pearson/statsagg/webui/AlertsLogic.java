@@ -3,6 +3,7 @@ package com.pearson.statsagg.webui;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,53 +36,65 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
 
         synchronized (GlobalVariables.alertRoutineLock) {
            
-            boolean isNewAlert = true, isOverwriteExistingAttempt = false;
-            AlertsDao alertsDao = new AlertsDao(false);
-            Alert alertFromDb = null;
-            
-            if ((oldName != null) && !oldName.isEmpty()) {
-                alertFromDb = alertsDao.getAlertByName(oldName);
+            boolean isNewAlert = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
+            AlertsDao alertsDao = null;
+            Alert newAlertFromDb = null;
                 
-                if (alertFromDb != null) {
-                    isNewAlert = false;
-                    alertToUpsert.setId(alertFromDb.getId());
-                    
-                    if (alertToUpsert.isCautionCriteriaEqual(alertFromDb)) {
-                        alertFromDb.copyCautionMetadataFields(alertToUpsert);
-                        if (!isAcknowledgementChange) alertToUpsert.setIsCautionAlertAcknowledged(alertFromDb.isCautionAlertAcknowledged());
-                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
-                    }
-                    else {
-                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
-                    }
-                    
-                    if (alertToUpsert.isDangerCriteriaEqual(alertFromDb)) {
-                        alertFromDb.copyDangerMetadataFields(alertToUpsert);
-                        if (!isAcknowledgementChange) alertToUpsert.setIsDangerAlertAcknowledged(alertFromDb.isDangerAlertAcknowledged());
+            try {
+                alertsDao = new AlertsDao(false);
+                Alert alertFromDb = null;
 
-                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
+                if ((oldName != null) && !oldName.isEmpty()) {
+                    alertFromDb = alertsDao.getAlertByName(oldName);
+
+                    if (alertFromDb != null) {
+                        isNewAlert = false;
+                        alertToUpsert.setId(alertFromDb.getId());
+
+                        if (alertToUpsert.isCautionCriteriaEqual(alertFromDb)) {
+                            alertFromDb.copyCautionMetadataFields(alertToUpsert);
+                            if (!isAcknowledgementChange) alertToUpsert.setIsCautionAlertAcknowledged(alertFromDb.isCautionAlertAcknowledged());
+                            logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
+                        }
+                        else {
+                            logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
+                        }
+
+                        if (alertToUpsert.isDangerCriteriaEqual(alertFromDb)) {
+                            alertFromDb.copyDangerMetadataFields(alertToUpsert);
+                            if (!isAcknowledgementChange) alertToUpsert.setIsDangerAlertAcknowledged(alertFromDb.isDangerAlertAcknowledged());
+
+                            logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
+                        }
+                        else {
+                            logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying danger alert criteria fields. Danger triggered status will not be preserved.");
+                        }
                     }
                     else {
-                        logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying danger alert criteria fields. Danger triggered status will not be preserved.");
+                        isNewAlert = true;
                     }
                 }
                 else {
-                    isNewAlert = true;
+                    alertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
+                    if (alertFromDb != null) isOverwriteExistingAttempt = true;
+                }
+
+                if (!isOverwriteExistingAttempt) {
+                    isUpsertSuccess = alertsDao.upsert(alertToUpsert);
+                    newAlertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
                 }
             }
-            else {
-                alertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
-                if (alertFromDb != null) isOverwriteExistingAttempt = true;
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-            
-            boolean isUpsertSuccess = false;
-            Alert newAlertFromDb = null;
-            if (!isOverwriteExistingAttempt) {
-                isUpsertSuccess = alertsDao.upsert(alertToUpsert);
-                newAlertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
+            finally {
+                try {
+                    if (alertsDao != null) alertsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
             }
-            
-            alertsDao.close();
             
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -121,36 +134,49 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             return returnString;
         }
         
-        String returnString;
-
+        String returnString = "Error to deleting alert. AlertName=\"" + StringUtilities.removeNewlinesFromString(alertName) + "\".";
+                        
         synchronized (GlobalVariables.alertRoutineLock) {            
-            AlertsDao alertsDao = new AlertsDao(false);
-            Alert alertFromDb = alertsDao.getAlertByName(alertName);
+            AlertsDao alertsDao = null;
+            
+            try {
+                alertsDao = new AlertsDao(false);
+                Alert alertFromDb = alertsDao.getAlertByName(alertName);
 
-            if (alertFromDb != null) {
-                boolean didDeleteSucceed = alertsDao.delete(alertFromDb);
+                if (alertFromDb != null) {
+                    boolean didDeleteSucceed = alertsDao.delete(alertFromDb);
 
-                if (!didDeleteSucceed) {
+                    if (!didDeleteSucceed) {
+                        lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
+                        returnString = "Failed to delete alert. AlertName=\"" + alertName + "\".";
+                        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                        logger.warn(cleanReturnString);
+                    }
+                    else {
+                        lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
+                        returnString = "Delete alert success. AlertName=\"" + alertName + "\".";
+                        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                        logger.info(cleanReturnString);
+                    }
+                }
+                else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                    returnString = "Failed to delete alert. AlertName=\"" + alertName + "\".";
+                    returnString = "Alert not found. AlertName=\"" + alertName + "\". Cancelling delete operation.";
                     String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                     logger.warn(cleanReturnString);
                 }
-                else {
-                    lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
-                    returnString = "Delete alert success. AlertName=\"" + alertName + "\".";
-                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                    logger.info(cleanReturnString);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                try {
+                    if (alertsDao != null) alertsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
-            else {
-                lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                returnString = "Alert not found. AlertName=\"" + alertName + "\". Cancelling delete operation.";
-                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                logger.warn(cleanReturnString);
-            }
-
-            alertsDao.close();
         }
         
         return returnString;

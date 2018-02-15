@@ -158,28 +158,45 @@ public class Alert_SuspensionAssociations extends HttpServlet {
 
         Map<String,String> suspensionStrings = new HashMap<>();
         
-        SuspensionsDao suspensionsDao = new SuspensionsDao(false);
-        for (Integer suspensionId : suspensionIds) {
-            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
-            if ((suspension == null) || (suspension.getName() == null)) continue;
+        SuspensionsDao suspensionsDao = null;
+        
+        try {
+            suspensionsDao = new SuspensionsDao(false);
+            
+            for (Integer suspensionId : suspensionIds) {
+                if (suspensionId == null) continue;
 
-            String suspensionDetailsUrl = "<a href=\"SuspensionDetails?ExcludeNavbar=true&amp;Name=" + 
-                    StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
+                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                if ((suspension == null) || (suspension.getName() == null)) continue;
 
-            boolean isSuspensionActive = Suspension.isSuspensionActive(suspension);
+                String suspensionDetailsUrl = "<a href=\"SuspensionDetails?ExcludeNavbar=true&amp;Name=" + 
+                        StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(suspension.getName()) + "</a>";
 
-            StringBuilder status = new StringBuilder();
-            if (isSuspensionActive) status.append("(active");
-            else status.append("(inactive");
-            if ((suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly()) status.append(", suspend notification only");
-            else if ((suspension.isSuspendNotificationOnly() != null) && !suspension.isSuspendNotificationOnly()) status.append(", suspend entire alert");
-            status.append(")");
+                boolean isSuspensionActive = Suspension.isSuspensionActive(suspension);
 
-            if (isSuspensionActive) suspensionStrings.put(suspension.getName(), "<li>" + "<b>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</b>" + "</li>");
-            else suspensionStrings.put(suspension.getName(), "<li>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</li>");
+                StringBuilder status = new StringBuilder();
+                if (isSuspensionActive) status.append("(active");
+                else status.append("(inactive");
+                if ((suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly()) status.append(", suspend notification only");
+                else if ((suspension.isSuspendNotificationOnly() != null) && !suspension.isSuspendNotificationOnly()) status.append(", suspend entire alert");
+                status.append(")");
+
+                if (isSuspensionActive) suspensionStrings.put(suspension.getName(), "<li>" + "<b>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</b>" + "</li>");
+                else suspensionStrings.put(suspension.getName(), "<li>" + suspensionDetailsUrl + "&nbsp" + status.toString() + "</li>");
+            }
         }
-        suspensionsDao.close();
-
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            try {
+                if (suspensionsDao != null) suspensionsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
         List<String> sortedSuspensionStrings = new ArrayList<>(suspensionStrings.keySet());
         Collections.sort(sortedSuspensionStrings);
         

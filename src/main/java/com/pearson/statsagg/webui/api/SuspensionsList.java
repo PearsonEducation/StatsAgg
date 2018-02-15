@@ -89,8 +89,10 @@ public class SuspensionsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
+        SuspensionsDao suspensionsDao = null;
+        
         try {
-            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            suspensionsDao = new SuspensionsDao(false);
             List<Suspension> suspensions = suspensionsDao.getAllDatabaseObjectsInTable();
             if (suspensions == null) suspensions = new ArrayList<>();
             
@@ -105,6 +107,7 @@ public class SuspensionsList extends HttpServlet {
             }
             
             suspensionsDao.close();
+            suspensionsDao = null;
             
             Gson suspensionsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement suspensions_JsonElement = suspensionsGson.toJsonTree(suspensionsJsonObjects);
@@ -116,6 +119,14 @@ public class SuspensionsList extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return Helper.ERROR_UNKNOWN_JSON;
+        }
+        finally {  
+            try {
+                if (suspensionsDao != null) suspensionsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
     }

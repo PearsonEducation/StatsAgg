@@ -3,6 +3,7 @@ package com.pearson.statsagg.webui;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,34 +33,46 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
         String returnString;
         
         synchronized (GlobalVariables.suspensionChanges) {
-            boolean isNewSuspension = true, isOverwriteExistingAttempt = false;
-            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
-            Suspension suspensionFromDb;
+            boolean isNewSuspension = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
+            SuspensionsDao suspensionsDao = null;
+            Suspension newSuspensionFromDb = null;
+            
+            try {
+                suspensionsDao = new SuspensionsDao(false);
+                Suspension suspensionFromDb;
 
-            if ((oldName != null) && !oldName.isEmpty()) {
-                suspensionFromDb = suspensionsDao.getSuspensionByName(oldName);
+                if ((oldName != null) && !oldName.isEmpty()) {
+                    suspensionFromDb = suspensionsDao.getSuspensionByName(oldName);
 
-                if (suspensionFromDb != null) {
-                    suspension.setId(suspensionFromDb.getId());
-                    isNewSuspension = false;
+                    if (suspensionFromDb != null) {
+                        suspension.setId(suspensionFromDb.getId());
+                        isNewSuspension = false;
+                    }
+                    else {
+                        isNewSuspension = true;
+                    }
                 }
                 else {
-                    isNewSuspension = true;
+                    suspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
+                    if (suspensionFromDb != null) isOverwriteExistingAttempt = true;
+                }
+
+                if (!isOverwriteExistingAttempt) {
+                    isUpsertSuccess = suspensionsDao.upsert(suspension);
+                    newSuspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
                 }
             }
-            else {
-                suspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
-                if (suspensionFromDb != null) isOverwriteExistingAttempt = true;
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
-
-            boolean isUpsertSuccess = false;
-            Suspension newSuspensionFromDb = null;
-            if (!isOverwriteExistingAttempt) {
-                isUpsertSuccess = suspensionsDao.upsert(suspension);
-                newSuspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
+            finally {
+                try {
+                    if (suspensionsDao != null) suspensionsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
             }
-
-            suspensionsDao.close();
 
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
@@ -101,37 +114,50 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
             return returnString;
         }
 
-        String returnString;
-        
+        String returnString = "Error to deleting suspension. SuspensionName=\"" + StringUtilities.removeNewlinesFromString(suspensionName) + "\".";
+
         synchronized (GlobalVariables.suspensionChanges) {
-            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
-            Suspension suspensionFromDb = suspensionsDao.getSuspensionByName(suspensionName);
+            SuspensionsDao suspensionsDao = null;
+        
+            try {
+                suspensionsDao = new SuspensionsDao(false);
+                Suspension suspensionFromDb = suspensionsDao.getSuspensionByName(suspensionName);
 
-            if (suspensionFromDb != null) {
-                boolean didDeleteSucceed = suspensionsDao.delete(suspensionFromDb);
+                if (suspensionFromDb != null) {
+                    boolean didDeleteSucceed = suspensionsDao.delete(suspensionFromDb);
 
-                if (!didDeleteSucceed) {
+                    if (!didDeleteSucceed) {
+                        lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
+                        returnString = "Failed to delete suspension. SuspensionName=\"" + suspensionName + "\".";
+                        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                        logger.warn(cleanReturnString);
+                    }
+                    else {
+                        lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
+                        GlobalVariables.suspensionChanges.put(suspensionFromDb.getId(), GlobalVariables.REMOVE);
+                        returnString = "Delete suspension success. SuspensionName=\"" + suspensionName + "\".";
+                        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                        logger.info(cleanReturnString);
+                    }
+                }
+                else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                    returnString = "Failed to delete suspension. SuspensionName=\"" + suspensionName + "\".";
+                    returnString = "Suspension not found. SuspensionName=\"" + suspensionName + "\". Cancelling delete operation.";
                     String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                     logger.warn(cleanReturnString);
                 }
-                else {
-                    lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
-                    GlobalVariables.suspensionChanges.put(suspensionFromDb.getId(), GlobalVariables.REMOVE);
-                    returnString = "Delete suspension success. SuspensionName=\"" + suspensionName + "\".";
-                    String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                    logger.info(cleanReturnString);
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                try {
+                    if (suspensionsDao != null) suspensionsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
-            else {
-                lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
-                returnString = "Suspension not found. SuspensionName=\"" + suspensionName + "\". Cancelling delete operation.";
-                String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                logger.warn(cleanReturnString);
-            }
-
-            suspensionsDao.close();
         }
         
         return returnString;

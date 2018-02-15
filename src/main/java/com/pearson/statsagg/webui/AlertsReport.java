@@ -173,6 +173,8 @@ public class AlertsReport extends HttpServlet {
         notificationGroupsDao.close();
         
         for (Alert alert : alerts) {
+            if (alert == null) continue;
+            
             try {
                 MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
                 MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());

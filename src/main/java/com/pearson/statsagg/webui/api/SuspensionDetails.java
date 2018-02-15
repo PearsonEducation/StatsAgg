@@ -99,6 +99,8 @@ public class SuspensionDetails extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
+        SuspensionsDao suspensionsDao = null;
+        
         try {
             Integer suspensionId = null;
             String suspensionName = null;
@@ -113,7 +115,7 @@ public class SuspensionDetails extends HttpServlet {
             }
 
             Suspension suspension = null;
-            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            suspensionsDao = new SuspensionsDao(false);
             if (suspensionId != null) suspension = suspensionsDao.getSuspension(suspensionId);
             else if (suspensionName != null) suspension = suspensionsDao.getSuspensionByName(suspensionName);
             
@@ -124,12 +126,21 @@ public class SuspensionDetails extends HttpServlet {
             }
             
             suspensionsDao.close();
+            suspensionsDao = null;
             
             if (suspension != null) return Suspension.getJsonString_ApiFriendly(suspension, alert);
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
+        }
+        finally {  
+            try {
+                if (suspensionsDao != null) suspensionsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
         return Helper.ERROR_UNKNOWN_JSON;

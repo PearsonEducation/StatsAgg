@@ -209,11 +209,27 @@ public class Alerts extends HttpServlet {
         }
         
         try {
-            AlertsDao alertsDao = new AlertsDao(false);
-            Alert alert = alertsDao.getAlert(alertId);
-            List<Alert> allAlerts = alertsDao.getAllDatabaseObjectsInTable();
-            alertsDao.close();
+            Alert alert = null;
+            List<Alert> allAlerts = null;
+            AlertsDao alertsDao = null;
 
+            try {
+                alertsDao = new AlertsDao(false);
+                alert = alertsDao.getAlert(alertId);
+                allAlerts = alertsDao.getAllDatabaseObjectsInTable();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                try {
+                    if (alertsDao != null) alertsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        
             if ((alert != null) && (alert.getName() != null)) {
                 Set<String> allAlertNames = new HashSet<>();
                 for (Alert currentAlert : allAlerts) {
@@ -329,7 +345,8 @@ public class Alerts extends HttpServlet {
         Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = suspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
         
         for (Alert alert : alerts) {
-
+            if (alert == null) continue;
+            
             String rowAlertStatusContext = "";
             boolean isRowStatusInfo = false;
             

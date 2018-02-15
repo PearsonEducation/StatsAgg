@@ -118,32 +118,45 @@ public class AlertDetails extends HttpServlet {
             }
 
             Alert alert = null;
-            AlertsDao alertsDao = new AlertsDao(false);
-            if (alertId != null) alert = alertsDao.getAlert(alertId);
-            else if (alertName != null) alert = alertsDao.getAlertByName(alertName);
-
-            MetricGroup metricGroup = null;
-            List<MetricGroupTag> metricGroupTags = null;
-            if ((alert != null) && (alert.getMetricGroupId() != null)) {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
-                metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
-                
-                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(alertsDao.getDatabaseInterface());
-                metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
-            }
-
             NotificationGroup cautionNotificationGroup = null;
             NotificationGroup cautionPositiveNotificationGroup = null;
             NotificationGroup dangerNotificationGroup = null;
             NotificationGroup dangerPositiveNotificationGroup = null;
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(alertsDao.getDatabaseInterface());
-            if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
-            if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
-            if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
-            if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
-                
-            alertsDao.close();
+            MetricGroup metricGroup = null;
+            List<MetricGroupTag> metricGroupTags = null;
             
+            AlertsDao alertsDao = new AlertsDao(false);
+ 
+            try {
+                if (alertId != null) alert = alertsDao.getAlert(alertId);
+                else if (alertName != null) alert = alertsDao.getAlertByName(alertName);
+
+                if ((alert != null) && (alert.getMetricGroupId() != null)) {
+                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
+                    metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+                    
+                    MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(alertsDao.getDatabaseInterface());
+                    metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
+                }
+
+                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(alertsDao.getDatabaseInterface());
+                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+                if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
+                if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+                if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                try {
+                    alertsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
+        
             if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             else return Helper.ERROR_NOTFOUND_JSON;
         }

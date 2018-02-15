@@ -12,7 +12,9 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
+import static com.pearson.statsagg.utilities.DatabaseUtils.isConnectionValid;
 import com.pearson.statsagg.utilities.StackTrace;
+import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -122,11 +124,22 @@ public class Home extends HttpServlet {
             statsaggStartTimestamp = dateAndTimeFormat.format(GlobalVariables.statsaggStartTimestamp.get());
         }
         
-        AlertsDao alertDao = new AlertsDao(false);
-        List<Alert> alerts = alertDao.getAllDatabaseObjectsInTable();
-        boolean isConnectionValid = alertDao.getDatabaseInterface().isConnectionValid();
-        alertDao.close();
-
+        List<Alert> alerts = new ArrayList<>();
+        boolean isConnectionValid = false;
+        AlertsDao alertsDao = null;
+        
+        try {
+            alertsDao = new AlertsDao(false);
+            alerts = alertsDao.getAllDatabaseObjectsInTable();
+            isConnectionValid = alertsDao.getDatabaseInterface().isConnectionValid();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        finally {
+            if (alertsDao != null) alertsDao.close();
+        }
+        
         int numCautionAlertsActive = 0;
         int numDangerAlertsActive = 0;
         

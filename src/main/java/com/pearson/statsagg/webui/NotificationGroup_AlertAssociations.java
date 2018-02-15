@@ -156,14 +156,24 @@ public class NotificationGroup_AlertAssociations extends HttpServlet {
 
         List<String> alertNames = new ArrayList<>();
 
-        AlertsDao alertsDao = new AlertsDao(false);
-        for (Integer alertId : alertIdAssociations) {
-            Alert alert = alertsDao.getAlert(alertId);
-            if ((alert == null) || (alert.getName() == null)) continue;
-            alertNames.add(alert.getName());
-        }
-        alertsDao.close();
+        AlertsDao alertsDao = null;
         
+        try {
+            alertsDao = new AlertsDao(false);
+            
+            for (Integer alertId : alertIdAssociations) {
+                Alert alert = alertsDao.getAlert(alertId);
+                if ((alert == null) || (alert.getName() == null)) continue;
+                alertNames.add(alert.getName());
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        } 
+        finally {
+            if (alertsDao != null) alertsDao.close();
+        }
+          
         Collections.sort(alertNames);
 
         outputString.append("<b>Alert Associations...</b>").append("<br>");

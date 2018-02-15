@@ -117,20 +117,33 @@ public class MetricGroupDetails extends HttpServlet {
             }
 
             MetricGroup metricGroup = null;
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
-            if (metricGroupId != null) metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
-            else if (metricGroupName != null) metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
-            
+            MetricGroupsDao metricGroupsDao = null;
             List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
             List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-            if (metricGroup != null) {
-                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
-                metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
-                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(metricGroupsDao.getDatabaseInterface());
-                metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                
+            try {
+                metricGroupsDao = new MetricGroupsDao(false);
+                if (metricGroupId != null) metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+                else if (metricGroupName != null) metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+
+                if (metricGroup != null) {
+                    MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
+                    metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+                    MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(metricGroupsDao.getDatabaseInterface());
+                    metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                }
             }
-            
-            metricGroupsDao.close();
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                try {
+                    if (metricGroupsDao != null) metricGroupsDao.close();
+                }
+                catch (Exception e) {
+                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
+            }
             
             if (metricGroup != null) return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags);
             else return Helper.ERROR_NOTFOUND_JSON;

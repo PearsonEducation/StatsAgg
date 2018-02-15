@@ -91,8 +91,10 @@ public class MetricGroupsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
+        MetricGroupsDao metricGroupsDao = null;
+        
         try {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
+            metricGroupsDao = new MetricGroupsDao(false);
             List<MetricGroup> metricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
             if (metricGroups == null) metricGroups = new ArrayList<>();
             
@@ -112,6 +114,7 @@ public class MetricGroupsList extends HttpServlet {
             }
             
             metricGroupsDao.close();
+            metricGroupsDao = null;
             
             Gson metricGroupsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement metricGroups_JsonElement = metricGroupsGson.toJsonTree(metricGroupsJsonObjects);
@@ -123,6 +126,14 @@ public class MetricGroupsList extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return Helper.ERROR_UNKNOWN_JSON;
+        }
+        finally {
+            try {
+                if (metricGroupsDao != null) metricGroupsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
     }

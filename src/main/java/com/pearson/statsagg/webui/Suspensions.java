@@ -179,12 +179,15 @@ public class Suspensions extends HttpServlet {
             return;
         }
         
+        SuspensionsDao suspensionsDao = null;
+        
         try {
-            SuspensionsDao suspensionsDao = new SuspensionsDao(false);
+            suspensionsDao = new SuspensionsDao(false);
             Suspension suspension = suspensionsDao.getSuspension(suspensionId);
             List<Suspension> allSuspensions = suspensionsDao.getAllDatabaseObjectsInTable();
             suspensionsDao.close();
-
+            suspensionsDao = null;
+            
             if ((suspension != null) && (suspension.getName() != null)) {
                 Set<String> allSuspensionsNames = new HashSet<>();
                 for (Suspension currentSuspension : allSuspensions) {
@@ -208,6 +211,14 @@ public class Suspensions extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            try {
+                if (suspensionsDao != null) suspensionsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
     }
     
@@ -271,6 +282,8 @@ public class Suspensions extends HttpServlet {
         List<Suspension> suspensions = suspensionsDao.getAllDatabaseObjectsInTable();
         
         for (Suspension suspension : suspensions) {
+            
+            if (suspension == null) continue;
             
             if (suspension.isOneTime() && suspension.getDeleteAtTimestamp() != null) {
                 if (System.currentTimeMillis() >= suspension.getDeleteAtTimestamp().getTime()) continue;

@@ -92,8 +92,11 @@ public class AlertsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
+        AlertsDao alertsDao = null;
+        
         try {
-            AlertsDao alertsDao = new AlertsDao(false);
+            alertsDao = new AlertsDao(false);
+            
             List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
             if (alerts == null) alerts = new ArrayList<>();
             
@@ -118,13 +121,14 @@ public class AlertsList extends HttpServlet {
                 if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
                 if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
                 if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
-                
+                          
                 JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
                 if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
             
             alertsDao.close();
-            
+            alertsDao = null;
+                
             Gson alertsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement alerts_JsonElement = alertsGson.toJsonTree(alertsJsonObjects);
             JsonArray jsonArray = new Gson().toJsonTree(alerts_JsonElement).getAsJsonArray();
@@ -135,6 +139,14 @@ public class AlertsList extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return Helper.ERROR_UNKNOWN_JSON;
+        }
+        finally {  
+            try {
+                if (alertsDao != null) alertsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
     }
