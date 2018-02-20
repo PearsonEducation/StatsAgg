@@ -61,15 +61,20 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
 
     @Override
     public Alert getDatabaseObject(Alert alert) {
-        if (alert == null) return null;
+        if (alert == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
-        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, 
-                alert.getId()); 
+        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, alert.getId()); 
     }
     
     @Override
     public boolean insert(Alert alert) {
-        if (alert == null) return false;
+        if (alert == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
         return insert(AlertsSql.Insert_Alert, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
@@ -88,7 +93,10 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
     
     @Override
     public boolean update(Alert alert) {
-        if (alert == null) return false;
+        if (alert == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
         return update(AlertsSql.Update_Alert_ByPrimaryKey, 
                 alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
@@ -107,10 +115,12 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
 
     @Override
     public boolean delete(Alert alert) {
-        if (alert == null) return false;
+        if (alert == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return delete(AlertsSql.Delete_Alert_ByPrimaryKey, 
-                alert.getId()); 
+        return delete(AlertsSql.Delete_Alert_ByPrimaryKey, alert.getId()); 
     }
     
     @Override
@@ -278,12 +288,11 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         return tableName_;
     }
 
-    public Alert getAlert(int id) {
-        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, 
-                id); 
+    public Alert getAlert(Integer id) {
+        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, id); 
     }  
     
-    public List<String> getAlertNames(String filter, int resultSetLimit) {
+    public List<String> getAlertNames(String filter, Integer resultSetLimit) {
         
         try {
 

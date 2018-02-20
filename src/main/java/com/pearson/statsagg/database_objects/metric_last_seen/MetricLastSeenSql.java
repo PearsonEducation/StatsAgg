@@ -54,9 +54,9 @@ public class MetricLastSeenSql {
                     "DELETE FROM METRIC_LAST_SEEN " +
                     "WHERE METRIC_KEY_SHA1 = ?";
     
-    public static String generateBatchUpsert(int numRows) {
+    public static String generateBatchUpsert(Integer numRows) {
         
-        if (numRows <= 0) {
+        if ((numRows == null) || (numRows <= 0)) {
             return null;
         }
         

@@ -52,34 +52,42 @@ public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
     
     @Override
     public MetricLastSeen getDatabaseObject(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) return null;
+        if (metricLastSeen == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
-        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, 
-                metricLastSeen.getMetricKeySha1()); 
+        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKeySha1()); 
     }
     
     @Override
     public boolean insert(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) return false;
+        if (metricLastSeen == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
-        return insert(MetricLastSeenSql.Insert_MetricLastSeen, 
-                metricLastSeen.getMetricKeySha1(), metricLastSeen.getMetricKey(), metricLastSeen.getLastModified());
+        return insert(MetricLastSeenSql.Insert_MetricLastSeen, metricLastSeen.getMetricKeySha1(), metricLastSeen.getMetricKey(), metricLastSeen.getLastModified());
     }
     
     @Override
     public boolean update(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) return false;
+        if (metricLastSeen == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return update(MetricLastSeenSql.Update_MetricLastSeen_ByPrimaryKey, 
-                metricLastSeen.getMetricKey(), metricLastSeen.getLastModified(), metricLastSeen.getMetricKeySha1());
+        return update(MetricLastSeenSql.Update_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKey(), metricLastSeen.getLastModified(), metricLastSeen.getMetricKeySha1());
     }
 
     @Override
     public boolean delete(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) return false;
+        if (metricLastSeen == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, 
-                metricLastSeen.getMetricKeySha1()); 
+        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKeySha1()); 
     }
     
     @Override
@@ -115,13 +123,11 @@ public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
     }
     
     public MetricLastSeen getMetricLastSeen(String metricKeySha1) {
-        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, 
-                metricKeySha1); 
+        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, metricKeySha1); 
     }
 
     public boolean delete(String metricKeySha1) {
-        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, 
-                metricKeySha1); 
+        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricKeySha1); 
     }
     
     public boolean batchUpsert(List<MetricLastSeen> metricLastSeens) {
@@ -130,37 +136,43 @@ public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
             return false;
         }
 
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            boolean wasAllUpsertSuccess = true;
-            List<List<MetricLastSeen>> metricLastSeenPartitions = Lists.partition(metricLastSeens, 1000);
-            
-            for (List<MetricLastSeen> metricLastSeenPartition : metricLastSeenPartitions) {
-                List<Object> parameters = new ArrayList<>();
+        try {
+            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                boolean wasAllUpsertSuccess = true;
+                List<List<MetricLastSeen>> metricLastSeenPartitions = Lists.partition(metricLastSeens, 1000);
 
-                for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
-                    parameters.add(metricLastSeen.getMetricKeySha1());
-                    parameters.add(metricLastSeen.getMetricKey());
-                    parameters.add(metricLastSeen.getLastModified());
+                for (List<MetricLastSeen> metricLastSeenPartition : metricLastSeenPartitions) {
+                    List<Object> parameters = new ArrayList<>();
+
+                    for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
+                        parameters.add(metricLastSeen.getMetricKeySha1());
+                        parameters.add(metricLastSeen.getMetricKey());
+                        parameters.add(metricLastSeen.getLastModified());
+                    }
+
+                    boolean wasUpsertSuccess = genericDmlStatement(MetricLastSeenSql.generateBatchUpsert(metricLastSeenPartition.size()), parameters);
+                    if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
                 }
 
-                boolean wasUpsertSuccess = genericDmlStatement(MetricLastSeenSql.generateBatchUpsert(metricLastSeenPartition.size()), parameters);
-                if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
+                return wasAllUpsertSuccess;
             }
-            
-            return wasAllUpsertSuccess;
-        }
-        else if (!databaseInterface_.isManualTransactionControl()) {
-            return upsert(metricLastSeens, true);
-        }
-        else {
-            boolean wasAllUpsertSuccess = true;
-            
-            for (MetricLastSeen metricLastSeen : metricLastSeens) {
-                boolean wasUpsertSuccess = upsert(metricLastSeen);
-                if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
+            else if (!databaseInterface_.isManualTransactionControl()) {
+                return upsert(metricLastSeens, true);
             }
-            
-            return wasAllUpsertSuccess;
+            else {
+                boolean wasAllUpsertSuccess = true;
+
+                for (MetricLastSeen metricLastSeen : metricLastSeens) {
+                    boolean wasUpsertSuccess = upsert(metricLastSeen);
+                    if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
+                }
+
+                return wasAllUpsertSuccess;
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
         }
         
     }

@@ -52,34 +52,42 @@ public class GaugesDao extends DatabaseObjectDao<Gauge> {
     
     @Override
     public Gauge getDatabaseObject(Gauge gauge) {
-        if (gauge == null) return null;
+        if (gauge == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
-        return getDatabaseObject(GaugesSql.Select_Gauge_ByPrimaryKey, 
-                gauge.getBucketSha1()); 
+        return getDatabaseObject(GaugesSql.Select_Gauge_ByPrimaryKey, gauge.getBucketSha1()); 
     }
     
     @Override
     public boolean insert(Gauge gauge) {
-        if (gauge == null) return false;
+        if (gauge == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
-        return insert(GaugesSql.Insert_Gauge, 
-                gauge.getBucketSha1(), gauge.getBucket(), gauge.getMetricValue(), gauge.getLastModified());
+        return insert(GaugesSql.Insert_Gauge, gauge.getBucketSha1(), gauge.getBucket(), gauge.getMetricValue(), gauge.getLastModified());
     }
     
     @Override
     public boolean update(Gauge gauge) {
-        if (gauge == null) return false;
+        if (gauge == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return update(GaugesSql.Update_Gauge_ByPrimaryKey, 
-                gauge.getBucket(), gauge.getMetricValue(), gauge.getLastModified(), gauge.getBucketSha1());
+        return update(GaugesSql.Update_Gauge_ByPrimaryKey, gauge.getBucket(), gauge.getMetricValue(), gauge.getLastModified(), gauge.getBucketSha1());
     }
 
     @Override
     public boolean delete(Gauge gauge) {
-        if (gauge == null) return false;
+        if (gauge == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return delete(GaugesSql.Delete_Gauge_ByPrimaryKey, 
-                gauge.getBucketSha1()); 
+        return delete(GaugesSql.Delete_Gauge_ByPrimaryKey, gauge.getBucketSha1()); 
     }
     
     @Override
@@ -118,13 +126,11 @@ public class GaugesDao extends DatabaseObjectDao<Gauge> {
     }
     
     public Gauge getGauge(String bucketSha1) {
-        return getDatabaseObject(GaugesSql.Select_Gauge_ByPrimaryKey, 
-                bucketSha1); 
+        return getDatabaseObject(GaugesSql.Select_Gauge_ByPrimaryKey, bucketSha1); 
     }
 
     public boolean delete(String bucketSha1) {
-        return delete(GaugesSql.Delete_Gauge_ByPrimaryKey, 
-                bucketSha1); 
+        return delete(GaugesSql.Delete_Gauge_ByPrimaryKey, bucketSha1); 
     }
     
     public boolean batchUpsert(List<Gauge> gauges) {
@@ -133,28 +139,34 @@ public class GaugesDao extends DatabaseObjectDao<Gauge> {
             return false;
         }
 
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            boolean wasAllUpsertSuccess = true;
-            List<List<Gauge>> gaugesPartitions = Lists.partition(gauges, 1000);
-            
-            for (List<Gauge> gaugesPartition : gaugesPartitions) {
-                List<Object> parameters = new ArrayList<>();
+        try {
+            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+                boolean wasAllUpsertSuccess = true;
+                List<List<Gauge>> gaugesPartitions = Lists.partition(gauges, 1000);
 
-                for (Gauge gauge : gaugesPartition) {
-                    parameters.add(gauge.getBucketSha1());
-                    parameters.add(gauge.getBucket());
-                    parameters.add(gauge.getMetricValue());
-                    parameters.add(gauge.getLastModified());
+                for (List<Gauge> gaugesPartition : gaugesPartitions) {
+                    List<Object> parameters = new ArrayList<>();
+
+                    for (Gauge gauge : gaugesPartition) {
+                        parameters.add(gauge.getBucketSha1());
+                        parameters.add(gauge.getBucket());
+                        parameters.add(gauge.getMetricValue());
+                        parameters.add(gauge.getLastModified());
+                    }
+
+                    boolean wasUpsertSuccess = genericDmlStatement(GaugesSql.generateBatchUpsert(gaugesPartition.size()), parameters);
+                    if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
                 }
 
-                boolean wasUpsertSuccess = genericDmlStatement(GaugesSql.generateBatchUpsert(gaugesPartition.size()), parameters);
-                if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
+                return wasAllUpsertSuccess;
             }
-            
-            return wasAllUpsertSuccess;
+            else {
+                return upsert(gauges, true);
+            }
         }
-        else {
-            return upsert(gauges, true);
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
         }
         
     }

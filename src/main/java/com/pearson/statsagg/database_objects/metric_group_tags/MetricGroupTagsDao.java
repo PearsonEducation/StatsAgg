@@ -53,34 +53,42 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
     
     @Override
     public MetricGroupTag getDatabaseObject(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) return null;
+        if (metricGroupTag == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
-        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, 
-                metricGroupTag.getId()); 
+        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, metricGroupTag.getId()); 
     }
         
     @Override
     public boolean insert(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) return false;
+        if (metricGroupTag == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return insert(MetricGroupTagsSql.Insert_MetricGroupTag, 
-                metricGroupTag.getMetricGroupId(), metricGroupTag.getTag());
+        return insert(MetricGroupTagsSql.Insert_MetricGroupTag, metricGroupTag.getMetricGroupId(), metricGroupTag.getTag());
     }
     
     @Override
     public boolean update(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) return false;
+        if (metricGroupTag == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return update(MetricGroupTagsSql.Update_MetricGroupTag_ByPrimaryKey, 
-                metricGroupTag.getMetricGroupId(), metricGroupTag.getTag(), metricGroupTag.getId());
+        return update(MetricGroupTagsSql.Update_MetricGroupTag_ByPrimaryKey, metricGroupTag.getMetricGroupId(), metricGroupTag.getTag(), metricGroupTag.getId());
     }
 
     @Override
     public boolean delete(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) return false;
+        if (metricGroupTag == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
-        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByPrimaryKey, 
-                metricGroupTag.getId()); 
+        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByPrimaryKey, metricGroupTag.getId()); 
     }
     
     @Override
@@ -115,9 +123,8 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         return tableName_;
     }
     
-    public MetricGroupTag getMetricGroupTag(int id) {
-        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, 
-                id); 
+    public MetricGroupTag getMetricGroupTag(Integer id) {
+        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, id); 
     }  
     
     public Map<Integer,List<MetricGroupTag>> getAllMetricGroupTagsByMetricGroupId() {
@@ -129,24 +136,29 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         
         Map<Integer,List<MetricGroupTag>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
 
-        for (MetricGroupTag metricGroupTag : metricGroupTags) {
-            Integer metricGroupId = metricGroupTag.getMetricGroupId();
-            
-            if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
-                List<MetricGroupTag> databaseObjects = databaseObjectsInTableByMetricGroupId.get(metricGroupId);
-                databaseObjects.add(metricGroupTag);
+        try {
+            for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                Integer metricGroupId = metricGroupTag.getMetricGroupId();
+
+                if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
+                    List<MetricGroupTag> databaseObjects = databaseObjectsInTableByMetricGroupId.get(metricGroupId);
+                    databaseObjects.add(metricGroupTag);
+                }
+                else {
+                    List<MetricGroupTag> databaseObjects = new ArrayList<>();
+                    databaseObjects.add(metricGroupTag);
+                    databaseObjectsInTableByMetricGroupId.put(metricGroupId, databaseObjects);
+                }
             }
-            else {
-                List<MetricGroupTag> databaseObjects = new ArrayList<>();
-                databaseObjects.add(metricGroupTag);
-                databaseObjectsInTableByMetricGroupId.put(metricGroupId, databaseObjects);
-            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         return databaseObjectsInTableByMetricGroupId;
     }
     
-    public List<MetricGroupTag> getMetricGroupTagsByMetricGroupId(int metricGroupId) {
+    public List<MetricGroupTag> getMetricGroupTagsByMetricGroupId(Integer metricGroupId) {
         
         try {
 
@@ -183,9 +195,8 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
         
     }
     
-    public boolean deleteByMetricGroupId(int id) {
-        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByMetricGroupId, 
-                id); 
+    public boolean deleteByMetricGroupId(Integer id) {
+        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByMetricGroupId, id); 
     }
     
 }

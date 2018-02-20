@@ -81,7 +81,16 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
     }
     
     public boolean createTable(String... parameters) {
-        List<String> parametersList = new ArrayList<>(Arrays.asList(parameters));
+        List<String> parametersList;
+        
+        try {
+            parametersList = new ArrayList<>(Arrays.asList(parameters));
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            parametersList = new ArrayList<>();
+        }
+
         return createTable(parametersList);
     }
     
@@ -119,7 +128,17 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
     }
     
     public T getDatabaseObject(String sql, Object... parameters) {
-        List<Object> parametersList = new ArrayList<>(Arrays.asList(parameters));
+        
+        List<Object> parametersList;
+        
+        try {
+            parametersList = new ArrayList<>(Arrays.asList(parameters));
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            parametersList = new ArrayList<>();
+        }
+        
         return getDatabaseObject(sql, parametersList);
     }
     
@@ -162,7 +181,7 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
         return getAllDatabaseObjectsInTable(10000);
     }
         
-    public List<T> getAllDatabaseObjectsInTable(int fetchSize) {
+    public List<T> getAllDatabaseObjectsInTable(Integer fetchSize) {
         
         try {
 
@@ -235,7 +254,17 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
     }
     
     public boolean insert(String sql, Object... parameters) {
-        List<Object> parametersList = new ArrayList<>(Arrays.asList(parameters));
+        
+        List<Object> parametersList;
+        
+        try {
+            parametersList = new ArrayList<>(Arrays.asList(parameters));
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            parametersList = new ArrayList<>();
+        }
+        
         return genericDmlStatement(sql, parametersList);
     }
     
@@ -298,7 +327,17 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
     }
     
     public boolean update(String sql, Object... parameters) {
-        List<Object> parametersList = new ArrayList<>(Arrays.asList(parameters));
+        
+        List<Object> parametersList;
+        
+        try {
+            parametersList = new ArrayList<>(Arrays.asList(parameters));
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            parametersList = new ArrayList<>();
+        }
+        
         return genericDmlStatement(sql, parametersList);
     }
     
@@ -361,7 +400,16 @@ public abstract class DatabaseObjectDao<T extends DatabaseObject> extends Databa
     }
     
     public boolean delete(String sql, Object... parameters) {
-        List<Object> parametersList = new ArrayList<>(Arrays.asList(parameters));
+        List<Object> parametersList;
+        
+        try {
+            parametersList = new ArrayList<>(Arrays.asList(parameters));
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            parametersList = new ArrayList<>();
+        }
+        
         return genericDmlStatement(sql, parametersList);
     }
     

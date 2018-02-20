@@ -61,9 +61,9 @@ public class GaugesSql {
     
     
     
-    public static String generateBatchUpsert(int numRows) {
+    public static String generateBatchUpsert(Integer numRows) {
         
-        if (numRows <= 0) {
+        if ((numRows == null) || (numRows <= 0)) {
             return null;
         }
         

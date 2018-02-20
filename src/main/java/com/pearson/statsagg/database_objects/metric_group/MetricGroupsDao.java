@@ -52,34 +52,42 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
     
     @Override
     public MetricGroup getDatabaseObject(MetricGroup metricGroup) {
-        if (metricGroup == null) return null;
+        if (metricGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
-        return getDatabaseObject(MetricGroupsSql.Select_MetricGroup_ByPrimaryKey, 
-                metricGroup.getId()); 
+        return getDatabaseObject(MetricGroupsSql.Select_MetricGroup_ByPrimaryKey, metricGroup.getId()); 
     }
     
     @Override
     public boolean insert(MetricGroup metricGroup) {
-        if (metricGroup == null) return false;
+        if (metricGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return insert(MetricGroupsSql.Insert_MetricGroup, 
-                metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription());
+        return insert(MetricGroupsSql.Insert_MetricGroup, metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription());
     }
     
     @Override
     public boolean update(MetricGroup metricGroup) {
-        if (metricGroup == null) return false;
+        if (metricGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return update(MetricGroupsSql.Update_MetricGroup_ByPrimaryKey, 
-                metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription(), metricGroup.getId());
+        return update(MetricGroupsSql.Update_MetricGroup_ByPrimaryKey, metricGroup.getName(), metricGroup.getUppercaseName(), metricGroup.getDescription(), metricGroup.getId());
     }
 
     @Override
     public boolean delete(MetricGroup metricGroup) {
-        if (metricGroup == null) return false;
+        if (metricGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
-        return delete(MetricGroupsSql.Delete_MetricGroup_ByPrimaryKey, 
-                metricGroup.getId()); 
+        return delete(MetricGroupsSql.Delete_MetricGroup_ByPrimaryKey, metricGroup.getId()); 
     }
     
     @Override
@@ -117,9 +125,8 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         return tableName_;
     }
     
-    public MetricGroup getMetricGroup(int id) {
-        return getDatabaseObject(MetricGroupsSql.Select_MetricGroup_ByPrimaryKey, 
-                id); 
+    public MetricGroup getMetricGroup(Integer id) {
+        return getDatabaseObject(MetricGroupsSql.Select_MetricGroup_ByPrimaryKey, id); 
     }  
     
     public MetricGroup getMetricGroupByName(String name) {
@@ -194,7 +201,7 @@ public class MetricGroupsDao extends DatabaseObjectDao<MetricGroup> {
         
     }
     
-    public List<String> getMetricGroupNames(String filter, int resultSetLimit) {
+    public List<String> getMetricGroupNames(String filter, Integer resultSetLimit) {
         
         try {
 

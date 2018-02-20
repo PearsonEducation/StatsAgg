@@ -51,25 +51,41 @@ public class OutputBlacklistDao extends DatabaseObjectDao<OutputBlacklist> {
     
     @Override
     public OutputBlacklist getDatabaseObject(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) return null;
+        if (outputBlacklist == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
+        
         return getDatabaseObject(OutputBlacklistSql.Select_OutputBlacklist_ByPrimaryKey, outputBlacklist.getId()); 
     }
     
     @Override
     public boolean insert(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) return false;
+        if (outputBlacklist == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
+        
         return insert(OutputBlacklistSql.Insert_OutputBlacklist, outputBlacklist.getMetricGroupId());
     }
     
     @Override
     public boolean update(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) return false;
+        if (outputBlacklist == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
+        
         return update(OutputBlacklistSql.Update_OutputBlacklist_ByPrimaryKey, outputBlacklist.getMetricGroupId(), outputBlacklist.getId());
     }
 
     @Override
     public boolean delete(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) return false;
+        if (outputBlacklist == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
+        
         return delete(OutputBlacklistSql.Delete_OutputBlacklist_ByPrimaryKey, outputBlacklist.getId()); 
     }
     

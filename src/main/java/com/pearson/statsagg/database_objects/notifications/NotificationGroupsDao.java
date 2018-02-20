@@ -54,7 +54,10 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
     
     @Override
     public NotificationGroup getDatabaseObject(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) return null;
+        if (notificationGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
         
         return getDatabaseObject(NotificationGroupsSql.Select_NotificationGroup_ByPrimaryKey, 
                 notificationGroup.getId()); 
@@ -62,7 +65,10 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
     
     @Override
     public boolean insert(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) return false;
+        if (notificationGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
         return insert(NotificationGroupsSql.Insert_NotificationGroup, 
                 notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses());
@@ -70,7 +76,10 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
     
     @Override
     public boolean update(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) return false;
+        if (notificationGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
         return update(NotificationGroupsSql.Update_NotificationGroup_ByPrimaryKey, 
                 notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses(), notificationGroup.getId());
@@ -78,7 +87,10 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
 
     @Override
     public boolean delete(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) return false;
+        if (notificationGroup == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
         return delete(NotificationGroupsSql.Delete_NotificationGroup_ByPrimaryKey, 
                 notificationGroup.getId()); 
@@ -119,7 +131,7 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
         return tableName_;
     }
     
-    public NotificationGroup getNotificationGroup(int id) {
+    public NotificationGroup getNotificationGroup(Integer id) {
         return getDatabaseObject(NotificationGroupsSql.Select_NotificationGroup_ByPrimaryKey, id); 
     }  
     
@@ -283,11 +295,16 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
         
         Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();
         
-        List<NotificationGroup> notificationGroups = super.getAllDatabaseObjectsInTable();
-        if (notificationGroups == null) return notificationGroupsById;
-        
-        for (NotificationGroup notificationGroup : notificationGroups) {
-            if (notificationGroup.getId() != null) notificationGroupsById.put(notificationGroup.getId(), notificationGroup);
+        try {
+            List<NotificationGroup> notificationGroups = super.getAllDatabaseObjectsInTable();
+            if (notificationGroups == null) return notificationGroupsById;
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if (notificationGroup.getId() != null) notificationGroupsById.put(notificationGroup.getId(), notificationGroup);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         return notificationGroupsById;

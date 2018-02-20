@@ -59,7 +59,10 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
 
     @Override
     public Suspension getDatabaseObject(Suspension suspension) {
-        if (suspension == null) return null;
+        if (suspension == null) {
+            databaseInterface_.cleanupAutomatic();
+            return null;
+        }
 
         return getDatabaseObject(SuspensionsSql.Select_Suspension_ByPrimaryKey, 
                 suspension.getId()); 
@@ -67,7 +70,10 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
     
     @Override
     public boolean insert(Suspension suspension) {
-        if (suspension == null) return false;
+        if (suspension == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
         return insert(SuspensionsSql.Insert_Suspension, 
                 suspension.getName(), suspension.getUppercaseName(), suspension.getDescription(), suspension.isEnabled(), 
@@ -86,7 +92,10 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
     
     @Override
     public boolean update(Suspension suspension) {
-        if (suspension == null) return false;
+        if (suspension == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
 
         return update(SuspensionsSql.Update_Suspension_ByPrimaryKey,
                 suspension.getName(), suspension.getUppercaseName(), suspension.getDescription(), suspension.isEnabled(), 
@@ -105,10 +114,12 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
 
     @Override
     public boolean delete(Suspension suspension) {
-        if (suspension == null) return false;
+        if (suspension == null) {
+            databaseInterface_.cleanupAutomatic();
+            return false;
+        }
         
-        return delete(SuspensionsSql.Delete_Suspension_ByPrimaryKey, 
-                suspension.getId()); 
+        return delete(SuspensionsSql.Delete_Suspension_ByPrimaryKey, suspension.getId()); 
     }
     
     @Override
@@ -209,9 +220,8 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
         return tableName_;
     }
 
-    public Suspension getSuspension(int id) {
-        return getDatabaseObject(SuspensionsSql.Select_Suspension_ByPrimaryKey, 
-                id); 
+    public Suspension getSuspension(Integer id) {
+        return getDatabaseObject(SuspensionsSql.Select_Suspension_ByPrimaryKey, id); 
     }  
     
     public Suspension getSuspensionByName(String name) {
@@ -252,15 +262,9 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
     
     public List<Integer> getSuspensionIds_BySuspendBy(Integer suspendByCode) {
         
-        if (suspendByCode == null) {
-            return new ArrayList<>();
-        }
-        
         try {
-
-            if (!isConnectionValid()) {
-                return new ArrayList<>();
-            }
+            if (suspendByCode == null) return new ArrayList<>();
+            if (!isConnectionValid()) return new ArrayList<>();
 
             databaseInterface_.createPreparedStatement(SuspensionsSql.Select_SuspensionId_BySuspendBy, 100);
             databaseInterface_.addPreparedStatementParameters(suspendByCode);
@@ -293,15 +297,9 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
     
     public List<Suspension> getSuspensions_BySuspendBy(Integer suspendByCode) {
         
-        if (suspendByCode == null) {
-            return new ArrayList<>();
-        }
-        
         try {
-
-            if (!isConnectionValid()) {
-                return new ArrayList<>();
-            }
+            if (suspendByCode == null) return new ArrayList<>();
+            if (!isConnectionValid()) return new ArrayList<>();
 
             databaseInterface_.createPreparedStatement(SuspensionsSql.Select_Suspension_BySuspendBy, 100);
             databaseInterface_.addPreparedStatementParameters(suspendByCode);
@@ -326,7 +324,13 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
     
     public boolean deleteExpired(Timestamp specifiedDateAndTime) {
         List<Object> parametersList = new ArrayList<>();
-        parametersList.add(specifiedDateAndTime);
+        
+        try {
+            parametersList.add(specifiedDateAndTime);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
         
         return genericDmlStatement(SuspensionsSql.Delete_Suspension_DeleteAtTimestamp, parametersList);
     }
@@ -339,20 +343,25 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
         
         Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = new HashMap<>();
         
-        for (Suspension suspension : suspensions_SuspendByAlertId) {
-            if (suspension.getAlertId() == null) continue;
-            
-            Integer alertId = suspension.getAlertId();
-            List<Suspension> suspensions = suspensions_SuspendByAlertId_ByAlertId.get(alertId);
-            
-            if (suspensions != null) {
-                suspensions.add(suspension);
+        try {
+            for (Suspension suspension : suspensions_SuspendByAlertId) {
+                if (suspension.getAlertId() == null) continue;
+
+                Integer alertId = suspension.getAlertId();
+                List<Suspension> suspensions = suspensions_SuspendByAlertId_ByAlertId.get(alertId);
+
+                if (suspensions != null) {
+                    suspensions.add(suspension);
+                }
+                else {
+                    suspensions = new ArrayList<>();
+                    suspensions_SuspendByAlertId_ByAlertId.put(alertId, suspensions);
+                }
+
             }
-            else {
-                suspensions = new ArrayList<>();
-                suspensions_SuspendByAlertId_ByAlertId.put(alertId, suspensions);
-            }
-            
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         return suspensions_SuspendByAlertId_ByAlertId;
@@ -363,27 +372,32 @@ public class SuspensionsDao extends DatabaseObjectDao<Suspension> {
         List<Suspension> suspensions_SuspendByMetricGroupTags = getSuspensions_BySuspendBy(Suspension.SUSPEND_BY_METRIC_GROUP_TAGS);
         
         if (suspensions_SuspendByMetricGroupTags == null) return new HashMap<>();
-        
+       
         Map<String,List<Suspension>> suspensions_SuspendByMetricGroupTag_ByMetricGroupTag = new HashMap<>();
-        
-        for (Suspension suspension : suspensions_SuspendByMetricGroupTags) {
-            if (suspension.getAlertId() == null) continue;
-            
-            String metricGroupTags_NewlineDelimitedString = suspension.getMetricGroupTagsInclusive();
-            List<String> metricGroupTags = StringUtilities.getListOfStringsFromDelimitedString(metricGroupTags_NewlineDelimitedString, '\n');
-            
-            for (String metricGroupTag : metricGroupTags) {
-                List<Suspension> suspensions = suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.get(metricGroupTag);
 
-                if (suspensions != null) {
-                    suspensions.add(suspension);
+        try {
+            for (Suspension suspension : suspensions_SuspendByMetricGroupTags) {
+                if (suspension.getAlertId() == null) continue;
+
+                String metricGroupTags_NewlineDelimitedString = suspension.getMetricGroupTagsInclusive();
+                List<String> metricGroupTags = StringUtilities.getListOfStringsFromDelimitedString(metricGroupTags_NewlineDelimitedString, '\n');
+
+                for (String metricGroupTag : metricGroupTags) {
+                    List<Suspension> suspensions = suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.get(metricGroupTag);
+
+                    if (suspensions != null) {
+                        suspensions.add(suspension);
+                    }
+                    else {
+                        suspensions = new ArrayList<>();
+                        suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.put(metricGroupTag, suspensions);
+                    }
                 }
-                else {
-                    suspensions = new ArrayList<>();
-                    suspensions_SuspendByMetricGroupTag_ByMetricGroupTag.put(metricGroupTag, suspensions);
-                }
+
             }
-            
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         return suspensions_SuspendByMetricGroupTag_ByMetricGroupTag;
