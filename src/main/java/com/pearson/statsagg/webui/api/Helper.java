@@ -5,6 +5,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.StringUtilities;
 import java.io.BufferedReader;
 import javax.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringEscapeUtils;
@@ -45,9 +46,10 @@ public class Helper {
         
         BufferedReader bufferedReader = null;
         JsonObject jsonObject = null;
+        StringBuilder requestData = new StringBuilder();
         
         try {
-            StringBuilder requestData = new StringBuilder();
+            requestData = new StringBuilder();
             bufferedReader = request.getReader();
             String currentLine = null;
             while ((currentLine = bufferedReader.readLine()) != null) requestData.append(currentLine);
@@ -58,6 +60,9 @@ public class Helper {
         } 
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            String badJsonOutput = "Failed to parse jason. JsonBody=\"" + requestData.toString() + "\".";
+            String cleanBadJsonOutput = StringUtilities.removeNewlinesFromString(badJsonOutput, ' ');
+            logger.warn(cleanBadJsonOutput);
         } 
         finally {
             try {
