@@ -115,7 +115,7 @@ public class DatabaseInterface {
         }   
     }
     
-    public Statement createStatement(int fetchSize) {
+    public Statement createStatement(Integer fetchSize) {
         try {
             if ((connection_ == null) || connection_.isClosed() || (fetchSize <= 0)) {
                 return null;
@@ -441,7 +441,7 @@ public class DatabaseInterface {
         }
     }
     
-    public boolean isConnectionValid(int timeoutInSeconds) {
+    public boolean isConnectionValid(Integer timeoutInSeconds) {
         
         long startTime = System.currentTimeMillis();
         
