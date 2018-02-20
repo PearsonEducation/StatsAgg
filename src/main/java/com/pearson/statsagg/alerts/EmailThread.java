@@ -85,9 +85,9 @@ public class EmailThread implements Runnable  {
         }
     }
     
-    public void buildAlertEmail(int numMetricKeysPerEmail, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags) {
+    public void buildAlertEmail(Integer numMetricKeysPerEmail, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags) {
     
-        if ((alert_ == null) || ((alertLevel_ != Alert.CAUTION) && (alertLevel_ != Alert.DANGER)) || (metricGroup == null)) {
+        if ((alert_ == null) || ((alertLevel_ != Alert.CAUTION) && (alertLevel_ != Alert.DANGER)) || (metricGroup == null) || (numMetricKeysPerEmail == null)) {
             logger.error("Failed to create email alert message.");
             return;
         }
@@ -296,9 +296,9 @@ public class EmailThread implements Runnable  {
         }
     }
 
-    public static List<String> sortAndLimitMetricsForEmail(List<String> metricKeys, int maxAllowedMetrics) {
+    public static List<String> sortAndLimitMetricsForEmail(List<String> metricKeys, Integer maxAllowedMetrics) {
         
-        if ((metricKeys == null) || metricKeys.isEmpty() || (maxAllowedMetrics < 0)) {
+        if ((metricKeys == null) || metricKeys.isEmpty() || (maxAllowedMetrics == null) || (maxAllowedMetrics < 0)) {
             return new ArrayList<>(); 
         }
         
