@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.google.common.collect.Lists;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.util.ArrayList;
@@ -21,6 +22,7 @@ import com.pearson.statsagg.utilities.StringUtilities;
 import com.pearson.statsagg.utilities.Threads;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -48,7 +50,7 @@ public class MetricAssociation {
     public static final AtomicBoolean IsMetricGroupChangeOutputBlacklist = new AtomicBoolean(false); 
     
     // the core routine that associates metrics with metric-groups & suspensions. this is called periodically by the alert routine
-    protected static void associateMetricKeysWithMetricGroups(String threadId, ThreadPoolExecutor threadPoolExecutor) {
+    protected static void associateMetricKeysWithMetricGroups(String threadId, ThreadPoolExecutor threadPoolExecutor, int numThreads) {
         
         try {
             // stops multiple metric association routines from running simultaneously 
@@ -72,27 +74,68 @@ public class MetricAssociation {
         
         // set a flag to indicate that the metric association routine is running -- prevents other threads from running at the same time
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(true);
-        
-        List<Integer> allMetricGroupIds = getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups();
-        List<Integer> allMetricSuspensionIds = getMetricSuspensionIds_And_AssociateMetricKeysWithNewOrAlteredSuspensions();
+        try {
+            // get metric group & suspension ids & populate some data structures for those ids
+            List<Integer> allMetricGroupIds = getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups();
+            List<Integer> allMetricSuspensionIds = getMetricSuspensionIds_And_AssociateMetricKeysWithNewOrAlteredSuspensions();
+            createMatchingMetricKeysDataStructuresForNewMetricGroupIds(allMetricGroupIds);
+            createMatchingMetricKeysDataStructuresForNewSuspensionIds(allMetricSuspensionIds);
 
-        // run the association routine against all metric-groups/metric-suspensions/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
-        for (String metricKey : GlobalVariables.metricKeysLastSeenTimestamp.keySet()) {
-            ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
-            if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) continue;
-                    
-            associateMetricKeyWithIds(metricKey, allMetricGroupIds, 
-                    GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup, 
-                    GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId);
+            int threads = 1;
+            if (threads <= 0) threads = 1;
+            int numMetricsPerPartition = GlobalVariables.metricKeysLastSeenTimestamp.keySet().size() / threads;
+            if (numMetricsPerPartition <= 0) numMetricsPerPartition = 1;
+            ArrayList<String> metricsList = new ArrayList<>(GlobalVariables.metricKeysLastSeenTimestamp.keySet());
+            List<List<String>> metricKeys_Partitions = Lists.partition(metricsList, numMetricsPerPartition);
+            List<Thread> metricKeyAssociation_Threads = new ArrayList<>();
+            for (List<String> metricKeys_Partition : metricKeys_Partitions) {
+                Thread metricKeyAssociation_Thread = new Thread(new metricKeyAssociation_Thread(metricKeys_Partition, allMetricGroupIds, allMetricSuspensionIds));
+                metricKeyAssociation_Threads.add(metricKeyAssociation_Thread);
+            }
 
-            associateMetricKeyWithIds(metricKey, allMetricSuspensionIds, 
-                    GlobalVariables.matchingMetricKeysAssociatedWithSuspension, GlobalVariables.metricKeysAssociatedWithAnySuspension, 
-                    GlobalVariables.mergedMatchRegexesBySuspensionId, GlobalVariables.mergedBlacklistRegexesBySuspensionId);
+            Threads.threadExecutorFixedPool(metricKeyAssociation_Threads, threads, 365, TimeUnit.DAYS);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.set(false);
 
         IsMetricAssociationRoutineCurrentlyRunning.set(false);
+    }
+    
+    protected static void createMatchingMetricKeysDataStructuresForNewMetricGroupIds(List<Integer> metricGroupIds) {
+        
+        if (metricGroupIds == null) {
+            return;
+        }
+        
+        for (Integer metricGroupId : metricGroupIds) {
+            if (metricGroupId == null) continue;
+            Set<String> matchingMetricKeyAssociations = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroupId);
+
+            if (matchingMetricKeyAssociations == null) {
+                matchingMetricKeyAssociations = new HashSet<>();
+                GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.put(metricGroupId, Collections.synchronizedSet(matchingMetricKeyAssociations));
+            }
+        }
+    }
+    
+    protected static void createMatchingMetricKeysDataStructuresForNewSuspensionIds(List<Integer> suspensionIds) {
+        
+        if (suspensionIds == null) {
+            return;
+        }
+        
+        for (Integer suspensionId : suspensionIds) {
+            if (suspensionId == null) continue;
+            Set<String> matchingMetricKeyAssociations = GlobalVariables.matchingMetricKeysAssociatedWithSuspension.get(suspensionId);
+
+            if (matchingMetricKeyAssociations == null) {
+                matchingMetricKeyAssociations = new HashSet<>();
+                GlobalVariables.matchingMetricKeysAssociatedWithSuspension.put(suspensionId, Collections.synchronizedSet(matchingMetricKeyAssociations));
+            }
+        }
     }
     
     // associates a set of metric-keys with the metric output blacklist. this is intended to be called periodically, and only 1 call to this method can run at a time
@@ -251,6 +294,36 @@ public class MetricAssociation {
         }
 
         return numNewKeysProcessed;
+    }
+    
+    private static class metricKeyAssociation_Thread implements Runnable {
+		
+        private final List<String> metricKeys__;
+        private final List<Integer> allMetricGroupIds__;
+        private final List<Integer> allMetricSuspensionIds__;
+        
+        public metricKeyAssociation_Thread(List<String> metricKeys, List<Integer> allMetricGroupIds, List<Integer> allMetricSuspensionIds) {
+            this.metricKeys__ = metricKeys;
+            this.allMetricGroupIds__ = allMetricGroupIds;
+            this.allMetricSuspensionIds__ = allMetricSuspensionIds;
+        }
+        
+        @Override
+        public void run() {
+            // run the association routine against all metric-groups/metric-suspensions/metric-keys. should only run the pattern matcher against previously unknown metric-keys.
+            for (String metricKey : metricKeys__) {
+                ConcurrentHashMap<String,String> immediateCleanupMetrics = GlobalVariables.immediateCleanupMetrics;
+                if ((immediateCleanupMetrics != null) && !immediateCleanupMetrics.isEmpty() && immediateCleanupMetrics.containsKey(metricKey)) continue;
+
+                associateMetricKeyWithIds(metricKey, allMetricGroupIds__, 
+                        GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup, GlobalVariables.metricKeysAssociatedWithAnyMetricGroup, 
+                        GlobalVariables.mergedMatchRegexesByMetricGroupId, GlobalVariables.mergedBlacklistRegexesByMetricGroupId);
+
+                associateMetricKeyWithIds(metricKey, allMetricSuspensionIds__, 
+                        GlobalVariables.matchingMetricKeysAssociatedWithSuspension, GlobalVariables.metricKeysAssociatedWithAnySuspension, 
+                        GlobalVariables.mergedMatchRegexesBySuspensionId, GlobalVariables.mergedBlacklistRegexesBySuspensionId);
+            }
+        }
     }
     
     private static List<Integer> getMetricGroupIds_And_AssociateMetricKeysWithNewOrAlteredMetricGroups() {
@@ -529,14 +602,14 @@ public class MetricAssociation {
                     
                     if (isMetricKeyAssociatedWithId) {
                         Set<String> matchingMetricKeyAssociations = matchingMetricKeysAssociatedWithId.get(id);
-
-                        if (matchingMetricKeyAssociations == null) {
-                            matchingMetricKeyAssociations = new HashSet<>();
-                            matchingMetricKeysAssociatedWithId.put(id, Collections.synchronizedSet(matchingMetricKeyAssociations));
+                        
+                        if (matchingMetricKeyAssociations != null) {
+                            matchingMetricKeyAssociations.add(metricKey);
+                            isMetricKeyAssociatedWithAnyId = true;
                         }
-
-                        matchingMetricKeyAssociations.add(metricKey);
-                        isMetricKeyAssociatedWithAnyId = true;
+                        else {
+                            logger.error("This shouldn't be possible. MG or Suspension does not have a matchingMetricKeyAssociations datastructure. ID=" + id);
+                        }
                     }
                 }
             }

@@ -103,6 +103,7 @@ public class ApplicationConfiguration {
     private static String alertOutputStatusMetricPrefix_ = null;
     private static String alertStatsAggLocation_ = null;
     private static long alertWaitTimeAfterRestart_ = VALUE_NOT_SET_CODE;
+    private static int alertMetricAssociationThreads_ = VALUE_NOT_SET_CODE;
     private static String alertSmtpHost_ = null;
     private static int alertSmtpPort_ = VALUE_NOT_SET_CODE;
     private static String alertSmtpUsername_ = null;
@@ -227,6 +228,8 @@ public class ApplicationConfiguration {
             alertOutputStatusMetricPrefix_ = applicationConfiguration_.safeGetString("alert_output_status_metric_prefix", "StatsAgg-Alerts");
             alertStatsAggLocation_ = applicationConfiguration_.safeGetString("alert_statsagg_location", "");
             alertWaitTimeAfterRestart_ = applicationConfiguration_.safeGetInteger("alert_wait_time_after_restart", 120000);
+            alertMetricAssociationThreads_ =  applicationConfiguration_.safeGetInteger("alert_metric_association_threads", (Runtime.getRuntime().availableProcessors() / 2));       
+            if (alertMetricAssociationThreads_ < 1) alertMetricAssociationThreads_ = 1;
                     
             alertSmtpHost_ = applicationConfiguration_.safeGetString("alert_smtp_host", "127.0.0.1");
             alertSmtpPort_ = applicationConfiguration_.safeGetInteger("alert_smtp_port", 25);
@@ -753,7 +756,11 @@ public class ApplicationConfiguration {
     public static long getAlertWaitTimeAfterRestart() {
         return alertWaitTimeAfterRestart_;
     }
-   
+    
+    public static int getAlertMetricAssociationThreads() {
+        return alertMetricAssociationThreads_;
+    }
+    
     public static String getAlertSmtpHost() {
         return alertSmtpHost_;
     }

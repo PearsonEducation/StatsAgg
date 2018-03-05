@@ -3,9 +3,7 @@ package com.pearson.statsagg.controller.threads;
 import com.pearson.statsagg.utilities.InvokerThread;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.utilities.StackTrace;
 import com.pearson.statsagg.utilities.Threads;
-import java.util.concurrent.ThreadPoolExecutor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -28,7 +26,8 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
         synchronized (lockObject_) {
             while (continueRunning_) {
                 long currentTimeInMilliseconds = System.currentTimeMillis();
-                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds, true, true, threadPoolExecutor_));
+                Thread alertThread = new Thread(new AlertThread(currentTimeInMilliseconds, true, true, threadPoolExecutor_, 
+                        ApplicationConfiguration.getAlertMetricAssociationThreads()));
                 alertThread.setPriority(3);
                 
                 threadExecutor_.execute(alertThread);
@@ -48,7 +47,8 @@ public class AlertInvokerThread extends InvokerThread implements Runnable {
     }
     
     public void runAlertThread(boolean runMetricAssociationRoutine, boolean runAlertRoutine) {
-        Thread alertThread = new Thread(new AlertThread(System.currentTimeMillis(), runMetricAssociationRoutine, runAlertRoutine, threadPoolExecutor_));
+        Thread alertThread = new Thread(new AlertThread(System.currentTimeMillis(), runMetricAssociationRoutine, runAlertRoutine, 
+                threadPoolExecutor_, ApplicationConfiguration.getAlertMetricAssociationThreads()));
         alertThread.setPriority(3);
         if ((threadExecutor_ != null) && !threadExecutor_.isShutdown() && !threadExecutor_.isTerminated()) threadExecutor_.execute(alertThread);
     }

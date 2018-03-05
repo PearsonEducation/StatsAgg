@@ -67,6 +67,7 @@ public class AlertThread implements Runnable {
     protected final boolean runAlertRoutine_;
     protected final String threadId_;
     protected final String statsAggLocation_;
+    protected final int numMetricAssociationThreads_;
     
     private final List<Alert> enabledAlerts_ = new ArrayList<>();
     private Map<Integer,Alert> alertsByAlertId_ = null;    
@@ -85,11 +86,13 @@ public class AlertThread implements Runnable {
     
     private Suspensions suspensions_ = null;
     
-    public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine, ThreadPoolExecutor threadPoolExecutor) {
+    public AlertThread(Long threadStartTimestampInMilliseconds, boolean runMetricAssociationRoutine, boolean runAlertRoutine, 
+            ThreadPoolExecutor threadPoolExecutor, int numMetricAssociationThreads) {
         this.threadStartTimestampInMilliseconds_ = threadStartTimestampInMilliseconds;
         this.runMetricAssociationRoutine_ = runMetricAssociationRoutine;
         this.runAlertRoutine_ = runAlertRoutine;
         this.threadPoolExecutor_ = threadPoolExecutor;
+        this.numMetricAssociationThreads_ = numMetricAssociationThreads;
         
         this.threadId_ = "A-" + threadStartTimestampInMilliseconds_.toString();
         this.statsAggLocation_ = ApplicationConfiguration.getAlertStatsAggLocation();
@@ -120,7 +123,7 @@ public class AlertThread implements Runnable {
             long metricAssociationTimeElasped = 0;
             if (ApplicationConfiguration.isAlertRoutineEnabled() && runMetricAssociationRoutine_) {
                 long metricAssociationStartTime = System.currentTimeMillis();
-                MetricAssociation.associateMetricKeysWithMetricGroups(threadId_, threadPoolExecutor_);
+                MetricAssociation.associateMetricKeysWithMetricGroups(threadId_, threadPoolExecutor_, numMetricAssociationThreads_);
                 metricAssociationTimeElasped = System.currentTimeMillis() - metricAssociationStartTime; 
             }
 
