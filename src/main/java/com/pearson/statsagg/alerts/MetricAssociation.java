@@ -81,7 +81,7 @@ public class MetricAssociation {
             createMatchingMetricKeysDataStructuresForNewMetricGroupIds(allMetricGroupIds);
             createMatchingMetricKeysDataStructuresForNewSuspensionIds(allMetricSuspensionIds);
 
-            int threads = 1;
+            int threads = numThreads;
             if (threads <= 0) threads = 1;
             int numMetricsPerPartition = GlobalVariables.metricKeysLastSeenTimestamp.keySet().size() / threads;
             if (numMetricsPerPartition <= 0) numMetricsPerPartition = 1;
