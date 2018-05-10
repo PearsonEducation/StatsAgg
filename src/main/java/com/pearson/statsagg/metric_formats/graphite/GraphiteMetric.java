@@ -35,7 +35,7 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         this.metricPath_ = metricPath;
         this.metricValue_ = metricValue;
         this.metricTimestamp_ = metricTimestamp;
-        this.metricReceivedTimestampInMilliseconds_ = metricTimestamp * 1000;
+        this.metricReceivedTimestampInMilliseconds_ = ((long) metricTimestamp) * 1000;
         
         this.isMetricTimestampInSeconds_ = true;
     }
