@@ -3,6 +3,8 @@ StatsAgg 1.5
  * Document API
  * Document Metric Benchmark
  * Update screenshots of 'suspensions' 
+ * OpenTSDB single metric HTTP POST support + unit tests
+ * OpenTSDB value SI notation (quoted & unquoted) + unit tests
 
 StatsAgg 1.6
  * Hide 'Suspend Notification Only?' with javascript when doing a 'metric suspension'
