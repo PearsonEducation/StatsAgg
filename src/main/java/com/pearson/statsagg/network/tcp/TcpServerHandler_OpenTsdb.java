@@ -27,7 +27,7 @@ public class TcpServerHandler_OpenTsdb extends SimpleChannelInboundHandler<Strin
             else if ((message != null) && (message.length() > 4) && message.startsWith("put ")){
                 long currentTimestampInMilliseconds = System.currentTimeMillis();
 
-                List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbMetrics(message.substring(4), 
+                List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbTelnetMetrics(message.substring(4), 
                         GlobalVariables.openTsdbPrefix, currentTimestampInMilliseconds);
 
                 for (OpenTsdbMetric openTsdbMetric : openTsdbMetrics) {

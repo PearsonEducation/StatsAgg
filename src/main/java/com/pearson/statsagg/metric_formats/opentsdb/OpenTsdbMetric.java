@@ -1,20 +1,20 @@
 package com.pearson.statsagg.metric_formats.opentsdb;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
-import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map.Entry;
+import java.util.Map;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.boon.Boon;
-import org.boon.core.value.LazyValueMap;
-import org.boon.core.value.ValueList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -291,7 +291,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         return openTsdbJson.toString();
     }
     
-    public static OpenTsdbMetric parseOpenTsdbMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    public static OpenTsdbMetric parseOpenTsdbTelnetMetric(String unparsedMetric, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if (unparsedMetric == null) {
             return null;
@@ -313,7 +313,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 metricTimestampString = unparsedMetric.substring(metricIndexRange + 1, metricTimestampIndexRange);
                 metricTimestamp = Long.parseLong(metricTimestampString);
                 if (metricTimestampString.length() == 13) isTimestampInMilliseconds = true;
-                else if (metricTimestampString.length() == 10) isTimestampInMilliseconds = false;
+                else if (metricTimestampString.length() <= 10) isTimestampInMilliseconds = false;
             }
 
             int metricValueIndexRange = unparsedMetric.indexOf(' ', metricTimestampIndexRange + 1);
@@ -383,59 +383,64 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             return new ArrayList<>();
         }
 
-        int successMetricCount = 0, errorMetricCount = 0, totalMetricCount = 0;
-        
-        ValueList parsedJsonObject = null;
+        int successMetricCount = 0, errorMetricCount = 0;
+        List<OpenTsdbMetric> openTsdbMetrics = new ArrayList<>();
+        JsonElement jsonElement = null;
+        JsonArray jsonArray = null;
         
         try {
-            parsedJsonObject = (ValueList) Boon.fromJson(inputJson);
+            JsonParser parser = new JsonParser();
+            jsonElement = parser.parse(inputJson);
+            jsonArray = jsonElement.getAsJsonArray();
         }
         catch (Exception e) {
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (parsedJsonObject == null) return new ArrayList<>();
-            
-        StringBuilder openTsdbMetricsString = new StringBuilder();
-                
-        for (Object openTsdbMetricJsonObject : parsedJsonObject) {
-            try {
-                LazyValueMap openTsdbMetric = (LazyValueMap) openTsdbMetricJsonObject;
-                
-                String metric = (String) openTsdbMetric.get("metric");
-                
-                Object timestampObject = openTsdbMetric.get("timestamp");
-                String timestampString = JsonUtils.convertNumericObjectToString(timestampObject, false);
-                
-                Object valueObject = openTsdbMetric.get("value");
-                String valueString = JsonUtils.convertNumericObjectToString(valueObject, true);
-                
-                LazyValueMap tagsObject = (LazyValueMap) openTsdbMetric.get("tags");
-                StringBuilder tagsString = new StringBuilder();
-                int tagCounter = 0;
-                for (Entry<String,Object> tagsObject_Entry : tagsObject.entrySet()) {
-                    String tagsObjectKey = tagsObject_Entry.getKey();
-                    Object tagsObjectValue = tagsObject_Entry.getValue();
-                    tagsString.append(tagsObjectKey).append("=").append(tagsObjectValue);
-                    if ((tagCounter + 1) < tagsObject.size()) tagsString.append(" ");
-                }
+        if (jsonArray == null) return openTsdbMetrics;
+               
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JsonElement jsonElementOfArray = null;
 
-                String openTsdbMetricString = metric + " " + timestampString + " " + valueString + " " + tagsString.toString() + "\n";
-                openTsdbMetricsString.append(openTsdbMetricString);
+            try {
+                jsonElementOfArray = jsonArray.get(i);
+                JsonObject jsonObject_TopLevel = jsonElementOfArray.getAsJsonObject();
                 
-                totalMetricCount++;
+                String metric = parseOpenTsdbJson_ValidateAndReturn_Metric(jsonObject_TopLevel);
+                if (metric == null) continue;
+                if ((metricPrefix != null) && !metricPrefix.isEmpty()) metric = metricPrefix + metric;
+                    
+                OpenTsdbTimestamp openTsdbTimestamp = parseOpenTsdbJson_ValidateAndReturn_MetricTimestamp(jsonObject_TopLevel);
+                if (openTsdbTimestamp == null) continue;
+                
+                BigDecimal metricValue = parseOpenTsdbJson_ValidateAndReturn_MetricValue(jsonObject_TopLevel);
+                if (metricValue == null) continue;
+                
+                List<OpenTsdbTag> openTsdbTags = parseOpenTsdbJson_ValidateAndReturn_Tags(jsonObject_TopLevel);
+                if ((openTsdbTags == null) || openTsdbTags.isEmpty())  continue;
+                
+                OpenTsdbMetric openTsdbMetric = new OpenTsdbMetric(metric, openTsdbTimestamp.getTimestampLong(), metricValue, openTsdbTags, 
+                        openTsdbTimestamp.isMilliseconds(), metricsReceivedTimestampInMilliseconds); 
+
+                if ((openTsdbMetric.getMetricKey() != null) && (openTsdbMetric.getMetricTimestampInMilliseconds() > -1)) openTsdbMetrics.add(openTsdbMetric);
             }
             catch (Exception e) {
-                totalMetricCount++;                
-                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                if (jsonElementOfArray != null) {
+                    try {
+                        logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                    }
+                    catch (Exception e2) {
+                        logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    }
+                }
+                else {
+                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
             }
         }
 
-        List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbMetrics(openTsdbMetricsString.toString(), 
-                metricPrefix, metricsReceivedTimestampInMilliseconds);
-        
         successMetricCount = openTsdbMetrics.size();
-        errorMetricCount = totalMetricCount - successMetricCount;
+        errorMetricCount = jsonArray.size() - successMetricCount;
         if (successCountAndFailCount == null) successCountAndFailCount = new ArrayList<>();
         if (!successCountAndFailCount.isEmpty()) successCountAndFailCount.clear();
         successCountAndFailCount.add(successMetricCount);
@@ -443,8 +448,130 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
         return openTsdbMetrics;
     }
+
+    protected static String parseOpenTsdbJson_ValidateAndReturn_Metric(JsonObject jsonObject) {
+        
+        try {
+            String metric = jsonObject.getAsJsonPrimitive("metric").getAsString();
+            
+            if ((metric == null) || metric.isEmpty()) {
+                logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
+                return null;
+            }
+            
+            return metric;
+        }
+        catch (Exception e) {               
+            try {
+                logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
+            }
+            catch (Exception e2) {
+                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+            return null;
+        }
+        
+    }
+
+    protected static OpenTsdbTimestamp parseOpenTsdbJson_ValidateAndReturn_MetricTimestamp(JsonObject jsonObject) {
+        
+        try {
+            long metricTimestamp = jsonObject.getAsJsonPrimitive("timestamp").getAsLong();
+            
+            if (metricTimestamp < 0) {
+                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+                return null;
+            }
+            
+            String metricTimestampString = Long.toString(metricTimestamp); 
+            
+            if ((metricTimestamp <= 2147483647l) && (metricTimestampString.length() <= 10)) {
+                return new OpenTsdbTimestamp(metricTimestamp, false);
+            }
+            else if (metricTimestampString.length() == 13) {
+                return new OpenTsdbTimestamp(metricTimestamp, true);
+            }
+            else {
+                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+                return null;
+            }
+        }
+        catch (Exception e) {               
+            try {
+                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+            }
+            catch (Exception e2) {
+                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+            return null;
+        }
+        
+    }
     
-    public static List<OpenTsdbMetric> parseOpenTsdbMetrics(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
+    protected static BigDecimal parseOpenTsdbJson_ValidateAndReturn_MetricValue(JsonObject jsonObject) {
+        
+        try {
+            BigDecimal metricValue = jsonObject.getAsJsonPrimitive("value").getAsBigDecimal();
+            
+            if (metricValue == null) {
+                logger.warn("Metric parse error. Invalid metric value: \"" + jsonObject.toString());
+                return null;
+            }
+            
+            return metricValue;
+        }
+        catch (Exception e) {    
+            try {
+                logger.warn("Metric parse error. Invalid metric value: \"" + jsonObject.toString());
+            }
+            catch (Exception e2) {
+                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+            return null;
+        }
+        
+    }
+    
+    protected static List<OpenTsdbTag> parseOpenTsdbJson_ValidateAndReturn_Tags(JsonObject jsonObject) {
+        
+        List<OpenTsdbTag> openTsdbTags = new ArrayList<>();
+        
+        try {
+            JsonObject JsonObject_Tags = jsonObject.getAsJsonObject("tags");
+
+            try {
+                for (Map.Entry<String,JsonElement> tagsObject_Entry : JsonObject_Tags.entrySet()) {
+                    String tagKey = tagsObject_Entry.getKey();
+                    String tagValue = tagsObject_Entry.getValue().getAsString();
+
+                    if ((tagKey != null) && (tagValue != null) && !tagKey.isEmpty() && !tagValue.isEmpty()) {
+                        OpenTsdbTag openTsdbTag = new OpenTsdbTag(tagKey + "=" + tagValue);
+                        openTsdbTags.add(openTsdbTag);
+                    }
+                    else {
+                        logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
+                    }
+                }
+            }
+            catch (Exception e) {   
+                logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
+            }
+        }
+        catch (Exception e) {               
+            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        if (openTsdbTags.isEmpty()) {
+            logger.warn("Metric parse error. At least 1 valid tag required: \"" + jsonObject.toString());
+        }
+            
+        return openTsdbTags;
+    }
+    
+    public static List<OpenTsdbMetric> parseOpenTsdbTelnetMetrics(String unparsedMetrics, String metricPrefix, long metricReceivedTimestampInMilliseconds) {
         
         if ((unparsedMetrics == null) || unparsedMetrics.isEmpty()) {
             return new ArrayList<>();
@@ -470,7 +597,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 }
 
                 if ((unparsedMetric != null) && !unparsedMetric.isEmpty()) {
-                    OpenTsdbMetric openTsdbMetric = OpenTsdbMetric.parseOpenTsdbMetric(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
+                    OpenTsdbMetric openTsdbMetric = OpenTsdbMetric.parseOpenTsdbTelnetMetric(unparsedMetric.trim(), metricPrefix, metricReceivedTimestampInMilliseconds);
                     if (openTsdbMetric != null) openTsdbMetrics.add(openTsdbMetric);
                 }
             }
