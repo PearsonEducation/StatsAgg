@@ -1,5 +1,10 @@
 package com.pearson.statsagg.metric_formats.influxdb;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.JsonUtils;
 import com.pearson.statsagg.utilities.StackTrace;
@@ -8,9 +13,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import org.apache.commons.lang3.StringEscapeUtils;
-import org.boon.Boon;
-import org.boon.core.value.LazyValueMap;
-import org.boon.core.value.ValueList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -225,7 +227,11 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                 Object time = point.get(i);
                 
                 if (time != null) {
-                    if (time instanceof Long) {
+                    if (time instanceof BigDecimal) {
+                        BigDecimal timeBigDecimal = (BigDecimal) time;
+                        return timeBigDecimal.longValue();
+                    }
+                    else if (time instanceof Long) {
                         Long timeLong = (Long) time;
                         return timeLong;
                     }
@@ -403,61 +409,87 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             return new ArrayList<>();
         }
         
-        ValueList parsedJsonObject = null;
+        List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList<>();
+        JsonElement jsonElement = null;
+        JsonArray jsonArray = null;
         
         try {
-            parsedJsonObject = (ValueList) Boon.fromJson(inputJson);
+            JsonParser parser = new JsonParser();
+            jsonElement = parser.parse(inputJson);
+            jsonArray = jsonElement.getAsJsonArray();
         }
         catch (Exception e) {
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (parsedJsonObject == null) return new ArrayList<>();
-               
-        List<InfluxdbMetric_v1> influxdbMetrics = new ArrayList<>();
-        
-        for (Object influxdbMetricJsonObject : parsedJsonObject) {
+        if (jsonArray == null) return influxdbMetrics;
+
+        for (int i = 0; i < jsonArray.size(); i++) {
+            JsonElement jsonElementOfArray = null;
+
             try {
-                LazyValueMap influxdbMetricObject = (LazyValueMap) influxdbMetricJsonObject;
+                jsonElementOfArray = jsonArray.get(i);
+                JsonObject jsonObject_TopLevel = jsonElementOfArray.getAsJsonObject();
                 
-                String name = (String) influxdbMetricObject.get("name");
+                String name = (String) jsonObject_TopLevel.getAsJsonPrimitive("name").getAsString();
                 
-                ArrayList<String> columns = new ArrayList<>();
-                ValueList columnsObjects = (ValueList) influxdbMetricObject.get("columns");
-                if (columnsObjects != null) {
-                    for (Object columnObject : columnsObjects) {
-                        if (columnObject instanceof String) columns.add((String) columnObject);
+                ArrayList<String> columnsList = new ArrayList<>();
+                JsonArray columnsJsonArray = jsonObject_TopLevel.getAsJsonArray("columns");
+                if (columnsJsonArray != null) {
+                    for (int j = 0; j < columnsJsonArray.size(); j++) {
+                        String columnString = columnsJsonArray.get(j).getAsString();
+                        columnsList.add(columnString);
                     }
                 }
                 
-                ArrayList<ArrayList<Object>> points = new ArrayList<>();
-                ValueList pointObjects = (ValueList) influxdbMetricObject.get("points");
+                JsonArray pointsJsonArray = jsonObject_TopLevel.getAsJsonArray("points");
+                ArrayList<ArrayList<Object>> pointsList = new ArrayList<>();
                 
-                for (Object pointObject : pointObjects) {
-                    ValueList point = (ValueList) pointObject;
-                    if ((point == null) || point.isEmpty()) continue;
+                for (int j = 0; j < pointsJsonArray.size(); j++) {
+                    JsonArray pointJsonArray = pointsJsonArray.get(j).getAsJsonArray();
+                    if ((pointJsonArray == null) || (pointJsonArray.size() <= 0)) continue;
                     
                     ArrayList<Object> pointColumnValues = new ArrayList<>();
                     
-                    for (Object pointColumnValue : point) {
-                        if (pointColumnValue != null) pointColumnValues.add(pointColumnValue);
+                    for (int k = 0; k < pointJsonArray.size(); k++) {
+                        JsonElement pointJsonElement = pointJsonArray.get(k);
+                        
+                        if ((pointJsonElement != null) && !pointJsonElement.isJsonNull()) {
+                            JsonPrimitive pointJsonPrimative = pointJsonElement.getAsJsonPrimitive();
+                            if (pointJsonPrimative == null) continue;
+                            
+                            if (pointJsonPrimative.isString()) pointColumnValues.add(pointJsonPrimative.getAsString());
+                            else if (pointJsonPrimative.isNumber()) pointColumnValues.add(pointJsonElement.getAsBigDecimal());
+                            else if (pointJsonPrimative.isBoolean()) pointColumnValues.add(pointJsonElement.getAsBoolean());
+                        }
                     }
                     
-                    points.add(pointColumnValues);
+                    pointsList.add(pointColumnValues);
                 }
-                
+
                 byte timePrecisionCode = getTimePrecisionCodeFromTimePrecisionString(timePrecision);
 
                 InfluxdbMetric_v1 influxdbMetric = new InfluxdbMetric_v1(database, username, password, basicAuth, timePrecisionCode, 
-                        namePrefix, name, columns, points, metricsReceivedTimestampInMilliseconds);
+                        namePrefix, name, columnsList, pointsList, metricsReceivedTimestampInMilliseconds);
                 
                 influxdbMetrics.add(influxdbMetric);
+
             }
             catch (Exception e) {
-                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                if (jsonElementOfArray != null) {
+                    try {
+                        logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                    }
+                    catch (Exception e2) {
+                        logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    }
+                }
+                else {
+                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                }
             }
         }
-
+        
         return influxdbMetrics;
     }
     
