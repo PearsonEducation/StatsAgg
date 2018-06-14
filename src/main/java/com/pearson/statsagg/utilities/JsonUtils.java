@@ -57,13 +57,13 @@ public class JsonUtils {
         
         BigDecimal valueBigDecimal = null;
         
-        if (jsonNumericObject instanceof Integer) valueBigDecimal = new BigDecimal(Integer.toString((Integer) jsonNumericObject));
+        if (jsonNumericObject instanceof BigDecimal) valueBigDecimal = (BigDecimal) jsonNumericObject;
+        else if (jsonNumericObject instanceof Integer) valueBigDecimal = new BigDecimal(Integer.toString((Integer) jsonNumericObject));
         else if (jsonNumericObject instanceof Long) valueBigDecimal = new BigDecimal(Long.toString((Long) jsonNumericObject));
         else if (jsonNumericObject instanceof Short) valueBigDecimal = new BigDecimal(Short.toString((Short) jsonNumericObject));
         else if (jsonNumericObject instanceof Byte) valueBigDecimal = new BigDecimal(Byte.toString((Byte) jsonNumericObject));
         else if (jsonNumericObject instanceof Double) valueBigDecimal = new BigDecimal(Double.toString((Double) jsonNumericObject));
         else if (jsonNumericObject instanceof Float) valueBigDecimal = new BigDecimal(Float.toString((Float) jsonNumericObject));
-        else if (jsonNumericObject instanceof BigDecimal) valueBigDecimal = (BigDecimal) jsonNumericObject;
         else if (jsonNumericObject instanceof BigInteger) valueBigDecimal = new BigDecimal((BigInteger) jsonNumericObject);
         else if ((jsonNumericObject instanceof Boolean) && treatBooleanAsNumeric) {
             Boolean numberObjectBoolean = (Boolean) jsonNumericObject;
