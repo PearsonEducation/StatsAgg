@@ -6,12 +6,14 @@ StatsAgg 1.5  - released 2018-xx-xx
  * New feature -- 'Benchmark'. A way to benchmark the performance of metric groups & metric suspensions.
  * Renamed 'Alert Suspensions' to 'Suspensions'. This was done to accomidate the 'metric suspension' feature.
  * Changed several pages in the WebUI to load via on-page iframes (instead of transitioning different page). This improves the flow of the UI, as it significantly reduces the need use the browser back/forward buttons.
- * Minor performance enhancements
+ * Performance enhancements
+ * Support for Java9 & Java10 as runtimes. StatsAgg maintains support for (and is compiled with) Java8.
  * The 'Home' page now outputs the number of metric datapoints that are residing in StatsAgg's memory.
  * Email alerts now include tags
+ * Support for single-metric OpenTSDB metrics via the HTTP API
  * All UI & APIs are now in UTF-8 (for support of exotic characters)
  * Regex tester now allows viewing of 'Metric Recent Values'
- * Apache Derby databases will be upgraded to version 10.12.1.1 (this happens automatically)
+ * Apache Derby databases will be upgraded to version 10.14.2.0 (this happens automatically)
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.5.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
 

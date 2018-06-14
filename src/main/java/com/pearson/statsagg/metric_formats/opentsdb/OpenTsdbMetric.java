@@ -387,11 +387,18 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         List<OpenTsdbMetric> openTsdbMetrics = new ArrayList<>();
         JsonElement jsonElement = null;
         JsonArray jsonArray = null;
-        
+
         try {
             JsonParser parser = new JsonParser();
             jsonElement = parser.parse(inputJson);
-            jsonArray = jsonElement.getAsJsonArray();
+            
+            if (!jsonElement.isJsonArray()) {
+                jsonArray = new JsonArray();
+                jsonArray.add(jsonElement);
+            }
+            else {
+                jsonArray = jsonElement.getAsJsonArray();
+            }
         }
         catch (Exception e) {
             logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

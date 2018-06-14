@@ -202,7 +202,7 @@ public class OpenTsdbTest {
      * Test of parseOpenTsdbJson method, of class OpenTsdbMetric.
      */
     @Test
-    public void testParseOpenTsdbJson() {
+    public void testParseOpenTsdbJson_MultiMetric() {
         
         String inputJson = "[\n"
                 + "    {\n"
@@ -254,6 +254,43 @@ public class OpenTsdbTest {
                 assertTrue(openTsdbMetric.getMetricValue().equals(new BigDecimal("9")));
                 assertTrue(openTsdbMetric.getMetricTimestamp() == 1346846400L);
                 assertTrue(openTsdbMetric.getMetricKey().equals("global.opentsdb.sys.cpu.nice2 : dc=lga host=web02"));
+                matchCount++;
+            }
+        }
+        
+        assertEquals(openTsdbMetrics.size(), matchCount);
+    }
+    /**
+     * Test of parseOpenTsdbJson method, of class OpenTsdbMetric.
+     */
+    
+    @Test
+    public void testParseOpenTsdbJson_SingleMetric() {
+        
+        String inputJson = ""
+                + "    {\n"
+                + "        \"metric\": \"sys.cpu.nice1\",\n"
+                + "        \"timestamp\": 1346846400123,\n"
+                + "        \"value\": 11.4,\n"
+                + "        \"tags\": {\n"
+                + "           \"host\": \"web01\",\n"
+                + "           \"dc\": \"lga\"\n"
+                + "        }\n"
+                + "    }\n";
+        
+        List<Integer> successCountAndFailCount = new ArrayList<>();
+        List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbJson(inputJson, "global.opentsdb.", System.currentTimeMillis(), successCountAndFailCount);
+        
+        assertEquals(openTsdbMetrics.size(), 1);
+        assertEquals(successCountAndFailCount.get(0).intValue(), 1);
+        assertEquals(successCountAndFailCount.get(1).intValue(), 0);
+
+        int matchCount = 0;
+        for (OpenTsdbMetric openTsdbMetric: openTsdbMetrics) {
+            if (openTsdbMetric.getMetric().equals("global.opentsdb.sys.cpu.nice1")) {
+                assertTrue(openTsdbMetric.getMetricValue().equals(new BigDecimal("11.4")));
+                assertTrue(openTsdbMetric.getMetricTimestamp() == 1346846400123L);
+                assertTrue(openTsdbMetric.getMetricKey().equals("global.opentsdb.sys.cpu.nice1 : dc=lga host=web01"));
                 matchCount++;
             }
         }
