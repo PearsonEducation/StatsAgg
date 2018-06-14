@@ -1,16 +1,17 @@
 package com.pearson.statsagg.globals;
 
 import com.google.common.collect.ImmutableList;
-import com.pearson.statsagg.utilities.JsonUtils;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+import com.google.gson.JsonPrimitive;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
-import org.boon.Boon;
-import org.boon.core.value.LazyValueMap;
-import org.boon.core.value.ValueList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,40 +50,56 @@ public class StatsdHistogramConfiguration {
         List<StatsdHistogramConfiguration> statsdHistogramConfigurations = new ArrayList<>();
         
         try {
-            Object parsedJsonObject = (Object) Boon.fromJson(unparsedStatsdHistogramConfigurations);
-            ValueList parsedJsonValueList = null;
-            if ((parsedJsonObject != null) && (parsedJsonObject instanceof ValueList)) parsedJsonValueList = (ValueList) Boon.fromJson(unparsedStatsdHistogramConfigurations);
+            JsonElement jsonElement = null;
+            JsonArray jsonArray = null;
+
+            try {
+                JsonParser parser = new JsonParser();
+                jsonElement = parser.parse(unparsedStatsdHistogramConfigurations);
+                jsonArray = jsonElement.getAsJsonArray();
+            }
+            catch (Exception e) {
+                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+
+            if (jsonArray == null) return statsdHistogramConfigurations;
             
-            if (parsedJsonValueList == null) return new ArrayList<>();
+            
+            for (int i = 0; i < jsonArray.size(); i++) {
+                JsonElement jsonElementOfArray = null;
 
-            for (Object statsdHistogramConfigurationObject : parsedJsonValueList) {
                 try {
-                    LazyValueMap statsdHistogramConfiguration = (LazyValueMap) statsdHistogramConfigurationObject;
-
-                    String metric = (String) statsdHistogramConfiguration.get("metric");
+                    jsonElementOfArray = jsonArray.get(i);
+                    JsonObject jsonObject_TopLevel = jsonElementOfArray.getAsJsonObject();
+                    if (!jsonObject_TopLevel.has("bins")) continue;
+                    
+                    String metric = jsonObject_TopLevel.getAsJsonPrimitive("metric").getAsString();
                     if (metric != null) metric = metric.trim();
-
+                    
                     List<String> binValues_String = new ArrayList<>();
                     List<String> binValues_GraphiteFriendlyString = new ArrayList<>();
                     Set<BigDecimal> binValues_BigDecimal = new TreeSet<>();
                     boolean isInfDetected = false;
 
-                    if (statsdHistogramConfiguration.get("bins") instanceof ValueList) {
-                        ValueList binObjects = (ValueList) statsdHistogramConfiguration.get("bins");
+                    JsonArray binsJsonArray = jsonObject_TopLevel.getAsJsonArray("bins");
+                    for (int j = 0; j < binsJsonArray.size(); j++) {
+                        String binValue = null;
+                        JsonPrimitive binJsonPrimitive = binsJsonArray.get(j).getAsJsonPrimitive();
+                        if (binJsonPrimitive == null) continue;
+                        
+                        if (binJsonPrimitive.isNumber()) binValue = binJsonPrimitive.getAsString();
+                        else if (binJsonPrimitive.isBoolean()) {
+                            if (binJsonPrimitive.getAsBoolean()) binValue = "1";
+                            else binValue = "0";
+                        }
+                        
+                        if (binValue != null) {
+                            BigDecimal binValue_BigDecimal = new BigDecimal(binValue.trim()).stripTrailingZeros();
+                            if (binValue_BigDecimal.compareTo(BigDecimal.ZERO) == 1) binValues_BigDecimal.add(binValue_BigDecimal);
+                        }
 
-                        for (Object binObject : binObjects) {
-                            Object binsObject = (Object) binObject;
-                            String binValue = JsonUtils.convertNumericObjectToString(binsObject, true);
-
-                            if (binValue != null) {
-                                BigDecimal binValue_BigDecimal = new BigDecimal(binValue.trim()).stripTrailingZeros();
-                                if (binValue_BigDecimal.compareTo(BigDecimal.ZERO) == 1) binValues_BigDecimal.add(binValue_BigDecimal);
-                            }
-
-                            if ((binsObject != null) && (binValue == null) && (binsObject instanceof String)) {
-                                binValue = (String) binsObject;
-                                if (binValue.trim().equalsIgnoreCase("inf")) isInfDetected = true;
-                            }
+                        if ((binValue == null) && binJsonPrimitive.isString() && binJsonPrimitive.getAsString().equalsIgnoreCase("inf")) {
+                            isInfDetected = true;
                         }
                     }
 
@@ -107,7 +124,17 @@ public class StatsdHistogramConfiguration {
                     }
                 }
                 catch (Exception e) {
-                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    if (jsonElementOfArray != null) {
+                        try {
+                            logger.warn("Statsd histogram configuration parse error: " + jsonElementOfArray.getAsString());
+                        }
+                        catch (Exception e2) {
+                            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                        }
+                    }
+                    else {
+                        logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                    }
                 }
             }
         }
