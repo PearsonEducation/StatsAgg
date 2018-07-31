@@ -11,6 +11,7 @@ StatsAgg 1.5  - released 2018-xx-xx
  * The 'Home' page now outputs the number of metric datapoints that are residing in StatsAgg's memory.
  * Email alerts now include tags
  * Support for single-metric OpenTSDB metrics via the HTTP API
+ * Support for scientific notation on OpenTSDB metric values 
  * All UI & APIs are now in UTF-8 (for support of exotic characters)
  * Regex tester now allows viewing of 'Metric Recent Values'
  * Apache Derby databases will be upgraded to version 10.14.2.0 (this happens automatically)
@@ -20,7 +21,7 @@ StatsAgg 1.5  - released 2018-xx-xx
 StatsAgg 1.4  - released 2015-08-20
  * Added support for receiving & outputting InfluxDB metrics
    * The metric format used in InfluxDB 0.6x, 0.7x, and 0.8x is supported (just in time for it to be depreciated)
-   * The metric format used in InfluxDB 0.9x will be supported in the next StatsAgg release
+   * The metric format used in InfluxDB 0.9x will be supported in a future StatsAgg release
  * Added support for 'sanitizing' Graphite & OpenTSDB metrics on output. This setting is unique to each output module instance.
  * Metric groups can now 'blacklist' metrics via regular expressions. When a metric is 'blacklisted' in a metric group, it will not represent itself as being a match for the metric group (and therefore cannot be alerted on).
  * Added support output via OpenTSDB HTTP/JSON

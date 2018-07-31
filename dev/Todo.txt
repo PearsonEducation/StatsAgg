@@ -1,9 +1,10 @@
 StatsAgg 1.5
  * Support underscores for MG API regexes
+   * Update documentation
+   * Details should output with underscores
  * Document API
    * Notification Groups
  * Update screenshots of 'suspensions' 
- * OpenTSDB value SI notation (quoted & unquoted) + unit tests
  
 StatsAgg 1.6
  * Divorce from Tomcat. Use an embedded HTTP server.
