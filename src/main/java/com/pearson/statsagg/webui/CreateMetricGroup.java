@@ -307,20 +307,24 @@ public class CreateMetricGroup extends HttpServlet {
 
         TreeSet<String> matchRegexes = null;
         TreeSet<String> matchRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
-        TreeSet<String> matchRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "match-regexes");
-        if ((matchRegexes_Ui != null) || (matchRegexes_Api != null)) {
+        TreeSet<String> matchRegexes_Api_1 = getMetricGroupNewlineDelimitedParameterValues(request, "match_regexes");
+        TreeSet<String> matchRegexes_Api_2 = getMetricGroupNewlineDelimitedParameterValues(request, "match-regexes");
+        if ((matchRegexes_Ui != null) || (matchRegexes_Api_1 != null) || (matchRegexes_Api_2 != null)) {
             matchRegexes = new TreeSet<>();
             if (matchRegexes_Ui != null) matchRegexes.addAll(matchRegexes_Ui);
-            if (matchRegexes_Api != null) matchRegexes.addAll(matchRegexes_Api);
+            if (matchRegexes_Api_1 != null) matchRegexes.addAll(matchRegexes_Api_1);
+            else if (matchRegexes_Api_2 != null) matchRegexes.addAll(matchRegexes_Api_2);
         }
         
         TreeSet<String> blacklistRegexes = null;
         TreeSet<String> blacklistRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
-        TreeSet<String> blacklistRegexes_Api = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist-regexes");
-        if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api != null)) {
+        TreeSet<String> blacklistRegexes_Api_1 = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist_regexes");
+        TreeSet<String> blacklistRegexes_Api_2 = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist-regexes");
+        if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api_1 != null) || (blacklistRegexes_Api_2 != null)) {
             blacklistRegexes = new TreeSet<>();
             if (blacklistRegexes_Ui != null) blacklistRegexes.addAll(blacklistRegexes_Ui);
-            if (blacklistRegexes_Api != null) blacklistRegexes.addAll(blacklistRegexes_Api);
+            if (blacklistRegexes_Api_1 != null) blacklistRegexes.addAll(blacklistRegexes_Api_1);
+            else if (blacklistRegexes_Api_2 != null) blacklistRegexes.addAll(blacklistRegexes_Api_2);
         }
         
         TreeSet<String> tags = null;
