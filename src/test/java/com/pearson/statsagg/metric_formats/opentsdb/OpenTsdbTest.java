@@ -185,16 +185,19 @@ public class OpenTsdbTest {
     public void testGetOpenTsdbJson() {
         String unparsedMetric1 = "tcollector1.reader.lines_collected2 1424566501 1203.1  tag2=mix  tag1=meow";
         String unparsedMetric2 = "tcollector2.reader.lines_collected2 1424566502000 1203.2 tag3=maow tag4=mox";
+        String unparsedMetric3 = "tcollector3.reader.lines_collected2 1424566501 1E6 tag2=mix  tag1=meow";
         
         OpenTsdbMetric parsedMetric1 = OpenTsdbMetric.parseOpenTsdbTelnetMetric(unparsedMetric1, "global.opentsdb.", 1366998400991L);
         OpenTsdbMetric parsedMetric2 = OpenTsdbMetric.parseOpenTsdbTelnetMetric(unparsedMetric2, null, 1366998400992L);
-
+        OpenTsdbMetric parsedMetric3 = OpenTsdbMetric.parseOpenTsdbTelnetMetric(unparsedMetric3, "global.opentsdb.", 1366998400991L);
+        
         List<OpenTsdbMetric> openTsdbMetrics = new ArrayList<>();
         openTsdbMetrics.add(parsedMetric1);
         openTsdbMetrics.add(parsedMetric2);
+        openTsdbMetrics.add(parsedMetric3);
         
         String json = OpenTsdbMetric.getOpenTsdbJson(openTsdbMetrics, false);
-        String expectedJson = "[{\"metric\":\"global.opentsdb.tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1203.1,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502000,\"value\":1203.2,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}}]";
+        String expectedJson = "[{\"metric\":\"global.opentsdb.tcollector1.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1203.1,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}},{\"metric\":\"tcollector2.reader.lines_collected2\",\"timestamp\":1424566502000,\"value\":1203.2,\"tags\":{\"tag3\":\"maow\",\"tag4\":\"mox\"}},{\"metric\":\"global.opentsdb.tcollector3.reader.lines_collected2\",\"timestamp\":1424566501,\"value\":1000000,\"tags\":{\"tag1\":\"meow\",\"tag2\":\"mix\"}}]";
         assertEquals(expectedJson, json);
     }
 
@@ -231,14 +234,23 @@ public class OpenTsdbTest {
                 + "           \"host\": \"web03\",\n"
                 + "           \"dc\": \"lga\"\n"
                 + "        }\n"
+                + "    },\n"
+                + "    {\n"
+                + "        \"metric\": \"sys.cpu.nice4\",\n"
+                + "        \"timestamp\": 1346846400,\n"
+                + "        \"value\": \"1E6\",\n"
+                + "        \"tags\": {\n"
+                + "           \"host\": \"web03\",\n"
+                + "           \"dc\": \"lga\"\n"
+                + "        }\n"
                 + "    }\n"
                 + "]";
         
         List<Integer> successCountAndFailCount = new ArrayList<>();
         List<OpenTsdbMetric> openTsdbMetrics = OpenTsdbMetric.parseOpenTsdbJson(inputJson, "global.opentsdb.", System.currentTimeMillis(), successCountAndFailCount);
         
-        assertEquals(openTsdbMetrics.size(), 2);
-        assertEquals(successCountAndFailCount.get(0).intValue(), 2);
+        assertEquals(openTsdbMetrics.size(), 3);
+        assertEquals(successCountAndFailCount.get(0).intValue(), 3);
         assertEquals(successCountAndFailCount.get(1).intValue(), 1);
 
         int matchCount = 0;
@@ -254,6 +266,14 @@ public class OpenTsdbTest {
                 assertTrue(openTsdbMetric.getMetricValue().equals(new BigDecimal("9")));
                 assertTrue(openTsdbMetric.getMetricTimestamp() == 1346846400L);
                 assertTrue(openTsdbMetric.getMetricKey().equals("global.opentsdb.sys.cpu.nice2 : dc=lga host=web02"));
+                matchCount++;
+            }
+            
+            
+            if (openTsdbMetric.getMetric().equals("global.opentsdb.sys.cpu.nice4")) {
+                assertTrue(openTsdbMetric.getMetricValue().compareTo(new BigDecimal("1000000")) == 0);
+                assertTrue(openTsdbMetric.getMetricTimestamp() == 1346846400L);
+                assertTrue(openTsdbMetric.getMetricKey().equals("global.opentsdb.sys.cpu.nice4 : dc=lga host=web03"));
                 matchCount++;
             }
         }
