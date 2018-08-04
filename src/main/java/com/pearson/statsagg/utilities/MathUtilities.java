@@ -1,6 +1,7 @@
 package com.pearson.statsagg.utilities;
 
 import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.math.MathContext;
 import java.math.RoundingMode;
 import java.util.ArrayList;
@@ -285,6 +286,80 @@ public class MathUtilities {
             return numericString;
         }
         
+    }
+    
+    public static String convertNumericObjectToString(Object numericObject, boolean treatBooleanAsNumeric) {
+        
+        if (numericObject == null) return null;
+        
+        String valueString = null;
+        
+        if (numericObject instanceof Integer) valueString = Integer.toString((Integer) numericObject);
+        else if (numericObject instanceof Long) valueString = Long.toString((Long) numericObject);
+        else if (numericObject instanceof Short) valueString = Short.toString((Short) numericObject);
+        else if (numericObject instanceof Byte) valueString = Byte.toString((Byte) numericObject);
+        else if (numericObject instanceof Double) valueString = Double.toString((Double) numericObject);
+        else if (numericObject instanceof Float) valueString = Float.toString((Float) numericObject);
+        else if (numericObject instanceof BigDecimal) {
+            BigDecimal numericObjectBigDecimal = (BigDecimal) numericObject;
+            valueString = numericObjectBigDecimal.stripTrailingZeros().toPlainString();
+        }
+        else if (numericObject instanceof BigInteger) {
+            BigInteger numericObjectBigInteger = (BigInteger) numericObject;
+            valueString = numericObjectBigInteger.toString();
+        }
+        else if ((numericObject instanceof Boolean) && treatBooleanAsNumeric) {
+            Boolean numberObjectBoolean = (Boolean) numericObject;
+            if (numberObjectBoolean) valueString = "1";
+            else valueString = "0";
+        }
+        else if ((numericObject instanceof Boolean) && !treatBooleanAsNumeric) {
+            Boolean numberObjectBoolean = (Boolean) numericObject;
+            if (numberObjectBoolean) valueString = "true";
+            else valueString = "false";
+        }
+        
+        return valueString;
+    }
+        
+    public static BigDecimal convertNumericObjectToBigDecimal(Object numericObject, boolean treatBooleanAsNumeric) {
+        
+        if (numericObject == null) return null;
+        
+        BigDecimal valueBigDecimal = null;
+        
+        if (numericObject instanceof BigDecimal) valueBigDecimal = (BigDecimal) numericObject;
+        else if (numericObject instanceof Integer) valueBigDecimal = new BigDecimal(Integer.toString((Integer) numericObject));
+        else if (numericObject instanceof Long) valueBigDecimal = new BigDecimal(Long.toString((Long) numericObject));
+        else if (numericObject instanceof Short) valueBigDecimal = new BigDecimal(Short.toString((Short) numericObject));
+        else if (numericObject instanceof Byte) valueBigDecimal = new BigDecimal(Byte.toString((Byte) numericObject));
+        else if (numericObject instanceof Double) valueBigDecimal = new BigDecimal(Double.toString((Double) numericObject));
+        else if (numericObject instanceof Float) valueBigDecimal = new BigDecimal(Float.toString((Float) numericObject));
+        else if (numericObject instanceof BigInteger) valueBigDecimal = new BigDecimal((BigInteger) numericObject);
+        else if ((numericObject instanceof Boolean) && treatBooleanAsNumeric) {
+            Boolean numberObjectBoolean = (Boolean) numericObject;
+            if (numberObjectBoolean) valueBigDecimal = BigDecimal.ONE;
+            else valueBigDecimal = BigDecimal.ZERO;
+        }
+
+        return valueBigDecimal;
+    }
+    
+    public static boolean isObjectNumericType(Object object, boolean treatBooleanAsNumeric) {
+        
+        if (object == null) return false;
+                
+        if (object instanceof Integer) return true;
+        else if (object instanceof Long) return true;
+        else if (object instanceof Short) return true;
+        else if (object instanceof Byte) return true;
+        else if (object instanceof Double) return true;
+        else if (object instanceof Float) return true;
+        else if (object instanceof BigDecimal) return true;
+        else if (object instanceof BigInteger) return true;
+        else if ((object instanceof Boolean) && treatBooleanAsNumeric) return true;
+        
+        return false;
     }
     
 }
