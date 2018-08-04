@@ -7,6 +7,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.JsonUtils;
+import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -140,7 +141,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         for (int i = 0; i < point.size(); i++) {
             Object pointColumnValue = point.get(i);
             String column = columns_.get(i);
-            if ((pointColumnValue == null) || !JsonUtils.isObjectNumberic(pointColumnValue, true)) continue;
+            if ((pointColumnValue == null) || !MathUtilities.isObjectNumericType(pointColumnValue, true)) continue;
             if ((column == null) || column.equals("time") || column.equals("sequence_number")) continue;
             
             StringBuilder metricKey = new StringBuilder();
@@ -149,7 +150,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             metricKey.append(name_).append(" : ").append(column);
             if ((metricKeyStringFields != null) && !metricKeyStringFields.isEmpty()) metricKey.append(" : ").append(metricKeyStringFields);
             
-            BigDecimal metricValue = JsonUtils.convertNumericObjectToBigDecimal(pointColumnValue, true);
+            BigDecimal metricValue = MathUtilities.convertNumericObjectToBigDecimal(pointColumnValue, true);
 
             long metricTimestamp;
             byte metricTimestampPrecision;
@@ -299,7 +300,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
                     Object pointObject = point.get(k);
                     if (pointObject == null) continue;
 
-                    if (JsonUtils.isObjectNumberic(pointObject, true)) influxdbJson.append(JsonUtils.convertNumericObjectToString(pointObject, false));
+                    if (MathUtilities.isObjectNumericType(pointObject, true)) influxdbJson.append(MathUtilities.convertNumericObjectToString(pointObject, false));
                     else if (pointObject instanceof String) influxdbJson.append("\"").append(StringEscapeUtils.escapeJson((String) pointObject)).append("\"");
 
                     if ((k + 1) != point.size()) influxdbJson.append(",");
