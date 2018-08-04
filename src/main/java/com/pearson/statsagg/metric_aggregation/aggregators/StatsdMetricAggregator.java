@@ -793,7 +793,7 @@ public class StatsdMetricAggregator {
 
             try {
                 BigDecimal metricValue = statsdMetric.getMetricValue();
-                String metricValueNormalized = metricValue.stripTrailingZeros().toPlainString();
+                String metricValueNormalized = MathUtilities.getFastPlainStringWithNoTrailingZeros(metricValue);
                 metricSet.add(metricValueNormalized);
                 sumTimestamp += statsdMetric.getMetricReceivedTimestampInMilliseconds();
                 metricCounter++;
