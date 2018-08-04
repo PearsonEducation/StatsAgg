@@ -22,9 +22,9 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -245,18 +245,18 @@ public class NotificationGroups extends HttpServlet {
 
             String alter = "<a href=\"CreateNotificationGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">alter</a>";
 
-            List<KeyValue> cloneKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
             cloneKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + notificationGroup.getName(), "NotificationGroups", "clone", cloneKeysAndValues);
             
-            List<KeyValue> testKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> testKeysAndValues = new ArrayList<>();
             testKeysAndValues.add(new KeyValue("Operation", "Test"));
             testKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String test = StatsAggHtmlFramework.buildJavaScriptPostLink("Test_" + notificationGroup.getName(), "NotificationGroups", "test", 
                     testKeysAndValues, true, "Are you sure you want to send a test email alert to \\'" + Encode.forJavaScript(notificationGroup.getName()) + "\\'?");
             
-            List<KeyValue> removeKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
             removeKeysAndValues.add(new KeyValue("Id", notificationGroup.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + notificationGroup.getName(), "NotificationGroups", "remove", 

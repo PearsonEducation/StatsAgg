@@ -10,8 +10,8 @@ import java.util.Map;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
-import com.pearson.statsagg.utilities.MathUtilities;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

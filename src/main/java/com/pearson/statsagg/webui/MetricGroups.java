@@ -20,8 +20,8 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -307,12 +307,12 @@ public class MetricGroups extends HttpServlet {
 
             String alter = "<a href=\"CreateMetricGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">alter</a>";
             
-            List<KeyValue> cloneKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
             cloneKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + metricGroup.getName(), "MetricGroups", "clone", cloneKeysAndValues);
             
-            List<KeyValue> removeKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
             removeKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroup.getName(), "MetricGroups", "remove", 

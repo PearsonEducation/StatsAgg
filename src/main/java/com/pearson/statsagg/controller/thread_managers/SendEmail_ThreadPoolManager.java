@@ -5,7 +5,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 import com.pearson.statsagg.alerts.EmailThread;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

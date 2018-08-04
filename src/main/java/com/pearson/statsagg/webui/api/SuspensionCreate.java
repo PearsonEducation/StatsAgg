@@ -1,7 +1,7 @@
 package com.pearson.statsagg.webui.api;
 
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;

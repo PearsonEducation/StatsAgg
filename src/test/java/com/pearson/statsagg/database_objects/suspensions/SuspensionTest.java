@@ -3,7 +3,7 @@ package com.pearson.statsagg.database_objects.suspensions;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.sql.Timestamp;
 import java.util.Calendar;
-import com.pearson.statsagg.utilities.DateAndTime;
+import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertFalse;

@@ -3,8 +3,8 @@ package com.pearson.statsagg.webui;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -9,7 +9,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbStandardizedMetric;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.HashSet;
 import java.util.Set;
 import org.slf4j.Logger;

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.database_engine.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

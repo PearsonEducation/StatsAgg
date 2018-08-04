@@ -14,9 +14,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -368,14 +368,14 @@ public class Suspensions extends HttpServlet {
             
             String enable; 
             if (suspension.isEnabled()) {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
                 keysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + suspension.getName(), "Suspensions", "disable", keysAndValues);
             }
             else {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
                 keysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
@@ -384,12 +384,12 @@ public class Suspensions extends HttpServlet {
             
             String alter = "<a href=\"CreateSuspension?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(suspension.getName()) + "\">alter</a>";
             
-            List<KeyValue> cloneKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
             cloneKeysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + suspension.getName(), "Suspensions", "clone", cloneKeysAndValues);
                     
-            List<KeyValue> removeKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
             removeKeysAndValues.add(new KeyValue("Id", suspension.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + suspension.getName(), "Suspensions", "remove", 

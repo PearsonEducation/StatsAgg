@@ -10,11 +10,11 @@ import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
 import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
-import com.pearson.statsagg.utilities.DateAndTime;
-import com.pearson.statsagg.utilities.JsonUtils;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.time_utils.DateAndTime;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Date;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -556,7 +556,7 @@ public class Suspension extends DatabaseObject<Suspension> {
                 }
             }
 
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "duration", "duration_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "duration", "duration_time_unit");
 
             currentFieldToAlter = "start_date";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);

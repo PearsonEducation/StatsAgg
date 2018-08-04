@@ -1,7 +1,7 @@
 package com.pearson.statsagg.controller.threads;
 
-import com.pearson.statsagg.utilities.InvokerThread;
-import com.pearson.statsagg.utilities.Threads;
+import com.pearson.statsagg.utilities.core_utils.InvokerThread;
+import com.pearson.statsagg.utilities.core_utils.Threads;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,4 +1,4 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.core_utils;
 
 import java.util.List;
 import java.util.concurrent.ExecutorService;

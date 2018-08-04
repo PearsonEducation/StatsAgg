@@ -9,7 +9,7 @@ import com.google.gson.annotations.SerializedName;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.webui.api.JsonOutputFieldNamingStrategy;
 import java.util.List;
 import org.apache.commons.lang3.builder.EqualsBuilder;

@@ -5,7 +5,7 @@ import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_engine.DatabaseConnections;
-import com.pearson.statsagg.utilities.DateAndTime;
+import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import java.io.InputStream;
 import java.sql.Timestamp;
 import java.util.Calendar;

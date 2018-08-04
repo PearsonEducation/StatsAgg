@@ -1,12 +1,13 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.utilities.web_utils.HttpLink;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Set;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
@@ -189,11 +190,12 @@ public class StatsAggHtmlFramework {
         return htmlBody.toString();
     }
     
-    public static String buildJavaScriptPostLink(String plaintextFormId, String postEndpoint, String linkText, List<KeyValue> postParameters) {
+    public static String buildJavaScriptPostLink(String plaintextFormId, String postEndpoint, String linkText, List<KeyValue<String,String>> postParameters) {
         return buildJavaScriptPostLink(plaintextFormId, postEndpoint, linkText, postParameters, false, null);
     }
     
-    public static String buildJavaScriptPostLink(String plaintextFormId, String postEndpoint, String linkText, List<KeyValue> postParameters, boolean confirmAction, String confirmationText) {
+    public static String buildJavaScriptPostLink(String plaintextFormId, String postEndpoint, String linkText, 
+            List<KeyValue<String,String>> postParameters, boolean confirmAction, String confirmationText) {
         
         if (plaintextFormId == null) {
             return null;
@@ -206,7 +208,7 @@ public class StatsAggHtmlFramework {
         stringBuilder.append("<form action=\"").append(postEndpoint).append("\" method=\"POST\" style=\"display: inline; margin-right: -4px;\" id=\"")
                 .append(encodedFormId).append("\" name=\"").append(encodedFormId).append("\">");
 
-        for (KeyValue postParameter : postParameters) {
+        for (KeyValue<String,String> postParameter : postParameters) {
             stringBuilder.append(" <input type=\"hidden\" ");
             stringBuilder.append("name=\"").append(postParameter.getKey()).append("\" value=\"").append(postParameter.getValue());
             stringBuilder.append("\"/> ");

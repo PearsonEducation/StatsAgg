@@ -1,6 +1,6 @@
 package com.pearson.statsagg.metric_formats.opentsdb;
 
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

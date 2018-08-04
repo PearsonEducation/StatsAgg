@@ -1,4 +1,4 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.core_utils;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

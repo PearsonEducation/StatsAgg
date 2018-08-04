@@ -1,6 +1,8 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.web_utils;
 
 import com.google.common.io.CharStreams;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;

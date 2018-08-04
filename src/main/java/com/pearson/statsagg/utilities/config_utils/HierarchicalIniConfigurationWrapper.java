@@ -1,5 +1,7 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.config_utils;
 
+import com.pearson.statsagg.utilities.file_utils.FileIo;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.InputStream;
@@ -7,52 +9,52 @@ import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Properties;
-import org.apache.commons.configuration.PropertiesConfiguration;
+import org.apache.commons.configuration.HierarchicalINIConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class PropertiesConfigurationWrapper {
+public class HierarchicalIniConfigurationWrapper {
     
-    private static final Logger logger = LoggerFactory.getLogger(PropertiesConfigurationWrapper.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(HierarchicalIniConfigurationWrapper.class.getName());
     
     private String configurationDirectory_ = null;
     private String configurationFilename_ = null;
     private InputStream configurationInputStream_ = null;
-    private PropertiesConfiguration propertiesConfiguration_ = null;
+    private HierarchicalINIConfiguration hierarchicalIniConfiguration_ = null;
     
-    public PropertiesConfigurationWrapper(String filePathAndFilename) {
-        readPropertiesConfigurationFile(filePathAndFilename);
+    public HierarchicalIniConfigurationWrapper(String filePathAndFilename) {
+        readHierarchicalIniConfigurationFile(filePathAndFilename);
     }
     
-    public PropertiesConfigurationWrapper(File propertiesFile) {
-        readPropertiesConfigurationFile(propertiesFile);
+    public HierarchicalIniConfigurationWrapper(File hierarchicalIniFile) {
+        readHierarchicalIniConfigurationFile(hierarchicalIniFile);
     }
     
-    public PropertiesConfigurationWrapper(InputStream configurationInputStream) {
-        readPropertiesConfigurationFile(configurationInputStream);
+    public HierarchicalIniConfigurationWrapper(InputStream configurationInputStream) {
+        readHierarchicalIniConfigurationFile(configurationInputStream);
     }
     
-    private void readPropertiesConfigurationFile(String filePathAndFilename) {
+    private void readHierarchicalIniConfigurationFile(String filePathAndFilename) {
         
         if (filePathAndFilename == null) {
             return;
         }
         
         try {
-            File propertiesFile = new File(filePathAndFilename);
+            File hierarchicalIniConfigurationFile_ = new File(filePathAndFilename);
             boolean doesFileExist = FileIo.doesFileExist(filePathAndFilename);
             
             if (doesFileExist) {
-                configurationDirectory_ = propertiesFile.getParent();
-                configurationFilename_ = propertiesFile.getName();
+                configurationDirectory_ = hierarchicalIniConfigurationFile_.getParent();
+                configurationFilename_ = hierarchicalIniConfigurationFile_.getName();
 
-                propertiesConfiguration_ = new PropertiesConfiguration();
-                propertiesConfiguration_.setDelimiterParsingDisabled(true);
-                propertiesConfiguration_.setAutoSave(false);
-                propertiesConfiguration_.load(propertiesFile);
+                hierarchicalIniConfiguration_ = new HierarchicalINIConfiguration();
+                hierarchicalIniConfiguration_.setDelimiterParsingDisabled(true);
+                hierarchicalIniConfiguration_.setAutoSave(false);
+                hierarchicalIniConfiguration_.load(hierarchicalIniConfigurationFile_);
             }
         }
         catch (Exception e) {
@@ -60,25 +62,25 @@ public class PropertiesConfigurationWrapper {
             
             configurationDirectory_ = null;
             configurationFilename_ = null;
-            propertiesConfiguration_ = null;
+            hierarchicalIniConfiguration_ = null;
         }
     }
     
-    private void readPropertiesConfigurationFile(File propertiesFile) {
+    private void readHierarchicalIniConfigurationFile(File hierarchicalIniFile) {
         
-        if (propertiesFile == null) {
+        if (hierarchicalIniFile == null) {
             return;
         }
         
         try {
-            if (propertiesFile.exists()) {
-                configurationDirectory_ = propertiesFile.getParent();
-                configurationFilename_ = propertiesFile.getName();
+            if (hierarchicalIniFile.exists()) {
+                configurationDirectory_ = hierarchicalIniFile.getParent();
+                configurationFilename_ = hierarchicalIniFile.getName();
 
-                propertiesConfiguration_ = new PropertiesConfiguration();
-                propertiesConfiguration_.setDelimiterParsingDisabled(true);
-                propertiesConfiguration_.setAutoSave(false);
-                propertiesConfiguration_.load(propertiesFile);
+                hierarchicalIniConfiguration_ = new HierarchicalINIConfiguration();
+                hierarchicalIniConfiguration_.setDelimiterParsingDisabled(true);
+                hierarchicalIniConfiguration_.setAutoSave(false);
+                hierarchicalIniConfiguration_.load(hierarchicalIniFile);
             }
         }
         catch (Exception e) {
@@ -86,11 +88,11 @@ public class PropertiesConfigurationWrapper {
             
             configurationDirectory_ = null;
             configurationFilename_ = null;
-            propertiesConfiguration_ = null;
+            hierarchicalIniConfiguration_ = null;
         }
     }
     
-    private void readPropertiesConfigurationFile(InputStream configurationInputStream) {
+    private void readHierarchicalIniConfigurationFile(InputStream configurationInputStream) {
         
         if (configurationInputStream == null) {
             return;
@@ -99,42 +101,43 @@ public class PropertiesConfigurationWrapper {
         try {
             configurationInputStream_ = configurationInputStream;
             
-            propertiesConfiguration_ = new PropertiesConfiguration();
-            propertiesConfiguration_.setDelimiterParsingDisabled(true);
-            propertiesConfiguration_.setAutoSave(false);
-            propertiesConfiguration_.load(configurationInputStream, null);
+            hierarchicalIniConfiguration_ = new HierarchicalINIConfiguration();
+            hierarchicalIniConfiguration_.setDelimiterParsingDisabled(true);
+            hierarchicalIniConfiguration_.setAutoSave(false);
+            hierarchicalIniConfiguration_.load(configurationInputStream, null);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             
             configurationInputStream_ = null;
-            propertiesConfiguration_ = null;
+            hierarchicalIniConfiguration_ = null;
         }
     }
     
-    public void savePropertiesConfigurationFile(String filePath, String filename) {
+    
+    public void saveHierarchicalIniConfigurationFile(String filePath, String filename) {
         try {
-            File propertyFile = new File(filePath + File.separator + filename);
-            propertiesConfiguration_.save(propertyFile);
+            File hierarchicalIniConfigurationFile = new File(filePath + File.separator + filename);
+            hierarchicalIniConfiguration_.save(hierarchicalIniConfigurationFile);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
     
-    public void savePropertiesConfigurationFile(File propertyFile) {
+    public void saveHierarchicalIniConfigurationFile(File hierarchicalIniConfigurationFile) {
         try {
-            propertiesConfiguration_.save(propertyFile);
+            hierarchicalIniConfiguration_.save(hierarchicalIniConfigurationFile);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
     
-    public String savePropertiesConfigurationToString() {
+    public String saveHierarchicalIniConfigurationToString() {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            propertiesConfiguration_.save(byteArrayOutputStream);
+            hierarchicalIniConfiguration_.save(byteArrayOutputStream);
             return byteArrayOutputStream.toString();
         }
         catch (Exception e) {
@@ -145,8 +148,8 @@ public class PropertiesConfigurationWrapper {
     
     public boolean isValid() {
         
-        boolean isConfigFileValid = (configurationDirectory_ != null) && (configurationFilename_ != null) && (propertiesConfiguration_ != null);
-        boolean isConfigInputStreamValue = (configurationInputStream_ != null) && (propertiesConfiguration_ != null);
+        boolean isConfigFileValid = (configurationDirectory_ != null) && (configurationFilename_ != null) && (hierarchicalIniConfiguration_ != null);
+        boolean isConfigInputStreamValue = (configurationInputStream_ != null) && (hierarchicalIniConfiguration_ != null);
         
         if (isConfigFileValid || isConfigInputStreamValue) {
             return true;
@@ -162,7 +165,7 @@ public class PropertiesConfigurationWrapper {
         boolean returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getBoolean(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getBoolean(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -176,7 +179,7 @@ public class PropertiesConfigurationWrapper {
         Boolean returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getBoolean(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getBoolean(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -190,7 +193,7 @@ public class PropertiesConfigurationWrapper {
         byte returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getByte(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getByte(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -204,7 +207,7 @@ public class PropertiesConfigurationWrapper {
         Byte returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getByte(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getByte(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -218,7 +221,7 @@ public class PropertiesConfigurationWrapper {
         short returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getShort(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getShort(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -232,7 +235,7 @@ public class PropertiesConfigurationWrapper {
         Short returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getShort(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getShort(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -246,7 +249,7 @@ public class PropertiesConfigurationWrapper {
         int returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getInt(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getInt(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -260,7 +263,7 @@ public class PropertiesConfigurationWrapper {
         Integer returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getInteger(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getInteger(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -274,7 +277,7 @@ public class PropertiesConfigurationWrapper {
         long returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getLong(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getLong(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -288,7 +291,7 @@ public class PropertiesConfigurationWrapper {
         Long returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getLong(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getLong(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -302,7 +305,7 @@ public class PropertiesConfigurationWrapper {
         float returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getFloat(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getFloat(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -316,7 +319,7 @@ public class PropertiesConfigurationWrapper {
         Float returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getFloat(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getFloat(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -330,7 +333,7 @@ public class PropertiesConfigurationWrapper {
         double returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getDouble(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getDouble(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -344,7 +347,7 @@ public class PropertiesConfigurationWrapper {
         Double returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getDouble(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getDouble(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -358,7 +361,7 @@ public class PropertiesConfigurationWrapper {
         BigInteger returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getBigInteger(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getBigInteger(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -372,7 +375,7 @@ public class PropertiesConfigurationWrapper {
         BigDecimal returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getBigDecimal(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getBigDecimal(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -386,7 +389,7 @@ public class PropertiesConfigurationWrapper {
         String returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getString(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getString(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -400,7 +403,7 @@ public class PropertiesConfigurationWrapper {
         String[] returnValue = null;
                 
         try {
-            returnValue = propertiesConfiguration_.getStringArray(key);
+            returnValue = hierarchicalIniConfiguration_.getStringArray(key);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -414,7 +417,7 @@ public class PropertiesConfigurationWrapper {
         List<Object> returnValue = defaultValue;
                 
         try {
-            returnValue = propertiesConfiguration_.getList(key, defaultValue);
+            returnValue = hierarchicalIniConfiguration_.getList(key, defaultValue);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -428,7 +431,7 @@ public class PropertiesConfigurationWrapper {
         Properties returnValue = defaults;
                 
         try {
-            returnValue = propertiesConfiguration_.getProperties(key, defaults);
+            returnValue = hierarchicalIniConfiguration_.getProperties(key, defaults);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -437,29 +440,29 @@ public class PropertiesConfigurationWrapper {
         return returnValue;
     }
     
-    public static void savePropertiesConfigurationFile(String filePath, String filename, PropertiesConfiguration propertiesConfiguration) {
+    public static void saveHierarchicalIniConfigurationFile(String filePath, String filename, HierarchicalINIConfiguration hierarchicalIniConfiguration) {
         try {
-            File propertyFile = new File(filePath + File.separator + filename);
-            propertiesConfiguration.save(propertyFile);
+            File hierarchicalIniConfigurationFile = new File(filePath + File.separator + filename);
+            hierarchicalIniConfiguration.save(hierarchicalIniConfigurationFile);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
     
-    public static void savePropertiesConfigurationFile(File propertyFile, PropertiesConfiguration propertiesConfiguration) {
+    public static void saveHierarchicalIniConfigurationFile(File hierarchicalIniConfigurationFile, HierarchicalINIConfiguration hierarchicalIniConfiguration) {
         try {
-            propertiesConfiguration.save(propertyFile);
+            hierarchicalIniConfiguration.save(hierarchicalIniConfigurationFile);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
     }
 
-    public static String savePropertiesConfigurationToString(PropertiesConfiguration propertiesConfiguration) {
+    public static String saveHierarchicalIniConfigurationToString(HierarchicalINIConfiguration hierarchicalIniConfiguration) {
         try {
             ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
-            propertiesConfiguration.save(byteArrayOutputStream);
+            hierarchicalIniConfiguration.save(byteArrayOutputStream);
             return byteArrayOutputStream.toString();
         }
         catch (Exception e) {
@@ -480,8 +483,8 @@ public class PropertiesConfigurationWrapper {
         return configurationInputStream_;
     }
     
-    public PropertiesConfiguration getPropertiesConfiguration() {
-        return propertiesConfiguration_;
+    public HierarchicalINIConfiguration getHierarchicalIniConfiguration() {
+        return hierarchicalIniConfiguration_;
     }
 
 }

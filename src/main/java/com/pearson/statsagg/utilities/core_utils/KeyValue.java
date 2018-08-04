@@ -1,33 +1,33 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.core_utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class KeyValue {
+public class KeyValue<S, T> {
     
     private static final Logger logger = LoggerFactory.getLogger(KeyValue.class.getName());
     
-    private String key_ = null;
-    public String value_ = null;
+    private S key_ = null;
+    public T value_ = null;
     
-    public KeyValue(String key, String value) {
+    public KeyValue(S key, T value) {
         this.key_ = key;
         this.value_ = value;
     }
 
-    public String getKey() {
+    public S getKey() {
         return key_;
     }
 
-    public void setKey(String key) {
+    public void setKey(S key) {
         this.key_ = key;
     }
 
-    public String getValue() {
+    public T getValue() {
         return value_;
     }
 
-    public void setValue(String value) {
+    public void setValue(T value) {
         this.value_ = value;
     }
     

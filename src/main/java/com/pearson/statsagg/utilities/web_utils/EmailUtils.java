@@ -1,5 +1,6 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.web_utils;
 
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;

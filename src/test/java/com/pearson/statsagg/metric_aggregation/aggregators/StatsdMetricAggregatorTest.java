@@ -7,7 +7,7 @@ import com.pearson.statsagg.globals.StatsdNthPercentiles;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
-import com.pearson.statsagg.utilities.Threads;
+import com.pearson.statsagg.utilities.core_utils.Threads;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

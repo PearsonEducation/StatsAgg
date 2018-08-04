@@ -2,7 +2,7 @@ package com.pearson.statsagg.database_objects.general_purpose;
 
 import com.pearson.statsagg.database_engine.DatabaseDao;
 import com.pearson.statsagg.database_engine.DatabaseInterface;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;

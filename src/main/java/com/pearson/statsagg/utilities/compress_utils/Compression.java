@@ -1,5 +1,7 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.compress_utils;
 
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.BufferedInputStream;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;

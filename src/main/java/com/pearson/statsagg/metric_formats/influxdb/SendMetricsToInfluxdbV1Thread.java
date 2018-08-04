@@ -1,6 +1,6 @@
 package com.pearson.statsagg.metric_formats.influxdb;
 
-import com.pearson.statsagg.utilities.HttpUtils;
+import com.pearson.statsagg.utilities.web_utils.HttpUtils;
 import java.util.List;
 import java.net.URL;
 import java.util.HashMap;
@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
 import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
-import com.pearson.statsagg.utilities.HttpRequest;
+import com.pearson.statsagg.utilities.web_utils.HttpRequest;
 
 /**
  * @author Jeffrey Schmidt

@@ -14,10 +14,9 @@ import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.utilities.JsonUtils;
-import com.pearson.statsagg.utilities.MathUtilities;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.webui.api.JsonBigDecimal;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.json_utils.JsonBigDecimal;
 import java.util.Calendar;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -945,7 +944,7 @@ public class Alert extends DatabaseObject<Alert> {
             }
             else jsonObject.remove(currentFieldToAlter);        
 
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "resend_alert_every", "resend_alert_every_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "resend_alert_every", "resend_alert_every_time_unit");
 
             currentFieldToAlter = "caution_operator";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
@@ -971,8 +970,8 @@ public class Alert extends DatabaseObject<Alert> {
                 jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
             }
 
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_window_duration", "caution_window_duration_time_unit");
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_stop_tracking_after", "caution_stop_tracking_after_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_window_duration", "caution_window_duration_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "caution_stop_tracking_after", "caution_stop_tracking_after_time_unit");
 
             currentFieldToAlter = "danger_operator";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);
@@ -998,8 +997,8 @@ public class Alert extends DatabaseObject<Alert> {
                 jsonObject.addProperty(currentFieldToAlter, jsonBigDecimal);
             }
 
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_window_duration", "danger_window_duration_time_unit");
-            JsonUtils.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_stop_tracking_after", "danger_stop_tracking_after_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_window_duration", "danger_window_duration_time_unit");
+            DatabaseObjectCommon.getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(jsonObject, "danger_stop_tracking_after", "danger_stop_tracking_after_time_unit");
 
             currentFieldToAlter = "allow_resend_alert";
             currentField_JsonElement = jsonObject.get(currentFieldToAlter);

@@ -12,10 +12,10 @@ import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.DateAndTime;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
-import com.pearson.statsagg.utilities.StringUtilities;
+import com.pearson.statsagg.utilities.time_utils.DateAndTime;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -490,7 +490,7 @@ public class AlertAssociations extends HttpServlet {
                     String forgetMetric = "";
 
                     if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-                        List<KeyValue> keysAndValues = new ArrayList<>();
+                        List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                         keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey, true)));
                         keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));
@@ -604,7 +604,7 @@ public class AlertAssociations extends HttpServlet {
                     String forgetMetric = "";
 
                     if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-                        List<KeyValue> keysAndValues = new ArrayList<>();
+                        List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                         keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey, true)));
                         keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));

@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import com.pearson.statsagg.database_engine.DatabaseObject;
-import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

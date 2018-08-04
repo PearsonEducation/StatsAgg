@@ -1,6 +1,10 @@
 package com.pearson.statsagg.database_objects;
 
-import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.json_utils.JsonBigDecimal;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -100,6 +104,42 @@ public class DatabaseObjectCommon {
         else if (timeUnitCode == TIME_UNIT_DAYS) return timeInMs_BigDecimal.divide(MILLISECONDS_PER_DAY, TIME_UNIT_SCALE, TIME_UNIT_ROUNDING_MODE).stripTrailingZeros();
         
         return null;
+    }
+    
+    public static JsonObject getApiFriendlyJsonObject_CorrectTimesAndTimeUnits(JsonObject jsonObject, String time_FieldName, String timeUnit_FieldName) {
+        
+        if (jsonObject == null) {
+            return null;
+        }
+        
+        try {
+            JsonElement time_jsonElement = jsonObject.get(time_FieldName);
+            JsonElement timeUnit_JsonElement = jsonObject.get(timeUnit_FieldName);
+
+            if ((time_jsonElement != null) && (timeUnit_JsonElement != null)) {
+                long currentField_JsonElement_Long = time_jsonElement.getAsLong();
+                int timeUnit_Int = timeUnit_JsonElement.getAsInt();
+                BigDecimal time_BigDecimal = DatabaseObjectCommon.getValueForTimeFromMilliseconds(currentField_JsonElement_Long, timeUnit_Int);
+                
+                jsonObject.remove(time_FieldName);
+                JsonBigDecimal time_JsonBigDecimal = new JsonBigDecimal(time_BigDecimal);
+                jsonObject.addProperty(time_FieldName, time_JsonBigDecimal);
+                
+                jsonObject.remove(timeUnit_FieldName);
+                jsonObject.addProperty(timeUnit_FieldName, DatabaseObjectCommon.getTimeUnitStringFromCode(timeUnit_Int, false));
+            }
+            else if (time_jsonElement != null) {
+                jsonObject.remove(time_FieldName);
+            }
+            else if (timeUnit_JsonElement != null) {
+                jsonObject.remove(timeUnit_FieldName);
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return jsonObject;
     }
     
 }

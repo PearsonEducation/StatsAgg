@@ -2,7 +2,7 @@ package com.pearson.statsagg.webui;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import javax.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

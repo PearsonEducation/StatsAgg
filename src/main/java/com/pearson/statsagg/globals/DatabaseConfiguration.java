@@ -1,7 +1,7 @@
 package com.pearson.statsagg.globals;
 
-import com.pearson.statsagg.utilities.PropertiesConfigurationWrapper;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.config_utils.PropertiesConfigurationWrapper;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Iterator;

@@ -1,5 +1,6 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.utilities.json_utils;
 
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.math.BigDecimal;
 
 /**
@@ -17,7 +18,7 @@ public class JsonBigDecimal extends BigDecimal {
 
     @Override
     public String toString() {
-        return this.stripTrailingZeros().toPlainString();
+        return MathUtilities.getFastPlainStringWithNoTrailingZeros(this);
     }
     
 }

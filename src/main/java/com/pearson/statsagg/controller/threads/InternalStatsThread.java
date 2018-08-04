@@ -2,7 +2,7 @@ package com.pearson.statsagg.controller.threads;
 
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.List;
 import java.util.Map.Entry;
 import org.slf4j.Logger;

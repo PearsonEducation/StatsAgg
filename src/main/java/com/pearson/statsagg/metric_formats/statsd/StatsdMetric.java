@@ -1,10 +1,10 @@
 package com.pearson.statsagg.metric_formats.statsd;
 
-import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.math.BigDecimal;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.pearson.statsagg.webui;
+package com.pearson.statsagg.utilities.web_utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

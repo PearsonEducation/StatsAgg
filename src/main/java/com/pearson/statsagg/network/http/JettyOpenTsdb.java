@@ -1,7 +1,7 @@
 package com.pearson.statsagg.network.http;
 
 import com.pearson.statsagg.network.JettyServer;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.webui.api.OpenTsdb_Put;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;

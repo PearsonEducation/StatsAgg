@@ -11,7 +11,7 @@ import java.util.concurrent.atomic.AtomicLong;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

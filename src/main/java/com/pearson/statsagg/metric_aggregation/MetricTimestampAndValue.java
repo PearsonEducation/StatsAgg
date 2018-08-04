@@ -1,6 +1,6 @@
 package com.pearson.statsagg.metric_aggregation;
 
-import com.pearson.statsagg.utilities.MathUtilities;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.math.BigDecimal;
 import java.util.Comparator;
 import org.apache.commons.lang3.builder.EqualsBuilder;

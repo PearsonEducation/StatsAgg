@@ -20,8 +20,8 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.KeyValue;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.KeyValue;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -433,14 +433,14 @@ public class Alerts extends HttpServlet {
             
             String enable; 
             if (alert.isEnabled()) {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
                 keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "false"));
                 enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "disable", keysAndValues);
             }
             else {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Enable"));
                 keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("Enabled", "true"));
@@ -458,7 +458,7 @@ public class Alerts extends HttpServlet {
                 (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()))
                )              
             {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
                 keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
@@ -466,7 +466,7 @@ public class Alerts extends HttpServlet {
             }
             else if ((alert.isCautionAlertActive() && ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()))) || 
                     (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
-                List<KeyValue> keysAndValues = new ArrayList<>();
+                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
                 keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
                 keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
                 keysAndValues.add(new KeyValue("IsAcknowledged", "true"));
@@ -477,12 +477,12 @@ public class Alerts extends HttpServlet {
             
             String alter = "<a href=\"CreateAlert?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">alter</a>";
             
-            List<KeyValue> cloneKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
             cloneKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
             String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alert.getName(), "Alerts", "clone", cloneKeysAndValues);
                     
-            List<KeyValue> removeKeysAndValues = new ArrayList<>();
+            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
             removeKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
             String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alert.getName(), "Alerts", "remove", 

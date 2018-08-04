@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.database_engine.DatabaseObjectDao;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;

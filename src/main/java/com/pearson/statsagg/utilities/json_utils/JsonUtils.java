@@ -1,8 +1,9 @@
-package com.pearson.statsagg.utilities;
+package com.pearson.statsagg.utilities.json_utils;
 
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,6 +1,6 @@
 package com.pearson.statsagg.database_engine;
 
-import com.pearson.statsagg.utilities.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.jolbox.bonecp.BoneCP;
 import com.jolbox.bonecp.BoneCPConfig;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
