@@ -1,7 +1,7 @@
 package com.pearson.statsagg.metric_formats.influxdb;
 
 import java.util.List;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
