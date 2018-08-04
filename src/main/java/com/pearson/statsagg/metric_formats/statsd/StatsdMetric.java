@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_formats.statsd;
 
+import com.pearson.statsagg.utilities.MathUtilities;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -251,7 +252,7 @@ public final class StatsdMetric {
     
     public String getMetricValueString() {
         if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
+        return MathUtilities.getFastPlainStringWithNoTrailingZeros(metricValue_);
     }
     
     public String getMetricType() {
