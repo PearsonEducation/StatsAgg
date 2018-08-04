@@ -123,7 +123,13 @@ public final class StatsdMetric {
             if (metricValueIndexRange > 0) {
                 String metricValueString = unparsedMetric.substring(bucketIndexRange + 1, metricValueIndexRange);
                 doesContainOperator = StringUtils.containsAny(metricValueString, "+-");
-                metricValue = new BigDecimal(metricValueString);
+                
+                if (metricValueString.length() > 100) {
+                    logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
+                }
+                else {
+                    metricValue = new BigDecimal(metricValueString);
+                }
             }
 
             int metricTypeIndexRange = unparsedMetric.indexOf('|', metricValueIndexRange + 1);
@@ -273,7 +279,7 @@ public final class StatsdMetric {
     
     public String getSampleRateString() {
         if (sampleRate_ == null) return null;
-        return sampleRate_.stripTrailingZeros().toPlainString();
+        return MathUtilities.getFastPlainStringWithNoTrailingZeros(sampleRate_);
     }
     
     public long getMetricReceivedTimestampInMilliseconds() {
