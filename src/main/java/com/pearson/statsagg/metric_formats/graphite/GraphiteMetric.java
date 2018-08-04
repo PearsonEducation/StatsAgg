@@ -276,8 +276,14 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             int metricValueIndexRange = unparsedMetric.indexOf(' ', metricPathIndexRange + 1);
             BigDecimal metricValueBigDecimal = null;
             if (metricValueIndexRange > 0) {
-                String metricValue = unparsedMetric.substring(metricPathIndexRange + 1, metricValueIndexRange);
-                metricValueBigDecimal = new BigDecimal(metricValue);
+                String metricValueString = unparsedMetric.substring(metricPathIndexRange + 1, metricValueIndexRange);
+                
+                if (metricValueString.length() > 100) {
+                    logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
+                }
+                else {
+                    metricValueBigDecimal = new BigDecimal(metricValueString);
+                }
             }
 
             String metricTimestampString = unparsedMetric.substring(metricValueIndexRange + 1, unparsedMetric.length());
