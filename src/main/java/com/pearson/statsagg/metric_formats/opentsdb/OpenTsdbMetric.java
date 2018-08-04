@@ -8,13 +8,14 @@ import com.pearson.statsagg.metric_formats.GenericMetricFormat;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
+import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import org.apache.commons.lang3.StringEscapeUtils;
+import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -320,8 +321,14 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             
             BigDecimal metricValueBigDecimal = null;
             if (metricValueIndexRange > 0) {
-                String metricValue = unparsedMetric.substring(metricTimestampIndexRange + 1, metricValueIndexRange);
-                metricValueBigDecimal = new BigDecimal(metricValue);
+                String metricValueString = unparsedMetric.substring(metricTimestampIndexRange + 1, metricValueIndexRange);
+                
+                if (metricValueString.length() > 100) {
+                    logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
+                }
+                else {
+                    metricValueBigDecimal = new BigDecimal(metricValueString);
+                }
             }
             
             List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseTags(unparsedMetric, metricValueIndexRange);
@@ -520,13 +527,15 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     protected static BigDecimal parseOpenTsdbJson_ValidateAndReturn_MetricValue(JsonObject jsonObject) {
         
         try {
-            BigDecimal metricValue = jsonObject.getAsJsonPrimitive("value").getAsBigDecimal();
+            String numericString = jsonObject.getAsJsonPrimitive("value").getAsString();
             
-            if (metricValue == null) {
-                logger.warn("Metric parse error. Invalid metric value: \"" + jsonObject.toString());
+            if (numericString.length() > 100) {
+                logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + numericString.length() + "\" characters long.");
                 return null;
             }
             
+            BigDecimal metricValue = new BigDecimal(numericString);
+
             return metricValue;
         }
         catch (Exception e) {    
@@ -670,7 +679,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     @Override
     public String getMetricValueString() {
         if (metricValue_ == null) return null;
-        return metricValue_.stripTrailingZeros().toPlainString();
+        return MathUtilities.getFastPlainStringWithNoTrailingZeros(metricValue_);
     }
     
     @Override
