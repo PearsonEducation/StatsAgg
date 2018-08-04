@@ -255,5 +255,36 @@ public class MathUtilities {
 
         return bigDecimal;
     }
+
+    public static String getFastPlainStringWithNoTrailingZeros(BigDecimal bigDecimal) {
+        
+        if (bigDecimal == null) return null;
+        
+        String numericString = bigDecimal.toPlainString();
+        if ((numericString == null) || (numericString.length() <= 1)) return numericString;
+            
+        try {
+            for (int i=(numericString.length()-1); i >= 0; i--) {
+                char currentChar = numericString.charAt(i);
+                if (currentChar == '0') continue;
+                if (currentChar == '.') return numericString.substring(0, i);
+                if (currentChar != '0') {
+                    for (int j = 0; j < i; j++) {
+                        if (numericString.charAt(j) == '.') {
+                            return numericString.substring(0, (i+1));
+                        }
+                    }
+                    return numericString;
+                }
+            }
+            
+            return numericString;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return numericString;
+        }
+        
+    }
     
 }
