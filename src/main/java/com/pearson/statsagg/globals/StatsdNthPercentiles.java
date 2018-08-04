@@ -36,12 +36,12 @@ public class StatsdNthPercentiles {
             for (String nthPercentile_String : nthPercentile_Strings) {
                 try {
                     BigDecimal statsdNthPercentile_BigDecimal = MathUtilities.smartBigDecimalScaleChange(new BigDecimal(nthPercentile_String.trim()), STATSD_SCALE, STATSD_ROUNDING_MODE);
-                    String nthPercentile_CleanString = statsdNthPercentile_BigDecimal.stripTrailingZeros().toPlainString();
-                    BigDecimal nthPercentile_Fractional_ = statsdNthPercentile_BigDecimal.divide(new BigDecimal("100"), STATSD_MATH_CONTEXT);
+                    String nthPercentile_CleanString = MathUtilities.getFastPlainStringWithNoTrailingZeros(statsdNthPercentile_BigDecimal);
+                    BigDecimal nthPercentile_Fractional = statsdNthPercentile_BigDecimal.divide(new BigDecimal("100"), STATSD_MATH_CONTEXT);
 
                     nthPercentiles_CleanStrings_.add(nthPercentile_CleanString);
                     nthPercentiles_CleanStrings_StatsdFormatted_.add(nthPercentile_CleanString.replace('.', '_').replace("-", "top"));
-                    nthPercentiles_Fractional_.add(nthPercentile_Fractional_);
+                    nthPercentiles_Fractional_.add(nthPercentile_Fractional);
                 }
                 catch (Exception e) {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

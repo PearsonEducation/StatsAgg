@@ -6,6 +6,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
+import com.pearson.statsagg.utilities.MathUtilities;
 import com.pearson.statsagg.utilities.StackTrace;
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -104,7 +105,7 @@ public class StatsdHistogramConfiguration {
                     }
 
                     for (BigDecimal binValue : binValues_BigDecimal) {
-                        String binValue_String = binValue.stripTrailingZeros().toPlainString();
+                        String binValue_String = MathUtilities.getFastPlainStringWithNoTrailingZeros(binValue);
                         binValues_String.add(binValue_String);
                         binValues_GraphiteFriendlyString.add(binValue_String.replace('.', '_'));
                     }
