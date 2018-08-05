@@ -513,8 +513,10 @@ public class DatabaseUtils {
                     boolean wasCommitSuccess = commit(connection, false);
                     
                     if (wasCommitSuccess) {
-                        List<Integer> affectedRowCounts_List_Batch = Arrays.stream(affectedRowCounts).boxed().collect(Collectors.toList());
-                        affectedRowCounts_List.addAll(affectedRowCounts_List_Batch);
+                        for (int i = 0; i < affectedRowCounts.length; i++) {
+                            Integer affectedRowCount = affectedRowCounts[i];
+                            affectedRowCounts_List.add(affectedRowCount);
+                        }
                     }
                     else {
                         for (int i = 0; i < affectedRowCounts.length; i++) {
@@ -523,8 +525,10 @@ public class DatabaseUtils {
                     }
                 }
                 else if (affectedRowCounts != null) { // we didn't commit, so store the results of the executeBatch call
-                    List<Integer> affectedRowCounts_List_Batch = Arrays.stream(affectedRowCounts).boxed().collect(Collectors.toList());
-                    affectedRowCounts_List.addAll(affectedRowCounts_List_Batch);
+                    for (int i = 0; i < affectedRowCounts.length; i++) {
+                        Integer affectedRowCount = affectedRowCounts[i];
+                        affectedRowCounts_List.add(affectedRowCount);
+                    }
                 }
                 else { // the results of the executeBatch command are invalid, set the results for every record for this batch as failed
                     for (int i = 0; i < parametersBatch.size(); i++) {
