@@ -36,6 +36,30 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     private String metricKey_ = null;
     private final int metricLength_;  // 'metric' refers to the OpenTSDB 'metric name' 
 
+    public OpenTsdbMetric(String metric, long metricTimestampInMilliseconds, BigDecimal metricValue, List<OpenTsdbTag> tags) {
+        this.metricTimestamp_ = metricTimestampInMilliseconds;
+        this.metricValue_ = metricValue;
+        this.isTimestampInMilliseconds_ = true;
+        this.metricReceivedTimestampInMilliseconds_ = metricTimestampInMilliseconds;
+        
+        this.metricKey_ = createAndGetMetricKey(metric, tags);
+        
+        if (metric != null) this.metricLength_ = metric.length();
+        else this.metricLength_ = -1;
+    }
+    
+    public OpenTsdbMetric(String metric, int metricTimestampInSeconds, BigDecimal metricValue, List<OpenTsdbTag> tags) {
+        this.metricTimestamp_ = metricTimestampInSeconds;
+        this.metricValue_ = metricValue;
+        this.isTimestampInMilliseconds_ = false;
+        this.metricReceivedTimestampInMilliseconds_ = metricTimestampInSeconds * 1000;
+        
+        this.metricKey_ = createAndGetMetricKey(metric, tags);
+        
+        if (metric != null) this.metricLength_ = metric.length();
+        else this.metricLength_ = -1;
+    }
+    
     public OpenTsdbMetric(String metric, long metricTimestamp, BigDecimal metricValue, List<OpenTsdbTag> tags, 
             boolean isTimestampInMilliseconds, long metricReceivedTimestampInMilliseconds) {
         this.metricTimestamp_ = metricTimestamp;
@@ -380,7 +404,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     }
     
     public static List<OpenTsdbMetric> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
-        return parseOpenTsdbJson(inputJson, metricPrefix, metricsReceivedTimestampInMilliseconds, new ArrayList<>());
+        return parseOpenTsdbJson(inputJson, metricPrefix, metricsReceivedTimestampInMilliseconds, new ArrayList<Integer>());
     }
     
     /* successCountAndFailCount is modified by this method. index-0 will have the successfully parsed metric count, and index-1 will have the metrics with errors count */
