@@ -75,7 +75,7 @@ public class AlertCreate extends HttpServlet {
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        com.pearson.statsagg.webui.CreateAlert createAlert = new com.pearson.statsagg.webui.CreateAlert();
+        com.pearson.statsagg.web_ui.CreateAlert createAlert = new com.pearson.statsagg.web_ui.CreateAlert();
         JsonObject alertJsonObject = Helper.getJsonObjectFromRequestBody(request);
         String result = createAlert.parseAndAlterAlert(alertJsonObject);
         return Helper.createSimpleJsonResponse(result);

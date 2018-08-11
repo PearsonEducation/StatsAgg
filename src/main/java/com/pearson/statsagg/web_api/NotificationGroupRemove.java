@@ -98,7 +98,7 @@ public class NotificationGroupRemove extends HttpServlet {
             NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(id);
             if (notificationGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.NotificationGroups notificationGroups = new com.pearson.statsagg.webui.NotificationGroups(); 
+            com.pearson.statsagg.web_ui.NotificationGroups notificationGroups = new com.pearson.statsagg.web_ui.NotificationGroups(); 
             String result = notificationGroups.removeNotificationGroup(id);
             
             return Helper.createSimpleJsonResponse(result);

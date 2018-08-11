@@ -98,7 +98,7 @@ public class AlertRemove extends HttpServlet {
             Alert alert = alertsDao.getAlert(id);
             if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts(); 
+            com.pearson.statsagg.web_ui.Alerts alerts = new com.pearson.statsagg.web_ui.Alerts(); 
             String result = alerts.removeAlert(id);
             
             return Helper.createSimpleJsonResponse(result);

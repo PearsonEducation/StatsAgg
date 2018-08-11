@@ -1,5 +1,6 @@
 package com.pearson.statsagg.webui;
 
+import com.pearson.statsagg.web_ui.SuspensionsLogic;
 import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;

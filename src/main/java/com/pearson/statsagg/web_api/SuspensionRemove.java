@@ -98,7 +98,7 @@ public class SuspensionRemove extends HttpServlet {
             Suspension suspension = suspensionsDao.getSuspension(id);
             if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions(); 
+            com.pearson.statsagg.web_ui.Suspensions suspensions = new com.pearson.statsagg.web_ui.Suspensions(); 
             String result = suspensions.removeSuspension(id);
             
             return Helper.createSimpleJsonResponse(result);

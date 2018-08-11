@@ -69,7 +69,7 @@ public class SuspensionCreate extends HttpServlet {
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        com.pearson.statsagg.webui.CreateSuspension createSuspension = new com.pearson.statsagg.webui.CreateSuspension();
+        com.pearson.statsagg.web_ui.CreateSuspension createSuspension = new com.pearson.statsagg.web_ui.CreateSuspension();
         JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
         String result = createSuspension.parseAndAlterSuspension(suspensionJsonObject);
         return Helper.createSimpleJsonResponse(result);

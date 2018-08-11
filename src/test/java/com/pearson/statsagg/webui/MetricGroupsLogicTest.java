@@ -1,6 +1,6 @@
 package com.pearson.statsagg.webui;
 
-import com.pearson.statsagg.webui.MetricGroupsLogic;
+import com.pearson.statsagg.web_ui.MetricGroupsLogic;
 import java.util.List;
 import java.util.TreeSet;
 import com.pearson.statsagg.controller.ContextManager;

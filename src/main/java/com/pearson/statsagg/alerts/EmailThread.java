@@ -14,7 +14,7 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.globals.ApplicationConfiguration;
-import com.pearson.statsagg.webui.StatsAggHtmlFramework;
+import com.pearson.statsagg.web_ui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.web_utils.EmailUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;

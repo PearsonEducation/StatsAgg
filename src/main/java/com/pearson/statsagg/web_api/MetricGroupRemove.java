@@ -98,7 +98,7 @@ public class MetricGroupRemove extends HttpServlet {
             MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
             if (metricGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.MetricGroups metricGroups = new com.pearson.statsagg.webui.MetricGroups(); 
+            com.pearson.statsagg.web_ui.MetricGroups metricGroups = new com.pearson.statsagg.web_ui.MetricGroups(); 
             String result = metricGroups.removeMetricGroup(metricGroup.getId());
             
             return Helper.createSimpleJsonResponse(result);
