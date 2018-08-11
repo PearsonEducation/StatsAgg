@@ -149,7 +149,7 @@ public class DatabaseDao {
     public void reset() {
         boolean closeConnectionAfterOperation = databaseInterface_.isCloseConnectionAfterOperation();
         
-        databaseInterface_.close();
+        if (databaseInterface_ != null) databaseInterface_.close();
         databaseInterface_ = null;
         
         databaseInterface_ = new DatabaseInterface(DatabaseConnections.getConnection());  
@@ -160,7 +160,7 @@ public class DatabaseDao {
     }
     
     public void close() {
-        databaseInterface_.close();
+        if (databaseInterface_ != null) databaseInterface_.close();
         databaseInterface_ = null;
         
         isConnectionValid_ = false;
