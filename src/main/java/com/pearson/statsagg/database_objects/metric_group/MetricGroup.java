@@ -110,8 +110,8 @@ public class MetricGroup extends DatabaseObject<MetricGroup> {
                 }
             }
             
-            jsonObject.add("match-regexes", matchRegexes);
-            jsonObject.add("blacklist-regexes", blacklistRegexes);
+            jsonObject.add("match_regexes", matchRegexes);
+            jsonObject.add("blacklist_regexes", blacklistRegexes);
             jsonObject.add("tags", tags);
             
             return jsonObject;
