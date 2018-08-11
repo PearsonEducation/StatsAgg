@@ -126,12 +126,12 @@ public class MetricGroups extends HttpServlet {
             String operation = request.getParameter("Operation");
 
             if ((operation != null) && operation.equals("Clone")) {
-                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Integer id = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
                 cloneMetricGroup(id);
             }
 
             if ((operation != null) && operation.equals("Remove")) {
-                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Integer id = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
                 removeMetricGroup(id);
             }
         }

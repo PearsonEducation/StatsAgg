@@ -9,7 +9,6 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
-import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupNewlineDelimitedParameterValues;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -18,6 +17,7 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import static com.pearson.statsagg.webui.CreateMetricGroup.getMetricGroupParameterValues;
 
 /**
  * @author Jeffrey Schmidt
@@ -78,8 +78,8 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         
         PrintWriter out = null;
         
-        TreeSet<String> matchRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
-        TreeSet<String> blacklistRegexes = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> matchRegexes = getMetricGroupParameterValues(request, "MatchRegexes");
+        TreeSet<String> blacklistRegexes = getMetricGroupParameterValues(request, "BlacklistRegexes");
         
         List matchRegexes_List = null, blacklistRegexes_List = null;
         if ((matchRegexes != null) && !matchRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(matchRegexes);

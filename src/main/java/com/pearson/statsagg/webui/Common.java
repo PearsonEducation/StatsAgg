@@ -15,7 +15,7 @@ public class Common {
     
     private static final Logger logger = LoggerFactory.getLogger(Common.class.getName());
 
-    public static String getParameterAsString(Object object, String parameterName) {
+    public static String getSingleParameterAsString(Object object, String parameterName) {
         
         if ((object == null) || (parameterName == null)) {
             return null;

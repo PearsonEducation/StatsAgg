@@ -123,11 +123,11 @@ public class Alerts extends HttpServlet {
         }
         
         try {
-            String operation = Common.getParameterAsString(request, "Operation");
+            String operation = Common.getSingleParameterAsString(request, "Operation");
 
             if ((operation != null) && operation.equals("Enable")) {
-                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
-                Boolean isEnabled = Boolean.parseBoolean(Common.getParameterAsString(request, "Enabled"));
+                Integer alertId = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
+                Boolean isEnabled = Boolean.parseBoolean(Common.getSingleParameterAsString(request, "Enabled"));
                 changeAlertEnabled(alertId, isEnabled);
             }
 
@@ -137,13 +137,13 @@ public class Alerts extends HttpServlet {
             }
 
             if ((operation != null) && operation.equals("Remove")) {
-                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Integer alertId = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
                 removeAlert(alertId);
             }
 
             if ((operation != null) && operation.equals("Acknowledge")) {
                 String isAcknowledged_String = request.getParameter("IsAcknowledged");
-                Integer alertId = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Integer alertId = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
 
                 try {
                     Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);

@@ -946,11 +946,11 @@ public class CreateAlert extends HttpServlet {
         String returnString;
         
         Alert alert = getAlertFromAlertParameters(request);
-        String oldName = Common.getParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
-            String id = Common.getParameterAsString(request, "Id");
-            if (id == null) id = Common.getParameterAsString(request, "id");
+            String id = Common.getSingleParameterAsString(request, "Id");
+            if (id == null) id = Common.getSingleParameterAsString(request, "id");
             
             if (id != null) {
                 try {
@@ -993,15 +993,15 @@ public class CreateAlert extends HttpServlet {
         try {
             String parameter;
 
-            parameter = Common.getParameterAsString(request, "Name");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
+            parameter = Common.getSingleParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             alert.setName(trimmedName);
             alert.setUppercaseName(trimmedName.toUpperCase());
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
             
-            parameter = Common.getParameterAsString(request, "Description");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "description");
+            parameter = Common.getSingleParameterAsString(request, "Description");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -1011,8 +1011,8 @@ public class CreateAlert extends HttpServlet {
             }
             else alert.setDescription("");
             
-            parameter = Common.getParameterAsString(request, "MetricGroupName");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "metric_group_name");
+            parameter = Common.getSingleParameterAsString(request, "MetricGroupName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "metric_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1022,46 +1022,46 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             else {
-                parameter = Common.getParameterAsString(request, "MetricGroupId");
-                if (parameter == null) parameter = Common.getParameterAsString(request, "metric_group_id");
+                parameter = Common.getSingleParameterAsString(request, "MetricGroupId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "metric_group_id");
                 if (parameter != null) {
                     String parameterTrimmed = parameter.trim();
                     if (!parameterTrimmed.isEmpty()) alert.setMetricGroupId(Integer.parseInt(parameterTrimmed));
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "Enabled");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "enabled");
+            parameter = Common.getSingleParameterAsString(request, "Enabled");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "enabled");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsEnabled(true);
             else alert.setIsEnabled(false);
 
-            parameter = Common.getParameterAsString(request, "CautionEnabled");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_enabled");
+            parameter = Common.getSingleParameterAsString(request, "CautionEnabled");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_enabled");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsCautionEnabled(true);
             else alert.setIsCautionEnabled(false);
             
-            parameter = Common.getParameterAsString(request, "DangerEnabled");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_enabled");
+            parameter = Common.getSingleParameterAsString(request, "DangerEnabled");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_enabled");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setIsDangerEnabled(true);
             else alert.setIsDangerEnabled(false);
             
-            parameter = Common.getParameterAsString(request, "Type");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "alert_type");
+            parameter = Common.getSingleParameterAsString(request, "Type");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "alert_type");
             if ((parameter != null) && parameter.contains("Availability")) alert.setAlertType(Alert.TYPE_AVAILABILITY);
             else if ((parameter != null) && parameter.contains("Threshold")) alert.setAlertType(Alert.TYPE_THRESHOLD);
             
-            parameter = Common.getParameterAsString(request, "AlertOnPositive");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "alert_on_positive");
+            parameter = Common.getSingleParameterAsString(request, "AlertOnPositive");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "alert_on_positive");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setAlertOnPositive(true);
             else alert.setAlertOnPositive(false);
 
-            parameter = Common.getParameterAsString(request, "AllowResendAlert");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "allow_resend_alert");
+            parameter = Common.getSingleParameterAsString(request, "AllowResendAlert");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "allow_resend_alert");
             if ((parameter != null) && (parameter.contains("on") || parameter.equalsIgnoreCase("true"))) alert.setAllowResendAlert(true);
             else alert.setAllowResendAlert(false);
 
-            parameter = Common.getParameterAsString(request, "ResendAlertEveryTimeUnit");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "resend_alert_every_time_unit");
+            parameter = Common.getSingleParameterAsString(request, "ResendAlertEveryTimeUnit");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "resend_alert_every_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1070,8 +1070,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "ResendAlertEvery");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "resend_alert_every");
+            parameter = Common.getSingleParameterAsString(request, "ResendAlertEvery");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "resend_alert_every");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1081,8 +1081,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionNotificationGroupName");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_notification_group_name");
+            parameter = Common.getSingleParameterAsString(request, "CautionNotificationGroupName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {
@@ -1092,16 +1092,16 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             else {
-                parameter = Common.getParameterAsString(request, "CautionNotificationGroupId");
-                if (parameter == null) parameter = Common.getParameterAsString(request, "caution_notification_group_id");
+                parameter = Common.getSingleParameterAsString(request, "CautionNotificationGroupId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_notification_group_id");
                 if (parameter != null) {
                     String parameterTrimmed = parameter.trim();
                     if (!parameterTrimmed.isEmpty()) alert.setCautionNotificationGroupId(Integer.parseInt(parameterTrimmed));
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionPositiveNotificationGroupName");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_positive_notification_group_name");
+            parameter = Common.getSingleParameterAsString(request, "CautionPositiveNotificationGroupName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_positive_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {
@@ -1111,16 +1111,16 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             else {
-                parameter = Common.getParameterAsString(request, "CautionPositiveNotificationGroupId");
-                if (parameter == null) parameter = Common.getParameterAsString(request, "caution_positive_notification_group_id");
+                parameter = Common.getSingleParameterAsString(request, "CautionPositiveNotificationGroupId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_positive_notification_group_id");
                 if (parameter != null) {
                     String parameterTrimmed = parameter.trim();
                     if (!parameterTrimmed.isEmpty()) alert.setCautionPositiveNotificationGroupId(Integer.parseInt(parameterTrimmed));
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionWindowDurationTimeUnit");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_window_duration_time_unit");
+            parameter = Common.getSingleParameterAsString(request, "CautionWindowDurationTimeUnit");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_window_duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1129,8 +1129,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionWindowDuration");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_window_duration");
+            parameter = Common.getSingleParameterAsString(request, "CautionWindowDuration");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_window_duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1140,8 +1140,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionStopTrackingAfterTimeUnit");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_stop_tracking_after_time_unit");
+            parameter = Common.getSingleParameterAsString(request, "CautionStopTrackingAfterTimeUnit");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_stop_tracking_after_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1150,8 +1150,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionStopTrackingAfter");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_stop_tracking_after");
+            parameter = Common.getSingleParameterAsString(request, "CautionStopTrackingAfter");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_stop_tracking_after");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {     
@@ -1161,8 +1161,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionMinimumSampleCount");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_minimum_sample_count");
+            parameter = Common.getSingleParameterAsString(request, "CautionMinimumSampleCount");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_minimum_sample_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1171,8 +1171,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionOperator");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_operator");
+            parameter = Common.getSingleParameterAsString(request, "CautionOperator");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_operator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1181,8 +1181,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "CautionCombination");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_combination");
+            parameter = Common.getSingleParameterAsString(request, "CautionCombination");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_combination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1191,8 +1191,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "CautionCombinationCount");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_combination_count");
+            parameter = Common.getSingleParameterAsString(request, "CautionCombinationCount");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_combination_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {                    
@@ -1201,8 +1201,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "CautionThreshold");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "caution_threshold");
+            parameter = Common.getSingleParameterAsString(request, "CautionThreshold");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "caution_threshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1211,8 +1211,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "DangerNotificationGroupName");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_notification_group_name");
+            parameter = Common.getSingleParameterAsString(request, "DangerNotificationGroupName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1222,16 +1222,16 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             else {
-                parameter = Common.getParameterAsString(request, "DangerNotificationGroupId");
-                if (parameter == null) parameter = Common.getParameterAsString(request, "danger_notification_group_id");
+                parameter = Common.getSingleParameterAsString(request, "DangerNotificationGroupId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_notification_group_id");
                 if (parameter != null) {
                     String parameterTrimmed = parameter.trim();
                     if (!parameterTrimmed.isEmpty()) alert.setDangerNotificationGroupId(Integer.parseInt(parameterTrimmed));
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerPositiveNotificationGroupName");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_positive_notification_group_name");
+            parameter = Common.getSingleParameterAsString(request, "DangerPositiveNotificationGroupName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_positive_notification_group_name");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1241,16 +1241,16 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             else {
-                parameter = Common.getParameterAsString(request, "DangerPositiveNotificationGroupId");
-                if (parameter == null) parameter = Common.getParameterAsString(request, "danger_positive_notification_group_id");
+                parameter = Common.getSingleParameterAsString(request, "DangerPositiveNotificationGroupId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_positive_notification_group_id");
                 if (parameter != null) {
                     String parameterTrimmed = parameter.trim();
                     if (!parameterTrimmed.isEmpty()) alert.setDangerPositiveNotificationGroupId(Integer.parseInt(parameterTrimmed));
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerWindowDurationTimeUnit");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_window_duration_time_unit");
+            parameter = Common.getSingleParameterAsString(request, "DangerWindowDurationTimeUnit");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_window_duration_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1259,8 +1259,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerWindowDuration");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_window_duration");
+            parameter = Common.getSingleParameterAsString(request, "DangerWindowDuration");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_window_duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1270,8 +1270,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerStopTrackingAfterTimeUnit");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_stop_tracking_after_time_unit");
+            parameter = Common.getSingleParameterAsString(request, "DangerStopTrackingAfterTimeUnit");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_stop_tracking_after_time_unit");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {      
@@ -1280,8 +1280,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerStopTrackingAfter");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_stop_tracking_after");
+            parameter = Common.getSingleParameterAsString(request, "DangerStopTrackingAfter");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_stop_tracking_after");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1291,8 +1291,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
            
-            parameter = Common.getParameterAsString(request, "DangerMinimumSampleCount");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_minimum_sample_count");
+            parameter = Common.getSingleParameterAsString(request, "DangerMinimumSampleCount");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_minimum_sample_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1301,8 +1301,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerOperator");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_operator");
+            parameter = Common.getSingleParameterAsString(request, "DangerOperator");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_operator");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1311,8 +1311,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "DangerCombination");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_combination");
+            parameter = Common.getSingleParameterAsString(request, "DangerCombination");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_combination");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1321,8 +1321,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
             
-            parameter = Common.getParameterAsString(request, "DangerCombinationCount");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_combination_count");
+            parameter = Common.getSingleParameterAsString(request, "DangerCombinationCount");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_combination_count");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
@@ -1331,8 +1331,8 @@ public class CreateAlert extends HttpServlet {
                 }
             }
 
-            parameter = Common.getParameterAsString(request, "DangerThreshold");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "danger_threshold");
+            parameter = Common.getSingleParameterAsString(request, "DangerThreshold");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "danger_threshold");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    

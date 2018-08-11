@@ -208,11 +208,11 @@ public class CreateNotificationGroup extends HttpServlet {
         String returnString;
         
         NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(request);
-        String oldName = Common.getParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
-            String id = Common.getParameterAsString(request, "Id");
-            if (id == null) id = Common.getParameterAsString(request, "id");
+            String id = Common.getSingleParameterAsString(request, "Id");
+            if (id == null) id = Common.getSingleParameterAsString(request, "id");
             
             if (id != null) {
                 try {
@@ -251,14 +251,14 @@ public class CreateNotificationGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = Common.getParameterAsString(request, "Name");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
+            parameter = Common.getSingleParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             notificationGroup.setName(trimmedName);
             notificationGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = Common.getParameterAsString(request, "EmailAddresses");
+            parameter = Common.getSingleParameterAsString(request, "EmailAddresses");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String emailAddresses;

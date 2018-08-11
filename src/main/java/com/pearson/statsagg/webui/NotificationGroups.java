@@ -141,7 +141,7 @@ public class NotificationGroups extends HttpServlet {
             }
 
             if ((operation != null) && operation.equals("Remove")) {
-                Integer id = Integer.parseInt(Common.getParameterAsString(request, "Id"));
+                Integer id = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
                 removeNotificationGroup(id);
             }
         }
