@@ -288,11 +288,11 @@ public class CreateMetricGroup extends HttpServlet {
         String returnString;
         
         MetricGroup metricGroup = getMetricGroupFromMetricGroupParameters(request);
-        String oldName = Common.getParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getParameterAsString(request, "old_name");
+        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
-            String id = Common.getParameterAsString(request, "Id");
-            if (id == null) id = Common.getParameterAsString(request, "id");
+            String id = Common.getSingleParameterAsString(request, "Id");
+            if (id == null) id = Common.getSingleParameterAsString(request, "id");
             
             if (id != null) {
                 try {
@@ -306,9 +306,9 @@ public class CreateMetricGroup extends HttpServlet {
         }
 
         TreeSet<String> matchRegexes = null;
-        TreeSet<String> matchRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "MatchRegexes");
-        TreeSet<String> matchRegexes_Api_1 = getMetricGroupNewlineDelimitedParameterValues(request, "match_regexes");
-        TreeSet<String> matchRegexes_Api_2 = getMetricGroupNewlineDelimitedParameterValues(request, "match-regexes");
+        TreeSet<String> matchRegexes_Ui = getMetricGroupParameterValues(request, "MatchRegexes");
+        TreeSet<String> matchRegexes_Api_1 = getMetricGroupParameterValues(request, "match_regexes");
+        TreeSet<String> matchRegexes_Api_2 = getMetricGroupParameterValues(request, "match-regexes");
         if ((matchRegexes_Ui != null) || (matchRegexes_Api_1 != null) || (matchRegexes_Api_2 != null)) {
             matchRegexes = new TreeSet<>();
             if (matchRegexes_Ui != null) matchRegexes.addAll(matchRegexes_Ui);
@@ -317,9 +317,9 @@ public class CreateMetricGroup extends HttpServlet {
         }
         
         TreeSet<String> blacklistRegexes = null;
-        TreeSet<String> blacklistRegexes_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "BlacklistRegexes");
-        TreeSet<String> blacklistRegexes_Api_1 = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist_regexes");
-        TreeSet<String> blacklistRegexes_Api_2 = getMetricGroupNewlineDelimitedParameterValues(request, "blacklist-regexes");
+        TreeSet<String> blacklistRegexes_Ui = getMetricGroupParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> blacklistRegexes_Api_1 = getMetricGroupParameterValues(request, "blacklist_regexes");
+        TreeSet<String> blacklistRegexes_Api_2 = getMetricGroupParameterValues(request, "blacklist-regexes");
         if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api_1 != null) || (blacklistRegexes_Api_2 != null)) {
             blacklistRegexes = new TreeSet<>();
             if (blacklistRegexes_Ui != null) blacklistRegexes.addAll(blacklistRegexes_Ui);
@@ -328,8 +328,8 @@ public class CreateMetricGroup extends HttpServlet {
         }
         
         TreeSet<String> tags = null;
-        TreeSet<String> tags_Ui = getMetricGroupNewlineDelimitedParameterValues(request, "Tags");
-        TreeSet<String> tags_Api = getMetricGroupNewlineDelimitedParameterValues(request, "tags");
+        TreeSet<String> tags_Ui = getMetricGroupParameterValues(request, "Tags");
+        TreeSet<String> tags_Api = getMetricGroupParameterValues(request, "tags");
         if ((tags_Ui != null) || (tags_Api != null)) {
             tags = new TreeSet<>();
             if (tags_Ui != null) tags.addAll(tags_Ui);
@@ -366,15 +366,15 @@ public class CreateMetricGroup extends HttpServlet {
         try {
             String parameter;
 
-            parameter = Common.getParameterAsString(request, "Name");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "name");
+            parameter = Common.getSingleParameterAsString(request, "Name");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             metricGroup.setName(trimmedName);
             metricGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
-            parameter = Common.getParameterAsString(request, "Description");
-            if (parameter == null) parameter = Common.getParameterAsString(request, "description");
+            parameter = Common.getSingleParameterAsString(request, "Description");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
             if (parameter != null) {
                 String trimmedParameter = parameter.trim();
                 String description;
@@ -396,7 +396,7 @@ public class CreateMetricGroup extends HttpServlet {
         return metricGroup;
     }
 
-    protected static TreeSet<String> getMetricGroupNewlineDelimitedParameterValues(Object request, String parameterName) {
+    protected static TreeSet<String> getMetricGroupParameterValues(Object request, String parameterName) {
         
         if ((request == null) || (parameterName == null)) {
             return null;
@@ -406,13 +406,15 @@ public class CreateMetricGroup extends HttpServlet {
         TreeSet<String> parameterValues = new TreeSet<>();
 
         try {
-            String parameter = Common.getParameterAsString(request, parameterName);
-            
-            if (parameter != null) {
-                Scanner scanner = new Scanner(parameter);
+            if (request instanceof HttpServletRequest) {
+                String parameter = Common.getSingleParameterAsString(request, parameterName);
                 
-                while (scanner.hasNext()) {
-                    parameterValues.add(scanner.nextLine().trim());
+                if (parameter != null) {
+                    Scanner scanner = new Scanner(parameter);
+
+                    while (scanner.hasNext()) {
+                        parameterValues.add(scanner.nextLine().trim());
+                    }
                 }
             }
             else if (request instanceof JsonObject) {
