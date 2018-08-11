@@ -1,8 +1,8 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
@@ -14,16 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author prashant kumar (prashant4nov)
+ * @author prashant4nov (Prashant Kumar)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_MetricGroup_Remove", urlPatterns = {"/api/metric-group-remove"})
-public class MetricGroupRemove extends HttpServlet {
+@WebServlet(name = "API_Alert_Enable", urlPatterns = {"/api/alert-enable"})
+public class AlertEnable extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(MetricGroupRemove.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertEnable.class.getName());
     
-    public static final String PAGE_NAME = "API_MetricGroup_Remove";
-    
+    public static final String PAGE_NAME = "API_Alert_Enable";
+ 
     /**
      * Returns a short description of the servlet.
      *
@@ -33,9 +33,9 @@ public class MetricGroupRemove extends HttpServlet {
     public String getServletInfo() {
         return PAGE_NAME;
     }
-    
+      
     /**
-     * Handles the HTTP <code>GET</code> method.
+     * Handles the HTTP <code>POST</code> method.
      *
      * @param request servlet request
      * @param response servlet response
@@ -55,24 +55,23 @@ public class MetricGroupRemove extends HttpServlet {
         }
         
         try {    
-            String returnString = processPostRequest(request);       
+            String responseMsg = processPostRequest(request);       
             out = response.getWriter();
-            out.println(returnString);
+            out.println(responseMsg);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }  
+        } 
         finally {            
             if (out != null) {
                 out.close();
             }
-        } 
-        
+        }
     }
-    
+
     /**
-     * Returns a string with a success message if metric group is deleted successfully, 
-     * or an error message if the request fails to delete the metric group.
+     * Returns a string with a success message if alert is enabled/disabled successfully,
+     * or an error message if the request fails to enable/disable the alert.
      * 
      * @param request servlet request
      * @return success or error message
@@ -82,24 +81,25 @@ public class MetricGroupRemove extends HttpServlet {
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
-        
+
         try {
             JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
+            Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
             if ((id == null) && (name != null)) {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(name);
-                id = metricGroup.getId();
+                AlertsDao alertsDao = new AlertsDao();
+                Alert alert = alertsDao.getAlertByName(name);
+                id = alert.getId();
             }
             
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
-            if (metricGroup == null) return Helper.ERROR_NOTFOUND_JSON;
+            AlertsDao alertsDao = new AlertsDao();
+            Alert alert = alertsDao.getAlert(id);
+            if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.MetricGroups metricGroups = new com.pearson.statsagg.webui.MetricGroups(); 
-            String result = metricGroups.removeMetricGroup(metricGroup.getId());
+            com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts();
+            String result = alerts.changeAlertEnabled(alert.getId(), isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }
@@ -107,7 +107,6 @@ public class MetricGroupRemove extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return Helper.ERROR_UNKNOWN_JSON;
         }
-        
     }
-    
+
 }

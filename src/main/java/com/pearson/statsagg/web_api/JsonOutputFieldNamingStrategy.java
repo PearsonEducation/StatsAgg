@@ -1,4 +1,4 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.FieldNamingStrategy;
 import java.lang.reflect.Field;

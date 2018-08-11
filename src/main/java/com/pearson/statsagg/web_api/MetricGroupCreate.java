@@ -1,8 +1,7 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import java.io.IOException;
 import java.io.PrintWriter;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -12,18 +11,34 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author prashant kumar (Prashant4nov)
- * @author Jeffrey Schmidt
+ * @author prashant kumar(prashant4nov)
  */
-@WebServlet(name = "API_Suspension_Create", urlPatterns = {"/api/suspension-create"})
-public class SuspensionCreate extends HttpServlet {
+@WebServlet(name = "API_MetricGroup_Create", urlPatterns = {"/api/metric-group-create"})
+public class MetricGroupCreate extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(SuspensionCreate.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(MetricGroupCreate.class.getName());
     
-    public static final String PAGE_NAME = "API_Suspension_Create";
+    public static final String PAGE_NAME = "API_MetricGroup_Create";
+
+    /**
+     * Returns a short description of the servlet.
+     *
+     * @return a String containing servlet description
+     */
+    @Override
+    public String getServletInfo() {
+        return PAGE_NAME;
+    }
     
+    /**
+     * Handles the HTTP <code>POST</code> method.
+     *
+     * @param request servlet request
+     * @param response servlet response
+     */
     @Override
     protected void doPost(HttpServletRequest request, HttpServletResponse response) {
+        logger.debug("doPost");
         
         PrintWriter out = null;
         
@@ -41,37 +56,28 @@ public class SuspensionCreate extends HttpServlet {
             out = response.getWriter();
             out.println(result);
         } 
-        catch (IOException ex) {
-            logger.error(ex.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(ex));
+        catch(Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {            
             if (out != null) {
                 out.close();
             }
         } 
+        
     }
-    
+
     /**
-     * Returns a short description of the servlet.
-     *
-     * @return a String containing servlet description
-     */
-    @Override
-    public String getServletInfo() {
-        return PAGE_NAME;
-    }
-    
-    /**
-     * Returns a string with success message if the suspension was successfully created,
-     * or an error message if the request fails to create the suspension.
+     * Returns a string with success message if the metric group was successfully created,
+     * or an error message if the request fails to create the metric group.
      * 
      * @param request servlet request
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        com.pearson.statsagg.webui.CreateSuspension createSuspension = new com.pearson.statsagg.webui.CreateSuspension();
+        com.pearson.statsagg.webui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.webui.CreateMetricGroup();
         JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createSuspension.parseAndAlterSuspension(suspensionJsonObject);
+        String result = createMetricGroup.parseAndAlterMetricGroup(suspensionJsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

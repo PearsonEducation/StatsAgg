@@ -1,8 +1,8 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.database_objects.suspensions.Suspension;
-import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
@@ -14,16 +14,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author prashant4nov (Prashant Kumar)
+ * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Suspension_Remove", urlPatterns = {"/api/suspension-remove"})
-public class SuspensionRemove extends HttpServlet {
+@WebServlet(name = "API_NotificationGroup_Remove", urlPatterns = {"/api/notification-group-remove"})
+public class NotificationGroupRemove extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(SuspensionRemove.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupRemove.class.getName());
     
-    public static final String PAGE_NAME = "API_Suspension_Remove";
- 
+    public static final String PAGE_NAME = "API_NotificationGroup_Remove";
+    
     /**
      * Returns a short description of the servlet.
      *
@@ -33,15 +33,15 @@ public class SuspensionRemove extends HttpServlet {
     public String getServletInfo() {
         return PAGE_NAME;
     }
-      
+    
     /**
-     * Handles the HTTP <code>POST</code> method.
+     * Handles the HTTP <code>GET</code> method.
      *
      * @param request servlet request
      * @param response servlet response
      */
     @Override
-    protected void doPost(HttpServletRequest request, HttpServletResponse response) {     
+    protected void doPost(HttpServletRequest request, HttpServletResponse response) {
         
         PrintWriter out = null;
         
@@ -61,7 +61,7 @@ public class SuspensionRemove extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }   
+        }  
         finally {            
             if (out != null) {
                 out.close();
@@ -71,8 +71,8 @@ public class SuspensionRemove extends HttpServlet {
     }
 
     /**
-     * Returns a string with a success message if the suspension is deleted successfully,
-     * or an error message if the request fails to delete the suspension.
+     * Returns a string with a success message if the notification group is deleted successfully,
+     * or an error message if the request fails to delete the notification group.
      * 
      * @param request servlet request
      * @return success or error message
@@ -89,17 +89,17 @@ public class SuspensionRemove extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if ((id == null) && (name != null)) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspensionByName(name);
-                id = suspension.getId();
+                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(name);
+                id = notificationGroup.getId();
             }
             
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspension(id);
-            if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
+            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
+            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(id);
+            if (notificationGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions(); 
-            String result = suspensions.removeSuspension(id);
+            com.pearson.statsagg.webui.NotificationGroups notificationGroups = new com.pearson.statsagg.webui.NotificationGroups(); 
+            String result = notificationGroups.removeNotificationGroup(id);
             
             return Helper.createSimpleJsonResponse(result);
         }

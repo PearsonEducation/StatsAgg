@@ -1,4 +1,4 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;

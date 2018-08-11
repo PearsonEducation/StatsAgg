@@ -8,7 +8,7 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import com.pearson.statsagg.webui.api.JsonOutputFieldNamingStrategy;
+import com.pearson.statsagg.web_api.JsonOutputFieldNamingStrategy;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;

@@ -1,8 +1,8 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.database_objects.alerts.Alert;
-import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
@@ -14,15 +14,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * @author prashant4nov (Prashant Kumar)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Alert_Enable", urlPatterns = {"/api/alert-enable"})
-public class AlertEnable extends HttpServlet {
+@WebServlet(name = "API_Suspension_Enable", urlPatterns = {"/api/suspension-enable"})
+public class SuspensionEnable extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlertEnable.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionEnable.class.getName());
     
-    public static final String PAGE_NAME = "API_Alert_Enable";
+    public static final String PAGE_NAME = "API_Suspension_Enable";
  
     /**
      * Returns a short description of the servlet.
@@ -61,27 +60,28 @@ public class AlertEnable extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        } 
+        }  
         finally {            
             if (out != null) {
                 out.close();
             }
-        }
+        } 
+        
     }
 
     /**
-     * Returns a string with a success message if alert is enabled/disabled successfully,
-     * or an error message if the request fails to enable/disable the alert.
+     * Returns a string with a success message if suspension is enabled/disabled successfully,
+     * or an error message if the request fails to enable/disable the suspension.
      * 
      * @param request servlet request
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        
+      
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
-
+        
         try {
             JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
             Integer id = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
@@ -89,17 +89,17 @@ public class AlertEnable extends HttpServlet {
             Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
             if ((id == null) && (name != null)) {
-                AlertsDao alertsDao = new AlertsDao();
-                Alert alert = alertsDao.getAlertByName(name);
-                id = alert.getId();
+                SuspensionsDao suspensionsDao = new SuspensionsDao();
+                Suspension suspension = suspensionsDao.getSuspensionByName(name);
+                id = suspension.getId();
             }
             
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(id);
-            if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
+            SuspensionsDao suspensionsDao = new SuspensionsDao();
+            Suspension suspension = suspensionsDao.getSuspension(id);
+            if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.webui.Alerts alerts = new com.pearson.statsagg.webui.Alerts();
-            String result = alerts.changeAlertEnabled(alert.getId(), isEnabled);
+            com.pearson.statsagg.webui.Suspensions suspensions = new com.pearson.statsagg.webui.Suspensions();
+            String result = suspensions.changeSuspensionEnabled(id, isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }
@@ -107,6 +107,7 @@ public class AlertEnable extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return Helper.ERROR_UNKNOWN_JSON;
         }
+        
     }
 
 }

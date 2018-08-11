@@ -1,8 +1,10 @@
-package com.pearson.statsagg.webui.api;
+package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.alerts.Alert;
+import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.suspensions.Suspension;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
@@ -17,12 +19,12 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_NotificationGroup_Details", urlPatterns={"/api/notification-group-details"})
-public class NotificationGroupDetails extends HttpServlet {
+@WebServlet(name="API_Suspension_Details", urlPatterns={"/api/suspension-details"})
+public class SuspensionDetails extends HttpServlet {
     
-    private static final Logger logger = LoggerFactory.getLogger(NotificationGroupDetails.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(SuspensionDetails.class.getName());
     
-    public static final String PAGE_NAME = "API_NotificationGroup_Details";
+    public static final String PAGE_NAME = "API_Suspension_Details";
     
     /**
      * Returns a short description of the servlet.
@@ -70,7 +72,7 @@ public class NotificationGroupDetails extends HttpServlet {
         }
         
         try {
-            String json = getNotificationGroupDetails(request);
+            String json = getSuspensionDetails(request);
             out = response.getWriter();
             out.println(json);
         }
@@ -84,43 +86,61 @@ public class NotificationGroupDetails extends HttpServlet {
         } 
         
     }
-
+    
     /**
-     * Returns a json string containing the details of the requested notification group.
+     * Returns a json string containing the details of the requested suspension.
      * 
      * @param request servlet request
-     * @return details of the requested notification group
+     * @return details of the requested suspension
      */
-    protected String getNotificationGroupDetails(HttpServletRequest request) {
+    private String getSuspensionDetails(HttpServletRequest request) {
         
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
+        SuspensionsDao suspensionsDao = null;
+        
         try {
-            Integer notificationGroupId = null;
-            String notificationGroupName = null;
+            Integer suspensionId = null;
+            String suspensionName = null;
 
-            if (request.getParameter("id") != null) notificationGroupId = Integer.parseInt(request.getParameter("id"));
-            if (request.getParameter("name") != null) notificationGroupName = request.getParameter("name");
+            if (request.getParameter("id") != null) suspensionId = Integer.parseInt(request.getParameter("id"));
+            if (request.getParameter("name") != null) suspensionName = request.getParameter("name");
 
-            if ((notificationGroupId == null) && (notificationGroupName == null)) {
+            if ((suspensionId == null) && (suspensionName == null)) {
                 JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
-                notificationGroupId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
-                notificationGroupName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
+                suspensionId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
+                suspensionName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             }
 
-            NotificationGroup notificationGroup = null;
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            if (notificationGroupId != null) notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
-            else if (notificationGroupName != null) notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
-            else notificationGroupsDao.close();
+            Suspension suspension = null;
+            suspensionsDao = new SuspensionsDao(false);
+            if (suspensionId != null) suspension = suspensionsDao.getSuspension(suspensionId);
+            else if (suspensionName != null) suspension = suspensionsDao.getSuspensionByName(suspensionName);
             
-            if (notificationGroup != null) return NotificationGroup.getJsonString_ApiFriendly(notificationGroup);
+            Alert alert = null;
+            if ((suspension != null) && (suspension.getAlertId() != null)) {
+                AlertsDao alertsDao = new AlertsDao(suspensionsDao.getDatabaseInterface());
+                alert = alertsDao.getAlert(suspension.getAlertId());
+            }
+            
+            suspensionsDao.close();
+            suspensionsDao = null;
+            
+            if (suspension != null) return Suspension.getJsonString_ApiFriendly(suspension, alert);
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
+        }
+        finally {  
+            try {
+                if (suspensionsDao != null) suspensionsDao.close();
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
         return Helper.ERROR_UNKNOWN_JSON;

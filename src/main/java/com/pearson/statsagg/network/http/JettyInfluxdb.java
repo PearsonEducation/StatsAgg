@@ -2,7 +2,7 @@ package com.pearson.statsagg.network.http;
 
 import com.pearson.statsagg.network.JettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import com.pearson.statsagg.webui.api.InfluxdbV1_Write;
+import com.pearson.statsagg.web_api.InfluxdbV1_Write;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.slf4j.Logger;
