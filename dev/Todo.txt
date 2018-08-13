@@ -1,9 +1,4 @@
 StatsAgg 1.5
- * Support underscores for MG API regexes
-   * Update documentation
-   * Details should output with underscores
- * Document API
-   * Notification Groups
  * Update screenshots of 'suspensions' 
  
 StatsAgg 1.6
