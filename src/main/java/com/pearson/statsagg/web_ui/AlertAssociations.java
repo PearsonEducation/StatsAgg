@@ -494,6 +494,7 @@ public class AlertAssociations extends HttpServlet {
                         keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeCautionAlertMetricKey, true)));
                         keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));
+                        keysAndValues.add(new KeyValue("ExcludeNavbar", Boolean.toString(excludeNavbar)));
                         forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeCautionAlertMetricKey + "Caution"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
                                 "Are you sure you want to remove this metric? " +
@@ -608,6 +609,7 @@ public class AlertAssociations extends HttpServlet {
                         keysAndValues.add(new KeyValue("ForgetMetric", StatsAggHtmlFramework.htmlEncode(activeDangerAlertMetricKey, true)));
                         keysAndValues.add(new KeyValue("Name", StatsAggHtmlFramework.htmlEncode(alert.getName(), true)));
                         keysAndValues.add(new KeyValue("Level", level));
+                        keysAndValues.add(new KeyValue("ExcludeNavbar", Boolean.toString(excludeNavbar)));
                         forgetMetric = StatsAggHtmlFramework.buildJavaScriptPostLink("ForgetMetric_" + (activeDangerAlertMetricKey + "Danger"), "AlertAssociations", 
                                 "<i class=\"fa fa-times\"></i>", keysAndValues, true, 
                                 "Are you sure you want to remove this metric? " +
