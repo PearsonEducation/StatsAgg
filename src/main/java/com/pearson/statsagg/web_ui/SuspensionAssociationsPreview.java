@@ -242,7 +242,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
         String mergedMatchRegex = StringUtilities.createMergedRegex(matchRegexes);
         
         Set<String> matchMetricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), mergedMatchRegex, null, 1001);
-        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000);
+        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(matchMetricKeys, 1000, false);
         
         return regexMatchesHtml;
     }

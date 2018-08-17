@@ -76,7 +76,7 @@ public class ForgetMetricsPreview extends HttpServlet {
         String parameter = request.getParameter("Regex");
         if (parameter != null && !parameter.isEmpty()) parameter = parameter.trim();
         Set<String> metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1001);
-        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(metricKeys, 1000);
+        String regexMatchesHtml = RegexTester.getRegexMatchesHtml(metricKeys, 1000, false);
         
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
