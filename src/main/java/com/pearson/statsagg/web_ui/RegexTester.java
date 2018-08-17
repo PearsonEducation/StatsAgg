@@ -81,10 +81,14 @@ public class RegexTester extends HttpServlet {
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
 
+            String countAllMatchesParameter = request.getParameter("CountAllMatches");
+            boolean countAllMatches = false;
+            if ((countAllMatchesParameter != null) && (countAllMatchesParameter.equalsIgnoreCase("true") || (countAllMatchesParameter.contains("on")))) countAllMatches = true;
+            
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            String htmlBodyContents = buildRegexTesterHtml("", "");
+            String htmlBodyContents = buildRegexTesterHtml("", "", countAllMatches);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -122,16 +126,25 @@ public class RegexTester extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String parameter = request.getParameter("Regex");
-            Set<String> metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), parameter, null, 1001);
-            String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000);
+            String regexParameter = request.getParameter("Regex");
+            
+            String countAllMatchesParameter = request.getParameter("CountAllMatches");
+            boolean countAllMatches = false;
+            if ((countAllMatchesParameter != null) && (countAllMatchesParameter.equalsIgnoreCase("true") || (countAllMatchesParameter.contains("on")))) countAllMatches = true;
+            
+            Set<String> metricKeys;
+            
+            if (countAllMatches) metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), regexParameter, null, -1);
+            else metricKeys = MetricAssociation.getRegexMatches(GlobalVariables.metricKeysLastSeenTimestamp.keySet(), regexParameter, null, 1001);
+            
+            String regexMatchesHtml = getRegexMatchesHtml(metricKeys, 1000, countAllMatches);
   
             StringBuilder htmlBuilder = new StringBuilder();
 
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
 
-            String htmlBodyContents = buildRegexTesterHtml(parameter, regexMatchesHtml);
+            String htmlBodyContents = buildRegexTesterHtml(regexParameter, regexMatchesHtml, countAllMatches);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -150,7 +163,7 @@ public class RegexTester extends HttpServlet {
         }
     }
     
-    private String buildRegexTesterHtml(String regex, String regexMatches) {
+    private String buildRegexTesterHtml(String regex, String regexMatches, boolean countAllMatches) {
 
         StringBuilder htmlBody = new StringBuilder();
 
@@ -167,13 +180,23 @@ public class RegexTester extends HttpServlet {
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Regex to test</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a regex that you want to test against (or more) recently seen metrics.\" name=\"Regex\" ");
-        
+            
         if ((regex != null) && (!regex.isEmpty())) {
             htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(regex, true)).append("\"");
         }
         
         htmlBody.append(">\n</div>\n");
        
+        htmlBody.append(
+            "<div class=\"form-group\">\n" +
+            "  <label class=\"label_small_margin\">Count all matches?&nbsp;&nbsp;</label>\n" +
+            "  <input name=\"CountAllMatches\" id=\"CountAllMatches\" type=\"checkbox\" ");
+        
+        if (countAllMatches) htmlBody.append(" checked=\"checked\"");
+
+        htmlBody.append(">\n</div>\n<br>");
+        
+        
         htmlBody.append(
             "  <button type=\"submit\" class=\"btn btn-default statsagg_page_content_font\">Submit</button>\n" +
             "</form>\n");
@@ -191,7 +214,7 @@ public class RegexTester extends HttpServlet {
         return htmlBody.toString();
     }
     
-    public static String getRegexMatchesHtml(Set<String> metricKeys, int metricMatchLimit) {
+    public static String getRegexMatchesHtml(Set<String> metricKeys, int metricMatchLimit, boolean countAllMatches) {
         List<String> metricKeysList = null;
         
         if (metricKeys != null) {
@@ -199,10 +222,10 @@ public class RegexTester extends HttpServlet {
             Collections.sort(metricKeysList);
         }
         
-        return getRegexMatchesHtml(metricKeysList, metricMatchLimit);
+        return getRegexMatchesHtml(metricKeysList, metricMatchLimit, countAllMatches);
     }
     
-    public static String getRegexMatchesHtml(List<String> metricKeys, int metricMatchLimit) {
+    public static String getRegexMatchesHtml(List<String> metricKeys, int metricMatchLimit, boolean countAllMatches) {
         
         if (metricKeys == null) {
             return "<b>Regex Match Count</b> = 0";
@@ -211,7 +234,7 @@ public class RegexTester extends HttpServlet {
         StringBuilder outputString = new StringBuilder();
                 
         String metricKeyCountString;
-        if (metricKeys.size() > metricMatchLimit) metricKeyCountString = "More than " + Integer.toString(metricMatchLimit);
+        if ((metricKeys.size() > metricMatchLimit) && !countAllMatches) metricKeyCountString = "More than " + Integer.toString(metricMatchLimit);
         else metricKeyCountString = Integer.toString(metricKeys.size());
         
         outputString.append("<b>Regex Match Count</b> = ").append(metricKeyCountString).append("<br><br>");
@@ -238,6 +261,10 @@ public class RegexTester extends HttpServlet {
             }
 
             outputString.append("</ul>");
+        }
+      
+        if (countAllMatches && ((metricKeys.size() - metricMatchLimit) > 0)) {
+            outputString.append("<b>... and ").append((metricKeys.size() - metricMatchLimit)).append(" more matches</b>");
         }
         
         return outputString.toString();
