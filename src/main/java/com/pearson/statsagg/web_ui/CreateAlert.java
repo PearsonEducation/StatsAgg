@@ -17,7 +17,6 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.codec.binary.Hex;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
