@@ -318,4 +318,44 @@ public class OpenTsdbTest {
         assertEquals(openTsdbMetrics.size(), matchCount);
     }
     
+    @Test
+    public void testParseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable() {
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E9999"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E-9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E-99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E-999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12E-9999"));
+        
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e9999"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e-9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e-99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e-999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("12e-9999"));
+        
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e9999"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e-9"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e-99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e-999"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-12e-9999"));
+        
+        // not reasonable but technically will still be allowed
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999e99"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999e-99"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999E99"));
+        assertTrue(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999E-99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("99999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999e99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999e-99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-9999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999E99"));
+        assertFalse(OpenTsdbMetric.parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable("-999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999999E-99"));
+    }
+    
 }

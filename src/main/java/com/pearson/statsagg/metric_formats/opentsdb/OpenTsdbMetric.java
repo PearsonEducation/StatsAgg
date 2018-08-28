@@ -15,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import org.apache.commons.lang.StringUtils;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,6 +26,8 @@ import org.slf4j.LoggerFactory;
 public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat, InfluxdbMetricFormat_v1 {
     
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdbMetric.class.getName());
+    
+    private static char[] EXPONENT_CHARS = {'e','E'};
     
     private long hashKey_ = -1;
     
@@ -346,13 +349,8 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             BigDecimal metricValueBigDecimal = null;
             if (metricValueIndexRange > 0) {
                 String metricValueString = unparsedMetric.substring(metricTimestampIndexRange + 1, metricValueIndexRange);
-                
-                if (metricValueString.length() > 100) {
-                    logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
-                }
-                else {
-                    metricValueBigDecimal = new BigDecimal(metricValueString);
-                }
+                boolean isMetricValueSizeReasonable = parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable(metricValueString);
+                if (isMetricValueSizeReasonable) metricValueBigDecimal = new BigDecimal(metricValueString);
             }
             
             List<OpenTsdbTag> openTsdbTags = OpenTsdbTag.parseTags(unparsedMetric, metricValueIndexRange);
@@ -553,13 +551,10 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         try {
             String numericString = jsonObject.getAsJsonPrimitive("value").getAsString();
             
-            if (numericString.length() > 100) {
-                logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + numericString.length() + "\" characters long.");
-                return null;
-            }
-            
-            BigDecimal metricValue = new BigDecimal(numericString);
+            boolean isMetricValueSizeReasonable = parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable(numericString);
+            if (!isMetricValueSizeReasonable) return null;
 
+            BigDecimal metricValue = new BigDecimal(numericString);
             return metricValue;
         }
         catch (Exception e) {    
@@ -571,6 +566,52 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             }
             
             return null;
+        }
+        
+    }
+    
+    protected static boolean parseOpenTsdbJson_ValidateMetricValue_IsMetricValueSizeReasonable(String metricValueString) {
+        
+        if ((metricValueString == null) || metricValueString.isEmpty()) return false;
+        
+        if (metricValueString.length() > 100) {
+            logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long. " +
+                    "MetricString=\"" + metricValueString + "\"");
+            return false;
+        }
+ 
+        try {
+            int exponentIndex = StringUtils.indexOfAny(metricValueString, EXPONENT_CHARS);
+
+            if (exponentIndex != -1) {
+                String exponentValue = metricValueString.substring(exponentIndex + 1);
+                
+                if (exponentValue.length() > 2) {
+                    boolean isNegativeExponent = exponentValue.startsWith("-");
+                    
+                    if (!isNegativeExponent) {
+                        logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
+                        return false;
+                    }
+                    else if (exponentValue.length() > 3) {
+                        logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
+                        return false;
+                    }
+                    else {
+                        return true;
+                    }
+                }
+                else {
+                    return true;
+                }
+            }
+            else {
+                return true;
+            }
+        }
+        catch (Exception e) {   
+            logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
         }
         
     }
