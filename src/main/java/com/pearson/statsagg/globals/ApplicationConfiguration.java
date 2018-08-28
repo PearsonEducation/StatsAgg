@@ -120,6 +120,7 @@ public class ApplicationConfiguration {
     private static int outputModuleMaxReadTime_ = VALUE_NOT_SET_CODE;
     private static int outputModuleMaxConcurrentThreads_ = VALUE_NOT_SET_CODE;
     private static int outputModuleMaxConcurrentThreadsForSingleModule_ = VALUE_NOT_SET_CODE;
+    private static long metricGroupApiMaxMetricAssociations_ = VALUE_NOT_SET_CODE;
     
     public static boolean initialize(InputStream configurationInputStream, boolean isUsingDefaultSettings) {
         
@@ -249,7 +250,8 @@ public class ApplicationConfiguration {
             outputModuleMaxReadTime_ = applicationConfiguration_.safeGetInteger("output_module_max_read_time", 120000);
             outputModuleMaxConcurrentThreads_ = applicationConfiguration_.safeGetInteger("output_module_max_concurrent_threads", 25);
             outputModuleMaxConcurrentThreadsForSingleModule_ = applicationConfiguration_.safeGetInteger("output_module_max_concurrent_threads_for_single_module", 10);
-
+            metricGroupApiMaxMetricAssociations_ = applicationConfiguration_.safeGetLong("metric_group_api_max_metric_associations", 50000);
+            
             return true;
         }
         catch (Exception e) {
@@ -817,4 +819,8 @@ public class ApplicationConfiguration {
         return outputModuleMaxConcurrentThreadsForSingleModule_;
     }
 
+    public static long getMetricGroupApiMaxMetricAssociations() {
+        return metricGroupApiMaxMetricAssociations_;
+    }
+    
 }

@@ -11,7 +11,11 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.database_objects.JsonOutputFieldNamingStrategy;
+import com.pearson.statsagg.globals.GlobalVariables;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -74,11 +78,8 @@ public class MetricGroup extends DatabaseObject<MetricGroup> {
         return metricGroupCopy;
     }
     
-    public static JsonObject getJsonObject_ApiFriendly(MetricGroup metricGroup) {
-        return getJsonObject_ApiFriendly(metricGroup, null, null);
-    }
-    
-    public static JsonObject getJsonObject_ApiFriendly(MetricGroup metricGroup, List<MetricGroupRegex> metricGroupRegexes, List<MetricGroupTag> metricGroupTags) {
+    public static JsonObject getJsonObject_ApiFriendly(MetricGroup metricGroup, List<MetricGroupRegex> metricGroupRegexes, 
+            List<MetricGroupTag> metricGroupTags, boolean includeAssociatedMetrics, long includeAssociatedMetrics_Limit) {
         
         if (metricGroup == null) {
             return null;
@@ -92,7 +93,8 @@ public class MetricGroup extends DatabaseObject<MetricGroup> {
             JsonArray matchRegexes = new JsonArray();
             JsonArray blacklistRegexes = new JsonArray();
             JsonArray tags = new JsonArray();
-
+            JsonArray associatedMetrics = null;
+            
             if (metricGroupRegexes != null) {
                 for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                     if ((metricGroupRegex.isBlacklistRegex() != null) && !metricGroupRegex.isBlacklistRegex() && (metricGroupRegex.getPattern() != null)) {
@@ -110,10 +112,33 @@ public class MetricGroup extends DatabaseObject<MetricGroup> {
                 }
             }
             
+            if (includeAssociatedMetrics && (metricGroup.getId() != null) && (includeAssociatedMetrics_Limit > 0)) {
+                associatedMetrics = new JsonArray();
+                Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
+                
+                List<String> matchingMetricKeysAssociatedWithMetricGroupSorted = new ArrayList<>();
+                synchronized(matchingMetricKeysAssociatedWithMetricGroup) {
+                    int i = 1;
+                    for (String matchingMetricKeyAssociatedWithMetricGroup : matchingMetricKeysAssociatedWithMetricGroup) {
+                        if ((matchingMetricKeyAssociatedWithMetricGroup == null) || matchingMetricKeyAssociatedWithMetricGroup.isEmpty()) continue;
+                        matchingMetricKeysAssociatedWithMetricGroupSorted.add(matchingMetricKeyAssociatedWithMetricGroup);
+                        i++;
+                        if (i > includeAssociatedMetrics_Limit) break;
+                    }
+                }
+                
+                Collections.sort(matchingMetricKeysAssociatedWithMetricGroupSorted);
+                
+                for (String matchingMetricKeys : matchingMetricKeysAssociatedWithMetricGroupSorted) {
+                    associatedMetrics.add(matchingMetricKeys);
+                }
+            }
+            
             jsonObject.add("match_regexes", matchRegexes);
             jsonObject.add("blacklist_regexes", blacklistRegexes);
             jsonObject.add("tags", tags);
-            
+            if (includeAssociatedMetrics && (associatedMetrics != null)) jsonObject.add("associated_metrics", associatedMetrics);
+                
             return jsonObject;
         }
         catch (Exception e) {
@@ -123,18 +148,15 @@ public class MetricGroup extends DatabaseObject<MetricGroup> {
         
     }
     
-    public static String getJsonString_ApiFriendly(MetricGroup metricGroup) {
-        return getJsonString_ApiFriendly(metricGroup, null, null);
-    }
-    
-    public static String getJsonString_ApiFriendly(MetricGroup metricGroup, List<MetricGroupRegex> metricGroupRegexes, List<MetricGroupTag> metricGroupTags) {
+    public static String getJsonString_ApiFriendly(MetricGroup metricGroup, List<MetricGroupRegex> metricGroupRegexes, 
+            List<MetricGroupTag> metricGroupTags, boolean includeAssociatedMetrics, long includeAssociatedMetrics_Limit) {
         
         if (metricGroup == null) {
             return null;
         }
         
         try {
-            JsonObject jsonObject = getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags);
+            JsonObject jsonObject = getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, includeAssociatedMetrics, includeAssociatedMetrics_Limit);
             if (jsonObject == null) return null;
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   

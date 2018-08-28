@@ -7,6 +7,7 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
@@ -106,14 +107,17 @@ public class MetricGroupDetails extends HttpServlet {
         try {
             Integer metricGroupId = null;
             String metricGroupName = null;
-
+            Boolean includeMetricAssociations = false;
+            
             if (request.getParameter("id") != null) metricGroupId = Integer.parseInt(request.getParameter("id"));
             if (request.getParameter("name") != null) metricGroupName = request.getParameter("name");
-
+            if (request.getParameter("include_metric_associations") != null) includeMetricAssociations = Boolean.parseBoolean(request.getParameter("include_metric_associations"));
+            
             if ((metricGroupId == null) && (metricGroupName == null)) {
                 JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
                 metricGroupId = JsonUtils.getIntegerFieldFromJsonObject(jsonObject, "id");
                 metricGroupName = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
+                includeMetricAssociations = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "include_metric_associations");
             }
 
             MetricGroup metricGroup = null;
@@ -145,7 +149,12 @@ public class MetricGroupDetails extends HttpServlet {
                 }
             }
             
-            if (metricGroup != null) return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags);
+            if ((metricGroup != null) && (includeMetricAssociations != null) && includeMetricAssociations) {
+                return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, true, ApplicationConfiguration.getMetricGroupApiMaxMetricAssociations());
+            }
+            else if (metricGroup != null) {
+                return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, false, -1);
+            }
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {

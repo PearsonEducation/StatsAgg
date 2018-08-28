@@ -109,7 +109,7 @@ public class MetricGroupsList extends HttpServlet {
                 List<MetricGroupTag> metricGroupTags = new ArrayList<>();
                 if (metricGroup != null) metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
                 
-                JsonObject metricGroupJsonObject = MetricGroup.getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags);
+                JsonObject metricGroupJsonObject = MetricGroup.getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, false, -1);
                 if (metricGroupJsonObject != null) metricGroupsJsonObjects.add(metricGroupJsonObject);
             }
             
