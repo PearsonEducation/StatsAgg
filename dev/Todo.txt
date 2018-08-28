@@ -1,5 +1,6 @@
 StatsAgg 1.5
  * Update screenshots of 'suspensions' 
+ * Document MG API 'include_metric_associations'
  
 StatsAgg 1.6
  * Divorce from Tomcat. Use an embedded HTTP server.
