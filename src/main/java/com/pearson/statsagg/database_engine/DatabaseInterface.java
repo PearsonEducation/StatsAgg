@@ -1,7 +1,5 @@
 package com.pearson.statsagg.database_engine;
 
-import java.math.BigDecimal;
-import java.sql.Blob;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,8 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import java.io.BufferedReader;
-import java.sql.Clob;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -71,9 +68,9 @@ public class DatabaseInterface {
     }
 
     public void cleanupForNextStatement() {
-        DatabaseCleanup.cleanup(statement_);
-        DatabaseCleanup.cleanup(preparedStatement_);
-        DatabaseCleanup.cleanup(results_);
+        DatabaseUtils.cleanup(statement_);
+        DatabaseUtils.cleanup(preparedStatement_);
+        DatabaseUtils.cleanup(results_);
          
         if (preparedStatementParameters_ != null) {
             preparedStatementParameters_.clear();
@@ -97,7 +94,7 @@ public class DatabaseInterface {
 
         didPreparedStatementExecuteSuccessfully_ = null;
         
-        DatabaseCleanup.cleanup(this);
+        DatabaseUtils.cleanup(this.getConnection(), this.getPreparedStatement(), this.getStatement(), this.getResults(), DatabaseUtils.CLOSE);
     }
     
     public Statement createStatement() {
@@ -259,7 +256,7 @@ public class DatabaseInterface {
                 }
             }
             
-            setPreparedStatementParameters();
+            DatabaseUtils.setPreparedStatementParameters(preparedStatement_, preparedStatementParameters_);
             
             boolean result = preparedStatement_.execute();
             
@@ -473,161 +470,7 @@ public class DatabaseInterface {
     }
     
     public boolean isResultSetValid() {
-        try {
-            if ((results_ == null) || results_.isClosed()) {
-                return false;
-            }
-            else {
-                return true;
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return false;
-        }   
-    }
-    
-    // this method is a work in progress. additional functionality will be added as needed.
-    private int setPreparedStatementParameter(Object object, int index) {
-        
-        if ((preparedStatement_ == null) || (preparedStatementParameters_ == null)) {
-            logger.warn("Can't set preparedStatementParameters - preparedStatementParameters or preparedStatement is null");
-            return -1;
-        } 
-        
-        try {
-            if (object == null) {
-                preparedStatement_.setObject(index++, null);
-            } 
-            else if (object instanceof BigDecimal) {
-                preparedStatement_.setBigDecimal(index++, (BigDecimal) object);
-            }
-            else if (object instanceof Blob) {
-                preparedStatement_.setBlob(index++, (Blob) object);
-            }
-            else if (object instanceof Boolean) {
-                preparedStatement_.setBoolean(index++, (Boolean) object);
-            }
-            else if (object instanceof Byte) {
-                preparedStatement_.setByte(index++, (Byte) object);
-            }
-            else if (object instanceof byte[]) {
-                preparedStatement_.setBytes(index++, (byte[]) object);
-            }
-            else if (object instanceof Clob) {
-                preparedStatement_.setClob(index++, (Clob) object);
-            }
-            else if (object instanceof Double) {
-                preparedStatement_.setDouble(index++, (Double) object);
-            }
-            else if (object instanceof Float) {
-                preparedStatement_.setFloat(index++, (Float) object);
-            }
-            else if (object instanceof Integer) {
-                preparedStatement_.setInt(index++, (Integer) object);
-            }
-            else if (object instanceof List) {
-                for (Object listObject : (List) object) {
-                    setPreparedStatementParameter(listObject, index++);
-                }
-            }
-            else if (object instanceof Long) {
-                preparedStatement_.setLong(index++, (Long) object);
-            }
-            else if (object instanceof Short) {
-                preparedStatement_.setShort(index++, (Short) object);
-            }
-            else if (object instanceof String) {
-                preparedStatement_.setString(index++, (String) object);
-            }
-            else if (object instanceof java.sql.Timestamp) {
-                preparedStatement_.setTimestamp(index++, (java.sql.Timestamp) object);
-            }
-            else if (object instanceof java.sql.Date) {
-                preparedStatement_.setDate(index++, (java.sql.Date) object);
-            }
-            else if (object instanceof java.util.Date) {
-                java.util.Date tempDate = (java.util.Date) object;
-                java.sql.Date dateSql = new java.sql.Date(tempDate.getTime());
-                preparedStatement_.setDate(index++, dateSql);
-            }
-            else {
-                if (object instanceof Object) {}
-                else {
-                    logger.warn("Setting PreparedStatement parameter to 'object' type when object is not an object type");
-                }
-                
-                preparedStatement_.setObject(index++, object);
-            }
-            
-            return index;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return -1;
-        }  
-    }
-    
-    public void setPreparedStatementParameters() {
-        
-        if ((preparedStatement_ == null) || (preparedStatementParameters_ == null)) {
-            logger.warn("Can't set preparedStatementParameters - preparedStatementParameters or preparedStatement is null");
-            return;
-        } 
-        
-        try {
-            int index = 1;
-
-            for (Object object : preparedStatementParameters_) {
-                int incrementedIndex = setPreparedStatementParameter(object, index);
-                index = incrementedIndex;
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return;
-        }   
-    }
-
-    public static String getStringFromClob(Clob clob) {
-        return getStringFromClob(clob, 8192);
-    }
-    
-    public static String getStringFromClob(Clob clob, int bufferSize) {
-        
-        if (clob == null) {
-            return null;
-        }
-        
-        StringBuilder string = new StringBuilder();
-        
-        BufferedReader bufferedReader = null;
-        
-        try {
-            bufferedReader = new BufferedReader(clob.getCharacterStream());
-
-            int charactersReadCount = 0;
-            char[] buffer = new char[bufferSize];
-
-            while ((charactersReadCount = bufferedReader.read(buffer)) > 0) {
-                string.append(buffer, 0, charactersReadCount);
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        finally {
-            try {
-                if (bufferedReader != null) {
-                    bufferedReader.close();
-                }
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-        }
-
-        return string.toString();
+        return DatabaseUtils.isResultSetValid(results_);
     }
     
     public Connection getConnection() {

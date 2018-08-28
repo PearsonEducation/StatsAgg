@@ -84,36 +84,6 @@ public class DatabaseConnections {
         }
         
     }
-
-    public static boolean disconnect(Connection connection) {
-        
-       try {
-            if (connection != null) {
-                if (!connection.getAutoCommit()) {
-                    connection.commit();
-                }
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));            
-        }
-       
-        try {
-            if (connection != null) {
-                connection.close();
-            }
-            
-            connection = null;
-            return true;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));            
-            
-            connection = null;
-            return false;
-        }
-        
-    }
     
     public static void disconnectAndShutdown() {
 
