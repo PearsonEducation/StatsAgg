@@ -4,7 +4,7 @@
 
     <groupId>com.pearson.StatsAgg</groupId>
     <artifactId>StatsAgg</artifactId>
-    <version>1.5-beta</version>
+    <version>1.5-rc1</version>
     <packaging>war</packaging>
     <name>StatsAgg</name>
 
@@ -272,7 +272,7 @@
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.28.Final</version>
+            <version>4.1.29.Final</version>
         </dependency>
         
         <dependency>
