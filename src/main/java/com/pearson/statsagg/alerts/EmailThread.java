@@ -17,6 +17,7 @@ import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.web_ui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.web_utils.EmailUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.Threads;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Arrays;
 import java.util.Collections;
@@ -266,34 +267,44 @@ public class EmailThread implements Runnable  {
             return;
         }
         
-        try {
-            HtmlEmail email = new HtmlEmail();
+        int allowedSendAttempts = 5;
+        
+        for (int i = 0; i < allowedSendAttempts; i++) {
+            try {
+                HtmlEmail email = new HtmlEmail();
 
-            email.setHostName(smtpHost);
-            email.setSmtpPort(smtpPort);
-            email.setAuthenticator(new DefaultAuthenticator(username, password));
-            email.setSocketTimeout(connectionTimeout);
-            email.setSSLOnConnect(useSslTls);
-            email.setStartTLSEnabled(useStartTls);
-            email.setFrom(fromAddress, fromName);
-            
-            for (String toAddress : toAddresses) {
-                email.addTo(toAddress);
+                email.setHostName(smtpHost);
+                email.setSmtpPort(smtpPort);
+                email.setAuthenticator(new DefaultAuthenticator(username, password));
+                email.setSocketTimeout(connectionTimeout);
+                email.setSSLOnConnect(useSslTls);
+                email.setStartTLSEnabled(useStartTls);
+                email.setFrom(fromAddress, fromName);
+
+                for (String toAddress : toAddresses) {
+                    email.addTo(toAddress);
+                }
+
+                email.setSubject(emailSubject);
+                email.setHtmlMsg(emailBody);
+                email.send();
+
+                String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
+                String cleanBody = StringUtilities.removeNewlinesFromString(emailBody, ' ');
+                logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"" + ", EmailBody=\"" + cleanBody + "\"");
+                
+                return;
             }
-            
-            email.setSubject(emailSubject);
-            email.setHtmlMsg(emailBody);
-            email.send();
-            
-            String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
-            String cleanBody = StringUtilities.removeNewlinesFromString(emailBody, ' ');
-            logger.info("Message=\"Send email alert\", EmailSubject=\"" + cleanSubject + "\"" + ", EmailBody=\"" + cleanBody + "\"");
+            catch (Exception e) {
+                String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
+                logger.error("Message=\"Failed to send email alert. SMTP failure. \", " + "EmailSubject=\"" + cleanSubject + "\", " +
+                        e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                Threads.sleepSeconds(5);
+            }
         }
-        catch (Exception e) {
-            String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
-            logger.error("Message=\"Failed to send email alert. SMTP failure.\", " + "EmailSubject=\"" + cleanSubject + "\", " +
-                    e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
+
+        String cleanSubject = StringUtilities.removeNewlinesFromString(emailSubject, ' ');
+        logger.error("Message=\"Failed to send email alert " + allowedSendAttempts + " times. Email will not be sent\", " + "EmailSubject=\"" + cleanSubject + "\"");
     }
 
     public static List<String> sortAndLimitMetricsForEmail(List<String> metricKeys, Integer maxAllowedMetrics) {

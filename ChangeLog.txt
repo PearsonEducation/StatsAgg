@@ -14,6 +14,7 @@ StatsAgg 1.5  - released 2018-xx-xx
  * Support for scientific notation on OpenTSDB metric values 
  * All UI & APIs are now in UTF-8 (for support of exotic characters)
  * Regex tester now allows viewing of 'Metric Recent Values'
+ * Extra retry logic on sending emails (will try up to 5 times)
  * Apache Derby databases will be upgraded to version 10.14.2.0 (this happens automatically)
  * If you upgrading from a previous version of StatsAgg, then you will need to run the SQL found in "Upgrade to 1.5.txt" against your StatsAgg database
    * Located @ StatsAgg\WEB-INF\sql
