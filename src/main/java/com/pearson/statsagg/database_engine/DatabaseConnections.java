@@ -113,14 +113,6 @@ public class DatabaseConnections {
                 }
             }
         }
-        else if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            try {
-                com.mysql.jdbc.AbandonedConnectionCleanupThread.shutdown();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-        }
     }
     
     public static void deregisterJdbcDriver() {
