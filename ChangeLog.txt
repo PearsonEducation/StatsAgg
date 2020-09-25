@@ -1,4 +1,4 @@
-StatsAgg 1.5  - released 2020-xx-xx
+StatsAgg 1.5  - released 2020-09-25
  * New feature : A json-based API for programatically interacting with StatsAgg
  * New feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
  * New feature -- 'Alerts Report'. A page in the WebUI that shows all the important details of an alert on in a table view.
