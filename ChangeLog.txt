@@ -1,4 +1,4 @@
-StatsAgg 1.5  - released 2018-xx-xx
+StatsAgg 1.5  - released 2020-xx-xx
  * New feature : A json-based API for programatically interacting with StatsAgg
  * New feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
  * New feature -- 'Alerts Report'. A page in the WebUI that shows all the important details of an alert on in a table view.
@@ -7,7 +7,7 @@ StatsAgg 1.5  - released 2018-xx-xx
  * Renamed 'Alert Suspensions' to 'Suspensions'. This was done to accomidate the 'metric suspension' feature.
  * Changed several pages in the WebUI to load via on-page iframes (instead of transitioning different page). This improves the flow of the UI, as it significantly reduces the need use the browser back/forward buttons.
  * Performance enhancements
- * Support for Java9 & Java10 as runtimes. StatsAgg maintains support for (and is compiled with) Java8.
+ * Support for Java9+ as runtimes. StatsAgg maintains support for (and is compiled with) Java8.
  * The 'Home' page now outputs the number of metric datapoints that are residing in StatsAgg's memory.
  * Email alerts now include tags
  * Support for single-metric OpenTSDB metrics via the HTTP API
