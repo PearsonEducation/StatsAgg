@@ -27,7 +27,6 @@ import javax.servlet.ServletContextEvent;
 import javax.servlet.ServletContextListener;
 import com.pearson.statsagg.alerts.AlertThread;
 import com.pearson.statsagg.alerts.MetricAssociation;
-import com.pearson.statsagg.alerts.MetricAssociationOutputBlacklistThread;
 import com.pearson.statsagg.controller.threads.AlertInvokerThread;
 import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
 import com.pearson.statsagg.controller.threads.InfluxdbV1InvokerThread;
