@@ -1,10 +1,10 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Suspension-MetricKeyAssociations", urlPatterns = {"/Suspension-MetricKeyAssociations"})
 public class Suspension_MetricKeyAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Suspension_MetricKeyAssociations.class.getName());
@@ -132,8 +131,7 @@ public class Suspension_MetricKeyAssociations extends HttpServlet {
         
         StringBuilder outputString = new StringBuilder();
         
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
+        Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionName);
         
         if ((suspension != null) && (suspension.getId() != null) && (suspension.getName() != null)) {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(suspension.getName())).append("<br>");

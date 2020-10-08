@@ -3,11 +3,11 @@ package com.pearson.statsagg.web_ui;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Scanner;
 import java.util.TreeSet;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateMetricGroup", urlPatterns = {"/CreateMetricGroup"})
 public class CreateMetricGroup extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateMetricGroup.class.getName());
@@ -93,8 +92,7 @@ public class CreateMetricGroup extends HttpServlet {
             MetricGroup metricGroup = null;
             String parameter = request.getParameter("Name");
             if (parameter != null) {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                metricGroup = metricGroupsDao.getMetricGroupByName(parameter.trim());
+                metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, parameter.trim());
             }       
             
             String htmlBodyContents = buildCreateMetricGroupHtml(metricGroup);
@@ -204,8 +202,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"MatchRegexes\" id=\"MatchRegexes\" >");
 
         if ((metricGroup != null)) {
-            MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-            List<MetricGroupRegex> metricGroupRegexes =  metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+            List<MetricGroupRegex> metricGroupRegexes =  MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
             List<MetricGroupRegex> matchMetricGroupRegexes = new ArrayList<>();
             
             if (metricGroupRegexes != null) {
@@ -229,8 +226,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"BlacklistRegexes\" id=\"BlacklistRegexes\" >");
 
         if ((metricGroup != null)) {
-            MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-            List<MetricGroupRegex> metricGroupRegexes =  metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+            List<MetricGroupRegex> metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
             List<MetricGroupRegex> blacklistMetricGroupRegexes = new ArrayList<>();
             
             if (metricGroupRegexes != null) {
@@ -253,8 +249,7 @@ public class CreateMetricGroup extends HttpServlet {
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One tag per line.\" rows=\"4\" name=\"Tags\" id=\"Tags\" >");
 
         if ((metricGroup != null)) {
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-            List<MetricGroupTag> metricGroupTags =  metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+            List<MetricGroupTag> metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
             
             if (metricGroupTags != null) {
                 for (int i = 0; i < metricGroupTags.size(); i++) {
@@ -297,8 +292,7 @@ public class CreateMetricGroup extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                    MetricGroup oldMetricGroup = metricGroupsDao.getMetricGroup(id_Integer);
+                    MetricGroup oldMetricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, id_Integer);
                     oldName = oldMetricGroup.getName();
                 }
                 catch (Exception e){}

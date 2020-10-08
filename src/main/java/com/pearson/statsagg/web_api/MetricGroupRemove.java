@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_MetricGroup_Remove", urlPatterns = {"/api/metric-group-remove"})
 public class MetricGroupRemove extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupRemove.class.getName());
@@ -89,13 +88,11 @@ public class MetricGroupRemove extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if ((id == null) && (name != null)) {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(name);
+                MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, name);
                 id = metricGroup.getId();
             }
             
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(id);
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, id);
             if (metricGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.web_ui.MetricGroups metricGroups = new com.pearson.statsagg.web_ui.MetricGroups(); 

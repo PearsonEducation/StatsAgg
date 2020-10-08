@@ -2,7 +2,6 @@ package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar(prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Alert_Create", urlPatterns = {"/api/alert-create"})
 public class AlertCreate extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertCreate.class.getName());

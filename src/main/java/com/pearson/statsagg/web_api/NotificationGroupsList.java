@@ -5,13 +5,13 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
  * @author Prashant Kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_NotificationGroups_List", urlPatterns={"/api/notification-groups-list"})
 public class NotificationGroupsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsList.class.getName());
@@ -88,8 +87,7 @@ public class NotificationGroupsList extends HttpServlet {
         }
         
         try {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            List<NotificationGroup> notificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
+            List<NotificationGroup> notificationGroups = NotificationGroupsDao.getNotificationGroups(DatabaseConnections.getConnection(), true);
             if (notificationGroups == null) notificationGroups = new ArrayList<>();
             
             List<JsonObject> notificationGroupsJsonObjects = new ArrayList<>();

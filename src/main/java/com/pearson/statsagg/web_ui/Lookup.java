@@ -1,11 +1,11 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Lookup", urlPatterns = {"/Lookup"})
 public class Lookup extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Lookup.class.getName());
@@ -104,8 +103,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        List<String> alertNames = alertsDao.getAlertNames(alertNamesQuery, 10);
+        List<String> alertNames = AlertsDao.getAlertNames(DatabaseConnections.getConnection(), true, alertNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         
@@ -135,8 +133,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        List<String> metricGroupsNames = metricGroupsDao.getMetricGroupNames(metricGroupNamesQuery, 10);
+        List<String> metricGroupsNames = MetricGroupsDao.getMetricGroupNames(DatabaseConnections.getConnection(), true, metricGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         
@@ -166,8 +163,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        List<String> notificationGroupsNames = notificationGroupsDao.getNotificationGroupNames(notificationGroupNamesQuery, 10);
+        List<String> notificationGroupsNames = NotificationGroupsDao.getNotificationGroupNames(DatabaseConnections.getConnection(), true, notificationGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         

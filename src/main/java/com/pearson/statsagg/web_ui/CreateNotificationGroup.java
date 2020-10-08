@@ -3,8 +3,8 @@ package com.pearson.statsagg.web_ui;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateNotificationGroup", urlPatterns = {"/CreateNotificationGroup"})
 public class CreateNotificationGroup extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateNotificationGroup.class.getName());
@@ -85,8 +84,7 @@ public class CreateNotificationGroup extends HttpServlet {
             NotificationGroup notificationGroup = null;
             String name = request.getParameter("Name");
             if (name != null) {
-                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                notificationGroup = notificationGroupsDao.getNotificationGroupByName(name.trim());
+                notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, name.trim());
             }    
 
             String htmlBodyContents = buildCreateNotificationGroupHtml(notificationGroup);
@@ -217,8 +215,7 @@ public class CreateNotificationGroup extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                    NotificationGroup oldNotificationGroup = notificationGroupsDao.getNotificationGroup(id_Integer);
+                    NotificationGroup oldNotificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, id_Integer);
                     oldName = oldNotificationGroup.getName();
                 }
                 catch (Exception e){}

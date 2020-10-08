@@ -1,4 +1,13 @@
-StatsAgg 1.5  - released 2020-xx-xx
+StatsAgg 1.6  - released xxxx-yy-zz
+ * StatsAgg now requires Java 11 (or newer) for it's runtime
+ * Converted the StatsAgg project from using a middleware app (Tomcat) to being a standalone project that uses an embedded HTTP server. As a result, installation/setup steps will be significantly different.
+ * Switched StatsAgg to use HikariCP for it's JDBC connection pool. Note that some connection pool variables in the database.properties file have changed.
+ * Significant refactoring on how StatsAgg interacts with it's database. This should improve StatsAgg's performance & make it easier to improve/update in the future. 
+ * Database schema changes are now made automatically via Flyway. If updating from a previous StatsAgg installation (1.5 or older), see the manual for additional steps.
+ * Apache Derby databases will be upgraded to version 10.15.2.0 (this happens automatically)
+
+
+StatsAgg 1.5  - released 2020-09-25
  * New feature : A json-based API for programatically interacting with StatsAgg
  * New feature -- 'metric suspensions'. With a 'metric suspension', you can write a regular-expression that will match metric-keys & prevent them from being considered for alerting.
  * New feature -- 'Alerts Report'. A page in the WebUI that shows all the important details of an alert on in a table view.

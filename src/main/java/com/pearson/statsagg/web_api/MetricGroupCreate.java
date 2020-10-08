@@ -3,7 +3,6 @@ package com.pearson.statsagg.web_api;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -13,7 +12,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author prashant kumar(prashant4nov)
  */
-@WebServlet(name = "API_MetricGroup_Create", urlPatterns = {"/api/metric-group-create"})
 public class MetricGroupCreate extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupCreate.class.getName());

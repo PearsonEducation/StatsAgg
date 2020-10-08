@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_NotificationGroup_Remove", urlPatterns = {"/api/notification-group-remove"})
 public class NotificationGroupRemove extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupRemove.class.getName());
@@ -89,13 +88,11 @@ public class NotificationGroupRemove extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if ((id == null) && (name != null)) {
-                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(name);
+                NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, name);
                 id = notificationGroup.getId();
             }
             
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(id);
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, id);
             if (notificationGroup == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.web_ui.NotificationGroups notificationGroups = new com.pearson.statsagg.web_ui.NotificationGroups(); 

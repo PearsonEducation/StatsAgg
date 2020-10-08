@@ -1,7 +1,7 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
  *
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "NotificationGroupDetails", urlPatterns = {"/NotificationGroupDetails"})
 public class NotificationGroupDetails extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupDetails.class.getName());
@@ -124,8 +123,7 @@ public class NotificationGroupDetails extends HttpServlet {
             return "<b>No notification group specified</b>";
         }
         
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
+        NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName);
         
         if (notificationGroup == null) {
             return "<b>Notification group not found</b>";

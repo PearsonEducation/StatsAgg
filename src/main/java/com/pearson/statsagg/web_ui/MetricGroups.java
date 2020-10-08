@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -7,7 +8,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +22,8 @@ import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -30,7 +32,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroups", urlPatterns = {"/MetricGroups"})
 public class MetricGroups extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
@@ -149,10 +150,10 @@ public class MetricGroups extends HttpServlet {
         }
         
         try {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
-            List<MetricGroup> allMetricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
-            metricGroupsDao.close();
+            Connection connection = DatabaseConnections.getConnection();
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupId);
+            List<MetricGroup> allMetricGroups = MetricGroupsDao.getMetricGroups(connection, false);
+            DatabaseUtils.cleanup(connection);
 
             if ((metricGroup != null) && (metricGroup.getId() != null) && (metricGroup.getName() != null)) {
                 Set<String> allMetricGroupNames = new HashSet<>();
@@ -162,8 +163,7 @@ public class MetricGroups extends HttpServlet {
                     }
                 }
 
-                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-                List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+                List<MetricGroupRegex> metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
                 TreeSet<String> allMetricGroupMatchRegexes = new TreeSet<>();
                 TreeSet<String> allMetricGroupBlacklistRegexes = new TreeSet<>();
                 if (metricGroupRegexes != null) {
@@ -173,8 +173,7 @@ public class MetricGroups extends HttpServlet {
                     }
                 }
 
-                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-                List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                List<MetricGroupTag> metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
                 TreeSet<String> allMetricGroupTags = new TreeSet<>();
                 if (metricGroupTags != null) {
                     for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
@@ -207,8 +206,7 @@ public class MetricGroups extends HttpServlet {
         if (metricGroupId == null) return returnString;
         
         try {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);                
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);                
             MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
             returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroup.getName());
 
@@ -255,23 +253,18 @@ public class MetricGroups extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        List<MetricGroup> metricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
+        List<MetricGroup> metricGroups = MetricGroupsDao.getMetricGroups(DatabaseConnections.getConnection(), true);
+        Map<Integer,List<MetricGroupRegex>> metricGroupRegexesByMetricGroupId = MetricGroupRegexesDao.getAllMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true);
         
-        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-        Map<Integer,List<MetricGroupRegex>> metricGroupRegexesByMetricGroupId = metricGroupRegexesDao.getAllMetricGroupRegexesByMetricGroupId();
+        Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctMetricGroupIdsAssociatedWithAlerts(DatabaseConnections.getConnection(), true);
         
-        AlertsDao alertsDao = new AlertsDao();
-        Set<Integer> metricGroupIdsAssociatedWithAlerts = alertsDao.getDistinctMetricGroupIds();
-        
-        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
                 
         Set<Integer> metricGroupIdsWithAssociations = new HashSet<>();
         if (metricGroupIdsAssociatedWithAlerts != null) metricGroupIdsWithAssociations.addAll(metricGroupIdsAssociatedWithAlerts);
         if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) metricGroupIdsWithAssociations.add(outputBlacklist.getMetricGroupId());
         
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
+        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true);
         
         for (MetricGroup metricGroup : metricGroups) {
             if ((metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;

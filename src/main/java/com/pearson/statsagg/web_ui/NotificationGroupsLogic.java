@@ -1,9 +1,12 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -31,15 +34,16 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         
         String returnString;
         boolean isNewNotificationGroup = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
-        NotificationGroupsDao notificationGroupsDao = null;
         NotificationGroup newNotificationGroupFromDb = null;
-         
+        
+        Connection connection = DatabaseConnections.getConnection();
+        DatabaseUtils.setAutoCommit(connection, false);
+            
         try {
-            notificationGroupsDao = new NotificationGroupsDao(false);
             NotificationGroup notificationGroupFromDb;
 
             if ((oldName != null) && !oldName.isEmpty()) {
-                notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(oldName);
+                notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, oldName);
 
                 if (notificationGroupFromDb != null) {
                     notificationGroup.setId(notificationGroupFromDb.getId());
@@ -50,25 +54,20 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
                 }
             }
             else {
-                notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
+                notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroup.getName());
                 if (notificationGroupFromDb != null) isOverwriteExistingAttempt = true;
             }
 
             if (!isOverwriteExistingAttempt) {
-                isUpsertSuccess = notificationGroupsDao.upsert(notificationGroup);
-                newNotificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroup.getName());
+                isUpsertSuccess = NotificationGroupsDao.upsert(connection, false, true, notificationGroup);
+                newNotificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroup.getName());
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
-            try {
-                if (notificationGroupsDao != null) notificationGroupsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
                 
         if (isOverwriteExistingAttempt) {
@@ -108,14 +107,15 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
         }
 
         String returnString = "Error deleting notification group. NotificationGroupName=\"" + notificationGroupName + "\".";
-        NotificationGroupsDao notificationGroupsDao = null;
         
+        Connection connection = DatabaseConnections.getConnection();
+        DatabaseUtils.setAutoCommit(connection, false);
+            
         try {
-            notificationGroupsDao = new NotificationGroupsDao(false);
-            NotificationGroup notificationGroupFromDb = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
+            NotificationGroup notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroupName);
 
             if (notificationGroupFromDb != null) {
-                boolean didDeleteSucceed = notificationGroupsDao.delete(notificationGroupFromDb);
+                boolean didDeleteSucceed = NotificationGroupsDao.delete(connection, false, true, notificationGroupFromDb);
 
                 if (!didDeleteSucceed) {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -141,12 +141,7 @@ public class NotificationGroupsLogic extends AbstractDatabaseInteractionLogic {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
-            try {
-                if (notificationGroupsDao != null) notificationGroupsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
         
         return returnString;

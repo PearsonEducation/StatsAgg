@@ -1,10 +1,13 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,15 +37,15 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
         
         synchronized (GlobalVariables.suspensionChanges) {
             boolean isNewSuspension = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
-            SuspensionsDao suspensionsDao = null;
             Suspension newSuspensionFromDb = null;
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
             
             try {
-                suspensionsDao = new SuspensionsDao(false);
                 Suspension suspensionFromDb;
 
                 if ((oldName != null) && !oldName.isEmpty()) {
-                    suspensionFromDb = suspensionsDao.getSuspensionByName(oldName);
+                    suspensionFromDb = SuspensionsDao.getSuspension(connection, false, oldName);
 
                     if (suspensionFromDb != null) {
                         suspension.setId(suspensionFromDb.getId());
@@ -53,40 +56,32 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
                     }
                 }
                 else {
-                    suspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
+                    suspensionFromDb = SuspensionsDao.getSuspension(connection, false, suspension.getName());
                     if (suspensionFromDb != null) isOverwriteExistingAttempt = true;
                 }
 
                 if (!isOverwriteExistingAttempt) {
-                    isUpsertSuccess = suspensionsDao.upsert(suspension);
-                    newSuspensionFromDb = suspensionsDao.getSuspensionByName(suspension.getName());
+                    isUpsertSuccess = SuspensionsDao.upsert(connection, false, true, suspension);
+                    newSuspensionFromDb = SuspensionsDao.getSuspension(connection, false, suspension.getName());
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (suspensionsDao != null) suspensionsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
 
             if (isOverwriteExistingAttempt) {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-
                 returnString = "Failed to create suspension. An suspension with the same name already exists. SuspensionName=\"" + suspension.getName() + "\"";
                 String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                 logger.warn(cleanReturnString);
             }
             else if (isUpsertSuccess && (newSuspensionFromDb != null)) {
                 lastAlterRecordStatus_ = STATUS_CODE_SUCCESS;
-
                 if (isNewSuspension) GlobalVariables.suspensionChanges.put(newSuspensionFromDb.getId(), GlobalVariables.NEW);
                 else GlobalVariables.suspensionChanges.put(newSuspensionFromDb.getId(), GlobalVariables.ALTER);
-
                 if (isNewSuspension) returnString = "Successful suspension creation. SuspensionName=\"" + suspension.getName() + "\"";
                 else returnString = "Successful suspension alteration. SuspensionName=\"" + suspension.getName() + "\"";
                 String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
@@ -94,7 +89,6 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
             }
             else {
                 lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-
                 if (isNewSuspension) returnString = "Failed to create suspension. " + "SuspensionName=\"" + suspension.getName() + "\"";
                 else returnString = "Failed to alter suspension. " + "SuspensionName=\"" + suspension.getName() + "\"";
                 String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
@@ -117,14 +111,14 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
         String returnString = "Error to deleting suspension. SuspensionName=\"" + StringUtilities.removeNewlinesFromString(suspensionName) + "\".";
 
         synchronized (GlobalVariables.suspensionChanges) {
-            SuspensionsDao suspensionsDao = null;
-        
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
+            
             try {
-                suspensionsDao = new SuspensionsDao(false);
-                Suspension suspensionFromDb = suspensionsDao.getSuspensionByName(suspensionName);
+                Suspension suspensionFromDb = SuspensionsDao.getSuspension(connection, false, suspensionName);
 
                 if (suspensionFromDb != null) {
-                    boolean didDeleteSucceed = suspensionsDao.delete(suspensionFromDb);
+                    boolean didDeleteSucceed = SuspensionsDao.delete(connection, false, true, suspensionFromDb);
 
                     if (!didDeleteSucceed) {
                         lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -151,12 +145,7 @@ public class SuspensionsLogic extends AbstractDatabaseInteractionLogic {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (suspensionsDao != null) suspensionsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
         }
         

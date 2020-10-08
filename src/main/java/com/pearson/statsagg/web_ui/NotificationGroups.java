@@ -9,11 +9,11 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.alerts.EmailThread;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
@@ -24,7 +24,9 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -35,7 +37,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "NotificationGroups", urlPatterns = {"/NotificationGroups"})
 public class NotificationGroups extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroups.class.getName());
@@ -158,10 +159,10 @@ public class NotificationGroups extends HttpServlet {
         }
         
         try {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
-            List<NotificationGroup> allNotificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
-            notificationGroupsDao.close();
+            Connection connection = DatabaseConnections.getConnection();
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroupId);
+            List<NotificationGroup> allNotificationGroups = NotificationGroupsDao.getNotificationGroups(connection, false);
+            DatabaseUtils.cleanup(connection);
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 Set<String> allNotificationGroupNames = new HashSet<>();
@@ -190,8 +191,7 @@ public class NotificationGroups extends HttpServlet {
         if (notificationGroupId == null) return returnString;
         
         try {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);   
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);   
             NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
             returnString = notificationGroupsLogic.deleteRecordInDatabase(notificationGroup.getName());
             return returnString;
@@ -232,10 +232,8 @@ public class NotificationGroups extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        AlertsDao alertsDao = new AlertsDao();
-        Set<Integer> notificationGroupIdsAssociatedWithAlerts = alertsDao.getAllDistinctNotificationGroupIds();
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        List<NotificationGroup> notificationGroups = notificationGroupsDao.getAllDatabaseObjectsInTable();
+        Set<Integer> notificationGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctNotificationGroupIdsAssociatedWithAlerts(DatabaseConnections.getConnection(), true);
+        List<NotificationGroup> notificationGroups = NotificationGroupsDao.getNotificationGroups(DatabaseConnections.getConnection(), true);
 
         for (NotificationGroup notificationGroup : notificationGroups) {     
             
@@ -305,8 +303,7 @@ public class NotificationGroups extends HttpServlet {
             return;
         }
 
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
+        NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);
         
         if ((notificationGroup == null) || (notificationGroup.getName() == null) || (notificationGroup.getId() == null)) {
             logger.warn("Failed to send email alert to notification group id=" + notificationGroupId + ". Notification group does not exist." );

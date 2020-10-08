@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_NotificationGroup_Details", urlPatterns={"/api/notification-group-details"})
 public class NotificationGroupDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupDetails.class.getName());
@@ -111,10 +110,8 @@ public class NotificationGroupDetails extends HttpServlet {
             }
 
             NotificationGroup notificationGroup = null;
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            if (notificationGroupId != null) notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
-            else if (notificationGroupName != null) notificationGroup = notificationGroupsDao.getNotificationGroupByName(notificationGroupName);
-            else notificationGroupsDao.close();
+            if (notificationGroupId != null) notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);
+            else if (notificationGroupName != null) notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName);
             
             if (notificationGroup != null) return NotificationGroup.getJsonString_ApiFriendly(notificationGroup);
             else return Helper.ERROR_NOTFOUND_JSON;

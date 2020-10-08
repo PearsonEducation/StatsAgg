@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
@@ -14,10 +15,11 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
  * @author Prashant Kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_Alerts_List", urlPatterns={"/api/alerts-list"})
 public class AlertsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertsList.class.getName());
@@ -92,12 +93,10 @@ public class AlertsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
-        AlertsDao alertsDao = null;
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
-            alertsDao = new AlertsDao(false);
-            
-            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+            List<Alert> alerts = AlertsDao.getAlerts(connection, false);
             if (alerts == null) alerts = new ArrayList<>();
             
             List<JsonObject> alertsJsonObjects = new ArrayList<>();
@@ -105,29 +104,24 @@ public class AlertsList extends HttpServlet {
                 MetricGroup metricGroup = null;
                 List<MetricGroupTag> metricGroupTags = null;
                 if ((alert != null) && (alert.getMetricGroupId() != null)) {
-                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao(alertsDao.getDatabaseInterface());
-                    metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
-                    
-                    MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(alertsDao.getDatabaseInterface());
-                    metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
+                    metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
+                    metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, alert.getMetricGroupId());
                 }
                 
                 NotificationGroup cautionNotificationGroup = null;
                 NotificationGroup cautionPositiveNotificationGroup = null;
                 NotificationGroup dangerNotificationGroup = null;
                 NotificationGroup dangerPositiveNotificationGroup = null;
-                NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(alertsDao.getDatabaseInterface());
-                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
-                if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
-                if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
-                if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
+                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionNotificationGroupId());
+                if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionPositiveNotificationGroupId());
+                if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
+                if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
                           
                 JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
                 if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
             
-            alertsDao.close();
-            alertsDao = null;
+            DatabaseUtils.cleanup(connection);
                 
             Gson alertsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement alerts_JsonElement = alertsGson.toJsonTree(alertsJsonObjects);
@@ -141,12 +135,7 @@ public class AlertsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         finally {  
-            try {
-                if (alertsDao != null) alertsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
         
     }

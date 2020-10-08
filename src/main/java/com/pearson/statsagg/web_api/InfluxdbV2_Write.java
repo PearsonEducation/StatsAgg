@@ -7,7 +7,6 @@ import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v2;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -18,7 +17,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_Influxdb_V2_Write", urlPatterns={"/write/*"})
 public class InfluxdbV2_Write extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(InfluxdbV2_Write.class.getName());

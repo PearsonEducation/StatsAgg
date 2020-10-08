@@ -1,8 +1,8 @@
 package com.pearson.statsagg.globals;
 
-import com.pearson.statsagg.controller.threads.AlertInvokerThread;
-import com.pearson.statsagg.controller.threads.CleanupInvokerThread;
-import com.pearson.statsagg.controller.threads.MetricAssociationOutputBlacklistInvokerThread;
+import com.pearson.statsagg.drivers.threads.AlertInvokerThread;
+import com.pearson.statsagg.drivers.threads.CleanupInvokerThread;
+import com.pearson.statsagg.drivers.threads.MetricAssociationOutputBlacklistInvokerThread;
 import java.math.BigDecimal;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;

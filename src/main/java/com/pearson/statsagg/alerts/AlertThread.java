@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
@@ -12,8 +13,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import com.pearson.statsagg.controller.thread_managers.SendEmail_ThreadPoolManager;
-import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
+import com.pearson.statsagg.drivers.thread_managers.SendEmail_ThreadPoolManager;
+import com.pearson.statsagg.drivers.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeen;
@@ -30,6 +31,8 @@ import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import com.pearson.statsagg.utilities.core_utils.Threads;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
@@ -130,8 +133,7 @@ public class AlertThread implements Runnable {
             long alertRoutineTimeElasped = 0, suspensionRoutineTimeElapsed;
             synchronized (GlobalVariables.alertRoutineLock) {
                 // gets all alerts from the database.
-                AlertsDao alertsDao = new AlertsDao();
-                List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+                List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
                 alertsByAlertId_ = getAlertsByAlertId(alerts);
 
                 // run the suspension routine
@@ -624,10 +626,10 @@ public class AlertThread implements Runnable {
     
     private void updateMetricLastSeen() {
         
-        MetricLastSeenDao metricLastSeenDao = new MetricLastSeenDao(false);
-        metricLastSeenDao.getDatabaseInterface().setIsManualTransactionControl(true);
-        metricLastSeenDao.getDatabaseInterface().beginTransaction();
-        List<MetricLastSeen> metricLastSeens = metricLastSeenDao.getAllDatabaseObjectsInTable();
+        Connection connection = DatabaseConnections.getConnection();
+        DatabaseUtils.setAutoCommit(connection, false);
+        
+        List<MetricLastSeen> metricLastSeens = MetricLastSeenDao.getMetricLastSeens(connection, false);
         
         Map<String,MetricLastSeen> metricKeySha1sFromDb_ByMetricKey = new HashMap<>();
 
@@ -643,10 +645,16 @@ public class AlertThread implements Runnable {
         
         if (metricKeysAssociatedWithActiveAvailabilityAlerts != null) {            
             // removes metric-keys that don't need to be in the db any longer
+            boolean didDeleteAnyKeys = false;
             for (String metricKey : metricKeySha1sFromDb_ByMetricKey.keySet()) {
                 if (!metricKeysAssociatedWithActiveAvailabilityAlerts.contains(metricKey)) { 
-                    metricLastSeenDao.delete(metricKeySha1sFromDb_ByMetricKey.get(metricKey).getMetricKeySha1());
+                    MetricLastSeenDao.delete(connection, false, false, metricKeySha1sFromDb_ByMetricKey.get(metricKey).getMetricKeySha1());
+                    didDeleteAnyKeys = true;
                 }
+            }
+            
+            if (didDeleteAnyKeys) { // commit key deletes
+                DatabaseUtils.commit(connection, false);
             }
             
             // updates the database with the current set of tracked 'metric last seen' values
@@ -672,11 +680,11 @@ public class AlertThread implements Runnable {
                 }
             }
             
-            metricLastSeenDao.batchUpsert(metricLastSeens_PutInDatabase);
+            MetricLastSeenDao.batchUpsert(connection, false, metricLastSeens_PutInDatabase);
         }
 
-        metricLastSeenDao.getDatabaseInterface().endTransaction(true);
-        metricLastSeenDao.close();
+        DatabaseUtils.commit(connection, false);
+        DatabaseUtils.cleanup(connection);
     }
     
     private void waitForConcurrentHashMapsToSettle() {
@@ -990,21 +998,17 @@ public class AlertThread implements Runnable {
         }
         
         if (doUpdateAlertInDb) {
-            AlertsDao alertDao = null;
+            Connection connection = DatabaseConnections.getConnection();
             
             try {
-                alertDao = new AlertsDao(false);
-                Alert alertFromDb = alertDao.getAlert(alert.getId());
-
-                if (alertFromDb != null) {
-                    alertDao.upsert(alert);
-                }
+                Alert alertFromDb = AlertsDao.getAlert(connection, false, alert.getId());
+                if (alertFromDb != null) AlertsDao.upsert(connection, false, true, alert);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                if (alertDao != null) alertDao.close();
+                DatabaseUtils.cleanup(connection);
             }
         }
 
@@ -1094,27 +1098,22 @@ public class AlertThread implements Runnable {
                 }
             }
         }
-        
+
         if (doUpdateAlertInDb) {
-            AlertsDao alertDao = null;
+            Connection connection = DatabaseConnections.getConnection();
             
             try {
-                alertDao = new AlertsDao(false);
-                Alert alertFromDb = alertDao.getAlert(alert.getId());
+                Alert alertFromDb = AlertsDao.getAlert(connection, false, alert.getId());
+                if (alertFromDb != null) AlertsDao.upsert(connection, false, true, alert);
 
-                if (alertFromDb != null) {
-                    alertDao.upsert(alert);
-                }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                if (alertDao != null) alertDao.close();
+                DatabaseUtils.cleanup(connection);
             }
-            
         }
-        
     }
 
     public static Map<Integer,List<Alert>> separateAlertsByCpuCore(List<Alert> alerts) {

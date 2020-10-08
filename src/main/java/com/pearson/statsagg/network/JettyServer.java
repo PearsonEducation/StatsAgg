@@ -5,6 +5,8 @@ package com.pearson.statsagg.network;
  */
 public interface JettyServer {
     
-     public void stopServer();
+    public boolean isRunning();
+    
+    public void stopServer();
      
 }

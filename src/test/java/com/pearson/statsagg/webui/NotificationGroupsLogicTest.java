@@ -1,11 +1,12 @@
 package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.web_ui.NotificationGroupsLogic;
-import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.database_engine.DatabaseConnections;
-import java.io.InputStream;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.drivers.Driver;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.*;
@@ -26,10 +27,10 @@ public class NotificationGroupsLogicTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager contextManager = new ContextManager();
-        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
-        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
-        contextManager.createDatabaseSchemas();
+        Driver.initializeApplication_Logger();
+        Driver.initializeApplication_DatabaseConfiguration(true);
+        Driver.connectToDatabase();
+        Driver.setupDatabaseSchema();
     }
     
     @AfterClass
@@ -65,8 +66,7 @@ public class NotificationGroupsLogicTest {
         NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1");   
         result = notificationGroupsLogic_.alterRecordInDatabase(notification1);
         assertTrue(result.contains("Success"));
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification1FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification1FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertTrue(notification1FromDb.getName().contains("notification junit name 1"));
         assertTrue(notification1FromDb.getEmailAddresses().contains("notification junit email 1"));
         
@@ -75,41 +75,38 @@ public class NotificationGroupsLogicTest {
         assertTrue(result.contains("Fail"));
         result = notificationGroupsLogic_.alterRecordInDatabase(notification1FromDb, notification1FromDb.getName());
         assertTrue(result.contains("Success"));
-        notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification2FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification2FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertTrue(notification2FromDb.getName().contains("notification junit name 1"));
         assertTrue(notification2FromDb.getEmailAddresses().contains("notification junit email 1_2"));
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit fake 1");
         assertTrue(result.contains("Cancelling"));
-        notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification3FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification3FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertTrue(notification3FromDb.getName().contains("notification junit name 1"));
         
         // test altering metric group name
-        notificationGroupsDao = new NotificationGroupsDao(false);
-        NotificationGroup notificationGroupFromDbOriginalName = notificationGroupsDao.getNotificationGroupByName("notification junit name 1"); // pt1
+        Connection connection = DatabaseConnections.getConnection();
+        NotificationGroup notificationGroupFromDbOriginalName = NotificationGroupsDao.getNotificationGroup(connection, false, "notification junit name 1"); // pt1
         assertTrue(notificationGroupFromDbOriginalName.getName().contains("notification junit name 1"));
         NotificationGroup notificationGroupFromDbNewName = NotificationGroup.copy(notificationGroupFromDbOriginalName);
         notificationGroupFromDbNewName.setName("notification junit name 11");
         result = notificationGroupsLogic_.alterRecordInDatabase(notificationGroupFromDbNewName, notificationGroupFromDbNewName.getName());
         assertTrue(result.contains("Successful"));
-        NotificationGroup notificationGroupFromDbNewNameVerify = notificationGroupsDao.getNotificationGroupByName(notificationGroupFromDbNewName.getName()); // pt2
+        NotificationGroup notificationGroupFromDbNewNameVerify = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupFromDbNewName.getName()); // pt2
         assertTrue(notificationGroupFromDbNewNameVerify.getName().contains(notificationGroupFromDbNewName.getName()));
         assertFalse(notificationGroupFromDbNewNameVerify.getName().equals(notificationGroupFromDbOriginalName.getName()));
         assertEquals(notificationGroupFromDbOriginalName.getId(), notificationGroupFromDbNewNameVerify.getId());
-        NotificationGroup notificationGroupFromDbOriginalName_NoResult = notificationGroupsDao.getNotificationGroupByName(notificationGroupFromDbOriginalName.getName()); // pt3
+        NotificationGroup notificationGroupFromDbOriginalName_NoResult = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupFromDbOriginalName.getName()); // pt3
         assertEquals(notificationGroupFromDbOriginalName_NoResult, null);
         NotificationGroup notificationGroupFromDbOriginalName_Reset = NotificationGroup.copy(notificationGroupFromDbOriginalName); // pt4
         notificationGroupFromDbOriginalName_Reset.setName(notificationGroupFromDbOriginalName.getName());  
         result = notificationGroupsLogic_.alterRecordInDatabase(notificationGroupFromDbOriginalName_Reset, notificationGroupFromDbOriginalName.getName());
         assertTrue(result.contains("Successful"));
-        notificationGroupsDao.close();
+        DatabaseUtils.cleanup(connection);
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit name 1");
         assertTrue(result.contains("success"));
-        notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification4FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification4FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertEquals(null, notification4FromDb);
     }
 
@@ -125,14 +122,14 @@ public class NotificationGroupsLogicTest {
         result = notificationGroupsLogic_.alterRecordInDatabase(notification1);
         assertTrue(result.contains("Success"));
         NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification1FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification1FromDb = notificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertTrue(notification1FromDb.getName().contains("notification junit name 1"));
         assertTrue(notification1FromDb.getEmailAddresses().contains("notification junit email 1"));
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit name 1");
         assertTrue(result.contains("success"));
         notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification2FromDb = notificationGroupsDao.getNotificationGroupByName("notification junit name 1");
+        NotificationGroup notification2FromDb = notificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertEquals(null, notification2FromDb);
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit fake 1");

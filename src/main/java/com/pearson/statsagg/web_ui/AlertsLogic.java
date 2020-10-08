@@ -1,10 +1,13 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,15 +40,15 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         synchronized (GlobalVariables.alertRoutineLock) {
            
             boolean isNewAlert = true, isOverwriteExistingAttempt = false, isUpsertSuccess = false;
-            AlertsDao alertsDao = null;
             Alert newAlertFromDb = null;
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
                 
             try {
-                alertsDao = new AlertsDao(false);
-                Alert alertFromDb = null;
+                Alert alertFromDb;
 
                 if ((oldName != null) && !oldName.isEmpty()) {
-                    alertFromDb = alertsDao.getAlertByName(oldName);
+                    alertFromDb = AlertsDao.getAlert(connection, false, oldName);
 
                     if (alertFromDb != null) {
                         isNewAlert = false;
@@ -75,25 +78,20 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                     }
                 }
                 else {
-                    alertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
+                    alertFromDb = AlertsDao.getAlert(connection, false, alertToUpsert.getName());
                     if (alertFromDb != null) isOverwriteExistingAttempt = true;
                 }
 
                 if (!isOverwriteExistingAttempt) {
-                    isUpsertSuccess = alertsDao.upsert(alertToUpsert);
-                    newAlertFromDb = alertsDao.getAlertByName(alertToUpsert.getName());
+                    isUpsertSuccess = AlertsDao.upsert(connection, false, true, alertToUpsert);
+                    newAlertFromDb = AlertsDao.getAlert(connection, false, alertToUpsert.getName());
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (alertsDao != null) alertsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
             
             if (isOverwriteExistingAttempt) {
@@ -137,14 +135,14 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
         String returnString = "Error to deleting alert. AlertName=\"" + StringUtilities.removeNewlinesFromString(alertName) + "\".";
                         
         synchronized (GlobalVariables.alertRoutineLock) {            
-            AlertsDao alertsDao = null;
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
             
             try {
-                alertsDao = new AlertsDao(false);
-                Alert alertFromDb = alertsDao.getAlertByName(alertName);
+                Alert alertFromDb = AlertsDao.getAlert(connection, false, alertName);
 
                 if (alertFromDb != null) {
-                    boolean didDeleteSucceed = alertsDao.delete(alertFromDb);
+                    boolean didDeleteSucceed = AlertsDao.delete(connection, false, true, alertFromDb);
 
                     if (!didDeleteSucceed) {
                         lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -170,12 +168,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (alertsDao != null) alertsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
         }
         
@@ -188,8 +181,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             return null;
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if ((alert != null) && (alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) {
             alert.setIsCautionAlertAcknowledged(isCautionAcknowledged);
@@ -206,8 +198,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             return null;
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if ((alert != null) && (alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) {
             alert.setIsDangerAlertAcknowledged(isDangerAcknowledged);
@@ -224,8 +215,7 @@ public class AlertsLogic extends AbstractDatabaseInteractionLogic {
             return null;
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlert(alertId);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertId);
         
         if (alert != null) {
             boolean doAlertAlert = false;

@@ -1,9 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateAlert", urlPatterns = {"/CreateAlert"})
 public class CreateAlert extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateAlert.class.getName());
@@ -89,10 +88,7 @@ public class CreateAlert extends HttpServlet {
             
             Alert alert = null;
             String name = request.getParameter("Name");
-            if (name != null) {
-                AlertsDao alertsDao = new AlertsDao();
-                alert = alertsDao.getAlertByName(name.trim());
-            }        
+            if (name != null) alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name.trim());      
 
             String htmlBodyContents = buildCreateAlertHtml(alert);
             List<String> additionalJavascript = new ArrayList<>();
@@ -221,8 +217,7 @@ public class CreateAlert extends HttpServlet {
             "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"MetricGroupName\" id=\"MetricGroupName\" ");
 
         if ((alert != null) && (alert.getMetricGroupId() != null)) {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
 
             if ((metricGroup != null) && (metricGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName(), true)).append("\"");
@@ -397,8 +392,7 @@ public class CreateAlert extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"CautionNotificationGroupName\" id=\"CautionNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, alert.getCautionNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
@@ -417,8 +411,7 @@ public class CreateAlert extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"CautionPositiveNotificationGroupName\" id=\"CautionPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, alert.getCautionPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
@@ -671,8 +664,7 @@ public class CreateAlert extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"DangerNotificationGroupName\" id=\"DangerNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, alert.getDangerNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
@@ -691,8 +683,7 @@ public class CreateAlert extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"DangerPositiveNotificationGroupName\" id=\"DangerPositiveNotificationGroupName\" ");
 
         if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) {
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-            NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, alert.getDangerPositiveNotificationGroupId());
 
             if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
                 htmlBody.append(" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
@@ -954,8 +945,7 @@ public class CreateAlert extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    AlertsDao alertsDao = new AlertsDao();
-                    Alert oldAlert = alertsDao.getAlert(id_Integer);
+                    Alert oldAlert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, id_Integer);
                     oldName = oldAlert.getName();
                 }
                 catch (Exception e){}
@@ -1015,8 +1005,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
-                    MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                    MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(parameterTrimmed);
+                    MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, parameterTrimmed);
                     if (metricGroup != null) alert.setMetricGroupId(metricGroup.getId());
                 }
             }
@@ -1085,8 +1074,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {
-                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionNotificationGroupId(notificationGroup.getId());
                 }
             }
@@ -1104,8 +1092,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {
-                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setCautionPositiveNotificationGroupId(notificationGroup.getId());
                 }
             }
@@ -1215,8 +1202,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
-                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerNotificationGroupId(notificationGroup.getId());
                 }
             }
@@ -1234,8 +1220,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
                 if (!parameterTrimmed.isEmpty()) {    
-                    NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-                    NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroupByName(parameterTrimmed);
+                    NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, parameterTrimmed);
                     if ((notificationGroup != null) && (notificationGroup.getId() != null)) alert.setDangerPositiveNotificationGroupId(notificationGroup.getId());
                 }
             }

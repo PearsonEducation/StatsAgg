@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant4nov (Prashant Kumar)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Suspension_Remove", urlPatterns = {"/api/suspension-remove"})
 public class SuspensionRemove extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(SuspensionRemove.class.getName());
@@ -89,13 +88,11 @@ public class SuspensionRemove extends HttpServlet {
             String name = JsonUtils.getStringFieldFromJsonObject(jsonObject, "name");
             
             if ((id == null) && (name != null)) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspensionByName(name);
+                Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, name);
                 id = suspension.getId();
             }
             
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspension(id);
+            Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id);
             if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.web_ui.Suspensions suspensions = new com.pearson.statsagg.web_ui.Suspensions(); 

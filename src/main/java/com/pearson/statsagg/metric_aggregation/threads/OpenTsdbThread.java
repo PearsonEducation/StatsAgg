@@ -1,7 +1,7 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
-import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
+import com.pearson.statsagg.drivers.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;

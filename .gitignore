@@ -1,5 +1,13 @@
-/target/
-derby.log
-StatsAgg.iml
 .idea
-nb-configuration.xml
+StatsAgg.iml
+nbactions.xml
+*.log
+/logs/*.log
+/conf/application-dev.ini
+/conf/application-dev.properties
+/conf/database-dev.ini
+/conf/database-dev.properties
+/conf/flyway-dev.properties
+/conf/logback-config-dev.xml
+/nbproject/
+/target/

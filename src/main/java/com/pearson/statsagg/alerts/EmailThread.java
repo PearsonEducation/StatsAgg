@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -66,11 +67,8 @@ public class EmailThread implements Runnable  {
             return;
         }
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert_.getMetricGroupId());
-        
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert_.getMetricGroupId());
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, alert_.getMetricGroupId());
+        List<MetricGroupTag> metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, alert_.getMetricGroupId());
         
         buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup, metricGroupTags);
         
@@ -334,8 +332,7 @@ public class EmailThread implements Runnable  {
         
         ArrayList emailAddessesList = new ArrayList<>();
         
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notificationGroup = notificationGroupsDao.getNotificationGroup(notificationGroupId);
+        NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);
 
         if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
             String[] emailAddresses = StringUtils.split(notificationGroup.getEmailAddresses(), ",");

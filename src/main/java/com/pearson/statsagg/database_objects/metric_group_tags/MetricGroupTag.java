@@ -1,7 +1,7 @@
 package com.pearson.statsagg.database_objects.metric_group_tags;
 
 import com.google.gson.annotations.SerializedName;
-import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupTag extends DatabaseObject<MetricGroupTag> {
+public class MetricGroupTag implements DatabaseObject<MetricGroupTag> {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupTag.class.getName());
     

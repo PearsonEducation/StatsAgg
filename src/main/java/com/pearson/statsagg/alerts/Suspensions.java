@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
@@ -43,8 +44,7 @@ public class Suspensions {
     
     public Suspensions() {
         // gets all alerts from the database.
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
         alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
     }
     
@@ -55,8 +55,7 @@ public class Suspensions {
         } 
         else {
             // gets all alerts from the database.
-            AlertsDao alertsDao = new AlertsDao();
-            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
             alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
         }
         
@@ -78,8 +77,7 @@ public class Suspensions {
             return;
         }
         
-        GeneralPurposeDao generalPurposeDao = new GeneralPurposeDao();
-        Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert = generalPurposeDao.getMetricGroupTagsAssociatedWithAlerts();      
+        Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert = GeneralPurposeDao.getMetricGroupTagsAssociatedWithAlerts(DatabaseConnections.getConnection(), true);      
         
         for (int alertId : alertsByAlertId.keySet()) {
             if ((metricGroupTagsAssociatedWithAlert != null) && !metricGroupTagsAssociatedWithAlert.containsKey(alertId)) {
@@ -87,9 +85,8 @@ public class Suspensions {
             }
         }
         
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        List<Suspension> allSuspensions = suspensionsDao.getAllDatabaseObjectsInTable();
-        areSuspensionsActive(allSuspensions);
+        List<Suspension> allSuspensions = SuspensionsDao.getSuspensions(DatabaseConnections.getConnection(), true);
+        updateAreSuspensionsActive(allSuspensions);
 
         // determine suspensions
         for (Entry<Integer,Alert> alertEntry : alertsByAlertId.entrySet()) {
@@ -124,7 +121,7 @@ public class Suspensions {
 
     }
     
-    private void areSuspensionsActive(List<Suspension> allSuspensions) {
+    private void updateAreSuspensionsActive(List<Suspension> allSuspensions) {
         
         if (areSuspensionsActive_ == null) {
             return;
@@ -177,8 +174,7 @@ public class Suspensions {
     }
     
     public static boolean deleteExpiredSuspensions() {
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        return suspensionsDao.deleteExpired(new Timestamp(System.currentTimeMillis()));
+        return SuspensionsDao.deleteExpired(DatabaseConnections.getConnection(), true, true, new Timestamp(System.currentTimeMillis()));
     }
     
     public static Set<Integer> getSuspensionIdsAssociatedWithAnAlert(Alert alert, List<Suspension> suspensions, Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlert) {
@@ -334,9 +330,7 @@ public class Suspensions {
         }
          
         Set<String> metricGroupTagsSet = new HashSet<>();
-
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(alert.getMetricGroupId());
+        List<MetricGroupTag> metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
 
         if (metricGroupTags != null) {
             for (MetricGroupTag metricGroupTag : metricGroupTags) {

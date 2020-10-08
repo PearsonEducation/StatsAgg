@@ -5,11 +5,11 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.alerts.EmailThread;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertPreview", urlPatterns = {"/AlertPreview"})
 public class AlertPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertPreview.class.getName());
@@ -148,12 +147,10 @@ public class AlertPreview extends HttpServlet {
         alert.setCautionFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
         alert.setDangerFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
 
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         List<MetricGroupTag> metricGroupTags = new ArrayList<>();
         if (metricGroup != null) {
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-            metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+            metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
         }
         else {
             metricGroup = new MetricGroup(88888, metricGroupName, metricGroupName.toUpperCase(), "");

@@ -1,7 +1,7 @@
 package com.pearson.statsagg.database_objects.metric_group_regex;
 
 import com.google.gson.annotations.SerializedName;
-import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,7 +9,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupRegex extends DatabaseObject<MetricGroupRegex> {
+public class MetricGroupRegex implements DatabaseObject<MetricGroupRegex> {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupRegex.class.getName());
     

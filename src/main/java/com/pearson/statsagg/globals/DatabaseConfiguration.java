@@ -2,6 +2,7 @@ package com.pearson.statsagg.globals;
 
 import com.pearson.statsagg.utilities.config_utils.PropertiesConfigurationWrapper;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.zaxxer.hikari.HikariConfig;
 import java.io.File;
 import java.io.InputStream;
 import java.util.Iterator;
@@ -26,14 +27,6 @@ public class DatabaseConfiguration {
     private static boolean isInitializeSuccess_ = false;
     private static PropertiesConfigurationWrapper databaseConfiguration_ = null;
     
-    private static int cpMaxConnections_ = VALUE_NOT_SET_CODE;
-    private static int cpAcquireRetryAttempts_ = VALUE_NOT_SET_CODE;
-    private static int cpAcquireRetryDelay_ = VALUE_NOT_SET_CODE;
-    private static int cpConnectionTimeout_ = VALUE_NOT_SET_CODE;
-    private static boolean cpEnableStatistics_ = false;
-    private static boolean cpDefaultAutoCommit_ = false;
-    private static int connectionValidityCheckTimeout_ = VALUE_NOT_SET_CODE;
-    
     private static int type_ = VALUE_NOT_SET_CODE;
     private static String typeString_ = null;
     private static String hostname_ = null;
@@ -44,26 +37,37 @@ public class DatabaseConfiguration {
     private static String password_ = null;    
     private static String attributes_ = null;
     private static String customJdbc_ = null;
-    
     private static String jdbcConnectionString_ = null;
- 
-    public static boolean initialize(String filePathAndFilename) {
-        
-        if (filePathAndFilename == null) {
-            return false;
-        }
-        
-        databaseConfiguration_ = new PropertiesConfigurationWrapper(filePathAndFilename);
-        
-        if ((databaseConfiguration_ == null) || !databaseConfiguration_.isValid()) {
-            return false;
-        }
 
-        isInitializeSuccess_ = setDatabaseConfigurationValues();
+    private static boolean flywayMigrateEnabled_ = false;
+    private static boolean flywayRepairEnabled_ = false;
+   
+    private static HikariConfig hikariConfig_ = null;
+    
+    public static boolean initialize(String configurationFilepathAndFilename) {
+
+        try {
+            if (configurationFilepathAndFilename == null) {
+                return false;
+            }
+
+            databaseConfiguration_ = new PropertiesConfigurationWrapper(configurationFilepathAndFilename);
+
+            if ((databaseConfiguration_ == null) || !databaseConfiguration_.isValid()) {
+                return false;
+            }
+
+            isInitializeSuccess_ = setDatabaseConfigurationValues();
+
+            jdbcConnectionString_ = createJdbcString();
+
+            return isInitializeSuccess_ && (jdbcConnectionString_ != null);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
         
-        jdbcConnectionString_ = createJdbcString();
-                
-        return isInitializeSuccess_ && (jdbcConnectionString_ != null);
     }
     
     public static boolean initialize(InputStream configurationInputStream) {
@@ -73,7 +77,7 @@ public class DatabaseConfiguration {
         }
         
         databaseConfiguration_ = new PropertiesConfigurationWrapper(configurationInputStream);
-        
+
         if ((databaseConfiguration_ == null) || !databaseConfiguration_.isValid()) {
             return false;
         }
@@ -84,7 +88,7 @@ public class DatabaseConfiguration {
                 
         return isInitializeSuccess_ && (jdbcConnectionString_ != null);
     }
-    
+
     private static boolean setDatabaseConfigurationValues() {
         
         try {
@@ -103,9 +107,9 @@ public class DatabaseConfiguration {
             databaseName_ = databaseConfiguration_.safeGetString("db_name", "");
             
             // Variable substitution
-            Iterator<String> keys = databaseConfiguration_.getPropertiesConfiguration().getKeys();
-            while (keys.hasNext()) {
-                String databasePropertyKey = keys.next();
+            Iterator<String> derbyKeys = databaseConfiguration_.getPropertiesConfiguration().getKeys();
+            while (derbyKeys.hasNext()) {
+                String databasePropertyKey = derbyKeys.next();
                 
                 String databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 databasePropertyValue = databasePropertyValue.replace("${db_localpath}", databaseLocalPath_);
@@ -119,17 +123,8 @@ public class DatabaseConfiguration {
                 databasePropertyValue = databasePropertyValue.replace("${file.separator}", File.separator);
                 databaseConfiguration_.getPropertiesConfiguration().setProperty(databasePropertyKey, databasePropertyValue);
             }
-            
-            // Connection pool
-            cpMaxConnections_ = databaseConfiguration_.safeGetInt("cp_max_connections", 25);
-            cpAcquireRetryAttempts_ = databaseConfiguration_.safeGetInt("cp_acquire_retry_attempts", 3);
-            cpAcquireRetryDelay_ = databaseConfiguration_.safeGetInt("cp_acquire_retry_delay", 250);
-            cpConnectionTimeout_ = databaseConfiguration_.safeGetInt("cp_connection_timeout", 5000);
-            cpEnableStatistics_ = databaseConfiguration_.safeGetBoolean("cp_enable_statistics", false);
-            cpDefaultAutoCommit_ = databaseConfiguration_.safeGetBoolean("cp_default_auto_commit", false);  
-            connectionValidityCheckTimeout_ = databaseConfiguration_.safeGetInteger("connection_validity_check_timeout", 5);  
 
-            // Standard
+            // jdbc connection string variables
             hostname_ = databaseConfiguration_.safeGetString("db_hostname", "");
             port_ = databaseConfiguration_.safeGetString("db_port", "");
             username_ = databaseConfiguration_.safeGetString("db_username", "");
@@ -137,13 +132,32 @@ public class DatabaseConfiguration {
             attributes_ = databaseConfiguration_.safeGetString("db_attributes", "");
             customJdbc_ = databaseConfiguration_.safeGetString("db_custom_jdbc", null);
 
+            // flyway specific 
+            flywayMigrateEnabled_ = databaseConfiguration_.safeGetBoolean("flyway_migrate_enabled", true);
+            flywayRepairEnabled_ = databaseConfiguration_.safeGetBoolean("flyway_repair_enabled", true);
+            
             // Derby specific
-            keys = databaseConfiguration_.getPropertiesConfiguration().getKeys("derby");
-            while (keys.hasNext()) {
-                String databasePropertyKey = keys.next();
+            derbyKeys = databaseConfiguration_.getPropertiesConfiguration().getKeys("derby");
+            while (derbyKeys.hasNext()) {
+                String databasePropertyKey = derbyKeys.next();
                 String databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
                 Properties systemProperties = System.getProperties();
                 systemProperties.put(databasePropertyKey, databasePropertyValue);
+            }
+            
+            // create the hikaricp configuration
+            Properties hikaricpProperties = getHikariProperties(databaseConfiguration_.getPropertiesConfiguration().getKeys());
+            hikariConfig_ = new HikariConfig(hikaricpProperties);
+
+            // set legacy connection pool variables in the hikaricp config
+            if (hikariConfig_ != null) {
+                if (!hikaricpProperties.containsKey("poolName")) hikariConfig_.setPoolName("StatsAgg");
+                if (!hikaricpProperties.containsKey("maximumPoolSize")) hikariConfig_.setMaximumPoolSize(50);
+                if (!hikaricpProperties.containsKey("maxLifetime")) hikariConfig_.setMaxLifetime(30000);
+                if (!hikaricpProperties.containsKey("connectionTimeout")) hikariConfig_.setConnectionTimeout(5000);
+                if (!hikaricpProperties.containsKey("registerMbeans")) hikariConfig_.setRegisterMbeans(true);
+                hikariConfig_.setAutoCommit(true);
+                hikariConfig_.setJdbcUrl(createJdbcString());
             }
             
             return true;
@@ -155,11 +169,33 @@ public class DatabaseConfiguration {
     
     }
     
-    private static String createJdbcString() {
+    private static Properties getHikariProperties(Iterator<String> databaseConfigurationKeys) {
         
-        if (!isInitializeSuccess_) {
-            return null;
+        if (databaseConfigurationKeys == null) {
+            return new Properties();
         }
+        
+        Properties hikaricpProperties = new Properties();
+        
+        // remove all the legacy connection pool, legacy jdbc/connection-string, and derby-specific configurations -- leaving just hikaricp variables
+        while (databaseConfigurationKeys.hasNext()) {
+            String databasePropertyKey = databaseConfigurationKeys.next();
+            String databasePropertyValue = databaseConfiguration_.safeGetString(databasePropertyKey, null);
+            if ((databasePropertyValue != null) && !databasePropertyValue.isEmpty()) {
+                if (databasePropertyKey.startsWith("db_")) continue; // jdbc connection string variables
+                if (databasePropertyKey.startsWith("cp_")) continue; // legacy connection pool settings to ignore
+                if (databasePropertyKey.startsWith("derby")) continue; // derby-specific variables
+                if (databasePropertyKey.startsWith("flyway")) continue; // flyway-specific variables
+                if (databasePropertyKey.contains("connection_validity_check_timeout")) continue; // legacy variable that isn't used anymore
+
+                hikaricpProperties.put(databasePropertyKey, databasePropertyValue);
+            }
+        }
+                
+        return hikaricpProperties;
+    }
+    
+    private static String createJdbcString() {
         
         String jdbc = null;
          
@@ -186,34 +222,6 @@ public class DatabaseConfiguration {
         return jdbc;
     }
 
-    public static int getCpMaxConnections() {
-        return cpMaxConnections_;
-    }
-
-    public static int getCpAcquireRetryAttempts() {
-        return cpAcquireRetryAttempts_;
-    }
-
-    public static int getCpAcquireRetryDelay() {
-        return cpAcquireRetryDelay_;
-    }
-
-    public static int getCpConnectionTimeout() {
-        return cpConnectionTimeout_;
-    }
-    
-    public static boolean isCpEnableStatistics() {
-        return cpEnableStatistics_;
-    }
-    
-    public static Boolean getCpDefaultAutoCommit() {
-        return cpDefaultAutoCommit_;
-    }
-    
-    public static int getConnectionValidityCheckTimeout() {
-        return connectionValidityCheckTimeout_;
-    }
-    
     public static int getType() {
         return type_;
     }
@@ -262,8 +270,16 @@ public class DatabaseConfiguration {
         return jdbcConnectionString_;
     }
 
-    public static void setJdbcConnectionString(String jdbcConnectionString) {
-        jdbcConnectionString_ = jdbcConnectionString;
+    public static boolean isFlywayMigrateEnabled() {
+        return flywayMigrateEnabled_;
     }
 
+    public static boolean isFlywayRepairEnabled() {
+        return flywayRepairEnabled_;
+    }
+    
+    public static HikariConfig getHikariConfig() {
+        return hikariConfig_;
+    }
+    
 }

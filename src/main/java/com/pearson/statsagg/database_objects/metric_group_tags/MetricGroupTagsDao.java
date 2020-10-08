@@ -1,188 +1,149 @@
 package com.pearson.statsagg.database_objects.metric_group_tags;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.sql.ResultSet;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
+public class MetricGroupTagsDao {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupTagsDao.class.getName());
-   
-    private final String tableName_ = "METRIC_GROUP_TAGS";
-    
-    public MetricGroupTagsDao(){}
+  
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupTag metricGroupTag) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupTagsSql.Insert_MetricGroupTag, 
+                    metricGroupTag.getMetricGroupId(), metricGroupTag.getTag());
             
-    public MetricGroupTagsDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public MetricGroupTagsDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(MetricGroupTagsSql.DropTable_MetricGroupTags);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateTable_MetricGroupTags_MySQL);
+            return (result >= 0);
         }
-        else {
-            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateTable_MetricGroupTags_Derby);
-            databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_PrimaryKey);
-        }
-        
-        databaseCreationSqlStatements.add(MetricGroupTagsSql.CreateIndex_MetricGroupTags_ForeignKey_MetricGroupId);
-
-        return createTable(databaseCreationSqlStatements);
-    }
-    
-    @Override
-    public MetricGroupTag getDatabaseObject(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, metricGroupTag.getId()); 
-    }
-        
-    @Override
-    public boolean insert(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) {
-            databaseInterface_.cleanupAutomatic();
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
-        
-        return insert(MetricGroupTagsSql.Insert_MetricGroupTag, metricGroupTag.getMetricGroupId(), metricGroupTag.getTag());
-    }
-    
-    @Override
-    public boolean update(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        return update(MetricGroupTagsSql.Update_MetricGroupTag_ByPrimaryKey, metricGroupTag.getMetricGroupId(), metricGroupTag.getTag(), metricGroupTag.getId());
-    }
-
-    @Override
-    public boolean delete(MetricGroupTag metricGroupTag) {
-        if (metricGroupTag == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-
-        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByPrimaryKey, metricGroupTag.getId()); 
     }
     
-    @Override
-    public MetricGroupTag processSingleResultAllColumns(ResultSet resultSet) {
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupTag metricGroupTag) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupTagsSql.Update_MetricGroupTag_ByPrimaryKey, 
+                    metricGroupTag.getMetricGroupId(), metricGroupTag.getMetricGroupId(), metricGroupTag.getTag(), metricGroupTag.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupTag metricGroupTag) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            MetricGroupTag metricGroupTagFromDb = getMetricGroupTag(connection, false, metricGroupTag.getId());
+
+            boolean upsertSuccess = true;
+            if (metricGroupTagFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, metricGroupTag);
+            else if (!metricGroupTagFromDb.isEqual(metricGroupTag)) upsertSuccess = update(connection, false, commitOnCompletion, metricGroupTag);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupTag metricGroupTag) {
         
         try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
-            }
-
-            Integer id = resultSet.getInt("ID");
-            if (resultSet.wasNull()) id = null;
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupTagsSql.Delete_MetricGroupTag_ByPrimaryKey, metricGroupTag.getId());
             
-            Integer mgId = resultSet.getInt("METRIC_GROUP_ID");
-            if (resultSet.wasNull()) mgId = null;
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean deleteByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Integer metricGroupId) {
+        
+        try {     
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupTagsSql.Delete_MetricGroupTag_ByMetricGroupId, 
+                    metricGroupId);
             
-            String tag = resultSet.getString("TAG");
-            if (resultSet.wasNull()) tag = null;
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static MetricGroupTag getMetricGroupTag(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupTagId) {
+        
+        try {
+            List<MetricGroupTag> metricGroupTags = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupTagsResultSetHandler(), 
+                    MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, metricGroupTagId);
             
-            MetricGroupTag metricGroupTag = new MetricGroupTag(id, mgId, tag);
-            
-            return metricGroupTag;
+            return DatabaseUtils.getSingleResultFromList(metricGroupTags);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
-    }
-    
-    @Override
-    public String getTableName() {
-        return tableName_;
-    }
-    
-    public MetricGroupTag getMetricGroupTag(Integer id) {
-        return getDatabaseObject(MetricGroupTagsSql.Select_MetricGroupTag_ByPrimaryKey, id); 
-    }  
-    
-    public Map<Integer,List<MetricGroupTag>> getAllMetricGroupTagsByMetricGroupId() {
-        List<MetricGroupTag> metricGroupTags = getAllDatabaseObjectsInTable();
-        
-        if (metricGroupTags == null || metricGroupTags.isEmpty()) {
-            return new HashMap<>();
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        Map<Integer,List<MetricGroupTag>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
-
-        try {
-            for (MetricGroupTag metricGroupTag : metricGroupTags) {
-                Integer metricGroupId = metricGroupTag.getMetricGroupId();
-
-                if (databaseObjectsInTableByMetricGroupId.containsKey(metricGroupId)) {
-                    List<MetricGroupTag> databaseObjects = databaseObjectsInTableByMetricGroupId.get(metricGroupId);
-                    databaseObjects.add(metricGroupTag);
-                }
-                else {
-                    List<MetricGroupTag> databaseObjects = new ArrayList<>();
-                    databaseObjects.add(metricGroupTag);
-                    databaseObjectsInTableByMetricGroupId.put(metricGroupId, databaseObjects);
-                }
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        
-        return databaseObjectsInTableByMetricGroupId;
     }
     
-    public List<MetricGroupTag> getMetricGroupTagsByMetricGroupId(Integer metricGroupId) {
+    public static List<MetricGroupTag> getMetricGroupTags(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(MetricGroupTagsSql.Select_MetricGroupTags_ByMetricGroupId, 100);
-            databaseInterface_.addPreparedStatementParameters(metricGroupId);
-            databaseInterface_.executePreparedStatement();
+            List<MetricGroupTag> metricGroupTags = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupTagsResultSetHandler(), 
+                    MetricGroupTagsSql.Select_AllMetricGroupTags);
             
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-
-            List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-            
-            ResultSet resultSet = databaseInterface_.getResults();
-
-            while (resultSet.next()) {
-                MetricGroupTag databaseObject = processSingleResultAllColumns(resultSet);
-                metricGroupTags.add(databaseObject);
-            }
-
             return metricGroupTags;
         }
         catch (Exception e) {
@@ -190,13 +151,60 @@ public class MetricGroupTagsDao extends DatabaseObjectDao<MetricGroupTag> {
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public boolean deleteByMetricGroupId(Integer id) {
-        return delete(MetricGroupTagsSql.Delete_MetricGroupTag_ByMetricGroupId, id); 
+    public static List<MetricGroupTag> getMetricGroupTagsByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupId) {
+        
+        try {
+            List<MetricGroupTag> metricGroupTags = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupTagsResultSetHandler(), 
+                    MetricGroupTagsSql.Select_MetricGroupTags_ByMetricGroupId, metricGroupId);
+            
+            return metricGroupTags;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static Map<Integer,List<MetricGroupTag>> getAllMetricGroupTagsByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        List<MetricGroupTag> metricGroupTags = getMetricGroupTags(connection, closeConnectionOnCompletion); 
+        
+        if ((metricGroupTags == null) || metricGroupTags.isEmpty()) {
+            return new HashMap<>();
+        }
+        
+        Map<Integer,List<MetricGroupTag>> metricGroupTagByMetricGroupId = new HashMap<>();
+
+        try {
+            for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                Integer metricGroupId = metricGroupTag.getMetricGroupId();
+
+                if (metricGroupTagByMetricGroupId.containsKey(metricGroupId)) {
+                    List<MetricGroupTag> databaseObjects = metricGroupTagByMetricGroupId.get(metricGroupId);
+                    databaseObjects.add(metricGroupTag);
+                }
+                else {
+                    List<MetricGroupTag> databaseObjects = new ArrayList<>();
+                    databaseObjects.add(metricGroupTag);
+                    metricGroupTagByMetricGroupId.put(metricGroupId, databaseObjects);
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return metricGroupTagByMetricGroupId;
     }
     
 }

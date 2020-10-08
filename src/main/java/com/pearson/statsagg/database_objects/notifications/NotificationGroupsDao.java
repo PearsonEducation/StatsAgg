@@ -1,12 +1,10 @@
 package com.pearson.statsagg.database_objects.notifications;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import java.util.HashMap;
 import java.util.Map;
 import org.slf4j.Logger;
@@ -15,288 +13,210 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> {
+public class NotificationGroupsDao {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsDao.class.getName());
-   
-    private final String tableName_ = "NOTIFICATION_GROUPS";
     
-    public NotificationGroupsDao(){}
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
+        
+        try {                   
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    NotificationGroupsSql.Insert_NotificationGroup, 
+                    notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses());
             
-    public NotificationGroupsDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public NotificationGroupsDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(NotificationGroupsSql.DropTable_NotificationGroups);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateTable_NotificationGroups_MySQL);
-        }
-        else {
-            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateTable_NotificationGroups_Derby);
-            databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_PrimaryKey);
-        }
-
-        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_Unique_Name);
-        databaseCreationSqlStatements.add(NotificationGroupsSql.CreateIndex_NotificationGroups_Unique_UppercaseName);
-
-        return createTable(databaseCreationSqlStatements);
-    }
-    
-    @Override
-    public NotificationGroup getDatabaseObject(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(NotificationGroupsSql.Select_NotificationGroup_ByPrimaryKey, 
-                notificationGroup.getId()); 
-    }
-    
-    @Override
-    public boolean insert(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return insert(NotificationGroupsSql.Insert_NotificationGroup, 
-                notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses());
-    }
-    
-    @Override
-    public boolean update(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return update(NotificationGroupsSql.Update_NotificationGroup_ByPrimaryKey, 
-                notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses(), notificationGroup.getId());
-    }
-
-    @Override
-    public boolean delete(NotificationGroup notificationGroup) {
-        if (notificationGroup == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-
-        return delete(NotificationGroupsSql.Delete_NotificationGroup_ByPrimaryKey, 
-                notificationGroup.getId()); 
-    }
-    
-    @Override
-    public NotificationGroup processSingleResultAllColumns(ResultSet resultSet) {
-        
-        try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
-            }
-
-            Integer id = resultSet.getInt("ID");
-            if (resultSet.wasNull()) id = null;
-            
-            String name = resultSet.getString("NAME");
-            if (resultSet.wasNull()) name = null;
-
-            String uppercaseName = resultSet.getString("UPPERCASE_NAME");
-            if (resultSet.wasNull()) uppercaseName = null;
-            
-            String emailAddresses = resultSet.getString("EMAIL_ADDRESSES");
-            if (resultSet.wasNull()) emailAddresses = null;
-
-            NotificationGroup notificationGroup = new NotificationGroup(id, name, uppercaseName, emailAddresses);
-            
-            return notificationGroup;
+            return (result >= 0);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
+            return false;
         }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
-    @Override
-    public String getTableName() {
-        return tableName_;
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    NotificationGroupsSql.Update_NotificationGroup_ByPrimaryKey, 
+                    notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses(), notificationGroup.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
-    public NotificationGroup getNotificationGroup(Integer id) {
-        return getDatabaseObject(NotificationGroupsSql.Select_NotificationGroup_ByPrimaryKey, id); 
-    }  
-    
-    public NotificationGroup getNotificationGroupByName(String name) {
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            NotificationGroup notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroup.getId());
+
+            boolean upsertSuccess = true;
+            if (notificationGroupFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, notificationGroup);
+            else if (!notificationGroupFromDb.isEqual(notificationGroup)) upsertSuccess = update(connection, false, commitOnCompletion, notificationGroup);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    NotificationGroupsSql.Delete_NotificationGroup_ByPrimaryKey, 
+                    notificationGroup.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static NotificationGroup getNotificationGroup(Connection connection, boolean closeConnectionOnCompletion, Integer id) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroup_ByName, 1);
-            databaseInterface_.addPreparedStatementParameters(name);
-            databaseInterface_.executePreparedStatement();
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_NotificationGroup_ByPrimaryKey, id);
             
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
-            
-            if (resultSet.next()) {
-                NotificationGroup notificationGroup = processSingleResultAllColumns(resultSet);
-                return notificationGroup;
-            }
-            else {
-                return null;
-            }
+            return DatabaseUtils.getSingleResultFromList(notificationGroups);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public List<Integer> getAllNotificationGroupIds() {
+    public static NotificationGroup getNotificationGroup(Connection connection, boolean closeConnectionOnCompletion, String notificationGroupName) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return new ArrayList<>();
-            }
-
-            databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_DistinctNotificationGroupIds, 1000);
-            databaseInterface_.executePreparedStatement();
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_NotificationGroup_ByName, notificationGroupName);
             
-            if (!databaseInterface_.isResultSetValid()) {
-                return new ArrayList<>();
-            }
-
-            List<Integer> metricGroupIds = new ArrayList<>();
-            
-            ResultSet resultSet = databaseInterface_.getResults();
-            
-            while (resultSet.next()) {
-                Integer id = resultSet.getInt("ID");
-                metricGroupIds.add(id);
-            }
-            
-            return metricGroupIds;
+            return DatabaseUtils.getSingleResultFromList(notificationGroups);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
+            return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public Map<Integer,String> getNotificationGroupNames_ById() {
-        
+    public static List<NotificationGroup> getNotificationGroupIdsAndNames(Connection connection, boolean closeConnectionOnCompletion) {
+
         try {
-
-            if (!isConnectionValid()) {
-                return new HashMap<>();
-            }
-
-            Map<Integer,String> notificationGroupNames_ById = new HashMap<>();
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_AllNotificationGroups_IdsAndNames);
             
-            databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_AllNotificationGroup_IdsAndNames, 1000);
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return new HashMap<>();
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
-            
-            while (resultSet.next()) {
-                Integer id = resultSet.getInt("ID");
-                if (resultSet.wasNull()) id = null;
-                
-                String name = resultSet.getString("NAME");
-                if (resultSet.wasNull()) name = null;
-
-                if ((id != null) && (name != null)) notificationGroupNames_ById.put(id, name);
-            }
-            
-            return notificationGroupNames_ById;
+            return notificationGroups;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new HashMap<>();
+            return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public List<String> getNotificationGroupNames(String filter, int resultSetLimit) {
+    public static List<NotificationGroup> getNotificationGroups(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return new ArrayList<>();
-            }
-
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_AllNotificationGroups);
+            
+            return notificationGroups;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<String> getNotificationGroupNames(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
+        
+        try {
             List<String> notificationGroupNames = new ArrayList<>();
             
-            databaseInterface_.createPreparedStatement(NotificationGroupsSql.Select_NotificationGroup_Names_OrderByName, 1000);
-            databaseInterface_.addPreparedStatementParameters("%" + filter + "%");
-            databaseInterface_.executePreparedStatement();
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    (resultSetLimit + 5), 
+                    NotificationGroupsSql.Select_NotificationGroup_Names_OrderByName,
+                    ("%" + filter + "%"));
             
-            if (!databaseInterface_.isResultSetValid()) {
-                return new ArrayList<>();
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
+            if ((notificationGroups == null) || notificationGroups.isEmpty()) return notificationGroupNames;
             
             int rowCounter = 0;
-            while (resultSet.next() && (rowCounter < resultSetLimit)) {
-                String name = resultSet.getString("NAME");
-                if (resultSet.wasNull()) name = null;
-                
-                if (name != null) {
-                    notificationGroupNames.add(name);
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+                    notificationGroupNames.add(notificationGroup.getName());
                     rowCounter++;
                 }
+                
+                if (rowCounter >= resultSetLimit) break;
             }
             
             return notificationGroupNames;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
+            return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
 
-    public Map<Integer, NotificationGroup> getNotificationGroups_ById() {
+    public static Map<Integer, NotificationGroup> getNotificationGroups_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
         Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();
         
         try {
-            List<NotificationGroup> notificationGroups = super.getAllDatabaseObjectsInTable();
+            List<NotificationGroup> notificationGroups = getNotificationGroups(connection, closeConnectionOnCompletion);
             if (notificationGroups == null) return notificationGroupsById;
 
             for (NotificationGroup notificationGroup : notificationGroups) {
@@ -309,5 +229,24 @@ public class NotificationGroupsDao extends DatabaseObjectDao<NotificationGroup> 
         
         return notificationGroupsById;
     }
-    
+        
+    public static Map<Integer, String> getNotificationGroupNames_ById(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        Map<Integer, String> notificationGroupNamesById = new HashMap<>();
+        
+        try {
+            List<NotificationGroup> notificationGroups = getNotificationGroupIdsAndNames(connection, closeConnectionOnCompletion);
+            if (notificationGroups == null) return notificationGroupNamesById;
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if (notificationGroup.getName() != null) notificationGroupNamesById.put(notificationGroup.getId(), notificationGroup.getName());
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return notificationGroupNamesById;
+    }
+
 }

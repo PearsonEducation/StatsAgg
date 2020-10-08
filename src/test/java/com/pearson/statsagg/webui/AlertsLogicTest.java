@@ -6,7 +6,6 @@ import com.pearson.statsagg.web_ui.AlertsLogic;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.TreeSet;
-import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
@@ -14,8 +13,10 @@ import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
-import com.pearson.statsagg.database_engine.DatabaseConnections;
-import java.io.InputStream;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.drivers.Driver;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.junit.After;
 import org.junit.AfterClass;
 import static org.junit.Assert.assertEquals;
@@ -44,10 +45,10 @@ public class AlertsLogicTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager contextManager = new ContextManager();
-        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
-        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
-        contextManager.createDatabaseSchemas();
+        Driver.initializeApplication_Logger();
+        Driver.initializeApplication_DatabaseConfiguration(true);
+        Driver.connectToDatabase();
+        Driver.setupDatabaseSchema();
     }
     
     @AfterClass
@@ -71,8 +72,7 @@ public class AlertsLogicTest {
         NotificationGroup notificationGroup = new NotificationGroup(-1, notificationGroupName_, notificationGroupName_);   
         result = notificationGroupsLogic_.alterRecordInDatabase(notificationGroup);
         assertTrue(result.contains("Success"));
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        notificationGroup_ = notificationGroupsDao.getNotificationGroupByName(notificationGroupName_);
+        notificationGroup_ = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName_);
         
         // delete previous metric group, create a new metric group, and retrieve it from the db. this metric group exists solely for this unit test.
         result = metricGroupsLogic_.deleteRecordInDatabase(metricGroupName_);
@@ -84,8 +84,7 @@ public class AlertsLogicTest {
         regexes.add(metricGroupName_);
         result = metricGroupsLogic_.alterRecordInDatabase(metricGroup, regexes, null, tags);
         assertTrue(result.contains("Success"));
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        metricGroup_ = metricGroupsDao.getMetricGroupByName(metricGroupName_);
+        metricGroup_ = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName_);
     }
     
     @After
@@ -114,8 +113,7 @@ public class AlertsLogicTest {
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert1FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert1FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertTrue(alert1FromDb.getName().contains("alert junit 1"));
         assertTrue(alert1FromDb.getDescription().contains("alert junit 1"));
         
@@ -125,43 +123,41 @@ public class AlertsLogicTest {
         assertTrue(result.contains("Failed"));
         result = alertsLogic_.alterRecordInDatabase(alert1FromDb, alert1FromDb.getName(), false);
         assertTrue(result.contains("Success"));
-        alertsDao = new AlertsDao();
-        Alert alert2FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert2FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertTrue(alert2FromDb.getName().contains("alert junit 1"));
         assertTrue(alert2FromDb.getDescription().contains("alert junit 1_2"));
         
         // attempt to delete an alert in the database that doesn't exist. make sure it didn't delete the record that was inserted into the db earlier.
         result = alertsLogic_.deleteRecordInDatabase("alert junit fake 1");
         assertTrue(result.contains("Cancelling"));
-        alertsDao = new AlertsDao();
-        Alert alert3FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert3FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertTrue(alert3FromDb.getName().contains("alert junit 1"));
         
         // alters an alert's name, make sure it got properly updated in the db, then changes the alert name back to what it was originally named
-        alertsDao = new AlertsDao(false);
-        Alert alertFromDbOriginalName = alertsDao.getAlertByName("alert junit 1"); //pt 1
+        Connection connection = DatabaseConnections.getConnection();
+        DatabaseUtils.setAutoCommit(connection, false);
+        Alert alertFromDbOriginalName = AlertsDao.getAlert(connection, false, "alert junit 1"); //pt 1
         assertTrue(alertFromDbOriginalName.getName().contains("alert junit 1"));
         Alert alertFromDbNewName = Alert.copy(alertFromDbOriginalName);
         alertFromDbNewName.setName("alert junit 1_1");
         result = alertsLogic_.alterRecordInDatabase(alertFromDbNewName, alertFromDbOriginalName.getName(), false);
         assertTrue(result.contains("Successful"));
-        Alert alertFromDbNewNameVerify = alertsDao.getAlertByName(alertFromDbNewName.getName()); //pt2
+        Alert alertFromDbNewNameVerify = AlertsDao.getAlert(connection, false, alertFromDbNewName.getName()); //pt2
         assertFalse(alertFromDbNewNameVerify.getName().equals(alertFromDbOriginalName.getName()));
         assertTrue(alertFromDbNewNameVerify.getName().contains(alertFromDbNewName.getName()));
         assertEquals(alertFromDbOriginalName.getId(), alertFromDbNewNameVerify.getId());
-        Alert alertFromDbOriginalName_NoResult = alertsDao.getAlertByName(alertFromDbOriginalName.getName()); //pt3
+        Alert alertFromDbOriginalName_NoResult = AlertsDao.getAlert(connection, false, alertFromDbOriginalName.getName()); //pt3
         assertEquals(alertFromDbOriginalName_NoResult, null);
         Alert alertFromDbOriginalName_Reset = Alert.copy(alertFromDbOriginalName); // pt4
         alertFromDbOriginalName_Reset.setName(alertFromDbOriginalName.getName());  
         result = alertsLogic_.alterRecordInDatabase(alertFromDbOriginalName_Reset, alertFromDbOriginalName.getName(), false);
         assertTrue(result.contains("Successful"));
-        alertsDao.close();
+        DatabaseUtils.cleanup(connection);
         
         // delete the alert that was inserted into the database earlier. verify that it was deleted.
         result = alertsLogic_.deleteRecordInDatabase("alert junit 1");
         assertTrue(result.contains("success"));
-        alertsDao = new AlertsDao();
-        Alert alert7FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert7FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertEquals(null, alert7FromDb);
     }
 
@@ -179,15 +175,13 @@ public class AlertsLogicTest {
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = alertsLogic_.alterRecordInDatabase(alert1);
         assertTrue(result.contains("Success"));
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert1FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert1FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertTrue(alert1FromDb.getName().contains("alert junit 1"));
         assertTrue(alert1FromDb.getDescription().contains("alert junit 1"));
         
         result = alertsLogic_.deleteRecordInDatabase("alert junit 1");
         assertTrue(result.contains("success"));
-        alertsDao = new AlertsDao();
-        Alert alert2FromDb = alertsDao.getAlertByName("alert junit 1");
+        Alert alert2FromDb = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, "alert junit 1");
         assertEquals(null, alert2FromDb);
         
         result = alertsLogic_.deleteRecordInDatabase("alert junit fake 1");

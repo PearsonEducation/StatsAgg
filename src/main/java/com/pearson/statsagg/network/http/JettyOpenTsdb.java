@@ -41,6 +41,19 @@ public class JettyOpenTsdb implements JettyServer {
     }
     
     @Override
+    public boolean isRunning() {
+        if (jettyServer_ == null) return false;
+        
+        try {
+            return jettyServer_.isRunning();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+    }
+    
+    @Override
     public void stopServer() {
         try {
             jettyServer_.stop();

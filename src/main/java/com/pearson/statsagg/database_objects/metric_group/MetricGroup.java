@@ -6,7 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
-import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroup extends DatabaseObject<MetricGroup> {
+public class MetricGroup implements DatabaseObject<MetricGroup>  {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroup.class.getName());
     

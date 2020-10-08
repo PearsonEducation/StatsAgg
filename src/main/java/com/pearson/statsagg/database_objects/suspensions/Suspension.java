@@ -9,11 +9,11 @@ import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Date;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Suspension extends DatabaseObject<Suspension> {
+public class Suspension implements DatabaseObject<Suspension> {
     
     private static final Logger logger = LoggerFactory.getLogger(Suspension.class.getName());
 

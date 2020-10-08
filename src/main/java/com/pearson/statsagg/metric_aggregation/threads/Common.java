@@ -1,5 +1,6 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import java.util.Collections;
@@ -168,8 +169,7 @@ public class Common {
     
     public static List<String> getOutputBlacklistMetricKeys() {
         
-        OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-        List<OutputBlacklist> outputBlacklists = outputBlacklistDao.getAllDatabaseObjectsInTable();
+        List<OutputBlacklist> outputBlacklists = OutputBlacklistDao.getOutputBlacklists(DatabaseConnections.getConnection(), true);
         if (outputBlacklists.size() > 1) logger.warn("There should not be more than one output blacklist row in the database.");
         
         if (outputBlacklists.size() > 0) {

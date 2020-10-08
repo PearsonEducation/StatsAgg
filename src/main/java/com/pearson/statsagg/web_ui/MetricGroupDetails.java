@@ -1,8 +1,8 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroupDetails", urlPatterns = {"/MetricGroupDetails"})
 public class MetricGroupDetails extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupDetails.class.getName());
@@ -126,8 +125,7 @@ public class MetricGroupDetails extends HttpServlet {
             return "<b>No metric group specified</b>";
         }
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         
         if (metricGroup == null) {
             return "<b>Metric group not found</b>";
@@ -135,11 +133,8 @@ public class MetricGroupDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
 
-            MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-            List<MetricGroupRegex> metricGroupRegexes =  metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
-                  
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-            List<MetricGroupTag> metricGroupTags =  metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+            List<MetricGroupRegex> metricGroupRegexes =  MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
+            List<MetricGroupTag> metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
             
             outputString.append("<b>Name</b> = ");
             if (metricGroup.getName() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");

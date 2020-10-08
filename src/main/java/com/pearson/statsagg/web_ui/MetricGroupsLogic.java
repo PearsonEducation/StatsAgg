@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.util.TreeSet;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
@@ -10,7 +10,9 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -42,17 +44,15 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         String returnString;
 
         synchronized (GlobalVariables.metricGroupChanges) {
-            MetricGroupsDao metricGroupsDao = null;
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
             
             try {
                 boolean isNewMetricGroup = true, isOverwriteExistingAttempt = false;
-                metricGroupsDao = new MetricGroupsDao(false);
-                metricGroupsDao.getDatabaseInterface().setIsManualTransactionControl(true);
-                metricGroupsDao.getDatabaseInterface().beginTransaction();
                 MetricGroup metricGroupFromDb;
 
                 if ((oldName != null) && !oldName.isEmpty()) {
-                    metricGroupFromDb = metricGroupsDao.getMetricGroupByName(oldName);
+                    metricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, oldName);
 
                     if (metricGroupFromDb != null) {
                         metricGroup.setId(metricGroupFromDb.getId());
@@ -63,20 +63,19 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     }
                 }
                 else {
-                    metricGroupFromDb = metricGroupsDao.getMetricGroupByName(metricGroup.getName());
+                    metricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, metricGroup.getName());
                     if (metricGroupFromDb != null) isOverwriteExistingAttempt = true;
                 }
 
                 boolean metricGroupUpsertSuccess = false;
                 MetricGroup newMetricGroupFromDb = null;
                 if (!isOverwriteExistingAttempt) {
-                    metricGroupUpsertSuccess = metricGroupsDao.upsert(metricGroup);
-                    newMetricGroupFromDb = metricGroupsDao.getMetricGroupByName(metricGroup.getName());
+                    metricGroupUpsertSuccess = MetricGroupsDao.upsert(connection, false, false, metricGroup);
+                    newMetricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, metricGroup.getName());
                 }
 
                 if (isOverwriteExistingAttempt) {
-                    metricGroupsDao.getDatabaseInterface().endTransaction(false);
-                    metricGroupsDao.close();
+                    DatabaseUtils.rollback(connection, false);
                     lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
                     returnString = "Failed to create metric group. A metric group with same name already exists. MetricGroupName=\"" + metricGroup.getName() + "\"";
                     String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
@@ -87,8 +86,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     boolean isAllMetricGroupRegexesUpsertSuccess = true, isAllMetricGroupTagsUpsertSuccess = true, isMetricGroupAssociationRoutineRequired = true;
 
                     // update regexes, if necessary
-                    MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
-                    List<MetricGroupRegex> metricGroupRegexesFromDb = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(newMetricGroupFromDb.getId());
+                    List<MetricGroupRegex> metricGroupRegexesFromDb = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(connection, false, newMetricGroupFromDb.getId());
 
                     Set<String> metricGroupMatchRegexesFromDb_Set = new HashSet<>();
                     for (MetricGroupRegex metricGroupRegex : metricGroupRegexesFromDb) if (!metricGroupRegex.isBlacklistRegex()) metricGroupMatchRegexesFromDb_Set.add(metricGroupRegex.getPattern());
@@ -104,15 +102,14 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     }
                     else {
                         logger.info("Alter metric group: Metric group \"" + newMetricGroupFromDb.getName() + "\" regular expression set is changed. This metric group will go through the metric-key association routine.");
-                        isAllMetricGroupRegexesUpsertSuccess = alterRecordInDatabase_UpsertRegex(metricGroupsDao.getDatabaseInterface(), matchRegexes, blacklistRegexes, newMetricGroupFromDb);
+                        isAllMetricGroupRegexesUpsertSuccess = alterRecordInDatabase_UpsertRegex(connection, matchRegexes, blacklistRegexes, newMetricGroupFromDb);
                     }
 
                     // update tags
-                    isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(metricGroupsDao.getDatabaseInterface(), tags, newMetricGroupFromDb);
+                    isAllMetricGroupTagsUpsertSuccess = alterRecordInDatabase_UpsertTag(connection, tags, newMetricGroupFromDb);
 
                     if (isAllMetricGroupRegexesUpsertSuccess && isAllMetricGroupTagsUpsertSuccess) {
-                        boolean didCommitSucceed = metricGroupsDao.getDatabaseInterface().endTransaction(true);
-                        metricGroupsDao.close();
+                        boolean didCommitSucceed = DatabaseUtils.commit(connection, false);
 
                         if (didCommitSucceed) {
                             if ((newMetricGroupFromDb.getId() != null) && isNewMetricGroup) GlobalVariables.metricGroupChanges.put(newMetricGroupFromDb.getId(), GlobalVariables.NEW);
@@ -126,17 +123,15 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                             logger.info(cleanReturnString);
                         }
                         else {
+                            DatabaseUtils.rollback(connection, false);
                             lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
-
                             returnString = "Failed to create metric group. " + "MetricGroupName=\"" + metricGroup.getName() + "\"" + ", CommitSuccess=" + didCommitSucceed;
                             String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                             logger.warn(cleanReturnString);
                         }
                     }
                     else { 
-                        metricGroupsDao.getDatabaseInterface().endTransaction(false);
-                        metricGroupsDao.close();
-
+                        DatabaseUtils.rollback(connection, false);
                         lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
 
                         if (isNewMetricGroup) {
@@ -159,9 +154,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                     return returnString;
                 }
                 else {
-                    metricGroupsDao.getDatabaseInterface().endTransaction(false);
-                    metricGroupsDao.close();
-
+                    DatabaseUtils.rollback(connection, false);
                     lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
 
                     if (isNewMetricGroup) returnString = "Failed to create MetricGroup. " + "MetricGroupName=\"" + metricGroup.getName() + "\"";
@@ -176,12 +169,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 return "Error creating metric group. MetricGroupName=\"" + metricGroup.getName() + "\".";
             }
             finally {
-                try {
-                    if (metricGroupsDao != null) metricGroupsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
         }
     }
@@ -202,17 +190,16 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         return true;
     }
     
-    private static boolean alterRecordInDatabase_UpsertRegex(DatabaseInterface databaseInterface, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, MetricGroup newMetricGroupFromDb) {
+    private static boolean alterRecordInDatabase_UpsertRegex(Connection connection, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, MetricGroup newMetricGroupFromDb) {
         
         boolean isAllMetricGroupRegexesUpsertSuccess = true;
                 
-        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(databaseInterface);
-        metricGroupRegexesDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
+        MetricGroupRegexesDao.deleteByMetricGroupId(connection, false, false, newMetricGroupFromDb.getId());
 
         if (matchRegexes != null) {
             for (String matchRegex : matchRegexes) {
                 MetricGroupRegex metricGroupRegex = new MetricGroupRegex(-1, newMetricGroupFromDb.getId(), false, matchRegex);
-                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexesDao.upsert(metricGroupRegex);
+                boolean isMetricGroupRegexInsertSuccess = MetricGroupRegexesDao.upsert(connection, false, false, metricGroupRegex);
 
                 if (!isMetricGroupRegexInsertSuccess) {
                     String cleanRegex = StringUtilities.removeNewlinesFromString(matchRegex);
@@ -225,7 +212,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         if (blacklistRegexes != null) {
             for (String blacklistRegex : blacklistRegexes) {
                 MetricGroupRegex metricGroupRegex = new MetricGroupRegex(-1, newMetricGroupFromDb.getId(), true, blacklistRegex);
-                boolean isMetricGroupRegexInsertSuccess = metricGroupRegexesDao.upsert(metricGroupRegex);
+                boolean isMetricGroupRegexInsertSuccess = MetricGroupRegexesDao.upsert(connection, false, false, metricGroupRegex);
 
                 if (!isMetricGroupRegexInsertSuccess) {
                     String cleanRegex = StringUtilities.removeNewlinesFromString(blacklistRegex);
@@ -238,7 +225,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         return isAllMetricGroupRegexesUpsertSuccess;
     }
     
-    private static boolean alterRecordInDatabase_UpsertTag(DatabaseInterface databaseInterface, TreeSet<String> tags, MetricGroup newMetricGroupFromDb) {
+    private static boolean alterRecordInDatabase_UpsertTag(Connection connection, TreeSet<String> tags, MetricGroup newMetricGroupFromDb) {
         
         if (newMetricGroupFromDb == null) {
             return false;
@@ -246,13 +233,12 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         
         boolean isAllMetricGroupTagsUpsertSuccess = true;
                 
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(databaseInterface);
-        metricGroupTagsDao.deleteByMetricGroupId(newMetricGroupFromDb.getId());
+        MetricGroupTagsDao.deleteByMetricGroupId(connection, false, false, newMetricGroupFromDb.getId());
 
         if (tags != null) {
             for (String tag : tags) {
                 MetricGroupTag metricGroupTag = new MetricGroupTag(-1, newMetricGroupFromDb.getId(), tag);
-                boolean isMetricGroupTagInsertSuccess = metricGroupTagsDao.upsert(metricGroupTag);
+                boolean isMetricGroupTagInsertSuccess = MetricGroupTagsDao.upsert(connection, false, false, metricGroupTag);
 
                 if (!isMetricGroupTagInsertSuccess) {
                     String cleanTag = StringUtilities.removeNewlinesFromString(tag, ' ');
@@ -277,53 +263,42 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
         String returnString = "Error deleting metric group. MetricGroupName=\"" + metricGroupName + "\".";
         
         synchronized (GlobalVariables.metricGroupChanges) {
-            MetricGroupsDao metricGroupsDao = null;
-            MetricGroupRegexesDao metricGroupRegexesDao = null;
-            MetricGroupTagsDao metricGroupTagsDao = null;
-
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
+            
             try {
-                metricGroupsDao = new MetricGroupsDao(false);
-                MetricGroup metricGroupFromDb = metricGroupsDao.getMetricGroupByName(metricGroupName);
+                MetricGroup metricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, metricGroupName);
 
                 if (metricGroupFromDb != null) {
-                    metricGroupRegexesDao = new MetricGroupRegexesDao(false);
-                    boolean didRegexDeleteSucceed = metricGroupRegexesDao.deleteByMetricGroupId(metricGroupFromDb.getId());
-
-                    metricGroupTagsDao = new MetricGroupTagsDao(false);
-                    boolean didTagDeleteSucceed = metricGroupTagsDao.deleteByMetricGroupId(metricGroupFromDb.getId());
-
-                    if (didRegexDeleteSucceed && didTagDeleteSucceed) {
-                        boolean didMetricGroupDeleteSucceed = metricGroupsDao.delete(metricGroupFromDb);
-
-                        if (!didMetricGroupDeleteSucceed) {
-                            metricGroupRegexesDao.getDatabaseInterface().endTransaction(false);
-                            metricGroupTagsDao.getDatabaseInterface().endTransaction(false);
-
+                    boolean didRegexDeleteSucceed = MetricGroupRegexesDao.deleteByMetricGroupId(connection, false, false, metricGroupFromDb.getId());
+                    boolean didTagDeleteSucceed = MetricGroupTagsDao.deleteByMetricGroupId(connection, false, false, metricGroupFromDb.getId());
+                    boolean didMetricGroupDeleteSucceed = MetricGroupsDao.delete(connection, false, false, metricGroupFromDb);
+                    
+                    if (didRegexDeleteSucceed && didTagDeleteSucceed && didMetricGroupDeleteSucceed) {
+                        boolean didCommitSucceed = DatabaseUtils.commit(connection, false);
+                        
+                        if (!didCommitSucceed) {
+                            DatabaseUtils.rollback(connection, false);
                             lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                             returnString = "Failed to delete metric group. MetricGroupName=\"" + metricGroupName + "\".";
                             String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                             logger.warn(cleanReturnString);
                         }
-                        else if (metricGroupFromDb.getId() != null) {
+                        else {
                             GlobalVariables.metricGroupChanges.put(metricGroupFromDb.getId(), GlobalVariables.REMOVE);
+                            lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
+                            returnString = "Delete metric group success. MetricGroupName=\"" + metricGroupName + "\".";
+                            String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+                            logger.info(cleanReturnString);
                         }
-
-                        lastDeleteRecordStatus_ = STATUS_CODE_SUCCESS;
-                        returnString = "Delete metric group success. MetricGroupName=\"" + metricGroupName + "\".";
-                        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
-                        logger.info(cleanReturnString);
                     }
                     else {
+                        DatabaseUtils.rollback(connection, false);
                         lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
                         returnString = "Failed to delete metric group regexes and/or tags. MetricGroupName=\"" + metricGroupName + "\".";
                         String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
                         logger.warn(cleanReturnString);
                     }
-
-                    metricGroupRegexesDao.close();
-                    metricGroupRegexesDao = null;
-                    metricGroupTagsDao.close();
-                    metricGroupTagsDao = null;
                 }
                 else {
                     lastDeleteRecordStatus_ = STATUS_CODE_FAILURE;
@@ -336,14 +311,7 @@ public class MetricGroupsLogic extends AbstractDatabaseInteractionLogic {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (metricGroupsDao != null) metricGroupsDao.close();
-                    if (metricGroupRegexesDao != null) metricGroupRegexesDao.close();
-                    if (metricGroupTagsDao != null) metricGroupTagsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
         }
         

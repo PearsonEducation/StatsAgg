@@ -1,6 +1,7 @@
 package com.pearson.statsagg.alerts;
 
 import com.google.common.collect.Lists;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.util.ArrayList;
@@ -176,7 +177,7 @@ public class MetricAssociation {
         }
             
         // identify & store metrics that are on the output blacklist metric group
-        OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
         
         // if a output blacklist metric group exists, associate metrics-keys with it
         if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) {
@@ -235,7 +236,7 @@ public class MetricAssociation {
             MetricAssociationPattern metricAssociationPattern_Match_AfterMatching = null, metricAssociationPattern_Blacklist_AfterMatching = null;
             
             //  get the metric-group id of the output blacklist (if one exists)
-            OutputBlacklist outputBlacklist_BeforeMatching = OutputBlacklistDao.getSingleOutputBlacklistRow();
+            OutputBlacklist outputBlacklist_BeforeMatching = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
             Integer outputBlacklist_BeforeMatching_MetricGroupId = null;
             if ((outputBlacklist_BeforeMatching != null) && (outputBlacklist_BeforeMatching.getMetricGroupId() != null)) outputBlacklist_BeforeMatching_MetricGroupId = outputBlacklist_BeforeMatching.getMetricGroupId();
             
@@ -271,7 +272,7 @@ public class MetricAssociation {
                 }
                 
                 // used in checking if the output-blacklist was altered while this routine was running
-                OutputBlacklist outputBlacklist_AfterMatching = OutputBlacklistDao.getSingleOutputBlacklistRow();
+                OutputBlacklist outputBlacklist_AfterMatching = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
                 Integer outputBlacklist_AfterMatching_MetricGroupId = null;
                 if ((outputBlacklist_AfterMatching != null) && outputBlacklist_AfterMatching.getMetricGroupId() != null) outputBlacklist_AfterMatching_MetricGroupId = outputBlacklist_BeforeMatching_MetricGroupId;
                 if (outputBlacklist_AfterMatching_MetricGroupId != null) matchRegex_AfterMatching = GlobalVariables.mergedMatchRegexesByMetricGroupId.get(outputBlacklist_AfterMatching_MetricGroupId);
@@ -333,7 +334,7 @@ public class MetricAssociation {
         List<Integer> allMetricGroupIds;
 
         synchronized(GlobalVariables.metricGroupChanges) {
-            OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+            OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
             if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null) && GlobalVariables.metricGroupChanges.containsKey(outputBlacklist.getMetricGroupId())) {
                 IsMetricGroupChangeOutputBlacklist.set(true);
             }
@@ -345,8 +346,7 @@ public class MetricAssociation {
             
             updateMergedRegexesForMetricGroups(newAndAlteredMetricGroupIds);
             
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            allMetricGroupIds = metricGroupsDao.getAllMetricGroupIds();
+            allMetricGroupIds = MetricGroupsDao.getAllMetricGroupIds(DatabaseConnections.getConnection(), true);
             if (allMetricGroupIds == null) {
                 logger.error("Failure reading metric group ids from the database.");
                 allMetricGroupIds = new ArrayList<>();
@@ -374,8 +374,7 @@ public class MetricAssociation {
 
             updateMergedRegexesForSuspensions(newAndAlteredSuspensionIds);
 
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            allMetricSuspensionIds = suspensionsDao.getSuspensionIds_BySuspendBy(Suspension.SUSPEND_BY_METRICS);
+            allMetricSuspensionIds = SuspensionsDao.getSuspensionIds_BySuspendBy(DatabaseConnections.getConnection(), true, Suspension.SUSPEND_BY_METRICS);
             if (allMetricSuspensionIds == null) {
                 logger.error("Failure reading metric suspension ids from the database.");
                 allMetricSuspensionIds = new ArrayList<>();
@@ -663,8 +662,7 @@ public class MetricAssociation {
             List<MetricGroupRegex> metricGroupRegexes = null;
             
             if ((mergedMatchRegex == null) || (mergedBlacklistRegex == null)) {
-                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-                metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroupId);
+                metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroupId);
             }
                 
             if (mergedMatchRegex == null) {
@@ -721,8 +719,7 @@ public class MetricAssociation {
                 String mergedMatchRegex = GlobalVariables.mergedMatchRegexesBySuspensionId.get(suspensionId);
 
                 if (mergedMatchRegex == null) {
-                    SuspensionsDao suspensionsDao = new SuspensionsDao();
-                    Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                    Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionId);
                     if (suspension == null) continue;
                     
                     List<String> regexPatterns = StringUtilities.getListOfStringsFromDelimitedString(suspension.getMetricSuspensionRegexes(), '\n');

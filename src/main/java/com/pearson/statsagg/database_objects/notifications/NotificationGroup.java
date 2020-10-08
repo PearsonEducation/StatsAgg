@@ -6,9 +6,9 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.database_objects.JsonOutputFieldNamingStrategy;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class NotificationGroup extends DatabaseObject<NotificationGroup> {
+public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroup.class.getName());
 

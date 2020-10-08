@@ -1,11 +1,11 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertAssociations", urlPatterns = {"/AlertAssociations"})
 public class AlertAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertAssociations.class.getName());
@@ -92,15 +91,13 @@ public class AlertAssociations extends HttpServlet {
         String acknowledgeChange = request.getParameter("AcknowledgeChange");
         boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
 
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(name);  
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name);
         
         // if a user clicked on the 'acknowledge' button, change the acknowledgement status in the database
         boolean wasAcknowledgementUpdated = acknowledgeAlert(alert, acknowledgeChange, acknowledgeLevel);
         
         if (wasAcknowledgementUpdated) {
-            alertsDao = new AlertsDao();
-            alert = alertsDao.getAlertByName(name);  
+            alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name);
         }
         
         String alertAssociations = "";
@@ -182,8 +179,7 @@ public class AlertAssociations extends HttpServlet {
         String clearAll = request.getParameter("ClearAll");
         boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(name);  
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name);
         
         if ((forgetMetric != null) && !forgetMetric.isEmpty()) { // if the user clicked on the X button to remove a metric, perform that action & reload the page
             boolean forgetSuccess = forgetMetricAndReloadPage(forgetMetric, name, level, excludeNavbar, response);
@@ -358,8 +354,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>No alert specified</b>";
         }
         
-        AlertsDao altersDao = new AlertsDao();
-        Alert alert = altersDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if (alert == null) {
             return "<b>Alert not found</b>";
@@ -411,8 +406,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>No alert specified</b>";
         }
         
-        AlertsDao altersDao = new AlertsDao();
-        Alert alert = altersDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if (alert == null) {
             return "<b>Alert not found</b>";
@@ -527,8 +521,7 @@ public class AlertAssociations extends HttpServlet {
             return "<b>No alert specified</b>";
         }
         
-        AlertsDao altersDao = new AlertsDao();
-        Alert alert = altersDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if (alert == null) {
             return "<b>Alert not found</b>";

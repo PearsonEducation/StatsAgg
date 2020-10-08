@@ -9,13 +9,13 @@ import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.json_utils.JsonBigDecimal;
 import java.util.Calendar;
 import java.util.List;
@@ -27,7 +27,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Alert extends DatabaseObject<Alert> {
+public class Alert implements DatabaseObject<Alert> {
     
     private static final Logger logger = LoggerFactory.getLogger(Alert.class.getName());
     

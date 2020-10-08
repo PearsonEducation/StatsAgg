@@ -1,7 +1,8 @@
 package com.pearson.statsagg.metric_aggregation.threads;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
-import com.pearson.statsagg.controller.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.drivers.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,7 +19,9 @@ import com.pearson.statsagg.metric_aggregation.aggregators.StatsdMetricAggregato
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import java.util.concurrent.ConcurrentHashMap;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.slf4j.Logger;
@@ -243,9 +246,10 @@ public class StatsdAggregationThread implements Runnable {
         }
         
         if (ApplicationConfiguration.isStatsdPersistGauges()) {
-            GaugesDao gaugesDao = new GaugesDao(false);
-            boolean upsertSucess = gaugesDao.batchUpsert(gaugesToPutInDatabase);
-            gaugesDao.close();
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
+            boolean upsertSucess = GaugesDao.batchUpsert(connection, true, gaugesToPutInDatabase);
+            DatabaseUtils.cleanup(connection);
             
             if (!upsertSucess) {
                 logger.error("Failed upserting gauges in database.");

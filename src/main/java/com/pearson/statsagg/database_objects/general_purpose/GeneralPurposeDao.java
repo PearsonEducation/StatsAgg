@@ -1,8 +1,9 @@
 package com.pearson.statsagg.database_objects.general_purpose;
 
-import com.pearson.statsagg.database_engine.DatabaseDao;
-import com.pearson.statsagg.database_engine.DatabaseInterface;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -14,44 +15,24 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class GeneralPurposeDao extends DatabaseDao {
+public class GeneralPurposeDao {
 
     private static final Logger logger = LoggerFactory.getLogger(GeneralPurposeDao.class.getName());
-    
-    public GeneralPurposeDao(){}
-            
-    public GeneralPurposeDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public GeneralPurposeDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
     
     /* 
     Does not include alerts with no tags
     Returns Map<AlertId,Set<Associated Metric Group Tag>>
     */
-    public Map<Integer,Set<String>> getMetricGroupTagsAssociatedWithAlerts() {
+    public static Map<Integer,Set<String>> getMetricGroupTagsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
+            PreparedStatement preparedStatement = DatabaseUtils.createPreparedStatement(connection, GeneralPurposeSql.Select_MetricGroupTagsAssociatedWithAlert);
+            ResultSet resultSet = preparedStatement.executeQuery();
+            boolean isResultSetValid = DatabaseUtils.isResultSetValid(resultSet);
+            if (!isResultSetValid) return null;
 
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(GeneralPurposeSql.Select_MetricGroupTagsAssociatedWithAlert, 1000);
-            databaseInterface_.addPreparedStatementParameters();
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-            
             Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlerts = new HashMap<>();
-            
-            ResultSet resultSet = databaseInterface_.getResults();
-            
+
             while (resultSet.next()) {
                 Integer alertId = resultSet.getInt("A_ID");
                 if (resultSet.wasNull()) alertId = null;
@@ -79,9 +60,9 @@ public class GeneralPurposeDao extends DatabaseDao {
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         } 
         
     }
-     
+  
 }

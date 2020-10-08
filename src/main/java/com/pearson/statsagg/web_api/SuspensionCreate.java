@@ -4,7 +4,6 @@ import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (Prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Suspension_Create", urlPatterns = {"/api/suspension-create"})
 public class SuspensionCreate extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(SuspensionCreate.class.getName());

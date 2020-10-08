@@ -3,7 +3,6 @@ package com.pearson.statsagg.web_ui;
 import com.pearson.statsagg.alerts.MetricAssociation;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +21,6 @@ import static com.pearson.statsagg.web_ui.CreateMetricGroup.getMetricGroupParame
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MergedRegexMetricsPreview", urlPatterns = {"/MergedRegexMetricsPreview"})
 public class MergedRegexMetricsPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MergedRegexMetricsPreview.class.getName());

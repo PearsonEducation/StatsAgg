@@ -1,9 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -16,7 +16,9 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -25,7 +27,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertDetails", urlPatterns = {"/AlertDetails"})
 public class AlertDetails extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertDetails.class.getName());
@@ -128,8 +129,7 @@ public class AlertDetails extends HttpServlet {
             return "<div class=\"col-md-4\"><b>No alert specified</b></div>";
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
         if (alert == null) {
             return "<div class=\"col-md-4\"><b>Alert not found</b></div>";
@@ -137,17 +137,16 @@ public class AlertDetails extends HttpServlet {
         else {
             StringBuilder outputString = new StringBuilder();
 
+            Connection connection = DatabaseConnections.getConnection();
             NotificationGroup cautionNotificationGroup = null, cautionPositiveNotificationGroup = null, dangerNotificationGroup = null, dangerPositiveNotificationGroup = null;
-            NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-            if (alert.getCautionNotificationGroupId() != null) cautionNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionNotificationGroupId());
-            if (alert.getCautionPositiveNotificationGroupId() != null) cautionPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getCautionPositiveNotificationGroupId());
-            if (alert.getDangerNotificationGroupId() != null) dangerNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerNotificationGroupId());
-            if (alert.getDangerPositiveNotificationGroupId() != null) dangerPositiveNotificationGroup = notificationGroupsDao.getNotificationGroup(alert.getDangerPositiveNotificationGroupId());
-            notificationGroupsDao.close();
+            if (alert.getCautionNotificationGroupId() != null) cautionNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionNotificationGroupId());
+            if (alert.getCautionPositiveNotificationGroupId() != null) cautionPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionPositiveNotificationGroupId());
+            if (alert.getDangerNotificationGroupId() != null) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
+            if (alert.getDangerPositiveNotificationGroupId() != null) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
+            DatabaseUtils.cleanup(connection);
             
             MetricGroup metricGroup = null;
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            if (alert.getMetricGroupId() != null) metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+            if (alert.getMetricGroupId() != null) metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
             
             outputString.append("<div class=\"col-md-4 statsagg_three_panel_first_panel\">\n");
             outputString.append("<div class=\"panel panel-default\"> <div class=\"panel-heading\"><b>Core Details</b></div> <div class=\"panel-body statsagg_force_word_wrap\">");

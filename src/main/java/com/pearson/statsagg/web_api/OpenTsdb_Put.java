@@ -9,7 +9,6 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +18,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_OpenTSDB_Put", urlPatterns={"/api/put"})
 public class OpenTsdb_Put extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdb_Put.class.getName());

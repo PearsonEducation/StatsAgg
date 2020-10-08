@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
@@ -8,7 +9,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,6 +22,8 @@ import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -30,7 +32,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Alerts", urlPatterns = {"/Alerts"})
 public class Alerts extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Alerts.class.getName());
@@ -169,8 +170,7 @@ public class Alerts extends HttpServlet {
         
         boolean isSuccess = false;
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlert(alertId);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertId);
         
         if (alert != null) {
             alert.setIsEnabled(isEnabled);
@@ -209,26 +209,10 @@ public class Alerts extends HttpServlet {
         }
         
         try {
-            Alert alert = null;
-            List<Alert> allAlerts = null;
-            AlertsDao alertsDao = null;
-
-            try {
-                alertsDao = new AlertsDao(false);
-                alert = alertsDao.getAlert(alertId);
-                allAlerts = alertsDao.getAllDatabaseObjectsInTable();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-            finally {
-                try {
-                    if (alertsDao != null) alertsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
-            }
+            Connection connection = DatabaseConnections.getConnection();
+            Alert alert = AlertsDao.getAlert(connection, false, alertId);
+            List<Alert> allAlerts = AlertsDao.getAlerts(connection, false);
+            DatabaseUtils.cleanup(connection);
         
             if ((alert != null) && (alert.getName() != null)) {
                 Set<String> allAlertNames = new HashSet<>();
@@ -278,8 +262,7 @@ public class Alerts extends HttpServlet {
         String returnString = null;
         
         try {
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(alertId);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertId);
             String alertName = alert.getName();
 
             AlertsLogic alertsLogic = new AlertsLogic();
@@ -332,17 +315,13 @@ public class Alerts extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
-        
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
-        
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        Map<Integer, String> notificationGroupNames_ById = notificationGroupsDao.getNotificationGroupNames_ById();
-        
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = suspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
+        Connection connection = DatabaseConnections.getConnection();
+        DatabaseUtils.setAutoCommit(connection, false);
+        List<Alert> alerts = AlertsDao.getAlerts(connection, false);
+        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(connection, false);
+        Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
+        Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = SuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId(connection, false);
+        DatabaseUtils.cleanup(connection);
         
         for (Alert alert : alerts) {
             if (alert == null) continue;
@@ -375,8 +354,7 @@ public class Alerts extends HttpServlet {
             String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
             
             String metricGroupNameAndLink;
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
             if ((metricGroup == null) || (metricGroup.getName() == null)) metricGroupNameAndLink = "N/A";
             else metricGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
             

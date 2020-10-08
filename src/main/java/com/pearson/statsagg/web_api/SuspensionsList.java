@@ -5,15 +5,17 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +26,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (Prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_Suspensions_List", urlPatterns={"/api/suspensions-list"})
 public class SuspensionsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionsList.class.getName());
@@ -89,25 +90,22 @@ public class SuspensionsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
-        SuspensionsDao suspensionsDao = null;
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
-            suspensionsDao = new SuspensionsDao(false);
-            List<Suspension> suspensions = suspensionsDao.getAllDatabaseObjectsInTable();
+            List<Suspension> suspensions = SuspensionsDao.getSuspensions(connection, false);
             if (suspensions == null) suspensions = new ArrayList<>();
             
             List<JsonObject> suspensionsJsonObjects = new ArrayList<>();
-            AlertsDao alertsDao = new AlertsDao(suspensionsDao.getDatabaseInterface());
             
             for (Suspension suspension : suspensions) {
                 Alert alert = null;
-                if ((suspension != null) && suspension.getAlertId() != null) alert = alertsDao.getAlert(suspension.getAlertId());
+                if ((suspension != null) && suspension.getAlertId() != null) alert = AlertsDao.getAlert(connection, false, suspension.getAlertId());
                 JsonObject suspensionJsonObject = Suspension.getJsonObject_ApiFriendly(suspension, alert);
                 if (suspensionJsonObject != null) suspensionsJsonObjects.add(suspensionJsonObject);
             }
             
-            suspensionsDao.close();
-            suspensionsDao = null;
+            DatabaseUtils.cleanup(connection);
             
             Gson suspensionsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement suspensions_JsonElement = suspensionsGson.toJsonTree(suspensionsJsonObjects);
@@ -121,12 +119,7 @@ public class SuspensionsList extends HttpServlet {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         finally {  
-            try {
-                if (suspensionsDao != null) suspensionsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
         
     }

@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "SuspensionDetails", urlPatterns = {"/SuspensionDetails"})
 public class SuspensionDetails extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionDetails.class.getName());
@@ -126,8 +125,7 @@ public class SuspensionDetails extends HttpServlet {
             return "<div class=\"col-md-4\"><b>No suspension specified</b></div>";
         }
         
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension = suspensionsDao.getSuspensionByName(suspensionName);
+        Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionName);
         
         if (suspension == null) {
             return "<div class=\"col-md-4\"><b>Suspension not found</b></div>";
@@ -212,8 +210,7 @@ public class SuspensionDetails extends HttpServlet {
             if ((suspension.getSuspendBy() != null) && (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID)) {
                 outputString.append("<b>Alert name</b> = ");
                 if (suspension.getAlertId() != null) {
-                    AlertsDao alertsDao = new AlertsDao();
-                    Alert alert = alertsDao.getAlert(suspension.getAlertId());
+                    Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, suspension.getAlertId());
 
                     if ((alert != null) && (alert.getName() != null)) {
                         String alertDetailsPopup = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";

@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
@@ -9,14 +10,15 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Suspensions", urlPatterns = {"/Suspensions"})
 public class Suspensions extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Suspensions.class.getName());
@@ -152,8 +153,7 @@ public class Suspensions extends HttpServlet {
         
         boolean isSuccess = false;
         
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+        Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionId);
         
         if (suspension != null) {
             suspension.setIsEnabled(isEnabled);
@@ -179,14 +179,12 @@ public class Suspensions extends HttpServlet {
             return;
         }
         
-        SuspensionsDao suspensionsDao = null;
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
-            suspensionsDao = new SuspensionsDao(false);
-            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
-            List<Suspension> allSuspensions = suspensionsDao.getAllDatabaseObjectsInTable();
-            suspensionsDao.close();
-            suspensionsDao = null;
+            Suspension suspension = SuspensionsDao.getSuspension(connection, false, suspensionId);
+            List<Suspension> allSuspensions = SuspensionsDao.getSuspensions(connection, false);
+            DatabaseUtils.cleanup(connection);
             
             if ((suspension != null) && (suspension.getName() != null)) {
                 Set<String> allSuspensionsNames = new HashSet<>();
@@ -213,12 +211,7 @@ public class Suspensions extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
-            try {
-                if (suspensionsDao != null) suspensionsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
     }
     
@@ -228,8 +221,7 @@ public class Suspensions extends HttpServlet {
         if (suspensionId == null) return returnString;
 
         try{
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+            Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionId);
             if (suspension == null) return null;    
 
             SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
@@ -278,8 +270,8 @@ public class Suspensions extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        List<Suspension> suspensions = suspensionsDao.getAllDatabaseObjectsInTable();
+        List<Suspension> suspensions = SuspensionsDao.getSuspensions(DatabaseConnections.getConnection(), true);
+        if (suspensions == null) suspensions = new ArrayList<>();
         
         for (Suspension suspension : suspensions) {
             
@@ -302,8 +294,7 @@ public class Suspensions extends HttpServlet {
                 suspendBy = "Alert Name";
                 
                 if (suspension.getAlertId() != null) {
-                    AlertsDao alertsDao = new AlertsDao();
-                    Alert alert = alertsDao.getAlert(suspension.getAlertId());
+                    Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, suspension.getAlertId());
                     if ((alert != null) && (alert.getName() != null)) {
                         String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
                             StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";

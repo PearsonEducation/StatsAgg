@@ -3,9 +3,9 @@ package com.pearson.statsagg.web_ui;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -28,7 +28,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateSuspension", urlPatterns = {"/CreateSuspension"})
 public class CreateSuspension extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateSuspension.class.getName());
@@ -93,8 +92,7 @@ public class CreateSuspension extends HttpServlet {
             Suspension suspension = null;
             String name = request.getParameter("Name");
             if (name != null) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                suspension = suspensionsDao.getSuspensionByName(name.trim());
+                suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, name.trim());
             }        
             
             String htmlBodyContents = buildCreateSuspensionHtml(suspension);
@@ -284,8 +282,7 @@ public class CreateSuspension extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the name of the alert that you want to suspend.\" autocomplete=\"off\" name=\"AlertName\" id=\"AlertName\" ");
         
         if ((suspension != null) && (suspension.getAlertId() != null)) {
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(suspension.getAlertId());
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, suspension.getAlertId());
             
             if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\"");
         }
@@ -548,8 +545,7 @@ public class CreateSuspension extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    SuspensionsDao suspensionsDao = new SuspensionsDao();
-                    Suspension oldSuspension = suspensionsDao.getSuspension(id_Integer);
+                    Suspension oldSuspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id_Integer);
                     oldName = oldSuspension.getName();
                 }
                 catch (Exception e){}
@@ -628,8 +624,7 @@ public class CreateSuspension extends HttpServlet {
 
             parameter = Common.getSingleParameterAsString(request, "AlertName");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "alert_name");
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(parameter);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = Common.getSingleParameterAsString(request, "MetricGroupTagsInclusive");

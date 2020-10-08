@@ -1,6 +1,7 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
@@ -10,10 +11,11 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.globals.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -24,7 +26,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_MetricGroup_Details", urlPatterns={"/api/metric-group-details"})
 public class MetricGroupDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupDetails.class.getName());
@@ -121,32 +122,24 @@ public class MetricGroupDetails extends HttpServlet {
             }
 
             MetricGroup metricGroup = null;
-            MetricGroupsDao metricGroupsDao = null;
             List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
             List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-                
+            Connection connection = DatabaseConnections.getConnection();
+
             try {
-                metricGroupsDao = new MetricGroupsDao(false);
-                if (metricGroupId != null) metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
-                else if (metricGroupName != null) metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+                if (metricGroupId != null) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupId);
+                else if (metricGroupName != null) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupName);
 
                 if (metricGroup != null) {
-                    MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
-                    metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
-                    MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(metricGroupsDao.getDatabaseInterface());
-                    metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                    metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(connection, false, metricGroup.getId());
+                    metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, metricGroup.getId());
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                try {
-                    if (metricGroupsDao != null) metricGroupsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
+                DatabaseUtils.cleanup(connection);
             }
             
             if ((metricGroup != null) && (includeMetricAssociations != null) && includeMetricAssociations) {

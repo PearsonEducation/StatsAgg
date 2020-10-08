@@ -5,6 +5,7 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
@@ -12,10 +13,11 @@ import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
  * @author Prashant Kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_MetricGroups_List", urlPatterns={"/api/metric-groups-list"})
 public class MetricGroupsList extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupsList.class.getName());
@@ -90,31 +91,27 @@ public class MetricGroupsList extends HttpServlet {
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
-        
-        MetricGroupsDao metricGroupsDao = null;
-        
+
+        Connection connection = DatabaseConnections.getConnection();
+
         try {
-            metricGroupsDao = new MetricGroupsDao(false);
-            List<MetricGroup> metricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
+            List<MetricGroup> metricGroups = MetricGroupsDao.getMetricGroups(connection, false);
             if (metricGroups == null) metricGroups = new ArrayList<>();
             
             List<JsonObject> metricGroupsJsonObjects = new ArrayList<>();
-            MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao(metricGroupsDao.getDatabaseInterface());
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao(metricGroupsDao.getDatabaseInterface());
             
             for (MetricGroup metricGroup : metricGroups) {
                 List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
-                if (metricGroup != null) metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
+                if (metricGroup != null) metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(connection, false, metricGroup.getId());
                 
                 List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-                if (metricGroup != null) metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
+                if (metricGroup != null) metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, metricGroup.getId());
                 
                 JsonObject metricGroupJsonObject = MetricGroup.getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, false, -1);
                 if (metricGroupJsonObject != null) metricGroupsJsonObjects.add(metricGroupJsonObject);
             }
             
-            metricGroupsDao.close();
-            metricGroupsDao = null;
+            DatabaseUtils.cleanup(connection);
             
             Gson metricGroupsGson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();
             JsonElement metricGroups_JsonElement = metricGroupsGson.toJsonTree(metricGroupsJsonObjects);
@@ -129,7 +126,7 @@ public class MetricGroupsList extends HttpServlet {
         }
         finally {
             try {
-                if (metricGroupsDao != null) metricGroupsDao.close();
+                DatabaseUtils.cleanup(connection);
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

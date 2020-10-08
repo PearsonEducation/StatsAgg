@@ -1,10 +1,10 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroupAlertAssociations", urlPatterns = {"/MetricGroupAlertAssociations"})
 public class MetricGroupAlertAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupAlertAssociations.class.getName());
@@ -124,16 +123,14 @@ public class MetricGroupAlertAssociations extends HttpServlet {
             return "<b>No metric group specified</b>";
         }
  
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         if (metricGroup == null) return "<b>Metric Group not found</b>";
         
         StringBuilder outputString = new StringBuilder();
         
         outputString.append("<b>Metric Group Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
 
-        AlertsDao alertsDao = new AlertsDao();
-        List<String> alertNames = alertsDao.getAlertsAssociatedWithMetricGroupId(metricGroup.getId());
+        List<String> alertNames = AlertsDao.getAlertNamesAssociatedWithMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
         if (alertNames != null) Collections.sort(alertNames);
         
         if ((alertNames == null) || alertNames.isEmpty()) {

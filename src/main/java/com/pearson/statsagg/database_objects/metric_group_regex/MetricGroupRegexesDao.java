@@ -1,147 +1,191 @@
 package com.pearson.statsagg.database_objects.metric_group_regex;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
+public class MetricGroupRegexesDao {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupRegexesDao.class.getName());
-   
-    private final String tableName_ = "METRIC_GROUP_REGEXES";
     
-    public MetricGroupRegexesDao(){}
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupRegex metricGroupRegex) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupRegexesSql.Insert_MetricGroupRegex, 
+                    metricGroupRegex.getMetricGroupId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
             
-    public MetricGroupRegexesDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public MetricGroupRegexesDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(MetricGroupRegexesSql.DropTable_MetricGroupRegexes);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateTable_MetricGroupRegexes_MySQL);
+            return (result >= 0);
         }
-        else {
-            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateTable_MetricGroupRegexes_Derby);
-            databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateIndex_MetricGroupRegexes_PrimaryKey);
-        }
-        
-        databaseCreationSqlStatements.add(MetricGroupRegexesSql.CreateIndex_MetricGroupRegexes_ForeignKey_MetricGroupId);
-        
-        return createTable(databaseCreationSqlStatements);
-    }
-    
-    @Override
-    public MetricGroupRegex getDatabaseObject(MetricGroupRegex metricGroupRegex) {
-        if (metricGroupRegex == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(MetricGroupRegexesSql.Select_MetricGroupRegex_ByPrimaryKey, metricGroupRegex.getId()); 
-    }
-        
-    @Override
-    public boolean insert(MetricGroupRegex metricGroupRegex) {
-        if (metricGroupRegex == null) {
-            databaseInterface_.cleanupAutomatic();
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
-        return insert(MetricGroupRegexesSql.Insert_MetricGroupRegex, metricGroupRegex.getMetricGroupId(), 
-                metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern());
     }
     
-    @Override
-    public boolean update(MetricGroupRegex metricGroupRegex) {
-        if (metricGroupRegex == null) {
-            databaseInterface_.cleanupAutomatic();
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupRegex metricGroupRegex) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupRegexesSql.Update_MetricGroupRegex_ByPrimaryKey, 
+                    metricGroupRegex.getMetricGroupId(), metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupRegex metricGroupRegex) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            MetricGroupRegex metricGroupRegexFromDb = getMetricGroupRegex(connection, false, metricGroupRegex.getId());
+
+            boolean upsertSuccess = true;
+            if (metricGroupRegexFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, metricGroupRegex);
+            else if (!metricGroupRegexFromDb.isEqual(metricGroupRegex)) upsertSuccess = update(connection, false, commitOnCompletion, metricGroupRegex);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
 
-        return update(MetricGroupRegexesSql.Update_MetricGroupRegex_ByPrimaryKey, metricGroupRegex.getMetricGroupId(), 
-                metricGroupRegex.isBlacklistRegex(), metricGroupRegex.getPattern(), metricGroupRegex.getId());
     }
 
-    @Override
-    public boolean delete(MetricGroupRegex metricGroupRegex) {
-        if (metricGroupRegex == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return delete(MetricGroupRegexesSql.Delete_MetricGroupRegex_ByPrimaryKey, metricGroupRegex.getId()); 
-    }
-    
-    @Override
-    public MetricGroupRegex processSingleResultAllColumns(ResultSet resultSet) {
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroupRegex metricGroupRegex) {
         
         try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
-            }
-
-            Integer id = resultSet.getInt("ID");
-            if (resultSet.wasNull()) id = null;
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupRegexesSql.Delete_MetricGroupRegex_ByPrimaryKey, 
+                    metricGroupRegex.getId());
             
-            Integer mgId = resultSet.getInt("METRIC_GROUP_ID");
-            if (resultSet.wasNull()) mgId = null;
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean deleteByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Integer metricGroupId) {
+        
+        try {     
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricGroupRegexesSql.Delete_MetricGroupRegex_ByMetricGroupId, 
+                    metricGroupId);
             
-            Boolean isBlacklistRegex = resultSet.getBoolean("IS_BLACKLIST_REGEX");
-            if (resultSet.wasNull()) isBlacklistRegex = null;
-
-            String pattern = resultSet.getString("PATTERN");
-            if (resultSet.wasNull()) pattern = null;
-
-            MetricGroupRegex metricGroupRegex = new MetricGroupRegex(id, mgId, isBlacklistRegex, pattern);
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static MetricGroupRegex getMetricGroupRegex(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupRegexId) {
+        
+        try {
+            List<MetricGroupRegex> metricGroupRegexes = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupRegexesResultSetHandler(), 
+                    MetricGroupRegexesSql.Select_MetricGroupRegex_ByPrimaryKey, metricGroupRegexId);
             
-            return metricGroupRegex;
+            return DatabaseUtils.getSingleResultFromList(metricGroupRegexes);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
-    }
-    
-    @Override
-    public String getTableName() {
-        return tableName_;
-    }
-    
-    public MetricGroupRegex getMetricGroupRegex(Integer id) {
-        return getDatabaseObject(MetricGroupRegexesSql.Select_MetricGroupRegex_ByPrimaryKey, id); 
-    }  
-    
-    public Map<Integer,List<MetricGroupRegex>> getAllMetricGroupRegexesByMetricGroupId() {
-        List<MetricGroupRegex> metricGroupRegexes = getAllDatabaseObjectsInTable();
-        
-        if ((metricGroupRegexes == null) || metricGroupRegexes.isEmpty()) {
-            return new HashMap<>();
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        Map<Integer,List<MetricGroupRegex>> databaseObjectsInTableByMetricGroupId = new HashMap<>();
-
+    }
+    
+    public static List<MetricGroupRegex> getMetricGroupRegexes(Connection connection, boolean closeConnectionOnCompletion) {
+        
         try {
+            List<MetricGroupRegex> metricGroupRegexes = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupRegexesResultSetHandler(), 
+                    MetricGroupRegexesSql.Select_AllMetricGroupRegexes);
+            
+            return metricGroupRegexes;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<MetricGroupRegex> getMetricGroupRegexesByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupId) {
+        
+        try {
+            List<MetricGroupRegex> metricGroupRegexes = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupRegexesResultSetHandler(), 
+                    MetricGroupRegexesSql.Select_MetricGroupRegexes_ByMetricGroupId, metricGroupId);
+            
+            return metricGroupRegexes;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Map<Integer,List<MetricGroupRegex>> getAllMetricGroupRegexesByMetricGroupId(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        Map<Integer,List<MetricGroupRegex>> databaseObjectsInTableByMetricGroupId = null;
+        
+        try {
+            List<MetricGroupRegex> metricGroupRegexes = getMetricGroupRegexes(connection, closeConnectionOnCompletion);
+            if (metricGroupRegexes == null) return null;
+
+            databaseObjectsInTableByMetricGroupId = new HashMap<>();
+            
             for (MetricGroupRegex metricGroupRegex : metricGroupRegexes) {
                 Integer metricGroupId = metricGroupRegex.getMetricGroupId();
 
@@ -159,60 +203,23 @@ public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
         return databaseObjectsInTableByMetricGroupId;
     }
     
-    public List<MetricGroupRegex> getMetricGroupRegexesByMetricGroupId(Integer metricGroupId) {
+    public static List<String> getPatternsForMetricGroup(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupId) {
         
-        try {
-
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(MetricGroupRegexesSql.Select_MetricGroupRegexes_ByMetricGroupId, 100);
-            databaseInterface_.addPreparedStatementParameters(metricGroupId);
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-
-            List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
-            ResultSet resultSet = databaseInterface_.getResults();
-
-            while (resultSet.next()) {
-                MetricGroupRegex databaseObject = processSingleResultAllColumns(resultSet);
-                metricGroupRegexes.add(databaseObject);
-            }
-
-            return metricGroupRegexes;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
-        
-    }
-    
-    public boolean deleteByMetricGroupId(Integer id) {
-        return delete(MetricGroupRegexesSql.Delete_MetricGroupRegex_ByMetricGroupId, id); 
-    }
-    
-    public List<String> getPatterns(Integer metricGroupId) {
-
-        if (metricGroupId == null) {
-            return null;
-        }
-
         List<String> patterns = null;
-              
+
         try {
-            List<MetricGroupRegex> metricGroupRegexes = getMetricGroupRegexesByMetricGroupId(metricGroupId);
+            if (metricGroupId == null) {
+                return null;
+            }
+
+            List<MetricGroupRegex> metricGroupRegexes = getMetricGroupRegexesByMetricGroupId(connection, closeConnectionOnCompletion, metricGroupId);
 
             if (metricGroupRegexes != null) {
                 patterns = new ArrayList<>();
@@ -226,6 +233,9 @@ public class MetricGroupRegexesDao extends DatabaseObjectDao<MetricGroupRegex> {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
         return patterns;

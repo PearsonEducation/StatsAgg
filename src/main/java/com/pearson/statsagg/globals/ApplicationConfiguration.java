@@ -5,9 +5,8 @@ import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
-import com.pearson.statsagg.utilities.config_utils.PropertiesConfigurationWrapper;
+import com.pearson.statsagg.utilities.config_utils.HierarchicalIniConfigurationWrapper;
 import com.pearson.statsagg.utilities.web_utils.HttpLink;
-import java.io.InputStream;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.StringReader;
 import java.util.ArrayList;
@@ -27,10 +26,14 @@ public class ApplicationConfiguration {
 
     private static boolean isUsingDefaultSettings_ = false;
     private static boolean isInitializeSuccess_ = false; 
-    private static PropertiesConfigurationWrapper applicationConfiguration_ = null;
+    private static HierarchicalIniConfigurationWrapper applicationConfiguration_ = null;
     
     private static long flushTimeAgg_ = VALUE_NOT_SET_CODE;
     private static boolean debugModeEnabled_ = false;
+    
+    private static boolean uiAndApiHttpEnabled_ = false;
+    private static int uiAndApiHttpPort_ = VALUE_NOT_SET_CODE;
+    private static String uiAndApiHttpContext_ = null;
     
     private static final List<GraphiteOutputModule> graphiteOutputModules_ = new ArrayList<>();
     private static final List<OpenTsdbTelnetOutputModule> openTsdbTelnetOutputModules_ = new ArrayList<>();
@@ -122,28 +125,32 @@ public class ApplicationConfiguration {
     private static int outputModuleMaxConcurrentThreadsForSingleModule_ = VALUE_NOT_SET_CODE;
     private static long metricGroupApiMaxMetricAssociations_ = VALUE_NOT_SET_CODE;
     
-    public static boolean initialize(InputStream configurationInputStream, boolean isUsingDefaultSettings) {
+    public static boolean initialize(String filePathAndFilename) {
         
-        if (configurationInputStream == null) {
+        if (filePathAndFilename == null) {
             return false;
         }
         
-        isUsingDefaultSettings_ = isUsingDefaultSettings;
-        applicationConfiguration_ = new PropertiesConfigurationWrapper(configurationInputStream);
+        applicationConfiguration_ = new HierarchicalIniConfigurationWrapper(filePathAndFilename);
         
-        if ((applicationConfiguration_ == null) || !applicationConfiguration_.isValid()) {
-            return false;
-        }
+        if (!applicationConfiguration_.isValid()) return false;     
         
         isInitializeSuccess_ = setApplicationConfigurationValues();
+        
         return isInitializeSuccess_;
     }
     
     private static boolean setApplicationConfigurationValues() {
         
         try {
+            // core configuration
             flushTimeAgg_ = applicationConfiguration_.safeGetLong("flush_time_agg", 10000);
             debugModeEnabled_ = applicationConfiguration_.safeGetBoolean("debug_mode_enabled", false);
+            
+            // ui & api http interface configuration
+            uiAndApiHttpEnabled_ = applicationConfiguration_.safeGetBoolean("ui_and_api_http_enabled", true);
+            uiAndApiHttpPort_ = applicationConfiguration_.safeGetInt("ui_and_api_http_port", 8080);
+            uiAndApiHttpContext_ = applicationConfiguration_.safeGetString("ui_and_api_http_context", "StatsAgg");
             
             // graphite output configuration
             graphiteOutputModules_.addAll(readGraphiteOutputModules());
@@ -479,10 +486,10 @@ public class ApplicationConfiguration {
         return isUsingDefaultSettings_;
     }
 
-    public static PropertiesConfigurationWrapper getApplicationConfiguration() {
+    public static HierarchicalIniConfigurationWrapper getApplicationConfiguration() {
         return applicationConfiguration_;
     }
-
+    
     public static long getFlushTimeAgg() {
         return flushTimeAgg_;
     }
@@ -491,6 +498,18 @@ public class ApplicationConfiguration {
         return debugModeEnabled_;
     }
 
+    public static boolean isUiAndApiHttpEnabled() {
+        return uiAndApiHttpEnabled_;
+    }
+    
+    public static int getUiAndApiHttpPort() {
+        return uiAndApiHttpPort_;
+    }
+    
+    public static String getUiAndApiHttpContext() {
+        return uiAndApiHttpContext_;
+    }
+    
     public static List<GraphiteOutputModule> getGraphiteOutputModules() {
         if (graphiteOutputModules_ == null) return null;
         else return new ArrayList<>(graphiteOutputModules_);

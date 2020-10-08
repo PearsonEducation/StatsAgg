@@ -1,5 +1,6 @@
 package com.pearson.statsagg.alerts;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -13,7 +14,9 @@ import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import java.util.HashSet;
 import java.util.Map.Entry;
 import java.util.concurrent.ThreadPoolExecutor;
@@ -72,8 +75,7 @@ public class CleanupThread implements Runnable {
         // prevents cleanup from running at the same time as the alert routine
         synchronized (GlobalVariables.alertRoutineLock) {
             // always remove metric data points 
-            AlertsDao alertsDao = new AlertsDao();
-            List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
             List<Alert> enabledAlerts = AlertThread.getEnabledAlerts(alerts);
             String cleanupRecentMetricTimestampsAndValuesOutput = cleanupRecentMetricTimestampsAndValues(enabledAlerts);
             String cleanupSubroutineOutputMessages = cleanupRecentMetricTimestampsAndValuesOutput;
@@ -227,8 +229,8 @@ public class CleanupThread implements Runnable {
         boolean didCommitSucceed = false;
         
         try {
-            GaugesDao gaugesDao = new GaugesDao(false);
-            gaugesDao.getDatabaseInterface().beginTransaction();
+            Connection connection = DatabaseConnections.getConnection();
+            DatabaseUtils.setAutoCommit(connection, false);
 
             for (String metricKey : gaugeMetricKeys) {
                 Gauge gauge = GlobalVariables.statsdGaugeCache.get(metricKey);
@@ -237,7 +239,7 @@ public class CleanupThread implements Runnable {
                 else bucketSha1 = gauge.getBucketSha1();
 
                 boolean deleteSuccess = false;
-                if (bucketSha1 != null) deleteSuccess = gaugesDao.delete(bucketSha1);
+                if (bucketSha1 != null) deleteSuccess = GaugesDao.delete(connection, false, false, bucketSha1);
 
                 if ((bucketSha1 != null) && deleteSuccess) {
                     gaugeMetricKeys_SuccessfullyDeleted.add(metricKey);
@@ -248,8 +250,8 @@ public class CleanupThread implements Runnable {
                 }
             }
             
-            didCommitSucceed = gaugesDao.getDatabaseInterface().endTransaction(true);
-            gaugesDao.close();
+            didCommitSucceed = DatabaseUtils.commit(connection);
+            DatabaseUtils.cleanup(connection);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

@@ -1,10 +1,10 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
 import java.util.List;
 import java.util.Map;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -19,7 +19,9 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
 import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.math.BigDecimal;
+import java.sql.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -28,7 +30,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertsReport", urlPatterns = {"/AlertsReport"})
 public class AlertsReport extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertsReport.class.getName());
@@ -161,25 +162,20 @@ public class AlertsReport extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true);
         
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
-        
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao(false);
-        Map<Integer, String> notificationGroupNames_ById = notificationGroupsDao.getNotificationGroupNames_ById();
-        Map<Integer, NotificationGroup> notificationGroups_ById = notificationGroupsDao.getNotificationGroups_ById();
-        notificationGroupsDao.close();
+        Connection connection = DatabaseConnections.getConnection();
+        Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
+        Map<Integer, NotificationGroup> notificationGroups_ById = NotificationGroupsDao.getNotificationGroups_ById(connection, false);
+        DatabaseUtils.cleanup(connection);
         
         for (Alert alert : alerts) {
             if (alert == null) continue;
             
             try {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
-                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-                List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(alert.getMetricGroupId());
+                MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
+                List<MetricGroupRegex> metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, alert.getMetricGroupId());
 
                 // alert id
                 Integer alertId = alert.getId();

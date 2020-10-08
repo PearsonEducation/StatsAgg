@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "OutputBlacklist", urlPatterns = {"/OutputBlacklist"})
 public class OutputBlacklist extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(OutputBlacklist.class.getName());
@@ -172,7 +171,7 @@ public class OutputBlacklist extends HttpServlet {
         String metricGroupName = getMetricGroupNameAssociatedWithOutputBlacklist();
         
         String metricAssociationsLink = "";
-        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
         if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null) && (outputBlacklist.getMetricGroupId() >= 0)) {
             Set<String> matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup.get(outputBlacklist.getMetricGroupId());
             int matchingMetricKeysAssociatedWithOutputBlacklistMetricGroup_Count = 0;
@@ -203,8 +202,7 @@ public class OutputBlacklist extends HttpServlet {
 
     private static String getMetricGroupNameAssociatedWithOutputBlacklist() {
         
-        OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-        List<com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist> outputBlacklists = outputBlacklistDao.getAllDatabaseObjectsInTable();
+        List<com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist> outputBlacklists = OutputBlacklistDao.getOutputBlacklists(DatabaseConnections.getConnection(), true);
 
         if ((outputBlacklists != null) && !outputBlacklists.isEmpty()) {
             Integer metricGroupId = null;
@@ -217,8 +215,7 @@ public class OutputBlacklist extends HttpServlet {
             }
             
             if (metricGroupId != null) {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+                MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);
                 if ((metricGroup != null) && (metricGroup.getName() != null)) return metricGroup.getName();
             }
         }
@@ -236,30 +233,26 @@ public class OutputBlacklist extends HttpServlet {
             
             if ((metricGroupName != null) && !metricGroupName.trim().isEmpty()) {
                 wasMetricGroupNameSpecified = true;
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+                metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
             }
             
-            com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+            com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(DatabaseConnections.getConnection(), true);
 
             if ((metricGroup != null) && (metricGroup.getId() != null)) {
                 if (outputBlacklist == null) outputBlacklist = new com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist(-1, metricGroup.getId());
                 else outputBlacklist.setMetricGroupId(metricGroup.getId());
-                OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-                upsertSuccess = outputBlacklistDao.upsert(outputBlacklist);
+                upsertSuccess = OutputBlacklistDao.upsert(DatabaseConnections.getConnection(), true, true, outputBlacklist);
             }
             else if (wasMetricGroupNameSpecified) {
                 return false;
             }
             else if (outputBlacklist != null) {
                 outputBlacklist.setMetricGroupId(null);
-                OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-                upsertSuccess = outputBlacklistDao.upsert(outputBlacklist);
+                upsertSuccess = OutputBlacklistDao.upsert(DatabaseConnections.getConnection(), true, true, outputBlacklist);
             }
             else {
                 outputBlacklist = new com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist(-1, null);
-                OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-                upsertSuccess = outputBlacklistDao.upsert(outputBlacklist);
+                upsertSuccess = OutputBlacklistDao.upsert(DatabaseConnections.getConnection(), true, true, outputBlacklist);
             }
         }
         catch (Exception e) {

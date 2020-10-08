@@ -1,13 +1,14 @@
 package com.pearson.statsagg.webui;
 
 import com.pearson.statsagg.web_ui.SuspensionsLogic;
-import com.pearson.statsagg.controller.ContextManager;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
-import com.pearson.statsagg.database_engine.DatabaseConnections;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.drivers.Driver;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
-import java.io.InputStream;
+import java.sql.Connection;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import org.junit.After;
@@ -30,10 +31,10 @@ public class SuspensionsLogicTest {
     
     @BeforeClass
     public static void setUpClass() {
-        ContextManager contextManager = new ContextManager();
-        InputStream ephemeralDatabaseConfiguration = contextManager.getEphemeralDatabaseConfiguration();
-        contextManager.initializeDatabaseFromInputStream(ephemeralDatabaseConfiguration);
-        contextManager.createDatabaseSchemas();
+        Driver.initializeApplication_Logger();
+        Driver.initializeApplication_DatabaseConfiguration(true);
+        Driver.connectToDatabase();
+        Driver.setupDatabaseSchema();
     }
     
     @AfterClass
@@ -81,8 +82,7 @@ public class SuspensionsLogicTest {
          
         result = suspensionsLogic_.alterRecordInDatabase(suspension1);
         assertTrue(result.contains("Success"));
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension1FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension1FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, "suspension junit name 1");
         assertTrue(suspension1FromDb.getName().contains("suspension junit name 1"));
         assertTrue(suspension1FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2"));
         
@@ -91,41 +91,38 @@ public class SuspensionsLogicTest {
         assertTrue(result.contains("Fail"));
         result = suspensionsLogic_.alterRecordInDatabase(suspension1FromDb, suspension1FromDb.getName());
         assertTrue(result.contains("Success"));
-        suspensionsDao = new SuspensionsDao();
-        Suspension suspension2FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension2FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true,"suspension junit name 1");
         assertTrue(suspension2FromDb.getName().contains("suspension junit name 1"));
         assertTrue(suspension2FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2\ntag3"));
         
         result = suspensionsLogic_.deleteRecordInDatabase("suspension junit fake 1");
         assertTrue(result.contains("Cancelling"));
-        suspensionsDao = new SuspensionsDao();
-        Suspension suspension3FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension3FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, "suspension junit name 1");
         assertTrue(suspension3FromDb.getName().contains("suspension junit name 1"));
         
         // test altering suspension name
-        suspensionsDao = new SuspensionsDao(false);
-        Suspension suspensionFromDbOriginalName = suspensionsDao.getSuspensionByName("suspension junit name 1"); // pt1
+        Connection connection = DatabaseConnections.getConnection();
+        Suspension suspensionFromDbOriginalName = SuspensionsDao.getSuspension(connection, false, "suspension junit name 1"); // pt1
         assertTrue(suspensionFromDbOriginalName.getName().contains("suspension junit name 1"));
         Suspension suspensionFromDbNewName = Suspension.copy(suspensionFromDbOriginalName);
         suspensionFromDbNewName.setName("suspension junit name 11");
         result = suspensionsLogic_.alterRecordInDatabase(suspensionFromDbNewName, suspensionFromDbNewName.getName());
         assertTrue(result.contains("Successful"));
-        Suspension suspensionFromDbNewNameVerify = suspensionsDao.getSuspensionByName(suspensionFromDbNewName.getName()); // pt2
+        Suspension suspensionFromDbNewNameVerify = SuspensionsDao.getSuspension(connection, false, suspensionFromDbNewName.getName()); // pt2
         assertTrue(suspensionFromDbNewNameVerify.getName().contains(suspensionFromDbNewName.getName()));
         assertFalse(suspensionFromDbNewNameVerify.getName().equals(suspensionFromDbOriginalName.getName()));
         assertEquals(suspensionFromDbOriginalName.getId(), suspensionFromDbNewNameVerify.getId());
-        Suspension suspensionFromDbOriginalName_NoResult = suspensionsDao.getSuspensionByName(suspensionFromDbOriginalName.getName()); // pt3
+        Suspension suspensionFromDbOriginalName_NoResult = SuspensionsDao.getSuspension(connection, false, suspensionFromDbOriginalName.getName()); // pt3
         assertEquals(suspensionFromDbOriginalName_NoResult, null);
         Suspension suspensionFromDbOriginalName_Reset = Suspension.copy(suspensionFromDbOriginalName); // pt4
         suspensionFromDbOriginalName_Reset.setName(suspensionFromDbOriginalName.getName());  
         result = suspensionsLogic_.alterRecordInDatabase(suspensionFromDbOriginalName_Reset, suspensionFromDbOriginalName.getName());
         assertTrue(result.contains("Successful"));
-        suspensionsDao.close();
+        DatabaseUtils.cleanup(connection);
         
         result = suspensionsLogic_.deleteRecordInDatabase("suspension junit name 1");
         assertTrue(result.contains("success"));
-        suspensionsDao = new SuspensionsDao();
-        Suspension suspension4FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension4FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, "suspension junit name 1");
         assertEquals(null, suspension4FromDb);
     }
 
@@ -153,15 +150,13 @@ public class SuspensionsLogicTest {
         
         result = suspensionsLogic_.alterRecordInDatabase(suspension1);
         assertTrue(result.contains("Success"));
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Suspension suspension1FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension1FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, "suspension junit name 1");
         assertTrue(suspension1FromDb.getName().contains("suspension junit name 1"));
         assertTrue(suspension1FromDb.getMetricGroupTagsInclusive().contains("incl\ntag1\ntag2"));
         
         result = suspensionsLogic_.deleteRecordInDatabase("suspension junit name 1");
         assertTrue(result.contains("success"));
-        suspensionsDao = new SuspensionsDao();
-        Suspension suspension2FromDb = suspensionsDao.getSuspensionByName("suspension junit name 1");
+        Suspension suspension2FromDb = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, "suspension junit name 1");
         assertEquals(null, suspension2FromDb);
         
         result = suspensionsLogic_.deleteRecordInDatabase("suspension junit fake 1");

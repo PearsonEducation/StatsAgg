@@ -2,7 +2,6 @@ package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -22,7 +21,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "RegexTester", urlPatterns = {"/RegexTester"})
 public class RegexTester extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(RegexTester.class.getName());

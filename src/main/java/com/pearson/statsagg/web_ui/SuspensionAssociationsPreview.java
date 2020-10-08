@@ -1,9 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "SuspensionAssociationsPreview", urlPatterns = {"/SuspensionAssociationsPreview"})
 public class SuspensionAssociationsPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionAssociationsPreview.class.getName());
@@ -146,8 +145,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             
             parameter = request.getParameter("AlertName");
             if (parameter != null) parameter = parameter.trim();
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(parameter);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = request.getParameter("MetricGroupTagsInclusive");
@@ -193,8 +191,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
     private String getAlertSuspension_AlertAssociations_ResponseHtml(Suspension suspension) {
         List<String> alertNames = new ArrayList<>();
         
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
         
         for (Alert alert : alerts) {
             if ((alert.getName() == null) || alert.getName().isEmpty()) continue;

@@ -1,178 +1,214 @@
 package com.pearson.statsagg.database_objects.metric_last_seen;
 
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.List;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
+import com.pearson.statsagg.database_objects.DDL_Helper;
 import com.pearson.statsagg.globals.DatabaseConfiguration;
+import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricLastSeenDao extends DatabaseObjectDao<MetricLastSeen> {
+public class MetricLastSeenDao {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricLastSeenDao.class.getName());
     
-    private final String tableName_ = "METRIC_LAST_SEEN";
-    
-    public MetricLastSeenDao(){}
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricLastSeen metricLastSeen) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricLastSeenSql.Insert_MetricLastSeen, 
+                    metricLastSeen.getMetricKeySha1(), metricLastSeen.getMetricKey(), metricLastSeen.getLastModified());
             
-    public MetricLastSeenDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public MetricLastSeenDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(MetricLastSeenSql.DropTable_MetricLastSeen);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(MetricLastSeenSql.CreateTable_MetricLastSeen_MySQL);
+            return (result >= 0);
         }
-        else {
-            databaseCreationSqlStatements.add(MetricLastSeenSql.CreateTable_MetricLastSeen_Derby);
-        }
-        
-        databaseCreationSqlStatements.add(MetricLastSeenSql.CreateIndex_MetricLastSeen_PrimaryKey);
-
-        return createTable(databaseCreationSqlStatements);
-    }
-    
-    @Override
-    public MetricLastSeen getDatabaseObject(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKeySha1()); 
-    }
-    
-    @Override
-    public boolean insert(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) {
-            databaseInterface_.cleanupAutomatic();
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
-
-        return insert(MetricLastSeenSql.Insert_MetricLastSeen, metricLastSeen.getMetricKeySha1(), metricLastSeen.getMetricKey(), metricLastSeen.getLastModified());
-    }
-    
-    @Override
-    public boolean update(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        return update(MetricLastSeenSql.Update_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKey(), metricLastSeen.getLastModified(), metricLastSeen.getMetricKeySha1());
-    }
-
-    @Override
-    public boolean delete(MetricLastSeen metricLastSeen) {
-        if (metricLastSeen == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKeySha1()); 
     }
     
-    @Override
-    public MetricLastSeen processSingleResultAllColumns(ResultSet resultSet) {
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricLastSeen metricLastSeen) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricLastSeenSql.Update_MetricLastSeen_ByPrimaryKey, 
+                    metricLastSeen.getMetricKey(), metricLastSeen.getLastModified(), metricLastSeen.getMetricKeySha1());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricLastSeen metricLastSeen) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            MetricLastSeen metricLastSeenFromDb = getMetricLastSeen(connection, false, metricLastSeen.getMetricKeySha1());
+
+            boolean upsertSuccess = true;
+            if (metricLastSeenFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, metricLastSeen);
+            else if (!metricLastSeenFromDb.isEqual(metricLastSeen)) upsertSuccess = update(connection, false, commitOnCompletion, metricLastSeen);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricLastSeen metricLastSeen) {
         
         try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
-            }
-
-            String metricKeySha1 = resultSet.getString("METRIC_KEY_SHA1");
-            if (resultSet.wasNull()) metricKeySha1 = null;
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricLastSeen.getMetricKeySha1());
             
-            String metricKey = resultSet.getString("METRIC_KEY");
-            if (resultSet.wasNull()) metricKey = null;
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, String metricKeySha1) {
+        
+        try {     
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricKeySha1);
             
-            Timestamp lastModified = resultSet.getTimestamp("LAST_MODIFIED");
-            if (resultSet.wasNull()) lastModified = null;
-
-            MetricLastSeen metricLastSeen = new MetricLastSeen(metricKeySha1, metricKey, lastModified);
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static MetricLastSeen getMetricLastSeen(Connection connection, boolean closeConnectionOnCompletion, String metricKeySha1) {
+        
+        try {
+            List<MetricLastSeen> metricLastSeens = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricLastSeenResultSetHandler(), MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, metricKeySha1);
             
-            return metricLastSeen;
+            return DatabaseUtils.getSingleResultFromList(metricLastSeens);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
-    }
-    
-    @Override
-    public String getTableName() {
-        return tableName_;
-    }
-    
-    public MetricLastSeen getMetricLastSeen(String metricKeySha1) {
-        return getDatabaseObject(MetricLastSeenSql.Select_MetricLastSeen_ByPrimaryKey, metricKeySha1); 
-    }
-
-    public boolean delete(String metricKeySha1) {
-        return delete(MetricLastSeenSql.Delete_MetricLastSeen_ByPrimaryKey, metricKeySha1); 
-    }
-    
-    public boolean batchUpsert(List<MetricLastSeen> metricLastSeens) {
-        
-        if ((metricLastSeens == null) || metricLastSeens.isEmpty()) {
-            return false;
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
-
+        
+    }
+    
+    public static List<MetricLastSeen> getMetricLastSeens(Connection connection, boolean closeConnectionOnCompletion) {
+        
         try {
-            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-                boolean wasAllUpsertSuccess = true;
-                List<List<MetricLastSeen>> metricLastSeenPartitions = Lists.partition(metricLastSeens, 1000);
+            List<MetricLastSeen> metricLastSeens = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricLastSeenResultSetHandler(), MetricLastSeenSql.Select_AllMetricLastSeen);
+            
+            return metricLastSeens;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
 
-                for (List<MetricLastSeen> metricLastSeenPartition : metricLastSeenPartitions) {
-                    List<Object> parameters = new ArrayList<>();
+    // this method automatically commits gauges in batches of 1000
+    public static boolean batchUpsert(Connection connection, boolean closeConnectionOnCompletion, List<MetricLastSeen> metricLastSeens) {
+        
+        try {
+            if ((metricLastSeens == null) || metricLastSeens.isEmpty()) {
+                return false;
+            }
+            
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            boolean wasAllUpsertSuccess = true;
+            
+            List<List<MetricLastSeen>> metricLastSeensPartitions = Lists.partition(metricLastSeens, 1000);
 
-                    for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
-                        parameters.add(metricLastSeen.getMetricKeySha1());
-                        parameters.add(metricLastSeen.getMetricKey());
-                        parameters.add(metricLastSeen.getLastModified());
-                    }
-
-                    boolean wasUpsertSuccess = genericDmlStatement(MetricLastSeenSql.generateBatchUpsert(metricLastSeenPartition.size()), parameters);
+            for (List<MetricLastSeen> metricLastSeenPartition : metricLastSeensPartitions) {
+                for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
+                    boolean wasUpsertSuccess = upsert(connection, false, false, metricLastSeen);
                     if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
                 }
 
-                return wasAllUpsertSuccess;
+                boolean wasCommitSuccess = DatabaseUtils.commit(connection, false);
+                if (!wasCommitSuccess) wasAllUpsertSuccess = false;
             }
-            else if (!databaseInterface_.isManualTransactionControl()) {
-                return upsert(metricLastSeens, true);
-            }
-            else {
-                boolean wasAllUpsertSuccess = true;
+            
+//            // code is untested after refactoring.  not confident this will work.    
+//            if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
+//                boolean wasAllUpsertSuccess = true;
+//                List<List<MetricLastSeen>> metricLastSeenPartitions = Lists.partition(metricLastSeens, 1000);
+//
+//                for (List<MetricLastSeen> metricLastSeenPartition : metricLastSeenPartitions) {
+//                    List<Object> parameters = new ArrayList<>();
+//
+//                    for (MetricLastSeen metricLastSeen : metricLastSeenPartition) {
+//                        parameters.add(metricLastSeen.getMetricKeySha1());
+//                        parameters.add(metricLastSeen.getMetricKey());
+//                        parameters.add(metricLastSeen.getLastModified());
+//                    }
+//
+//                    boolean wasUpsertSuccess = genericDmlStatement(MetricLastSeenSql.generateBatchUpsert(metricLastSeenPartition.size()), parameters);
+//                    if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
+//                }
+//
+//                return wasAllUpsertSuccess;
+//            }
 
-                for (MetricLastSeen metricLastSeen : metricLastSeens) {
-                    boolean wasUpsertSuccess = upsert(metricLastSeen);
-                    if (!wasUpsertSuccess) wasAllUpsertSuccess = false;
-                }
-
-                return wasAllUpsertSuccess;
-            }
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            return wasAllUpsertSuccess;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
     }
