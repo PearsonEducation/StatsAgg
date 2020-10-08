@@ -108,8 +108,8 @@ Detailed information about StatsAgg's metric format support, including examples,
 <br>
 
 ## Technology
-* StatsAgg is a Java 1.8 based webapp. It compiles into a war file, and is intended to be deployed into Apache Tomcat 7+.
-* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby Embedded or MySQL 5.6+.
+* StatsAgg is a Java 11 based standalone app. A valid JRE (version 11 or newer) is the only requirement to run StatsAgg.
+* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby or MySQL 5.6+.
 * StatsAgg can run on almost any modern OS. Windows, Linux, etc.
 
 <br>
