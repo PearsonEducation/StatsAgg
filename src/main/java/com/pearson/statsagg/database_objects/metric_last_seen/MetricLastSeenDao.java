@@ -1,13 +1,10 @@
 package com.pearson.statsagg.database_objects.metric_last_seen;
 
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.database_objects.DDL_Helper;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
-import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
