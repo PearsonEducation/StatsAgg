@@ -1,7 +1,6 @@
 package com.pearson.statsagg.database_objects.gauges;
 
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.database_objects.DDL_Helper;
 import java.util.ArrayList;
 import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -21,7 +20,7 @@ public class GaugesDao {
         try {
             List<String> databaseCreationSqlStatements = new ArrayList<>();
             databaseCreationSqlStatements.add(GaugesSql.TruncateTable_Gauges);
-            return DDL_Helper.genericDDL(connection, closeConnectionOnCompletion, databaseCreationSqlStatements);
+            return DatabaseUtils.genericDDL(connection, closeConnectionOnCompletion, databaseCreationSqlStatements);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
