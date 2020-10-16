@@ -25,7 +25,7 @@ public class GaugesResultSetHandler extends Gauge implements DatabaseResultSetHa
         List<Gauge> gauges = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
+            Set<String> columnNames = DatabaseUtils.getResultSetColumnNames(resultSet);
             
             while ((columnNames != null) && resultSet.next()) {
                 try {

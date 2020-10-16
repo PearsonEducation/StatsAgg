@@ -23,17 +23,12 @@ public class OutputBlacklistResultSetHandler extends OutputBlacklist implements 
         List<OutputBlacklist> outputBlacklists = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
+           Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
+
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "ID";
-                    Integer id = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) id = null;
-                    
-                    columnName = "METRIC_GROUP_ID";
-                    Integer metricGroupId = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) metricGroupId = null;
+                    Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
+                    Integer metricGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_id", Integer.class);
 
                     OutputBlacklist outputBlacklist = new OutputBlacklist(id, metricGroupId);
                     outputBlacklists.add(outputBlacklist);

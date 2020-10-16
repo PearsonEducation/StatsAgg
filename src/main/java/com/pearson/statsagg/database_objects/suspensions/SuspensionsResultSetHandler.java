@@ -24,105 +24,34 @@ public class SuspensionsResultSetHandler extends Suspension implements DatabaseR
         List<Suspension> suspensions = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
+           Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
+
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "ID";
-                    Integer id = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) id = null;
-
-                    columnName = "NAME";
-                    String name = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) name = null;
-
-                    columnName = "UPPERCASE_NAME";
-                    String uppercaseName = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) uppercaseName = null;
-
-                    columnName = "DESCRIPTION";
-                    String description = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) description = null;
-
-                    columnName = "IS_ENABLED";
-                    Boolean isEnabled = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isEnabled = null;
-
-                    columnName = "SUSPEND_BY";
-                    Integer suspendBy = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) suspendBy = null;
-
-                    columnName = "ALERT_ID";
-                    Integer alertId = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) alertId = null;
-
-                    columnName = "METRIC_GROUP_TAGS_INCLUSIVE";
-                    String metricGroupTagsInclusive = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) metricGroupTagsInclusive = null;
-
-                    columnName = "METRIC_GROUP_TAGS_EXCLUSIVE";
-                    String metricGroupTagsExclusive = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) metricGroupTagsExclusive = null;
-
-                    columnName = "METRIC_SUSPENSION_REGEXES";
-                    String metricSuspensionRegexes = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) metricSuspensionRegexes = null;
-
-                    columnName = "IS_ONE_TIME";
-                    Boolean isOneTime = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isOneTime = null;
-
-                    columnName = "IS_SUSPEND_NOTIFICATION_ONLY";
-                    Boolean isSuspendNotificationOnly = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isSuspendNotificationOnly = null;
-
-                    columnName = "IS_RECUR_SUNDAY";
-                    Boolean isRecurSunday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurSunday = null;
-
-                    columnName = "IS_RECUR_MONDAY";
-                    Boolean isRecurMonday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurMonday = null;
-
-                    columnName = "IS_RECUR_TUESDAY";
-                    Boolean isRecurTuesday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurTuesday = null;
-
-                    columnName = "IS_RECUR_WEDNESDAY";
-                    Boolean isRecurWednesday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurWednesday = null;
-
-                    columnName = "IS_RECUR_THURSDAY";
-                    Boolean isRecurThursday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurThursday = null;
-
-                    columnName = "IS_RECUR_FRIDAY";
-                    Boolean isRecurFriday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurFriday = null;
-
-                    columnName = "IS_RECUR_SATURDAY";
-                    Boolean isRecurSaturday = (columnNames.contains(columnName)) ? resultSet.getBoolean(columnName) : null;
-                    if (resultSet.wasNull()) isRecurSaturday = null;
-
-                    columnName = "START_DATE";
-                    Timestamp startDate = (columnNames.contains(columnName)) ? resultSet.getTimestamp(columnName) : null;
-                    if (resultSet.wasNull()) startDate = null;
-
-                    columnName = "START_TIME";
-                    Timestamp startTime = (columnNames.contains(columnName)) ? resultSet.getTimestamp(columnName) : null;
-                    if (resultSet.wasNull()) startTime = null;
-
-                    columnName = "DURATION";
-                    Long duration = (columnNames.contains(columnName)) ? resultSet.getLong(columnName) : null;
-                    if (resultSet.wasNull()) duration = null;
-
-                    columnName = "DURATION_TIME_UNIT";
-                    Integer durationTimeUnit = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) durationTimeUnit = null;
-
-                    columnName = "DELETE_AT_TIMESTAMP";
-                    Timestamp deleteAtTimestamp = (columnNames.contains(columnName)) ? resultSet.getTimestamp(columnName) : null;
-                    if (resultSet.wasNull()) deleteAtTimestamp = null; 
+                    Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
+                    String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
+                    String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
+                    String description = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description", String.class);
+                    Boolean isEnabled = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_enabled", Boolean.class);
+                    Integer suspendBy = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "suspend_by", Integer.class);
+                    Integer alertId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "alert_id", Integer.class);
+                    String metricGroupTagsInclusive = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_tags_inclusive", String.class);
+                    String metricGroupTagsExclusive = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_tags_exclusive", String.class);
+                    String metricSuspensionRegexes = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_suspension_regexes", String.class);
+                    Boolean isOneTime = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_one_time", Boolean.class);
+                    Boolean isSuspendNotificationOnly = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_suspend_notification_only", Boolean.class);
+                    Boolean isRecurSunday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_sunday", Boolean.class);
+                    Boolean isRecurMonday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_monday", Boolean.class);
+                    Boolean isRecurTuesday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_tuesday", Boolean.class);
+                    Boolean isRecurWednesday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_wednesday", Boolean.class);
+                    Boolean isRecurThursday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_thursday", Boolean.class);
+                    Boolean isRecurFriday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_friday", Boolean.class);
+                    Boolean isRecurSaturday = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_recur_saturday", Boolean.class);
+                    Timestamp startDate = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "start_date", Timestamp.class);
+                    Timestamp startTime = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "start_time", Timestamp.class);
+                    Long duration = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "duration", Long.class);
+                    Integer durationTimeUnit = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "duration_time_unit", Integer.class);
+                    Timestamp deleteAtTimestamp = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "delete_at_timestamp", Timestamp.class);
 
                     Suspension suspension = new Suspension(
                             id, name, uppercaseName, description, isEnabled, suspendBy, alertId, metricGroupTagsInclusive, metricGroupTagsExclusive, metricSuspensionRegexes,

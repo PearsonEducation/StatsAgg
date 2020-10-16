@@ -23,21 +23,13 @@ public class MetricGroupTagsResultSetHandler extends MetricGroupTag implements D
         List<MetricGroupTag> metricGroupTags = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
-                try {
-                    String columnName = "ID";
-                    Integer id = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) id = null;
-                    
-                    columnName = "METRIC_GROUP_ID";
-                    Integer metricGroupId = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) metricGroupId = null;
+            Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
 
-                    columnName = "TAG";
-                    String tag = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) tag = null;
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
+                try {
+                    Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
+                    Integer metricGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_id", Integer.class);
+                    String tag = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "tag", String.class);
 
                     MetricGroupTag metricGroupTag = new MetricGroupTag(id, metricGroupId, tag);
                     metricGroupTags.add(metricGroupTag);
@@ -53,6 +45,6 @@ public class MetricGroupTagsResultSetHandler extends MetricGroupTag implements D
         
         return metricGroupTags;
     }
-
+    
 }
 

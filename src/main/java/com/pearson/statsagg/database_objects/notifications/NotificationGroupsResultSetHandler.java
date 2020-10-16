@@ -23,25 +23,14 @@ public class NotificationGroupsResultSetHandler extends NotificationGroup implem
         List<NotificationGroup> notificationGroups = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
+           Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
+
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "ID";
-                    Integer id = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) id = null;
-                    
-                    columnName = "NAME";
-                    String name = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) name = null;
-
-                    columnName = "UPPERCASE_NAME";
-                    String uppercaseName = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) uppercaseName = null;
-
-                    columnName = "EMAIL_ADDRESSES";
-                    String emailAddresses = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) emailAddresses = null;
+                    Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
+                    String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
+                    String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
+                    String emailAddresses = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "email_addresses", String.class);
 
                     NotificationGroup notificationGroup = new NotificationGroup(id, name, uppercaseName, emailAddresses);
                     notificationGroups.add(notificationGroup);

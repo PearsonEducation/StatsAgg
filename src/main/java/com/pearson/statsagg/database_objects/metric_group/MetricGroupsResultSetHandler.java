@@ -23,26 +23,15 @@ public class MetricGroupsResultSetHandler extends MetricGroup implements Databas
         List<MetricGroup> metricGroups = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
+            Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
+
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "ID";
-                    Integer id = (columnNames.contains(columnName)) ? resultSet.getInt(columnName) : null;
-                    if (resultSet.wasNull()) id = null;
-
-                    columnName = "NAME";
-                    String name = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) name = null;
-
-                    columnName = "UPPERCASE_NAME";
-                    String uppercaseName = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) uppercaseName = null;
-
-                    columnName = "DESCRIPTION";
-                    String description = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) description = null;
-
+                    Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
+                    String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
+                    String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
+                    String description = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description", String.class);
+                    
                     MetricGroup metricGroup = new MetricGroup(id, name, uppercaseName, description);
                     metricGroups.add(metricGroup);
                 }

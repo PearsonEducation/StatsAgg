@@ -2,11 +2,13 @@ package com.pearson.statsagg.database_objects.general_purpose;
 
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import com.pearson.statsagg.utilities.db_utils.PreparedStatementAndResultSet;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.slf4j.Logger;
@@ -25,21 +27,16 @@ public class GeneralPurposeDao {
     */
     public static Map<Integer,Set<String>> getMetricGroupTagsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
+        PreparedStatementAndResultSet preparedStatementAndResultSet = null;
+        
         try {
-            PreparedStatement preparedStatement = DatabaseUtils.createPreparedStatement(connection, GeneralPurposeSql.Select_MetricGroupTagsAssociatedWithAlert);
-            ResultSet resultSet = preparedStatement.executeQuery();
-            boolean isResultSetValid = DatabaseUtils.isResultSetValid(resultSet);
-            if (!isResultSetValid) return null;
-
+            preparedStatementAndResultSet = DatabaseUtils.query_PreparedStatement(connection, GeneralPurposeSql.Select_MetricGroupTagsAssociatedWithAlert);
             Map<Integer,Set<String>> metricGroupTagsAssociatedWithAlerts = new HashMap<>();
 
-            while (resultSet.next()) {
-                Integer alertId = resultSet.getInt("A_ID");
-                if (resultSet.wasNull()) alertId = null;
-                
-                String tag = resultSet.getString("TAG");
-                if (resultSet.wasNull()) tag = null;
-                
+            while (preparedStatementAndResultSet.getResultSet().next()) {
+                Integer alertId = DatabaseUtils.getResultSetValue(preparedStatementAndResultSet.getResultSet(), "a_id", Integer.class);
+                String tag = DatabaseUtils.getResultSetValue(preparedStatementAndResultSet.getResultSet(), "tag", String.class);
+
                 if ((alertId != null) && (tag != null) && !tag.isEmpty()) {
                     if (!metricGroupTagsAssociatedWithAlerts.containsKey(alertId)) {
                         Set<String> metricGroupTags = new HashSet<>();
@@ -60,7 +57,8 @@ public class GeneralPurposeDao {
             return null;
         }
         finally {
-            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection, preparedStatementAndResultSet);
+            else DatabaseUtils.cleanup(preparedStatementAndResultSet);
         } 
         
     }

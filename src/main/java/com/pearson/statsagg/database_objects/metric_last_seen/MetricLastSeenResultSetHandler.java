@@ -24,22 +24,14 @@ public class MetricLastSeenResultSetHandler extends MetricLastSeen implements Da
         List<MetricLastSeen> metricLastSeens = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumns(resultSet);
-            
-            while ((columnNames != null) && resultSet.next()) {
+           Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
+
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "METRIC_KEY_SHA1";
-                    String metricKeySha1 = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) metricKeySha1 = null;
+                    String metricKeySha1 = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_key_sha1", String.class);
+                    String metricKey = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_key", String.class);
+                    Timestamp lastModified = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "last_modified", Timestamp.class);
 
-                    columnName = "METRIC_KEY";
-                    String metricKey = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) metricKey = null;
-
-                    columnName = "LAST_MODIFIED";
-                    Timestamp lastModified = (columnNames.contains(columnName)) ? resultSet.getTimestamp(columnName) : null;
-                    if (resultSet.wasNull()) lastModified = null;
-                    
                     MetricLastSeen metricLastSeen = new MetricLastSeen(metricKeySha1, metricKey, lastModified);
                     metricLastSeens.add(metricLastSeen);
                 }
