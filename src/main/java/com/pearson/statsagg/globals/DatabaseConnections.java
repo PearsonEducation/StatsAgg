@@ -1,5 +1,6 @@
 package com.pearson.statsagg.globals;
 
+import com.pearson.statsagg.configuration.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.zaxxer.hikari.HikariConfig;

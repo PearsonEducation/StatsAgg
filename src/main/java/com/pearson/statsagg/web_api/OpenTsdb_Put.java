@@ -1,7 +1,7 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.common.io.CharStreams;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.utilities.compress_utils.Compression;

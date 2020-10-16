@@ -140,7 +140,7 @@ public class Suspension_AlertAssociations extends HttpServlet {
 
         Map<Integer, Set<Integer>> alertIdAssociationsByBySuspensionId;
         synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
-            alertIdAssociationsByBySuspensionId = com.pearson.statsagg.alerts.Suspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
+            alertIdAssociationsByBySuspensionId = com.pearson.statsagg.threads.alert_related.Suspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
         }
         
         if (alertIdAssociationsByBySuspensionId == null) {

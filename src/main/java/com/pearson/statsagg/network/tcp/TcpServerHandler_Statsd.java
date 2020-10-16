@@ -4,7 +4,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.util.ReferenceCountUtil;
 import java.util.List;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import org.slf4j.Logger;

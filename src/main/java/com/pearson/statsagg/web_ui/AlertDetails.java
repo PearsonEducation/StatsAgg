@@ -229,7 +229,7 @@ public class AlertDetails extends HttpServlet {
                 if (isAlertSuspended && (GlobalVariables.suspensionLevelsByAlertId != null) && (GlobalVariables.suspensionLevelsByAlertId.get(alert.getId()) != null)) {
                     Integer suspensionLevel = GlobalVariables.suspensionLevelsByAlertId.get(alert.getId());
 
-                    if (com.pearson.statsagg.alerts.Suspensions.LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
+                    if (com.pearson.statsagg.threads.alert_related.Suspensions.LEVEL_SUSPEND_ALERT_NOTIFICATION_ONLY == suspensionLevel) outputString.append("Yes <br>");
                     else outputString.append("No <br>");
                 }
                 else outputString.append("N/A <br>");

@@ -1,7 +1,7 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.common.io.CharStreams;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v2;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;

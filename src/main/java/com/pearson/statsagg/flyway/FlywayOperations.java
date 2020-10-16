@@ -1,6 +1,6 @@
 package com.pearson.statsagg.flyway;
 
-import com.pearson.statsagg.globals.DatabaseConfiguration;
+import com.pearson.statsagg.configuration.DatabaseConfiguration;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.file_utils.FileIo;

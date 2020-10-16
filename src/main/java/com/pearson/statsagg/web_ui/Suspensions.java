@@ -163,7 +163,7 @@ public class Suspensions extends HttpServlet {
 
             if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
                 isSuccess = true;
-                com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+                com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
             }
         }
@@ -203,7 +203,7 @@ public class Suspensions extends HttpServlet {
                 SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
                 suspensionsLogic.alterRecordInDatabase(clonedSuspension);
 
-                com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+                com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
             }
         }
@@ -227,7 +227,7 @@ public class Suspensions extends HttpServlet {
             SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
             returnString = suspensionsLogic.deleteRecordInDatabase(suspension.getName());
 
-            com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+            com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
             suspensions.runSuspensionRoutine();
             
             return returnString;
@@ -343,7 +343,7 @@ public class Suspensions extends HttpServlet {
             
             Map<Integer, Set<Integer>> alertIdAssociationsBySuspensionId;
             synchronized(GlobalVariables.suspensionIdAssociationsByAlertId) {
-                alertIdAssociationsBySuspensionId = com.pearson.statsagg.alerts.Suspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
+                alertIdAssociationsBySuspensionId = com.pearson.statsagg.threads.alert_related.Suspensions.getAlertIdAssociationsBySuspensionId(GlobalVariables.suspensionIdAssociationsByAlertId);
             }
             
             Set<Integer> alertIdAssociations = alertIdAssociationsBySuspensionId.get(suspension.getId());

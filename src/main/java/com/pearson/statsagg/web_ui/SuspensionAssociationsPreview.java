@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
@@ -199,13 +199,13 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             boolean outputAlert = false;
             
             if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
             }
             else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
             }
             else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
             }
 
             if (outputAlert) {

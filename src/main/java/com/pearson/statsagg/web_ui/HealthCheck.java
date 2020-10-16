@@ -1,7 +1,7 @@
 package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.globals.DatabaseConnections;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
+import com.pearson.statsagg.configuration.DatabaseConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;

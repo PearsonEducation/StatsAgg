@@ -4,7 +4,7 @@ import com.pearson.statsagg.utilities.web_utils.HttpLink;
 import java.net.URLEncoder;
 import java.util.List;
 import java.util.Set;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
