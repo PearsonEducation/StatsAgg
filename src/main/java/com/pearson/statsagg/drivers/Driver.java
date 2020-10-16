@@ -317,7 +317,8 @@ public class Driver {
         boolean isDatabaseConfigSuccess;
         
         String customDbConfLocation = System.getProperty("saDbConfLocation");
-        boolean doesDevDbConfExist = FileIo.doesFileExist(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.ini");
+        boolean doesDevDbIniConfExist = FileIo.doesFileExist(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.ini");
+        boolean doesDevDbPropertiesConfExist = FileIo.doesFileExist(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.properties");
         boolean doesDbIniConfExist = FileIo.doesFileExist(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database.ini");
         boolean doesDbPropertiesConfExist = FileIo.doesFileExist(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database.properties");
         
@@ -326,7 +327,8 @@ public class Driver {
             GlobalVariables.isStatsaggUsingInMemoryDatabase.set(true);
         }
         else if ((customDbConfLocation != null) && !customDbConfLocation.isBlank()) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(customDbConfLocation);
-        else if (doesDevDbConfExist) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.ini");
+        else if (doesDevDbIniConfExist) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.ini");
+        else if (doesDevDbPropertiesConfExist) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database-dev.properties");
         else if (doesDbIniConfExist) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database.ini");
         else if (doesDbPropertiesConfExist) isDatabaseConfigSuccess = DatabaseConfiguration.initialize(System.getProperty("user.dir") + File.separator + "conf" + File.separator + "database.properties");
         else {
