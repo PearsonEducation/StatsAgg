@@ -1,6 +1,7 @@
 package com.pearson.statsagg.globals;
 
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import java.sql.Connection;
@@ -75,19 +76,7 @@ public class DatabaseConnections {
             return null;
         }
         
-        Connection connection;
-        
-        try {           
-            connection = connectionPool_.getConnection();
-            return connection;
-        }
-        catch (Exception e) {
-            connection = null;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
-            
-            return connection;
-        }
-        
+        return DatabaseUtils.getConnection(connectionPool_);
     }
     
     public static DataSource getDatasource() {
