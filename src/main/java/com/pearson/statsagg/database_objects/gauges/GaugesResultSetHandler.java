@@ -25,26 +25,15 @@ public class GaugesResultSetHandler extends Gauge implements DatabaseResultSetHa
         List<Gauge> gauges = new ArrayList<>();
         
         try {
-            Set<String> columnNames = DatabaseUtils.getResultSetColumnNames(resultSet);
+            Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
             
-            while ((columnNames != null) && resultSet.next()) {
+            while ((lowercaseColumnNames != null) && resultSet.next()) {
                 try {
-                    String columnName = "BUCKET_SHA1";
-                    String bucketSha1 = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) bucketSha1 = null;
+                    String bucketSha1 = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "bucket_sha1", String.class);
+                    String bucket = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "bucket", String.class);
+                    BigDecimal metricValue = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_value", BigDecimal.class);
+                    Timestamp lastModified = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "last_modified", Timestamp.class);
 
-                    columnName = "BUCKET";
-                    String bucket = (columnNames.contains(columnName)) ? resultSet.getString(columnName) : null;
-                    if (resultSet.wasNull()) bucket = null;
-
-                    columnName = "METRIC_VALUE";
-                    BigDecimal metricValue = (columnNames.contains(columnName)) ? resultSet.getBigDecimal(columnName) : null;
-                    if (resultSet.wasNull()) metricValue = null;
-
-                    columnName = "LAST_MODIFIED";
-                    Timestamp lastModified = (columnNames.contains(columnName)) ? resultSet.getTimestamp(columnName) : null;
-                    if (resultSet.wasNull()) lastModified = null;
-                    
                     Gauge gauge = new Gauge(bucketSha1, bucket, metricValue, lastModified);
                     gauges.add(gauge);
                 }
