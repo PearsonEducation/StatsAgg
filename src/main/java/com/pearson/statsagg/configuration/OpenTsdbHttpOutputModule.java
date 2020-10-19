@@ -1,62 +1,65 @@
-package com.pearson.statsagg.metric_formats.graphite;
+package com.pearson.statsagg.configuration;
 
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import java.net.URL;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class GraphiteOutputModule {
+public class OpenTsdbHttpOutputModule {
     
-    private static final Logger logger = LoggerFactory.getLogger(GraphiteOutputModule.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(OpenTsdbHttpOutputModule.class.getName());
     
     private final boolean isOutputEnabled_;
-    private final String host_;
-    private final int port_;
+    private final String urlString_;
     private final int numSendRetryAttempts_;
     private final int maxMetricsPerMessage_;
     private final boolean sanitizeMetrics_;
-    private final boolean substituteCharacters_;
     private final String uniqueId_;
     
-    public GraphiteOutputModule(boolean isOutputEnabled, String host, int port, int numSendRetryAttempts, 
-            int maxMetricsPerMessage, boolean sanitizeMetrics, boolean substituteCharacters, String uniqueId) {
+    private URL url_;
+
+    public OpenTsdbHttpOutputModule(boolean isOutputEnabled, String url, int numSendRetryAttempts, int maxMetricsPerMessage, boolean sanitizeMetrics, String uniqueId) {
         this.isOutputEnabled_ = isOutputEnabled;
-        this.host_ = host;
-        this.port_ = port;
+        this.urlString_ = url;
         this.numSendRetryAttempts_ = numSendRetryAttempts;
         this.maxMetricsPerMessage_ = maxMetricsPerMessage;
         this.sanitizeMetrics_ = sanitizeMetrics;
-        this.substituteCharacters_ = substituteCharacters;
         this.uniqueId_ = uniqueId;
+        
+        try {
+            url_ = new URL(url);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            url_ = null;
+        }
     }
-    
+
     public boolean isOutputEnabled() {
         return isOutputEnabled_;
     }
-
-    public String getHost() {
-        return host_;
+    
+    public URL getUrl() {
+        return url_;
     }
-
-    public int getPort() {
-        return port_;
+ 
+    public String getUrlString() {
+        return urlString_;
     }
 
     public int getNumSendRetryAttempts() {
         return numSendRetryAttempts_;
     }
-    
+
     public int getMaxMetricsPerMessage() {
         return maxMetricsPerMessage_;
     }
-    
+
     public boolean isSanitizeMetrics() {
         return sanitizeMetrics_;
-    }
-
-    public boolean isSubstituteCharacters() {
-        return substituteCharacters_;
     }
     
     public String getUniqueId() {

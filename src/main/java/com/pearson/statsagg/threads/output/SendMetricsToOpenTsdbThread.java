@@ -1,4 +1,4 @@
-package com.pearson.statsagg.metric_formats.opentsdb;
+package com.pearson.statsagg.threads.output;
 
 import java.util.List;
 import com.pearson.statsagg.utilities.network_utils.TcpClient;
@@ -8,7 +8,8 @@ import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.google.common.collect.Lists;
-import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetricFormat;
 import com.pearson.statsagg.utilities.web_utils.HttpRequest;
 
 /**

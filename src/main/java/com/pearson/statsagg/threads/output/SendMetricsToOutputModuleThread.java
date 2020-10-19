@@ -1,4 +1,4 @@
-package com.pearson.statsagg.metric_formats;
+package com.pearson.statsagg.threads.output;
 
 /**
  * @author Jeffrey Schmidt

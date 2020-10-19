@@ -1,6 +1,6 @@
-package com.pearson.statsagg.metric_formats.graphite;
+package com.pearson.statsagg.threads.output;
 
-import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import java.util.List;
 import com.pearson.statsagg.utilities.network_utils.TcpClient;
 import org.slf4j.Logger;

@@ -1,4 +1,4 @@
-package com.pearson.statsagg.metric_formats.opentsdb;
+package com.pearson.statsagg.configuration;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

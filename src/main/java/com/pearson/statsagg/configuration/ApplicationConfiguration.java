@@ -1,10 +1,6 @@
 package com.pearson.statsagg.configuration;
 
 import com.opencsv.CSVReader;
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
-import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
 import com.pearson.statsagg.utilities.config_utils.HierarchicalIniConfigurationWrapper;
 import com.pearson.statsagg.utilities.web_utils.HttpLink;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;

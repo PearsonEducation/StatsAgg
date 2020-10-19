@@ -1,14 +1,14 @@
 package com.pearson.statsagg.threads.thread_managers;
 
+import com.pearson.statsagg.threads.output.SendMetricsToOutputModuleThread;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
-import com.pearson.statsagg.metric_formats.graphite.GraphiteOutputModule;
-import com.pearson.statsagg.metric_formats.influxdb.InfluxdbV1HttpOutputModule;
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbHttpOutputModule;
-import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbTelnetOutputModule;
-import com.pearson.statsagg.metric_formats.graphite.SendMetricsToGraphiteThread;
-import com.pearson.statsagg.metric_formats.influxdb.SendMetricsToInfluxdbV1Thread;
-import com.pearson.statsagg.metric_formats.opentsdb.SendMetricsToOpenTsdbThread;
-import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
+import com.pearson.statsagg.configuration.GraphiteOutputModule;
+import com.pearson.statsagg.configuration.InfluxdbV1HttpOutputModule;
+import com.pearson.statsagg.configuration.OpenTsdbHttpOutputModule;
+import com.pearson.statsagg.configuration.OpenTsdbTelnetOutputModule;
+import com.pearson.statsagg.threads.output.SendMetricsToGraphiteThread;
+import com.pearson.statsagg.threads.output.SendMetricsToInfluxdbV1Thread;
+import com.pearson.statsagg.threads.output.SendMetricsToOpenTsdbThread;
 import com.pearson.statsagg.metric_formats.graphite.GraphiteMetricFormat;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetricFormat_v1;
 import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
@@ -100,7 +100,7 @@ public class SendMetricsToOutputModule_ThreadPoolManager {
             }
             
             synchronized(outputModuleThreadTrackerLock_) {
-                outputModuleThreadTracker.putIfAbsent(outputModuleId, Collections.synchronizedList(new ArrayList<Long>()));
+                outputModuleThreadTracker.putIfAbsent(outputModuleId, Collections.synchronizedList(new ArrayList<>()));
                 List<Long> threadIdsAssociatedWithOutputModule = outputModuleThreadTracker.get(outputModuleId);
                 
                 if (threadIdsAssociatedWithOutputModule.size() >= ApplicationConfiguration.getOutputModuleMaxConcurrentThreadsForSingleModule()) {

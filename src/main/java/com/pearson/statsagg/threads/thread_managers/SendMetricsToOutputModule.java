@@ -1,6 +1,6 @@
 package com.pearson.statsagg.threads.thread_managers;
 
-import com.pearson.statsagg.metric_formats.SendMetricsToOutputModuleThread;
+import com.pearson.statsagg.threads.output.SendMetricsToOutputModuleThread;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
