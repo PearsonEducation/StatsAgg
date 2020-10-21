@@ -1,4 +1,4 @@
-package com.pearson.statsagg.network.udp;
+package com.pearson.statsagg.servers.udp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

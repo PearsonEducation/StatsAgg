@@ -1,6 +1,6 @@
-package com.pearson.statsagg.network.http;
+package com.pearson.statsagg.servers.http;
 
-import com.pearson.statsagg.network.JettyServer;
+import com.pearson.statsagg.servers.JettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.web_api.AlertCreate;
 import com.pearson.statsagg.web_api.AlertEnable;

@@ -1,4 +1,4 @@
-package com.pearson.statsagg.network.tcp;
+package com.pearson.statsagg.servers.tcp;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -10,7 +10,7 @@ import io.netty.handler.codec.LineBasedFrameDecoder;
 import io.netty.handler.codec.string.StringDecoder;
 import io.netty.handler.codec.string.StringEncoder;
 import io.netty.util.CharsetUtil;
-import com.pearson.statsagg.network.NettyServer;
+import com.pearson.statsagg.servers.NettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.core_utils.Threads;
 import io.netty.util.concurrent.Future;

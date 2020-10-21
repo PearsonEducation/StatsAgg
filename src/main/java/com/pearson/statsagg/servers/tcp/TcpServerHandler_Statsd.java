@@ -1,4 +1,4 @@
-package com.pearson.statsagg.network.tcp;
+package com.pearson.statsagg.servers.tcp;
 
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;

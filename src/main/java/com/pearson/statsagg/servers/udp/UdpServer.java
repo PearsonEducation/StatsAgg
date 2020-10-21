@@ -1,11 +1,11 @@
-package com.pearson.statsagg.network.udp;
+package com.pearson.statsagg.servers.udp;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.nio.NioDatagramChannel;
-import com.pearson.statsagg.network.NettyServer;
+import com.pearson.statsagg.servers.NettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.core_utils.Threads;
 import io.netty.util.concurrent.Future;

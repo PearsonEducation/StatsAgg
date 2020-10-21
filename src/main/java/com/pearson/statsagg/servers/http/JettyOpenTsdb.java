@@ -1,8 +1,8 @@
-package com.pearson.statsagg.network.http;
+package com.pearson.statsagg.servers.http;
 
-import com.pearson.statsagg.network.JettyServer;
+import com.pearson.statsagg.servers.JettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import com.pearson.statsagg.web_api.InfluxdbV1_Write;
+import com.pearson.statsagg.web_api.OpenTsdb_Put;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 import org.slf4j.Logger;
@@ -11,15 +11,15 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class JettyInfluxdb implements JettyServer {
+public class JettyOpenTsdb implements JettyServer {
 
-    private static final Logger logger = LoggerFactory.getLogger(JettyInfluxdb.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(JettyOpenTsdb.class.getName());
 
     private final int port_;
     private final int stopServerTimeout_;
     private Server jettyServer_ = null;
     
-    public JettyInfluxdb(int port, int stopServerTimeout) {
+    public JettyOpenTsdb(int port, int stopServerTimeout) {
         port_ = port;
         stopServerTimeout_ = stopServerTimeout;
     }
@@ -30,7 +30,7 @@ public class JettyInfluxdb implements JettyServer {
         jettyServer_.setStopTimeout(stopServerTimeout_);
         ServletHandler handler = new ServletHandler();
         jettyServer_.setHandler(handler);
-        handler.addServletWithMapping(InfluxdbV1_Write.class, "/db/*");
+        handler.addServletWithMapping(OpenTsdb_Put.class, "/api/put");
         
         try {
             jettyServer_.start();

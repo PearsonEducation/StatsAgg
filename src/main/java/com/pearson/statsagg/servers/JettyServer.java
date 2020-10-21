@@ -1,4 +1,4 @@
-package com.pearson.statsagg.network;
+package com.pearson.statsagg.servers;
 
 /**
  * @author Jeffrey Schmidt
