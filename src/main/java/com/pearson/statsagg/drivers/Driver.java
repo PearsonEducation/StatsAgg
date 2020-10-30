@@ -19,7 +19,7 @@ import com.pearson.statsagg.threads.invokers.StatsdInvokerThread;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.gauges.Gauge;
 import com.pearson.statsagg.database_objects.gauges.GaugesDao;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeen;
 import com.pearson.statsagg.database_objects.metric_last_seen.MetricLastSeenDao;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;

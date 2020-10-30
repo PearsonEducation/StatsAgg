@@ -2,10 +2,10 @@ package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
+import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;

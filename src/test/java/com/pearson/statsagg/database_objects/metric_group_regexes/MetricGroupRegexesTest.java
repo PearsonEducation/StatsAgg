@@ -1,4 +1,4 @@
-package com.pearson.statsagg.database_objects.metric_group_regex;
+package com.pearson.statsagg.database_objects.metric_group_regexes;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -10,9 +10,9 @@ import static org.junit.Assert.*;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupRegexTest {
+public class MetricGroupRegexesTest {
     
-    public MetricGroupRegexTest() {
+    public MetricGroupRegexesTest() {
     }
     
     @BeforeClass
@@ -32,7 +32,7 @@ public class MetricGroupRegexTest {
     }
 
     /**
-     * Test of isEqual method, of class MetricGroupRegex.
+     * Test of isEqual method, of class MetricGroupRegexes.
      */
     @Test
     public void testIsEqual() {
@@ -61,7 +61,7 @@ public class MetricGroupRegexTest {
     }
 
     /**
-     * Test of copy method, of class MetricGroupRegex.
+     * Test of copy method, of class MetricGroupRegexes.
      */
     @Test
     public void testCopy() {

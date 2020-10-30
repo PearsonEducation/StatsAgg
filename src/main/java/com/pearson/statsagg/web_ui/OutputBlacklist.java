@@ -2,8 +2,8 @@ package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.threads.alert_related.MetricAssociation;
 import com.pearson.statsagg.globals.DatabaseConnections;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;

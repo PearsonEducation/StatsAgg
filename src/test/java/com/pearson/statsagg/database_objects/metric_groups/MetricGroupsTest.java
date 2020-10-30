@@ -1,4 +1,4 @@
-package com.pearson.statsagg.database_objects.metric_group;
+package com.pearson.statsagg.database_objects.metric_groups;
 
 import org.junit.After;
 import org.junit.AfterClass;
@@ -10,9 +10,9 @@ import static org.junit.Assert.*;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupTest {
+public class MetricGroupsTest {
     
-    public MetricGroupTest() {
+    public MetricGroupsTest() {
     }
     
     @BeforeClass
