@@ -14,11 +14,11 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar(prashant4nov)
  * @author Jeffrey Schmidt
  */
-public class AlertCreate extends HttpServlet {
+public class AlertTemplateCreate extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(AlertCreate.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertTemplateCreate.class.getName());
     
-    public static final String PAGE_NAME = "API_Alert_Create";
+    public static final String PAGE_NAME = "API_Alert_Template_Create";
 
     /**
      * Returns a short description of the servlet.
@@ -67,15 +67,15 @@ public class AlertCreate extends HttpServlet {
     }
     
     /**
-     * Returns a string with success message if the alert was successfully created,
-     * or an error message if the request fails to create the alert.
+     * Returns a string with success message if the alert template was successfully created,
+     * or an error message if the request fails to create the alert template.
      * 
      * @param request servlet request
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
         JsonObject alertJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = CreateAlert.parseAndAlterAlert(alertJsonObject, false);
+        String result = CreateAlert.parseAndAlterAlert(alertJsonObject, true);
         return Helper.createSimpleJsonResponse(result);
     }
     

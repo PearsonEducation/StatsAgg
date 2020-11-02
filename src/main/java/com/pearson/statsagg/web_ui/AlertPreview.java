@@ -85,7 +85,7 @@ public class AlertPreview extends HttpServlet {
         
         PrintWriter out = null;
     
-        Alert alert = CreateAlert.getAlertFromAlertParameters(request);
+        Alert alert = CreateAlert.getAlertFromAlertParameters(request, false);
         String alertBody = getExampleEmailAlert(request.getParameter("WarningLevel"), alert, request.getParameter("MetricGroupName"));        
         
         try {  

@@ -78,7 +78,7 @@ public class AlertDetails extends HttpServlet {
         }
         
         try {
-            String json = getAlertDetails(request);
+            String json = getAlertDetails(request, false);
             out = response.getWriter();
             out.println(json);
         }
@@ -97,9 +97,10 @@ public class AlertDetails extends HttpServlet {
      * Returns a json string containing the details of the requested alert.
      * 
      * @param request servlet request
+     * @param isAlertTemplate
      * @return details of the requested alert
      */
-    protected String getAlertDetails(HttpServletRequest request) {
+    protected static String getAlertDetails(HttpServletRequest request, boolean isAlertTemplate) {
         
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
@@ -132,6 +133,9 @@ public class AlertDetails extends HttpServlet {
                 if (alertId != null) alert = AlertsDao.getAlert(connection, false, alertId);
                 else if (alertName != null) alert = AlertsDao.getAlert(connection, false, alertName);
 
+                // don't show alert template unless viewed through alert template page
+                if ((alert != null) && isAlertTemplate && (alert.isTemplate() != null) && !alert.isTemplate()) alert = null;
+                
                 if ((alert != null) && (alert.getMetricGroupId() != null)) {
                     metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
                     metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, alert.getMetricGroupId());
@@ -149,7 +153,7 @@ public class AlertDetails extends HttpServlet {
                 DatabaseUtils.cleanup(connection);
             }
         
-            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, isAlertTemplate, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {

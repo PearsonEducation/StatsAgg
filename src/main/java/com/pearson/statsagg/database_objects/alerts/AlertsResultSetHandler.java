@@ -31,6 +31,8 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                 try {
                     Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
                     String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
+                    Boolean isTemplate = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_template", Boolean.class);
+                    Boolean isTemplateDerived = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_template_derived", Boolean.class);
                     String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
                     String description = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description", String.class);
                     Integer metricGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_id", Integer.class);
@@ -75,7 +77,7 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                     String dangerActiveAlertsSet = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_active_alerts_set", String.class);
                     Timestamp dangerFirstActiveAt = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_first_active_at", Timestamp.class);
 
-                    Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled, 
+                    Alert alert = new Alert(id, name, uppercaseName, isTemplate, isTemplateDerived, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled, 
                             alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit, cautionNotificationGroupId, 
                             cautionPositiveNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
                             cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, 

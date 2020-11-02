@@ -130,7 +130,7 @@ public class CreateAlert extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterAlert(request);
+            String result = parseAndAlterAlert(request, false);
 
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
@@ -154,7 +154,7 @@ public class CreateAlert extends HttpServlet {
         }
     }
 
-    private String buildCreateAlertHtml(Alert alert) {
+    protected static String buildCreateAlertHtml(Alert alert) {
         
         StringBuilder htmlBody = new StringBuilder();
         
@@ -927,7 +927,7 @@ public class CreateAlert extends HttpServlet {
         return htmlBody.toString();
     }
 
-    public String parseAndAlterAlert(Object request) {
+    public static String parseAndAlterAlert(Object request, boolean isAlertTemplate) {
         
         if (request == null) {
             return null;
@@ -935,7 +935,7 @@ public class CreateAlert extends HttpServlet {
         
         String returnString;
         
-        Alert alert = getAlertFromAlertParameters(request);
+        Alert alert = getAlertFromAlertParameters(request, isAlertTemplate);
         String oldName = Common.getSingleParameterAsString(request, "Old_Name");
         if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
@@ -962,14 +962,15 @@ public class CreateAlert extends HttpServlet {
             }
         }
         else {
-            returnString = "Failed to add alert. Reason=\"Field validation failed.\"";
+            if (isAlertTemplate) returnString = "Failed to add alert template. Reason=\"Field validation failed.\"";
+            else returnString = "Failed to add alert. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         
         return returnString;
     }
     
-    public static Alert getAlertFromAlertParameters(Object request) {
+    public static Alert getAlertFromAlertParameters(Object request, boolean isAlertTemplate) {
         
         if (request == null) {
             return null;
@@ -988,6 +989,8 @@ public class CreateAlert extends HttpServlet {
             alert.setName(trimmedName);
             alert.setUppercaseName(trimmedName.toUpperCase());
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
+            
+            alert.setIsTemplate(isAlertTemplate);
             
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");

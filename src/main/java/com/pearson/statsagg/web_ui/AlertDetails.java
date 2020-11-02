@@ -84,7 +84,7 @@ public class AlertDetails extends HttpServlet {
     
         String alertName = request.getParameter("Name");
         boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
-        String alertDetails = getAlertDetailsString(alertName);
+        String alertDetails = getAlertDetailsString(alertName, false);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -123,7 +123,7 @@ public class AlertDetails extends HttpServlet {
         
     }
 
-    private String getAlertDetailsString(String alertName) {
+    protected static String getAlertDetailsString(String alertName, boolean isAlertTemplate) {
         
         if (alertName == null) {
             return "<div class=\"col-md-4\"><b>No alert specified</b></div>";
@@ -155,6 +155,12 @@ public class AlertDetails extends HttpServlet {
             
             outputString.append("<b>ID</b> = ").append(alert.getId()).append("<br>");
 
+            if (isAlertTemplate) {
+                String isAlertTemplateString = "No";
+                if ((alert.isTemplate() != null) && alert.isTemplate()) isAlertTemplateString = "Yes";
+                outputString.append("<b>Is alert template?</b> = ").append(isAlertTemplateString).append("<br>");
+            }
+            
             outputString.append("<b>Description</b> = ");
             if (alert.getDescription() != null) {
                 String encodedAlertDescription = StatsAggHtmlFramework.htmlEncode(alert.getDescription());

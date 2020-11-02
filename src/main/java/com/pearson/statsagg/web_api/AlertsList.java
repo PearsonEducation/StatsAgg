@@ -67,7 +67,7 @@ public class AlertsList extends HttpServlet {
         }
         
         try {    
-            String json = getAlertsList(request);       
+            String json = getAlertsList(request, false);       
             out = response.getWriter();
             out.println(json);
         }
@@ -85,9 +85,10 @@ public class AlertsList extends HttpServlet {
      * Returns a json object containing a list of alerts.
      * 
      * @param request servlet request
+     * @param showAlertTemplates
      * @return json string of alerts
      */ 
-    protected String getAlertsList(HttpServletRequest request) {
+    protected static String getAlertsList(HttpServletRequest request, boolean showAlertTemplates) {
         
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
@@ -101,9 +102,12 @@ public class AlertsList extends HttpServlet {
             
             List<JsonObject> alertsJsonObjects = new ArrayList<>();
             for (Alert alert : alerts) {
+                if (alert == null) continue;
+                if (!showAlertTemplates && (alert.isTemplate() != null) && alert.isTemplate()) continue;
+
                 MetricGroup metricGroup = null;
                 List<MetricGroupTag> metricGroupTags = null;
-                if ((alert != null) && (alert.getMetricGroupId() != null)) {
+                if (alert.getMetricGroupId() != null) {
                     metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
                     metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, alert.getMetricGroupId());
                 }
@@ -112,12 +116,12 @@ public class AlertsList extends HttpServlet {
                 NotificationGroup cautionPositiveNotificationGroup = null;
                 NotificationGroup dangerNotificationGroup = null;
                 NotificationGroup dangerPositiveNotificationGroup = null;
-                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionNotificationGroupId());
-                if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionPositiveNotificationGroupId());
-                if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
-                if ((alert != null) && (alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
+                if ((alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionNotificationGroupId());
+                if ((alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionPositiveNotificationGroupId());
+                if ((alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
+                if ((alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
                           
-                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, false, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
                 if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
             

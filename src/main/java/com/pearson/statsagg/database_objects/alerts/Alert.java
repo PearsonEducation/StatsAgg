@@ -52,6 +52,8 @@ public class Alert implements DatabaseObject<Alert> {
     @SerializedName("id") private Integer id_;
     @SerializedName("name") private String name_ = null;
     private transient String uppercaseName_ = null;
+    @SerializedName("is_template") private Boolean isTemplate_ = null;
+    @SerializedName("is_template_derived") private Boolean isTemplateDerived_ = null;
     @SerializedName("description") private String description_ = null;
     @SerializedName("metric_group_id") private Integer metricGroupId_ = null;
     @SerializedName("enabled") private Boolean isEnabled_ = null;
@@ -102,9 +104,9 @@ public class Alert implements DatabaseObject<Alert> {
         this.id_ = -1;
     }
     
-    public Alert(Integer id, String name, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
-            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, Integer resendAlertEveryTimeUnit, 
-            Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
+    public Alert(Integer id, String name, Boolean isTemplate, Boolean isTemplateDerived, String description, Integer metricGroupId, Boolean isEnabled, 
+            Boolean isCautionEnabled, Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, 
+            Integer resendAlertEveryTimeUnit, Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
             Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAlertAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
@@ -113,9 +115,9 @@ public class Alert implements DatabaseObject<Alert> {
             Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
             Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAlertAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         
-        this(id, name, ((name == null) ? null : name.toUpperCase()), description, metricGroupId, isEnabled, isCautionEnabled, 
-             isDangerEnabled, alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit,
-             cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination,  
+        this(id, name, ((name == null) ? null : name.toUpperCase()), isTemplate, isTemplateDerived, description, metricGroupId, isEnabled, 
+             isCautionEnabled, isDangerEnabled, alertType, alertOnPositive, allowResendAlert, resendAlertEvery, 
+             resendAlertEveryTimeUnit, cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination,  
              cautionCombinationCount, cautionThreshold, cautionWindowDuration, cautionWindowDurationTimeUnit, 
              cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, isCautionAlertActive,  
              cautionAlertLastSentTimestamp, isCautionAlertAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt, 
@@ -125,9 +127,9 @@ public class Alert implements DatabaseObject<Alert> {
              dangerAlertLastSentTimestamp, isDangerAlertAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
     }
 
-    public Alert(Integer id, String name, String uppercaseName, String description, Integer metricGroupId, Boolean isEnabled, Boolean isCautionEnabled, 
-            Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, Integer resendAlertEveryTimeUnit, 
-            Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
+    public Alert(Integer id, String name, String uppercaseName, Boolean isTemplate, Boolean isTemplateDerived, String description, Integer metricGroupId, Boolean isEnabled,
+            Boolean isCautionEnabled, Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, 
+            Integer resendAlertEveryTimeUnit, Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
             Long cautionStopTrackingAfter, Integer cautionStopTrackingAfterTimeUnit, Integer cautionMinimumSampleCount, Boolean isCautionAlertActive, 
             Timestamp cautionAlertLastSentTimestamp, Boolean isCautionAlertAcknowledged, String cautionActiveAlertsSet, Timestamp cautionFirstActiveAt, 
@@ -138,6 +140,8 @@ public class Alert implements DatabaseObject<Alert> {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
+        this.isTemplate_ = isTemplate;
+        this.isTemplateDerived_ = isTemplateDerived;
         this.description_ = description;
         this.metricGroupId_ = metricGroupId;
         this.isEnabled_ = isEnabled;
@@ -198,6 +202,8 @@ public class Alert implements DatabaseObject<Alert> {
         alertCopy.setId(alert.getId());
         alertCopy.setName(alert.getName());
         alertCopy.setUppercaseName(alert.getUppercaseName());
+        alertCopy.setIsTemplate(alert.isTemplate());
+        alertCopy.setIsTemplateDerived(alert.isTemplateDerived());
         alertCopy.setDescription(alert.getDescription());
         alertCopy.setMetricGroupId(alert.getMetricGroupId());
         alertCopy.setIsEnabled(alert.isEnabled());
@@ -263,6 +269,8 @@ public class Alert implements DatabaseObject<Alert> {
                 .append(id_, alert.getId())
                 .append(name_, alert.getName())
                 .append(uppercaseName_, alert.getUppercaseName())
+                .append(isTemplate_, alert.isTemplate())
+                .append(isTemplateDerived_, alert.isTemplateDerived())
                 .append(description_, alert.getDescription())
                 .append(metricGroupId_, alert.getMetricGroupId())
                 .append(isEnabled_, alert.isEnabled())
@@ -859,10 +867,10 @@ public class Alert implements DatabaseObject<Alert> {
     }
     
     public static JsonObject getJsonObject_ApiFriendly(Alert alert) {
-        return getJsonObject_ApiFriendly(alert, null, null, null, null, null, null);
+        return getJsonObject_ApiFriendly(alert, null, null, null, null, null, null, null);
     }
     
-    public static JsonObject getJsonObject_ApiFriendly(Alert alert, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert, Boolean showIsAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -888,6 +896,10 @@ public class Alert implements DatabaseObject<Alert> {
             }
             else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert_Local.getMetricGroupId() != null)) {
                 logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
+            }
+            
+            if ((showIsAlertTemplate != null) && !showIsAlertTemplate) {
+                jsonObject.remove("is_template");
             }
             
             JsonArray metricGroupTags_JsonArray = new JsonArray();
@@ -1082,10 +1094,10 @@ public class Alert implements DatabaseObject<Alert> {
     }
     
     public static String getJsonString_ApiFriendly(Alert alert) {
-        return getJsonString_ApiFriendly(alert, null, null, null, null, null, null);
+        return getJsonString_ApiFriendly(alert, null, null, null, null, null, null, null);
     }
     
-    public static String getJsonString_ApiFriendly(Alert alert, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
+    public static String getJsonString_ApiFriendly(Alert alert, Boolean isAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -1094,7 +1106,7 @@ public class Alert implements DatabaseObject<Alert> {
         }
         
         try {
-            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, isAlertTemplate, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             if (jsonObject == null) return null;
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
@@ -1129,6 +1141,22 @@ public class Alert implements DatabaseObject<Alert> {
 
     public void setUppercaseName(String uppercaseName) {
         this.uppercaseName_ = uppercaseName;
+    }
+    
+    public Boolean isTemplate() {
+        return isTemplate_;
+    }
+
+    public void setIsTemplate(Boolean isTemplate) {
+        this.isTemplate_ = isTemplate;
+    }
+    
+    public Boolean isTemplateDerived() {
+        return isTemplateDerived_;
+    }
+
+    public void setIsTemplateDerived(Boolean isTemplateDerived) {
+        this.isTemplateDerived_ = isTemplateDerived;
     }
     
     public String getDescription() {
