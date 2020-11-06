@@ -13,7 +13,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
-import com.pearson.statsagg.threads.thread_managers.SendEmail_ThreadPoolManager;
+import com.pearson.statsagg.threads.thread_managers.SendNotification_ThreadPoolManager;
 import com.pearson.statsagg.threads.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
@@ -954,8 +954,8 @@ public class AlertThread implements Runnable {
             
             if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, false, statsAggLocation_);
-                SendEmail_ThreadPoolManager.executeThread(emailThread);
+                NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, false, statsAggLocation_);
+                SendNotification_ThreadPoolManager.executeThread(notificationThread);
             }
 
             doUpdateAlertInDb = true;
@@ -967,8 +967,8 @@ public class AlertThread implements Runnable {
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, false, statsAggLocation_);
-                    SendEmail_ThreadPoolManager.executeThread(emailThread);
+                    NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, true, false, statsAggLocation_);
+                    SendNotification_ThreadPoolManager.executeThread(notificationThread);
                 }
             }
             
@@ -987,8 +987,8 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
                     if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
-                        SendEmail_ThreadPoolManager.executeThread(emailThread);
+                        NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.CAUTION, metricKeys, activeCautionAlertMetricValues_, positiveAlertReasons_Caution, false, true, statsAggLocation_);
+                        SendNotification_ThreadPoolManager.executeThread(notificationThread);
                     }
                     
                     alert.setCautionAlertLastSentTimestamp(new Timestamp(currentTimeInMs));
@@ -1056,8 +1056,8 @@ public class AlertThread implements Runnable {
             
             if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                 Alert alertCopy = Alert.copy(alert);
-                EmailThread emailThread = new EmailThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, false, statsAggLocation_);
-                SendEmail_ThreadPoolManager.executeThread(emailThread);
+                NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, false, statsAggLocation_);
+                SendNotification_ThreadPoolManager.executeThread(notificationThread);
             }
             
             doUpdateAlertInDb = true;
@@ -1069,8 +1069,8 @@ public class AlertThread implements Runnable {
             if ((alert.isAlertOnPositive() != null) && alert.isAlertOnPositive()) {
                 if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                     Alert alertCopy = Alert.copy(alert);
-                    EmailThread emailThread = new EmailThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, false, statsAggLocation_);
-                    SendEmail_ThreadPoolManager.executeThread(emailThread);
+                    NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, true, false, statsAggLocation_);
+                    SendNotification_ThreadPoolManager.executeThread(notificationThread);
                 }
             }
             
@@ -1089,8 +1089,8 @@ public class AlertThread implements Runnable {
                 if (timeSinceLastNotificationInMs >= alert.getResendAlertEvery()) {
                     if ((suspensions_.getSuspensionStatusByAlertId().get(alert.getId()) == null) || !suspensions_.getSuspensionStatusByAlertId().get(alert.getId())) {
                         Alert alertCopy = Alert.copy(alert);
-                        EmailThread emailThread = new EmailThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);
-                        SendEmail_ThreadPoolManager.executeThread(emailThread);
+                        NotificationThread notificationThread = new NotificationThread(alertCopy, Alert.DANGER, metricKeys, activeDangerAlertMetricValues_, positiveAlertReasons_Danger, false, true, statsAggLocation_);
+                        SendNotification_ThreadPoolManager.executeThread(notificationThread);
                     }
                     
                     alert.setDangerAlertLastSentTimestamp(new Timestamp(currentTimeInMs));

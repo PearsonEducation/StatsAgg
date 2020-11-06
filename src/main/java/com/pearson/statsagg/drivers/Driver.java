@@ -5,7 +5,7 @@ import ch.qos.logback.classic.joran.JoranConfigurator;
 import ch.qos.logback.core.util.StatusPrinter;
 import com.pearson.statsagg.threads.alert_related.AlertThread;
 import com.pearson.statsagg.threads.alert_related.MetricAssociation;
-import com.pearson.statsagg.threads.thread_managers.SendEmail_ThreadPoolManager;
+import com.pearson.statsagg.threads.thread_managers.SendNotification_ThreadPoolManager;
 import com.pearson.statsagg.threads.thread_managers.SendMetricsToOutputModule_ThreadPoolManager;
 import com.pearson.statsagg.threads.invokers.AlertInvokerThread;
 import com.pearson.statsagg.threads.invokers.CleanupInvokerThread;
@@ -154,8 +154,8 @@ public class Driver {
         createOpenTsdbMetricPrefix();
         createInfluxdbMetricPrefix();
                 
-        // start the thread pool that is responsible for sending alert emails 
-        startSendEmailThreadPool();
+        // start the thread pool that is responsible for sending alert emails & other notifications
+        startSendNotificationThreadPool();
         
         // start the thread pool that is responsible for threads sending metrics to the various output modules 
         startSendToOutputModuleThreadPoolManager();
@@ -228,7 +228,7 @@ public class Driver {
 
             shutdownSendToOutputModuleThreadPoolManager();
 
-            shutdownSendEmailThreadPool();
+            shutdownSendNotificationThreadPool();
 
             DatabaseConnections.disconnectAndShutdown();
 
@@ -607,8 +607,8 @@ public class Driver {
         SendMetricsToOutputModule_ThreadPoolManager.start();
     }
     
-    private static void startSendEmailThreadPool() {
-        SendEmail_ThreadPoolManager.start();
+    private static void startSendNotificationThreadPool() {
+        SendNotification_ThreadPoolManager.start();
     }
     
     private static void shutdownServerListeners() {
@@ -725,10 +725,10 @@ public class Driver {
         logger.info("Finish - shutting down 'send to output modules' thread pool");
     }
     
-    private static void shutdownSendEmailThreadPool() {
-        logger.info("Start - shutting down 'send email' thread pool");
-        SendEmail_ThreadPoolManager.shutdown();
-        logger.info("Finish - shutting down 'send email' thread pool");
+    private static void shutdownSendNotificationThreadPool() {
+        logger.info("Start - shutting down 'send notification' thread pool");
+        SendNotification_ThreadPoolManager.shutdown();
+        logger.info("Finish - shutting down 'send notification' thread pool");
     }
         
     private static class ShutdownNettyServer implements Runnable {
