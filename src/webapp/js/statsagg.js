@@ -334,3 +334,45 @@ function yadcf_init_AlertsReportTable(alertsReportTable) {
     ], 'footer');
     
 }
+
+// Setup for the table found on the 'PagerDutyServices' page
+$(document).ready(function () {
+    var table = document.getElementById('PagerDutyServicesTable');
+
+    if (table !== null) {
+        var pagerDutyServicesTable = $('#PagerDutyServicesTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000 // 30 days
+        });
+       
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) pagerDutyServicesTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_PagerDutyServicesTable(pagerDutyServicesTable);
+
+        var colvis = new $.fn.dataTable.ColVis(pagerDutyServicesTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#PagerDutyServicesTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        pagerDutyServicesTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_PagerDutyServicesTable(pagerDutyServicesTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+
+function yadcf_init_PagerDutyServicesTable(pagerDutyServicesTable) {
+    yadcf.init(pagerDutyServicesTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}

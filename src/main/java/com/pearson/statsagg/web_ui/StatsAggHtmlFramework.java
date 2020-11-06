@@ -100,8 +100,13 @@ public class StatsAggHtmlFramework {
                     "          <li><a href=\"Alerts\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Alerts </a></li>\n" +
                     "          <li><a href=\"Suspensions\"><i class=\"fa fa-moon-o\"></i>&nbsp;&nbsp;Suspensions </a></li>\n" +
                     "          <li><a href=\"MetricGroups\"><i class=\"fa fa-align-justify\"></i>&nbsp;&nbsp;Metric Groups </a></li>\n" +
-                    "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n" +
-                    "        </ul> \n" +
+                    "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n");
+            
+            if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
+                body.append("          <li><a href=\"PagerDutyServices\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;PagerDuty Services </a></li>\n");
+            }
+            
+            body.append("        </ul> \n" +
                     "      </li>\n" +
 
                     "      <li class=\"dropdown\">\n" +

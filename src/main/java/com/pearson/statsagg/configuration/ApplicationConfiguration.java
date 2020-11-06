@@ -113,6 +113,8 @@ public class ApplicationConfiguration {
     private static String alertSmtpFromAddress_ = null;
     private static String alertSmtpFromName_ = null;
 
+    private static boolean pagerdutyIntegrationEnabled_ = false;
+    
     private static final List<HttpLink> customActionUrls_ = new ArrayList<>();
     
     private static int outputModuleMaxConnectTime_ = VALUE_NOT_SET_CODE;
@@ -244,6 +246,9 @@ public class ApplicationConfiguration {
             alertSmtpUseStartTls_ = applicationConfiguration_.safeGetBoolean("alert_smtp_use_starttls", false);
             alertSmtpFromAddress_ = applicationConfiguration_.safeGetString("alert_smtp_from_address", "noreply@noreply.com");
             alertSmtpFromName_ = applicationConfiguration_.safeGetString("alert_smtp_from_name", "StatsAgg");
+            
+            // pagerduty integration options 
+            pagerdutyIntegrationEnabled_ = applicationConfiguration_.safeGetBoolean("pagerduty_integration_enabled", false);
             
             // website custominzation variables
             customActionUrls_.addAll(readCustomActionUrls());
@@ -814,6 +819,10 @@ public class ApplicationConfiguration {
         return alertSmtpFromName_;
     }
 
+    public static boolean isPagerdutyIntegrationEnabled() {
+        return pagerdutyIntegrationEnabled_;
+    }
+    
     public static List<HttpLink> getCustomActionUrls() {
         return customActionUrls_;
     }
@@ -837,5 +846,5 @@ public class ApplicationConfiguration {
     public static long getMetricGroupApiMaxMetricAssociations() {
         return metricGroupApiMaxMetricAssociations_;
     }
-    
+
 }

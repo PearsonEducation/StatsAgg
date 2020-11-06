@@ -1,0 +1,180 @@
+package com.pearson.statsagg.database_objects.pagerduty_services;
+
+import java.util.List;
+import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * @author Jeffrey Schmidt
+ */
+public class PagerdutyServicesDao {
+    
+    private static final Logger logger = LoggerFactory.getLogger(PagerdutyServicesDao.class.getName());
+    
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService) {
+        
+        try {                   
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    PagerdutyServicesSql.Insert_PagerdutyService, 
+                    pagerdutyService.getName(), pagerdutyService.getUppercaseName(), pagerdutyService.getDescription(), pagerdutyService.getRoutingKey());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    PagerdutyServicesSql.Update_PagerdutyService_ByPrimaryKey, 
+                    pagerdutyService.getName(), pagerdutyService.getUppercaseName(), pagerdutyService.getDescription(), pagerdutyService.getRoutingKey(), pagerdutyService.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            PagerdutyService pagerdutyServiceFromDb = PagerdutyServicesDao.getPagerdutyService(connection, false, pagerdutyService.getId());
+
+            boolean upsertSuccess = true;
+            if (pagerdutyServiceFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, pagerdutyService);
+            else if (!pagerdutyServiceFromDb.isEqual(pagerdutyService)) upsertSuccess = update(connection, false, commitOnCompletion, pagerdutyService);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    PagerdutyServicesSql.Delete_PagerdutyService_ByPrimaryKey, 
+                    pagerdutyService.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static PagerdutyService getPagerdutyService(Connection connection, boolean closeConnectionOnCompletion, Integer id) {
+        
+        try {
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    PagerdutyServicesSql.Select_PagerdutyService_ByPrimaryKey, id);
+            
+            return DatabaseUtils.getSingleResultFromList(pagerdutyServices);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static PagerdutyService getPagerdutyService(Connection connection, boolean closeConnectionOnCompletion, String pagerdutyServiceName) {
+        
+        try {
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    PagerdutyServicesSql.Select_PagerdutyService_ByName, pagerdutyServiceName);
+            
+            return DatabaseUtils.getSingleResultFromList(pagerdutyServices);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<PagerdutyService> getPagerdutyServices(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    PagerdutyServicesSql.Select_AllPagerdutyService);
+            
+            return pagerdutyServices;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+   public static PagerdutyService getPagerdutyService_SingleRow(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    PagerdutyServicesSql.Select_AllPagerdutyService);
+            
+            if (pagerdutyServices == null) return null;
+            if (pagerdutyServices.size() > 1) logger.warn("There should not be more than one output blacklist row in the database.");
+        
+            if (!pagerdutyServices.isEmpty()) return pagerdutyServices.get(0);
+            else return null;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+}
