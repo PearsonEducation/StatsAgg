@@ -12,8 +12,8 @@ import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
@@ -121,7 +121,7 @@ public class AlertsList extends HttpServlet {
                 if ((alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
                 if ((alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
                           
-                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, false, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, showAlertTemplates, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
                 if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
             

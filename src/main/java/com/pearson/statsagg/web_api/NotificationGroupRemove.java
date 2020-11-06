@@ -2,8 +2,8 @@ package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
