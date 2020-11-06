@@ -48,6 +48,7 @@ public class FlywayOperations {
 
         try {
             if (flyway != null) {
+                logger.info("Running flyway migrate. Baseline=" + performBaseline);
                 flyway.migrate();
                 wasSuccessful = true;
             }
