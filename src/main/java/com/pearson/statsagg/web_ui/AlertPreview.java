@@ -8,7 +8,7 @@ import java.util.Objects;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.threads.alert_related.EmailThread;
+import com.pearson.statsagg.threads.alert_related.NotificationThread;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
@@ -167,10 +167,10 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+                NotificationThread notificationThread = new NotificationThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
-                emailThread.buildAlertEmail(2, metricGroup, metricGroupTags);
-                return emailThread.getBody();
+                notificationThread.buildAlertEmail(2, metricGroup, metricGroupTags);
+                return notificationThread.getBody();
             }
             else {
                 return "This alert's caution criteria is not valid";
@@ -181,7 +181,7 @@ public class AlertPreview extends HttpServlet {
             boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+                NotificationThread emailThread = new NotificationThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup, metricGroupTags);
                 return emailThread.getBody();

@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.alerts.AlertsLogic;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
