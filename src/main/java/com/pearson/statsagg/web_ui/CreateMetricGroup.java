@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsLogic;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;

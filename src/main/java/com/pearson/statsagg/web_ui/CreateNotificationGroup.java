@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -8,8 +9,8 @@ import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
