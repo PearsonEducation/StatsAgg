@@ -1,8 +1,8 @@
-package com.pearson.statsagg.webui;
+package com.pearson.statsagg.database_objects.notification_groups;
 
-import com.pearson.statsagg.web_ui.NotificationGroupsLogic;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.drivers.Driver;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;

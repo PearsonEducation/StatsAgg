@@ -1,6 +1,6 @@
-package com.pearson.statsagg.webui;
+package com.pearson.statsagg.database_objects.suspensions;
 
-import com.pearson.statsagg.web_ui.SuspensionsLogic;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsLogic;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
