@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -12,15 +13,15 @@ import java.util.Set;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.threads.alert_related.EmailThread;
+import com.pearson.statsagg.threads.alert_related.NotificationThread;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -198,7 +199,7 @@ public class NotificationGroups extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            returnString = "Error removing metric group";
+            returnString = "Error removing notification group";
             return returnString;
         }
 
@@ -341,13 +342,13 @@ public class NotificationGroups extends HttpServlet {
         metricGroupTags.add(new MetricGroupTag(778, 88888, "tag2"));
         metricGroupTags.add(new MetricGroupTag(779, 88888, "tag3"));
         
-        EmailThread emailThread = new EmailThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+        NotificationThread notificationThread = new NotificationThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                 false, false, ApplicationConfiguration.getAlertStatsAggLocation());
-        emailThread.buildAlertEmail(3, metricGroup, metricGroupTags);
+        notificationThread.buildAlertEmail(3, metricGroup, metricGroupTags);
         
-        List<String> emailsAddresses = EmailThread.getToEmailsAddressesForAlert(notificationGroup.getId());
+        List<String> emailsAddresses = NotificationThread.getToEmailsAddressesForAlert(notificationGroup.getId());
         
-        emailThread.sendEmail(emailsAddresses, emailThread.getSubject(), emailThread.getBody());
+        notificationThread.sendEmail(emailsAddresses, notificationThread.getSubject(), notificationThread.getBody());
 
         String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test email alert to notification group '" + cleanNotificationGroupName + "'");
