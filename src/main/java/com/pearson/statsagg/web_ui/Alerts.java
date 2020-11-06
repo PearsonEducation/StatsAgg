@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.alerts.AlertsLogic;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
@@ -18,7 +19,7 @@ import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -90,7 +91,7 @@ public class Alerts extends HttpServlet {
         PrintWriter out = null;
                 
         try {
-            String html = buildAlertsHtml();
+            String html = buildAlertsHtml(false);
             
             Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
@@ -162,7 +163,7 @@ public class Alerts extends HttpServlet {
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Alerts");
     }
 
-    public String changeAlertEnabled(Integer alertId, Boolean isEnabled) {
+    public static String changeAlertEnabled(Integer alertId, Boolean isEnabled) {
 
         if ((alertId == null) || (isEnabled == null)) {
             return "Invalid input!";
@@ -202,7 +203,7 @@ public class Alerts extends HttpServlet {
         else return "Error -- could not alter alert";
     }
     
-    private void cloneAlert(Integer alertId) {
+    protected static void cloneAlert(Integer alertId) {
         
         if (alertId == null) {
             return;
@@ -253,7 +254,7 @@ public class Alerts extends HttpServlet {
         }
     }
     
-    public String removeAlert(Integer alertId) {
+    public static String removeAlert(Integer alertId) {
         
         if (alertId == null) {
             return null;
@@ -278,7 +279,7 @@ public class Alerts extends HttpServlet {
         return returnString;
     }
     
-    private String buildAlertsHtml() {
+    public static String buildAlertsHtml(boolean showAlertTemplates) {
         
         StringBuilder html = new StringBuilder();
 
@@ -326,6 +327,10 @@ public class Alerts extends HttpServlet {
         for (Alert alert : alerts) {
             if (alert == null) continue;
             
+            boolean isAlertTemplate = (alert.isTemplate() != null) && alert.isTemplate();
+            if (showAlertTemplates && !isAlertTemplate) continue;
+            else if (!showAlertTemplates && isAlertTemplate) continue;
+
             String rowAlertStatusContext = "";
             boolean isRowStatusInfo = false;
             
@@ -351,6 +356,9 @@ public class Alerts extends HttpServlet {
             if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
             else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
             
+            // templates don't need alert status highlighting
+            if (showAlertTemplates) rowAlertStatusContext = "";
+                
             String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
             
             String metricGroupNameAndLink;

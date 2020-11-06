@@ -12,7 +12,7 @@ import java.util.Objects;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
@@ -870,7 +870,7 @@ public class Alert implements DatabaseObject<Alert> {
         return getJsonObject_ApiFriendly(alert, null, null, null, null, null, null, null);
     }
     
-    public static JsonObject getJsonObject_ApiFriendly(Alert alert, Boolean showIsAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert, Boolean showAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -898,7 +898,7 @@ public class Alert implements DatabaseObject<Alert> {
                 logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
             }
             
-            if ((showIsAlertTemplate != null) && !showIsAlertTemplate) {
+            if ((showAlertTemplate != null) && !showAlertTemplate) {
                 jsonObject.remove("is_template");
             }
             
