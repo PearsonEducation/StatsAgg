@@ -31,8 +31,9 @@ public class NotificationGroupsResultSetHandler extends NotificationGroup implem
                     String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
                     String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
                     String emailAddresses = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "email_addresses", String.class);
-
-                    NotificationGroup notificationGroup = new NotificationGroup(id, name, uppercaseName, emailAddresses);
+                    Integer pagerdutyServiceId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "pagerduty_service_id", Integer.class);
+                    
+                    NotificationGroup notificationGroup = new NotificationGroup(id, name, uppercaseName, emailAddresses, pagerdutyServiceId);
                     notificationGroups.add(notificationGroup);
                 }
                 catch (Exception e) {

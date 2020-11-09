@@ -28,20 +28,22 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
     @SerializedName("name") private String name_ = null;
     private transient String uppercaseName_ = null;
     @SerializedName("email_addresses") private String emailAddresses_ = null;
-    
+    @SerializedName("pagerduty_service_id") private Integer pagerdutyServiceId_ = null;
+
     public NotificationGroup() {
         this.id_ = -1;
     }
     
-    public NotificationGroup(Integer id, String name, String emailAddresses) {
-        this(id, name, ((name == null) ? null : name.toUpperCase()), emailAddresses);
+    public NotificationGroup(Integer id, String name, String emailAddresses, Integer pagerdutyServiceId) {
+        this(id, name, ((name == null) ? null : name.toUpperCase()), emailAddresses, pagerdutyServiceId);
     } 
     
-    public NotificationGroup(Integer id, String name, String uppercaseName, String emailAddresses) {
+    public NotificationGroup(Integer id, String name, String uppercaseName, String emailAddresses, Integer pagerdutyServiceId) {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
         this.emailAddresses_ = emailAddresses;
+        this.pagerdutyServiceId_ = pagerdutyServiceId;
     }
 
     @Override
@@ -56,6 +58,7 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
                 .append(name_, notificationGroup.getName())
                 .append(uppercaseName_, notificationGroup.getUppercaseName())
                 .append(emailAddresses_, notificationGroup.getEmailAddresses())
+                .append(pagerdutyServiceId_, notificationGroup.getPagerdutyServiceId())
                 .isEquals();
 
     }
@@ -68,14 +71,19 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         
         StringBuilder emailAddressesOutput = new StringBuilder();
         
-        String[] emailAddresses = StringUtils.split(emailAddresses_, ",");
-        
-        if ((emailAddresses != null) && (emailAddresses.length != 0)) {
-            for (int i = 0; i < emailAddresses.length; i++) {
-                String trimmedEmailAddress = emailAddresses[i].trim();
-                emailAddressesOutput.append(trimmedEmailAddress);
-                if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");
+        try {
+            String[] emailAddresses = StringUtils.split(emailAddresses_, ",");
+
+            if ((emailAddresses != null) && (emailAddresses.length != 0)) {
+                for (int i = 0; i < emailAddresses.length; i++) {
+                    String trimmedEmailAddress = emailAddresses[i].trim();
+                    emailAddressesOutput.append(trimmedEmailAddress);
+                    if ((i + 1) != emailAddresses.length) emailAddressesOutput.append(", ");
+                }
             }
+        }
+        catch(Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         return emailAddressesOutput.toString();
@@ -112,6 +120,7 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         notificationGroupCopy.setName(notificationGroup.getName());
         notificationGroupCopy.setUppercaseName(notificationGroup.getUppercaseName());
         notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
+        notificationGroupCopy.setPagerdutyServiceId(notificationGroup.getPagerdutyServiceId());
         
         return notificationGroupCopy;
     }
@@ -199,6 +208,14 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
 
     public void setEmailAddresses(String emailAddresses) {
         this.emailAddresses_ = emailAddresses;
+    }
+
+    public Integer getPagerdutyServiceId() {
+        return pagerdutyServiceId_;
+    }
+
+    public void setPagerdutyServiceId(Integer pagerdutyServiceId) {
+        this.pagerdutyServiceId_ = pagerdutyServiceId;
     }
     
 }

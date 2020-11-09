@@ -2,13 +2,10 @@ package com.pearson.statsagg.database_objects.alerts;
 
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsLogic;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
-import com.pearson.statsagg.database_objects.alerts.AlertsLogic;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.TreeSet;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
-import com.pearson.statsagg.database_objects.alerts.Alert;
-import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
@@ -69,7 +66,7 @@ public class AlertsLogicTest {
         // delete previous notification group, create a new notification group, and retrieve it from the db. this notification group exists solely for this unit test.
         result = notificationGroupsLogic_.deleteRecordInDatabase(notificationGroupName_);
         assertTrue(result.contains("success") || result.contains("Notification group not found"));
-        NotificationGroup notificationGroup = new NotificationGroup(-1, notificationGroupName_, notificationGroupName_);   
+        NotificationGroup notificationGroup = new NotificationGroup(-1, notificationGroupName_, notificationGroupName_, null);   
         result = notificationGroupsLogic_.alterRecordInDatabase(notificationGroup);
         assertTrue(result.contains("Success"));
         notificationGroup_ = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName_);

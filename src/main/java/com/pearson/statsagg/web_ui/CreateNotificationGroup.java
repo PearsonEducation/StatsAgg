@@ -4,6 +4,7 @@ import com.pearson.statsagg.database_objects.notification_groups.NotificationGro
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
@@ -11,7 +12,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import java.util.ArrayList;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -89,7 +94,9 @@ public class CreateNotificationGroup extends HttpServlet {
             }    
 
             String htmlBodyContents = buildCreateNotificationGroupHtml(notificationGroup);
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
+            List<String> additionalJavascript = new ArrayList<>();
+            additionalJavascript.add("js/statsagg_create_notification_group.js");
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
@@ -180,14 +187,29 @@ public class CreateNotificationGroup extends HttpServlet {
             ">\n       </div>\n" +
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Email addresses</label>\n" +
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a csv-delimited list of email addresses\" name=\"EmailAddresses\" id=\"EmailAddresses\" ");
+            "         <input class=\"form-control-statsagg\" placeholder=\"A csv-delimited list of email addresses\" name=\"EmailAddresses\" id=\"EmailAddresses\" ");
 
         if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses(), true)).append("\"");
         }
+        htmlBody.append(">\n       </div>\n");
+              
+        // pagerduty service name field
+        if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
+            htmlBody.append(
+                "       <div class=\"form-group\" id=\"PagerDutyServiceName_Lookup\">\n" +
+                "         <label class=\"label_small_margin\">PagerDuty Service Name</label>\n" +
+                "         <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" placeholder=\"The exact PagerDuty service name to send alerts to.\" name=\"PagerDutyServiceName\" id=\"PagerDutyServiceName\" ");
 
+            if ((notificationGroup != null) && (notificationGroup.getPagerdutyServiceId() != null)) {
+                PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, notificationGroup.getPagerdutyServiceId());
+                if (pagerdutyService != null) htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName(), true)).append("\"");
+            }
+
+            htmlBody.append(">\n</div>\n");
+        }
+                    
         htmlBody.append(
-            ">\n</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
             "       <a href=\"NotificationGroups\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
@@ -276,6 +298,29 @@ public class CreateNotificationGroup extends HttpServlet {
                 else notificationGroup.setEmailAddresses("");
             }
             else notificationGroup.setEmailAddresses("");
+            
+            if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
+                parameter = Common.getSingleParameterAsString(request, "PagerDutyServiceName");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "pagerduty_service_name");
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) {
+                        PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, parameterTrimmed);
+                        if ((pagerdutyService != null) && (pagerdutyService.getId() != null)) notificationGroup.setPagerdutyServiceId(pagerdutyService.getId());
+                        else didEncounterError = true;
+                    }
+                }
+                else {
+                    parameter = Common.getSingleParameterAsString(request, "PagerDutyServiceId");
+                    if (parameter == null) parameter = Common.getSingleParameterAsString(request, "pagerduty_service_id");
+                    if (parameter != null) {
+                        String parameterTrimmed = parameter.trim();
+                        if (!parameterTrimmed.isEmpty()) notificationGroup.setPagerdutyServiceId(Integer.parseInt(parameterTrimmed));
+                        else didEncounterError = true;
+                    }
+                }
+            }
+            else notificationGroup.setPagerdutyServiceId(null);
         }
         catch (Exception e) {
             didEncounterError = true;

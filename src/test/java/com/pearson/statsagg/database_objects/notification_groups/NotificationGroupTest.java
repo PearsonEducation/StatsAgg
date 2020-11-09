@@ -1,6 +1,5 @@
 package com.pearson.statsagg.database_objects.notification_groups;
 
-import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -37,8 +36,8 @@ public class NotificationGroupTest {
      */
     @Test
     public void testIsEqual() {
-        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email");
-        NotificationGroup notificationGroup2 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email");
+        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
+        NotificationGroup notificationGroup2 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
         
         assertTrue(notificationGroup1.isEqual(notificationGroup2));
         
@@ -54,6 +53,10 @@ public class NotificationGroupTest {
         assertFalse(notificationGroup1.isEqual(notificationGroup2));
         notificationGroup1.setEmailAddresses("NotificationGroup JUnit1 Email");
         
+        notificationGroup1.setPagerdutyServiceId(99);
+        assertFalse(notificationGroup1.isEqual(notificationGroup2));
+        notificationGroup1.setPagerdutyServiceId(100);
+        
         assertTrue(notificationGroup1.isEqual(notificationGroup2));
     }
 
@@ -62,7 +65,7 @@ public class NotificationGroupTest {
      */
     @Test
     public void testCopy() {
-        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email");
+        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
         
         NotificationGroup notificationGroup2 = NotificationGroup.copy(notificationGroup1);
         assertTrue(notificationGroup1.isEqual(notificationGroup2));
@@ -81,6 +84,11 @@ public class NotificationGroupTest {
         assertFalse(notificationGroup1.isEqual(notificationGroup2));
         assertTrue(notificationGroup2.getEmailAddresses().equals("NotificationGroup JUnit1 Email"));
         notificationGroup1.setEmailAddresses("NotificationGroup JUnit1 Email");
+        
+        notificationGroup1.setPagerdutyServiceId(99);
+        assertFalse(notificationGroup1.isEqual(notificationGroup2));
+        assertTrue(notificationGroup2.getPagerdutyServiceId() == 100);
+        notificationGroup1.setPagerdutyServiceId(100);
         
         assertTrue(notificationGroup1.isEqual(notificationGroup2));
     }

@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
@@ -7,6 +8,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.utilities.web_utils.EmailUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
@@ -139,6 +142,16 @@ public class NotificationGroupDetails extends HttpServlet {
             
             if (notificationGroup.getEmailAddresses() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddressesCsv())).append("<br>");
             else outputString.append("N/A <br>");
+            
+            if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
+                PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, notificationGroup.getPagerdutyServiceId());
+                String pagerdutyServiceName = "";
+                if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) pagerdutyServiceName = pagerdutyService.getName();
+                
+                outputString.append("<b>PagerDuty Service Name</b> = ");
+                if (!pagerdutyServiceName.isEmpty()) outputString.append(StatsAggHtmlFramework.htmlEncode(pagerdutyServiceName)).append("<br>");
+                else outputString.append("N/A <br>");
+            }
             
             outputString.append("<br>");
                         

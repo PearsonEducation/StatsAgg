@@ -10,6 +10,20 @@ public class NotificationGroupsSql {
 
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupsSql.class.getName());
     
+    protected final static String Insert_NotificationGroup =
+                    "INSERT INTO NOTIFICATION_GROUPS " +
+                    "(NAME, UPPERCASE_NAME, EMAIL_ADDRESSES, PAGERDUTY_SERVICE_ID) " +
+                    "VALUES(?,?,?,?)";
+    
+    protected final static String Update_NotificationGroup_ByPrimaryKey =
+                    "UPDATE NOTIFICATION_GROUPS " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, EMAIL_ADDRESSES = ?, PAGERDUTY_SERVICE_ID = ? " +
+                    "WHERE ID = ?";
+    
+    protected final static String Delete_NotificationGroup_ByPrimaryKey = 
+                    "DELETE FROM NOTIFICATION_GROUPS " +
+                    "WHERE ID = ?";
+    
     protected final static String Select_NotificationGroup_ByPrimaryKey = 
                     "SELECT * FROM NOTIFICATION_GROUPS " +
                     "WHERE ID = ?";
@@ -28,22 +42,5 @@ public class NotificationGroupsSql {
     
     protected final static String Select_AllNotificationGroups_IdsAndNames = 
                     "SELECT ID, NAME FROM NOTIFICATION_GROUPS";
-    
-    protected final static String Select_DistinctNotificationGroupIds = 
-                    "SELECT DISTINCT ID FROM NOTIFICATION_GROUPS";
-    
-    protected final static String Insert_NotificationGroup =
-                    "INSERT INTO NOTIFICATION_GROUPS " +
-                    "(NAME, UPPERCASE_NAME, EMAIL_ADDRESSES) " +
-                    "VALUES(?,?,?)";
-    
-    protected final static String Update_NotificationGroup_ByPrimaryKey =
-                    "UPDATE NOTIFICATION_GROUPS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, EMAIL_ADDRESSES = ? " +
-                    "WHERE ID = ?";
-    
-    protected final static String Delete_NotificationGroup_ByPrimaryKey = 
-                    "DELETE FROM NOTIFICATION_GROUPS " +
-                    "WHERE ID = ?";
-    
+
 }

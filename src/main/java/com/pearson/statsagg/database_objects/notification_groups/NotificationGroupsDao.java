@@ -22,7 +22,8 @@ public class NotificationGroupsDao {
         try {                   
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     NotificationGroupsSql.Insert_NotificationGroup, 
-                    notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses());
+                    notificationGroup.getName(), notificationGroup.getUppercaseName(), 
+                    notificationGroup.getEmailAddresses(), notificationGroup.getPagerdutyServiceId());
             
             return (result >= 0);
         }
@@ -41,7 +42,9 @@ public class NotificationGroupsDao {
         try {                    
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     NotificationGroupsSql.Update_NotificationGroup_ByPrimaryKey, 
-                    notificationGroup.getName(), notificationGroup.getUppercaseName(), notificationGroup.getEmailAddresses(), notificationGroup.getId());
+                    notificationGroup.getName(), notificationGroup.getUppercaseName(), 
+                    notificationGroup.getEmailAddresses(), notificationGroup.getPagerdutyServiceId(), 
+                    notificationGroup.getId());
             
             return (result >= 0);
         }

@@ -63,7 +63,7 @@ public class NotificationGroupsLogicTest {
         assertTrue(result.contains("success") || result.contains("Notification group not found"));
         
         // create & insert a NotificationGroup, insert it into the db, retrieve it from the db, & compare the original & retrieved records
-        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1");   
+        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1", null);   
         result = notificationGroupsLogic_.alterRecordInDatabase(notification1);
         assertTrue(result.contains("Success"));
         NotificationGroup notification1FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
@@ -118,18 +118,16 @@ public class NotificationGroupsLogicTest {
         String result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit name 1");
         assertTrue(result.contains("success") || result.contains("Notification group not found"));
         
-        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1");   
+        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1", null);   
         result = notificationGroupsLogic_.alterRecordInDatabase(notification1);
         assertTrue(result.contains("Success"));
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification1FromDb = notificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
+        NotificationGroup notification1FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertTrue(notification1FromDb.getName().contains("notification junit name 1"));
         assertTrue(notification1FromDb.getEmailAddresses().contains("notification junit email 1"));
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit name 1");
         assertTrue(result.contains("success"));
-        notificationGroupsDao = new NotificationGroupsDao();
-        NotificationGroup notification2FromDb = notificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
+        NotificationGroup notification2FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
         assertEquals(null, notification2FromDb);
         
         result = notificationGroupsLogic_.deleteRecordInDatabase("notification junit fake 1");

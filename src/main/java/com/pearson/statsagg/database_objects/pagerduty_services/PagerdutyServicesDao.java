@@ -4,6 +4,7 @@ import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -135,12 +136,47 @@ public class PagerdutyServicesDao {
         
     }
     
+    public static List<String> getPagerdutyServiceNames(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
+        
+        try {
+            List<String> pagerdutyServiceNames = new ArrayList<>();
+            
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    (resultSetLimit + 5), 
+                    PagerdutyServicesSql.Select_PagerdutyService_Names_OrderByName,
+                    ("%" + filter + "%"));
+            
+            if ((pagerdutyServices == null) || pagerdutyServices.isEmpty()) return pagerdutyServiceNames;
+            
+            int rowCounter = 0;
+            for (PagerdutyService pagerdutyService : pagerdutyServices) {
+                if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) {
+                    pagerdutyServiceNames.add(pagerdutyService.getName());
+                    rowCounter++;
+                }
+                
+                if (rowCounter >= resultSetLimit) break;
+            }
+            
+            return pagerdutyServiceNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static List<PagerdutyService> getPagerdutyServices(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
             List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new PagerdutyServicesResultSetHandler(), 
-                    PagerdutyServicesSql.Select_AllPagerdutyService);
+                    PagerdutyServicesSql.Select_AllPagerdutyServices);
             
             return pagerdutyServices;
         }
@@ -159,7 +195,7 @@ public class PagerdutyServicesDao {
         try {
             List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new PagerdutyServicesResultSetHandler(), 
-                    PagerdutyServicesSql.Select_AllPagerdutyService);
+                    PagerdutyServicesSql.Select_AllPagerdutyServices);
             
             if (pagerdutyServices == null) return null;
             if (pagerdutyServices.size() > 1) logger.warn("There should not be more than one output blacklist row in the database.");
