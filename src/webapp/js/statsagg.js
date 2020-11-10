@@ -13,7 +13,7 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
-    $(".iframe").colorbox({iframe: true, width: "80%", height: "80%"});
+    $(".iframe").colorbox({iframe: true, width: "90%", height: "90%", speed: 200});
 });
 
 function confirmAction(formName, confirmString) {
