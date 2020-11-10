@@ -6,7 +6,9 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -214,6 +216,35 @@ public class NotificationGroupsDao {
         
     }
 
+    public static Set<Integer> getDistinctPagerdutyServiceIdsAssociatedWithNotificationGroups(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Set<Integer> pagerdutyServiceIds = new HashSet<>();
+            
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_DistinctPagerdutyServiceIds);
+            
+            if (notificationGroups == null) return null;
+            
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup != null) && (notificationGroup.getPagerdutyServiceId() != null)) {
+                    pagerdutyServiceIds.add(notificationGroup.getPagerdutyServiceId());
+                }
+            }
+            
+            return pagerdutyServiceIds;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static Map<Integer, NotificationGroup> getNotificationGroups_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
         Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();

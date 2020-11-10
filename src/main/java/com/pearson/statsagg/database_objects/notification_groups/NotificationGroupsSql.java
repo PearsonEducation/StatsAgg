@@ -43,4 +43,7 @@ public class NotificationGroupsSql {
     protected final static String Select_AllNotificationGroups_IdsAndNames = 
                     "SELECT ID, NAME FROM NOTIFICATION_GROUPS";
 
+    protected final static String Select_DistinctPagerdutyServiceIds = 
+                    "SELECT DISTINCT(PAGERDUTY_SERVICE_ID) FROM NOTIFICATION_GROUPS";
+    
 }

@@ -23,6 +23,8 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
@@ -226,8 +228,13 @@ public class NotificationGroups extends HttpServlet {
             "  <table id=\"NotificationGroupsTable\" style=\"display:none\" class=\"table table-bordered table-hover \">\n" +
             "    <thead>\n" +
             "      <tr>\n" +
-            "        <th>Notification Group Name</th>\n" +
-            "        <th>Email addresses</th>\n" +
+            "        <th>Notification Group Name</th>\n");
+        
+        htmlBodyStringBuilder.append("<th>Email addresses");
+        if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) htmlBodyStringBuilder.append(" & services");
+        
+        htmlBodyStringBuilder.append(
+            "</th>\n" +
             "        <th>Operations</th>\n" +
             "      </tr>\n" +
             "    </thead>\n" +
@@ -240,8 +247,20 @@ public class NotificationGroups extends HttpServlet {
             
             String notificationGroupDetails = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
             
-            String emailAddressesCsv = notificationGroup.getEmailAddressesCsv();
-
+            String emailAddressesAndServicesCsv = notificationGroup.getEmailAddressesCsv();
+            if (emailAddressesAndServicesCsv == null) emailAddressesAndServicesCsv = "";
+            
+            String pagerdutyServiceName = "";
+            if (notificationGroup.getPagerdutyServiceId() != null) {
+                PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, notificationGroup.getPagerdutyServiceId());
+                if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) pagerdutyServiceName = pagerdutyService.getName();
+            }
+            
+            if (ApplicationConfiguration.isPagerdutyIntegrationEnabled() && emailAddressesAndServicesCsv.isEmpty()) emailAddressesAndServicesCsv = pagerdutyServiceName;
+            else if (ApplicationConfiguration.isPagerdutyIntegrationEnabled() && !emailAddressesAndServicesCsv.isEmpty() && !pagerdutyServiceName.isEmpty()) {
+                emailAddressesAndServicesCsv = emailAddressesAndServicesCsv + ", " + pagerdutyServiceName;
+            }
+            
             String alter = "<a href=\"CreateNotificationGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">alter</a>";
 
             List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
@@ -263,7 +282,7 @@ public class NotificationGroups extends HttpServlet {
             
             htmlBodyStringBuilder.append("<tr>\n")
                 .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupDetails).append("</td>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesCsv)).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesAndServicesCsv)).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
             
             if (notificationGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);

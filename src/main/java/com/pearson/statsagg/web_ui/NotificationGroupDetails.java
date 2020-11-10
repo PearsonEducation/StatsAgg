@@ -148,7 +148,7 @@ public class NotificationGroupDetails extends HttpServlet {
                 String pagerdutyServiceName = "";
                 if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) pagerdutyServiceName = pagerdutyService.getName();
                 
-                outputString.append("<b>PagerDuty Service Name</b> = ");
+                outputString.append("<b>PagerDuty service name</b> = ");
                 if (!pagerdutyServiceName.isEmpty()) outputString.append(StatsAggHtmlFramework.htmlEncode(pagerdutyServiceName)).append("<br>");
                 else outputString.append("N/A <br>");
             }

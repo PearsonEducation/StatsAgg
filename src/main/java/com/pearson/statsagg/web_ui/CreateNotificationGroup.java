@@ -198,7 +198,7 @@ public class CreateNotificationGroup extends HttpServlet {
         if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
             htmlBody.append(
                 "       <div class=\"form-group\" id=\"PagerDutyServiceName_Lookup\">\n" +
-                "         <label class=\"label_small_margin\">PagerDuty Service Name</label>\n" +
+                "         <label class=\"label_small_margin\">PagerDuty service name</label>\n" +
                 "         <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" placeholder=\"The exact PagerDuty service name to send alerts to.\" name=\"PagerDutyServiceName\" id=\"PagerDutyServiceName\" ");
 
             if ((notificationGroup != null) && (notificationGroup.getPagerdutyServiceId() != null)) {
