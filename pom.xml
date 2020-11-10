@@ -249,6 +249,13 @@
             <version>7.0.0</version>
         </dependency>
         
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>4.5.9</version>
+            <type>jar</type>
+        </dependency>
+        
     </dependencies>
-
+    <name>StatsAgg-Forked</name>
 </project>
