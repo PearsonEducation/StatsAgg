@@ -141,7 +141,8 @@ public class NotificationGroups extends HttpServlet {
 
             if ((operation != null) && operation.equals("Test")) {
                 Integer id = Integer.parseInt(request.getParameter("Id"));
-                testNotificationGroup(id);
+                testNotificationGroupEmail(id);
+                testNotificationGroupPagerDuty(id);
             }
 
             if ((operation != null) && operation.equals("Remove")) {
@@ -316,7 +317,7 @@ public class NotificationGroups extends HttpServlet {
         return html.toString();
     }
     
-    public void testNotificationGroup(Integer notificationGroupId) {
+    public void testNotificationGroupEmail(Integer notificationGroupId) {
         
         if (notificationGroupId == null) {
             logger.info("Failed to send email alert to notification group. ID cannot be null" );
@@ -372,5 +373,62 @@ public class NotificationGroups extends HttpServlet {
         String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test email alert to notification group '" + cleanNotificationGroupName + "'");
     }
+    
+    public void testNotificationGroupPagerDuty(Integer notificationGroupId) {
+        
+        if (notificationGroupId == null) {
+            logger.info("Failed to send pager duty alert to notification group. ID cannot be null" );
+            return;
+        }
 
+        NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);
+        
+        if ((notificationGroup == null) || (notificationGroup.getName() == null) || (notificationGroup.getId() == null)) {
+            logger.warn("Failed to send pager duty alert to notification group id=" + notificationGroupId + ". Notification group does not exist." );
+            return;
+        }
+        
+        String testAlertName = "Notification test - alert";
+        Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(), false, false, 
+                "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
+                88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 60l, DatabaseObjectCommon.TIME_UNIT_MINUTES,
+                77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, 
+                DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
+                77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 91000L, 
+                DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
+        
+        String testMetricGroupName = "Notification test - metric group";
+        MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),
+                "This is a fake metric group to test sending pager duty alerts to the notification group named '" + notificationGroup.getName() + "'");
+        
+        List<String> metricKeys = new ArrayList<>();
+        metricKeys.add("pagerduty.test.metric2");
+        metricKeys.add("pagerduty.test.metric1");
+        metricKeys.add("pagerduty.test.metric3");
+        metricKeys.add("pagerduty.test.metric4");
+        metricKeys.add("pagerduty.test.metric5");
+        
+        Map<String,BigDecimal> alertMetricValues = new HashMap<>();
+        alertMetricValues.put("pagerduty.test.metric1-99999", new BigDecimal(101));
+        alertMetricValues.put("pagerduty.test.metric2-99999", new BigDecimal(102));
+        alertMetricValues.put("pagerduty.test.metric3-99999", new BigDecimal(103));
+        alertMetricValues.put("pagerduty.test.metric4-99999", new BigDecimal(104));
+        
+        List<MetricGroupTag> metricGroupTags = new ArrayList<>();
+        metricGroupTags.add(new MetricGroupTag(777, 88888, "tag1"));
+        metricGroupTags.add(new MetricGroupTag(778, 88888, "tag2"));
+        metricGroupTags.add(new MetricGroupTag(779, 88888, "tag3"));
+        
+        NotificationThread notificationThread = new NotificationThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+                false, false, ApplicationConfiguration.getAlertStatsAggLocation());
+        notificationThread.buildPagerDutyEvent(3, metricGroup, metricGroupTags);
+        
+        String apiKey = NotificationThread.getToPagerDutyApiKeyForAlert(notificationGroup.getId());
+        
+        notificationThread.sendPagerDutyEvent(apiKey, notificationThread.getPayload());
+
+        String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
+        logger.info("Sent test pager duty event to notification group '" + cleanNotificationGroupName + "'");
+    }
+    
 }

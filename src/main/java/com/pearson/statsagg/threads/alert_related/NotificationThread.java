@@ -1,5 +1,7 @@
 package com.pearson.statsagg.threads.alert_related;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
@@ -15,6 +17,8 @@ import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDa
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.web_ui.StatsAggHtmlFramework;
 import com.pearson.statsagg.utilities.web_utils.EmailUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -27,6 +31,11 @@ import org.apache.commons.mail.DefaultAuthenticator;
 import org.apache.commons.mail.HtmlEmail;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.HttpClientBuilder;
 
 /**
  * @author Jeffrey Schmidt
@@ -44,8 +53,12 @@ public class NotificationThread implements Runnable  {
     private final boolean isResend_;
     private final String statsAggLocation_;
     
+    // Email variables
     private String subject_ = "";
     private String body_ = "";
+    
+     // Pager Duty variable
+    private JsonObject payload_ = null;
     
     public NotificationThread(Alert alert, int alertLevel, List<String> metricKeys, Map<String,BigDecimal> alertMetricValues, 
             Map<String,String> positiveAlertReasons, boolean isPositiveAlert, boolean isResend, String statsAggLocation) {
@@ -82,6 +95,18 @@ public class NotificationThread implements Runnable  {
         if (ApplicationConfiguration.isAlertSendEmailEnabled() && !emailAddesses.isEmpty()) {
             sendEmail(emailAddesses, subject_, body_);
         }
+        
+        if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()){
+            buildPagerDutyEvent(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup, metricGroupTags);
+            String routingKey;
+            if ((alertLevel_ == Alert.CAUTION) && !isPositiveAlert_) routingKey = getToPagerDutyApiKeyForAlert(alert_.getCautionNotificationGroupId());
+            else if ((alertLevel_ == Alert.CAUTION) && isPositiveAlert_) routingKey = getToPagerDutyApiKeyForAlert(alert_.getCautionPositiveNotificationGroupId());
+            else if ((alertLevel_ == Alert.DANGER) && !isPositiveAlert_) routingKey = getToPagerDutyApiKeyForAlert(alert_.getDangerNotificationGroupId());
+            else if ((alertLevel_ == Alert.DANGER) && isPositiveAlert_) routingKey = getToPagerDutyApiKeyForAlert(alert_.getDangerPositiveNotificationGroupId());
+            else routingKey = null;
+            sendPagerDutyEvent(routingKey, payload_);
+        }
+        
     }
     
     public void buildAlertEmail(Integer numMetricKeysPerEmail, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags) {
@@ -347,12 +372,223 @@ public class NotificationThread implements Runnable  {
         return emailAddessesList;
     }
     
+    public static String getToPagerDutyApiKeyForAlert(Integer notificationGroupId) {
+        
+        String routing_key = null;
+        
+        if (notificationGroupId == null) {
+            return null;
+        }
+        
+        NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);
+        
+        if ((notificationGroup != null) && (notificationGroup.getPagerdutyServiceId() != null)){
+            PagerdutyService pagerDutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, notificationGroup.getPagerdutyServiceId());
+            if ((pagerDutyService != null) && (pagerDutyService.getRoutingKey() != null)){
+                routing_key = pagerDutyService.getRoutingKey();
+            }
+        }
+        
+        return routing_key;
+        
+    }
+    
+    public void buildPagerDutyEvent(Integer numMetricKeysPerEmail, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags) {
+        
+        if ((alert_ == null) || ((alertLevel_ != Alert.CAUTION) && (alertLevel_ != Alert.DANGER)) || (metricGroup == null) || (numMetricKeysPerEmail == null)) {
+            logger.error("Failed to create PagerDuty event.");
+            return;
+        }
+        
+        String warningLevelString = null;
+        String pdSeverity = null;
+        if (alertLevel_ == Alert.CAUTION) {
+            warningLevelString = "Caution";
+            pdSeverity = "warning";
+        } else if (alertLevel_ == Alert.DANGER) {
+            warningLevelString = "Danger"; 
+            pdSeverity = "critical";
+        }
+        
+        String summary;
+        
+        if (isPositiveAlert_) summary = "StatsAgg Positive Alert, " + warningLevelString + ", Name=\"" + alert_.getName() + "\"";
+        else summary = "StatsAgg Alert, " + warningLevelString + ", Name=\"" + alert_.getName() + "\"";
+
+        JsonObject json = new JsonObject();
+        json.addProperty("dedup_key", alert_.getId().toString());
+        
+        JsonArray links = new JsonArray();
+        
+        if ((statsAggLocation_ != null) && !statsAggLocation_.isEmpty()) {
+            JsonObject statsaggLink = new JsonObject();
+            statsaggLink.addProperty("text","StatsAgg");
+            statsaggLink.addProperty("href",statsAggLocation_);
+            links.add(statsaggLink);
+        }
+        
+        if ((alertLevel_ == Alert.CAUTION) && (statsAggLocation_ != null) && !statsAggLocation_.isEmpty() && (alert_ != null) && (alert_.getName() != null)) {
+            StringBuilder cautionMetricsURL = new StringBuilder();
+            cautionMetricsURL.append(statsAggLocation_).append("/AlertAssociations?Name=").append(StatsAggHtmlFramework.urlEncode(alert_.getName())).append("&Level=" + "Caution");
+            JsonObject triggeredCautionMetrics = new JsonObject();
+            triggeredCautionMetrics.addProperty("text","Currently Triggered Caution Metrics");
+            triggeredCautionMetrics.addProperty("href",cautionMetricsURL.toString());
+            links.add(triggeredCautionMetrics);
+        }
+        
+        if ((alertLevel_ == Alert.DANGER) && (statsAggLocation_ != null) && !statsAggLocation_.isEmpty() && (alert_ != null) && (alert_.getName() != null)) {
+            StringBuilder dangerMetricsURL = new StringBuilder();
+            dangerMetricsURL.append(statsAggLocation_).append("/AlertAssociations?Name=").append(StatsAggHtmlFramework.urlEncode(alert_.getName())).append("&Level=" + "Danger");
+            JsonObject triggeredDangerMetrics = new JsonObject();
+            triggeredDangerMetrics.addProperty("text","Currently Triggered Danger Metrics");
+            triggeredDangerMetrics.addProperty("href",dangerMetricsURL.toString());
+            links.add(triggeredDangerMetrics);
+        }
+        
+        if (links.size()>0) json.add("links", links);
+
+        JsonObject payload = new JsonObject();
+        json.add("payload",payload);
+        payload.addProperty("summary",summary);
+        payload.addProperty("source", "See Custom Details");
+        payload.addProperty("severity", pdSeverity);
+        
+        if (!isPositiveAlert_) {
+            json.addProperty("event_action","trigger");
+            
+            JsonObject customDetails = new JsonObject();
+            payload.add("custom_details",customDetails);
+            
+            Calendar currentDateAndTime = Calendar.getInstance();
+            SimpleDateFormat dateAndTimeFormat = new SimpleDateFormat("yyyy-MM-dd  h:mm:ss a  z");
+            String formattedDateAndTime = dateAndTimeFormat.format(currentDateAndTime.getTime());
+
+            String alertTriggeredAt = null;
+            if (isResend_) alertTriggeredAt = alert_.getHumanReadable_AmountOfTimeAlertIsTriggered(alertLevel_, currentDateAndTime);
+        
+            customDetails.addProperty("Current Time",formattedDateAndTime);
+            if (alertTriggeredAt != null) customDetails.addProperty("Alert Triggered Time",alertTriggeredAt);
+            customDetails.addProperty("Alert Name",alert_.getName());
+        
+            if (alert_.getDescription() != null) customDetails.addProperty("Alert Description",alert_.getDescription());
+            if (metricGroup.getName() != null) customDetails.addProperty("Metric Group Name",metricGroup.getName());
+            if (metricGroup.getDescription() != null) customDetails.addProperty("Metric Group Description",metricGroup.getDescription());
+            if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
+                StringBuilder sbTags = new StringBuilder();
+                String prefix = "";
+                for (MetricGroupTag metricGroupTag : metricGroupTags) {
+                    if ((metricGroupTag != null) && (metricGroupTag.getTag() != null) && !metricGroupTag.getTag().trim().isEmpty()) {
+                        sbTags.append(prefix).append(metricGroupTag.getTag().trim());
+                        prefix = " ";
+                    }
+                }
+                customDetails.addProperty("Tags",sbTags.toString());
+            }
+            
+            StringBuilder alertCriteriaSB = new StringBuilder();
+            alertCriteriaSB.append("One or more metrics associated with the metric group ").append(metricGroup.getName())
+                    .append(" meet the following criteria:");
+        
+            JsonObject alertCriteriaJson = new JsonObject();
+            customDetails.add(alertCriteriaSB.toString(),alertCriteriaJson);
+        
+            if (alert_.getAlertType() == Alert.TYPE_AVAILABILITY) {
+                alertCriteriaJson.addProperty("1",alert_.getHumanReadable_AlertCriteria_AvailabilityCriteria(alertLevel_));
+            }
+            else if (alert_.getAlertType() == Alert.TYPE_THRESHOLD) {
+                alertCriteriaJson.addProperty("1",alert_.getHumanReadable_AlertCriteria_MinimumSampleCount(alertLevel_));
+                alertCriteriaJson.addProperty("2",alert_.getHumanReadable_AlertCriteria_ThresholdCriteria(alertLevel_));
+            }
+
+            JsonObject triggeredMetrics = new JsonObject();
+            List<String> sortedMetricKeys = sortAndLimitMetricsForEmail(metricKeys_, numMetricKeysPerEmail);
+            int counter = 0;
+            
+            customDetails.add("The following metric(s) are in an alerted state (metric name/value):",triggeredMetrics);
+            
+            for (String metricKey : sortedMetricKeys) {
+                triggeredMetrics.addProperty(metricKey,"");
+                
+                BigDecimal alertMetricValue = alertMetricValues_.get(metricKey + "-" + alert_.getId());
+                if (alertMetricValue != null) {
+                    String metricValueString_WithLabel = Alert.getMetricValueString_WithLabel(alertLevel_, alert_, alertMetricValue);
+                    if (metricValueString_WithLabel != null) triggeredMetrics.addProperty(metricKey,metricValueString_WithLabel);
+                }
+                
+                counter++;
+            }
+            
+            if (counter == numMetricKeysPerEmail) { 
+                triggeredMetrics.addProperty("... "+(metricKeys_.size() - numMetricKeysPerEmail)+" more","");
+            }
+        } else {
+            json.addProperty("event_action","resolve");
+        }
+        
+        payload_ = json;
+        logger.debug(json.toString());
+        
+    }
+    
+    public void sendPagerDutyEvent(String routingKey, JsonObject event) {
+        
+        if (routingKey == null) {
+            String cleanSubject = StringUtilities.removeNewlinesFromString(event.getAsJsonObject("payload").get("summary").toString(), ' ');
+            logger.debug("Message=\"Failed to send pager duty event. No valid API keys.\", Subject=\"" + cleanSubject + "\"");
+            return;
+        }
+        
+        int allowedSendAttempts = 5;
+        
+        for (int j = 0; j < allowedSendAttempts; j++) {
+            try {
+                event.addProperty("routing_key",routingKey);
+
+                HttpClient httpClient = HttpClientBuilder.create().build();
+                StringEntity params = new StringEntity(event.toString());
+
+                HttpPost request = new HttpPost("https://events.pagerduty.com/v2/enqueue");
+                request.addHeader("content-type", "application/json");
+                request.setEntity(params);
+
+                HttpResponse response = httpClient.execute(request);
+
+                String cleanSubject = StringUtilities.removeNewlinesFromString(event.getAsJsonObject("payload").get("summary").toString(), ' ');
+                String cleanBody = StringUtilities.removeNewlinesFromString(event.toString(), ' ');
+
+                if (response.getStatusLine().getStatusCode() < 400){
+                    logger.info("Message=\"Sent pager duty event. Response was " + response.getStatusLine() + "\", Subject=\"" + cleanSubject + "\"" + ", Event=\"" + cleanBody + "\"");
+                    return;
+                }
+                else {
+                    logger.error("Message=\"Failed to send pager duty event. " + response.getStatusLine() + ".\", Subject=\"" + cleanSubject + "\"");
+                    Threads.sleepSeconds(5);
+                }
+
+            }
+            catch (Exception e) {
+                String cleanSubject = StringUtilities.removeNewlinesFromString(event.getAsJsonObject("payload").get("summary").toString(), ' ');
+                logger.error("Message=\"Failed to send pager duty event. \", " + "Subject=\"" + cleanSubject + "\", " +
+                        e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                Threads.sleepSeconds(5);
+            }
+        }
+        
+        String cleanSubject = StringUtilities.removeNewlinesFromString(event.getAsJsonObject("payload").get("summary").toString(), ' ');
+        logger.error("Message=\"Failed to send pager duty alert " + allowedSendAttempts + " times. Alert will not be sent\", " + "Subject=\"" + cleanSubject + "\"");
+
+    }
+    
     public String getSubject() {
         return subject_;
     }
 
     public String getBody() {
         return body_;
+    }
+    
+    public JsonObject getPayload() {
+        return payload_;
     }
     
 }
