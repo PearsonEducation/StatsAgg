@@ -425,7 +425,7 @@ public class NotificationGroups extends HttpServlet {
         
         String apiKey = NotificationThread.getPagerdutyRoutingKeyForAlert(notificationGroup.getId());
         
-        notificationThread.sendPagerDutyEvent(apiKey, notificationThread.getPagerdutyPayload());
+        notificationThread.sendPagerdutyEvent(apiKey, notificationThread.getPagerdutyPayload());
 
         String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test pager duty event to notification group '" + cleanNotificationGroupName + "'");
