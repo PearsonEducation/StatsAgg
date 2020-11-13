@@ -170,7 +170,7 @@ public class AlertPreview extends HttpServlet {
                 NotificationThread notificationThread = new NotificationThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 notificationThread.buildAlertEmail(2, metricGroup, metricGroupTags);
-                return notificationThread.getBody();
+                return notificationThread.getEmailBody();
             }
             else {
                 return "This alert's caution criteria is not valid";
@@ -184,7 +184,7 @@ public class AlertPreview extends HttpServlet {
                 NotificationThread emailThread = new NotificationThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup, metricGroupTags);
-                return emailThread.getBody();
+                return emailThread.getEmailBody();
             }
             else {
                 return "This alert's danger criteria is not valid";

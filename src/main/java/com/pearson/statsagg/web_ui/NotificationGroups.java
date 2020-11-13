@@ -368,7 +368,7 @@ public class NotificationGroups extends HttpServlet {
         
         List<String> emailsAddresses = NotificationThread.getToEmailsAddressesForAlert(notificationGroup.getId());
         
-        notificationThread.sendEmail(emailsAddresses, notificationThread.getSubject(), notificationThread.getBody());
+        notificationThread.sendEmail(emailsAddresses, notificationThread.getSubject(), notificationThread.getEmailBody());
 
         String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test email alert to notification group '" + cleanNotificationGroupName + "'");
@@ -421,11 +421,11 @@ public class NotificationGroups extends HttpServlet {
         
         NotificationThread notificationThread = new NotificationThread(testAlert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                 false, false, ApplicationConfiguration.getAlertStatsAggLocation());
-        notificationThread.buildPagerDutyEvent(3, metricGroup, metricGroupTags);
+        notificationThread.buildPagerdutyEvent(3, metricGroup, metricGroupTags);
         
-        String apiKey = NotificationThread.getToPagerDutyApiKeyForAlert(notificationGroup.getId());
+        String apiKey = NotificationThread.getPagerdutyRoutingKeyForAlert(notificationGroup.getId());
         
-        notificationThread.sendPagerDutyEvent(apiKey, notificationThread.getPayload());
+        notificationThread.sendPagerDutyEvent(apiKey, notificationThread.getPagerdutyPayload());
 
         String cleanNotificationGroupName = StringUtilities.removeNewlinesFromString(notificationGroup.getName(), ' ');
         logger.info("Sent test pager duty event to notification group '" + cleanNotificationGroupName + "'");
