@@ -49,7 +49,9 @@ public class StatsAggHtmlFramework {
                     "<link href=\"css/dataTables.colVis.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/jquery.dataTables.yadcf.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/colorbox.css\" rel=\"stylesheet\">\n" +
-                    "<link href=\"font-awesome/css/font-awesome.min.css\" rel=\"stylesheet\">" +
+                    "<link href=\"font-awesome/css/fontawesome.min.css\" rel=\"stylesheet\">" +
+                    "<link href=\"font-awesome/css/all.min.css\" rel=\"stylesheet\">" +
+                    "<link href=\"font-awesome/css/v4-shims.min.css\" rel=\"stylesheet\">" +
                     "<link href=\"css/typeahead.css\" rel=\"stylesheet\">\n" +
                     "<link href=\"css/statsagg.css\" rel=\"stylesheet\">\n");
         
@@ -103,7 +105,7 @@ public class StatsAggHtmlFramework {
                     "          <li><a href=\"NotificationGroups\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Groups </a></li>\n");
             
             if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
-                body.append("          <li><a href=\"PagerDutyServices\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;PagerDuty Services </a></li>\n");
+                body.append("          <li><a href=\"PagerDutyServices\"><i class=\"fas fa-pager\"></i>&nbsp;&nbsp;PagerDuty Services </a></li>\n");
             }
             
             body.append("        </ul> \n" +
