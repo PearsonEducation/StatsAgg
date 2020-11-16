@@ -91,7 +91,7 @@ public class CreateAlert extends HttpServlet {
             String name = request.getParameter("Name");
             if (name != null) alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name.trim());      
 
-            String htmlBodyContents = buildCreateAlertHtml(alert);
+            String htmlBodyContents = buildCreateAlertHtml(alert, false);
             List<String> additionalJavascript = new ArrayList<>();
             additionalJavascript.add("js/statsagg_create_alert.js");
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
@@ -155,19 +155,25 @@ public class CreateAlert extends HttpServlet {
         }
     }
 
-    protected static String buildCreateAlertHtml(Alert alert) {
+    @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
+    protected static String buildCreateAlertHtml(Alert alert, boolean isAlertTemplate) {
         
         StringBuilder htmlBody = new StringBuilder();
+        
+        String pageName = (isAlertTemplate) ? "Create Alert Template" : PAGE_NAME;
         
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
             "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "  <div class=\"content-header\"> \n" +
-            "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
-            "  </div>\n " +
-            "  <form action=\"CreateAlert\" method=\"POST\">\n" +
-            "    <div class=\"row create-alert-form-row\">\n");
+            "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + pageName + " </h2> </div>\n" +
+            "  </div>\n ");
+        
+        if (!isAlertTemplate) htmlBody.append("  <form action=\"CreateAlert\" method=\"POST\">\n");
+        if (isAlertTemplate) htmlBody.append("  <form action=\"CreateAlertTemplate\" method=\"POST\">\n");
+
+        htmlBody.append(    "    <div class=\"row create-alert-form-row\">\n");
 
         if ((alert != null) && (alert.getName() != null) && !alert.getName().isEmpty()) {
             htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\">");
@@ -992,6 +998,7 @@ public class CreateAlert extends HttpServlet {
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
             
             alert.setIsTemplate(isAlertTemplate);
+            alert.setIsTemplateDerived(false); // add more logic later
             
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");

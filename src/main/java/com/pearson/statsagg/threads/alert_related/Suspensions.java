@@ -44,7 +44,7 @@ public class Suspensions {
     
     public Suspensions() {
         // gets all alerts from the database.
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
         alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
     }
     
@@ -55,7 +55,7 @@ public class Suspensions {
         } 
         else {
             // gets all alerts from the database.
-            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
             alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
         }
         

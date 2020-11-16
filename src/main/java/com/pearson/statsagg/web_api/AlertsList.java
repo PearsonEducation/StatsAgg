@@ -97,7 +97,7 @@ public class AlertsList extends HttpServlet {
         Connection connection = DatabaseConnections.getConnection();
         
         try {
-            List<Alert> alerts = AlertsDao.getAlerts(connection, false);
+            List<Alert> alerts = AlertsDao.getAlerts(connection, false, false);
             if (alerts == null) alerts = new ArrayList<>();
             
             List<JsonObject> alertsJsonObjects = new ArrayList<>();

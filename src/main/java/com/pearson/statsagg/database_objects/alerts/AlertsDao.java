@@ -22,7 +22,7 @@ public class AlertsDao {
         try {                   
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     AlertsSql.Insert_Alert, 
-                    alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
+                    alert.getName(), alert.getUppercaseName(), alert.isTemplate(), alert.isTemplateDerived(), alert.getDescription(), alert.getMetricGroupId(), 
                     alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                     alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
                     alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
@@ -51,7 +51,7 @@ public class AlertsDao {
         try {                    
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     AlertsSql.Update_Alert_ByPrimaryKey, 
-                    alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
+                    alert.getName(), alert.getUppercaseName(), alert.isTemplate(), alert.isTemplateDerived(), alert.getDescription(), alert.getMetricGroupId(), 
                     alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
                     alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
                     alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
@@ -140,12 +140,21 @@ public class AlertsDao {
         
     }
 
-    public static List<Alert> getAlerts(Connection connection, boolean closeConnectionOnCompletion) {
+    public static List<Alert> getAlerts(Connection connection, boolean closeConnectionOnCompletion, boolean includeTemplates) {
         
         try {
-            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
-                    new AlertsResultSetHandler(), 
-                    AlertsSql.Select_AllAlerts);
+            List<Alert> alerts;
+            
+            if (includeTemplates) {
+                alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_AllAlerts);
+            }
+            else {
+                alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_Alerts_NoTemplates);
+            }
             
             return alerts;
         }
@@ -159,6 +168,25 @@ public class AlertsDao {
         
     }
 
+    public static List<Alert> getAlertTemplates(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_Alerts_OnlyTemplates);
+            
+            return alerts;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+        
     public static Alert getAlert(Connection connection, boolean closeConnectionOnCompletion, String alertName) {
         
         try {
@@ -178,7 +206,33 @@ public class AlertsDao {
         
     }
     
-    public static List<String> getAlertNames(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
+    public static Set<String> getAlertNames(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_AlertNames);
+            
+            Set<String> alertNames = new HashSet<>();
+            if (alerts == null) return alertNames;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) alertNames.add(alert.getName());
+            }
+            
+            return alertNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<String> getAlertNames_NoTemplates(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
         
         try {
             List<String> alertNames = new ArrayList<>();
@@ -186,7 +240,7 @@ public class AlertsDao {
             List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new AlertsResultSetHandler(), 
                     (resultSetLimit + 5), 
-                    AlertsSql.Select_Alert_Names_OrderByName,
+                    AlertsSql.Select_Alert_Names_NoTemplates_OrderByName,
                     ("%" + filter + "%"));
             
             if ((alerts == null) || alerts.isEmpty()) return alertNames;

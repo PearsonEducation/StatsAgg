@@ -6,6 +6,7 @@ import com.pearson.statsagg.web_ui.AlertAssociations;
 import com.pearson.statsagg.web_ui.AlertDetails;
 import com.pearson.statsagg.web_ui.AlertPreview;
 import com.pearson.statsagg.web_ui.AlertTemplateDetails;
+import com.pearson.statsagg.web_ui.AlertTemplates;
 import com.pearson.statsagg.web_ui.Alert_SuspensionAssociations;
 import com.pearson.statsagg.web_ui.Alerts;
 import com.pearson.statsagg.web_ui.AlertsReport;
@@ -116,6 +117,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(AlertDetails.class, "/AlertDetails");
         servletContextHandler.addServlet(AlertPreview.class, "/AlertPreview");
         servletContextHandler.addServlet(AlertTemplateDetails.class, "/AlertTemplateDetails");
+        servletContextHandler.addServlet(AlertTemplates.class, "/AlertTemplates");
         servletContextHandler.addServlet(Alert_SuspensionAssociations.class, "/Alert-SuspensionAssociations");
         servletContextHandler.addServlet(Alerts.class, "/Alerts");
         servletContextHandler.addServlet(AlertsReport.class, "/AlertsReport");

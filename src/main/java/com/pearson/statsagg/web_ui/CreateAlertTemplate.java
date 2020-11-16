@@ -83,7 +83,7 @@ public class CreateAlertTemplate extends HttpServlet {
             String name = request.getParameter("Name");
             if (name != null) alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name.trim());      
 
-            String htmlBodyContents = CreateAlert.buildCreateAlertHtml(alert);
+            String htmlBodyContents = CreateAlert.buildCreateAlertHtml(alert, true);
             List<String> additionalJavascript = new ArrayList<>();
             additionalJavascript.add("js/statsagg_create_alert.js");
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
@@ -128,7 +128,7 @@ public class CreateAlertTemplate extends HttpServlet {
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
-            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "Alerts", Alerts.PAGE_NAME);
+            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "AlertTemplates", Alerts.PAGE_NAME);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContent);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             

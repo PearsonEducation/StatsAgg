@@ -105,7 +105,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        List<String> alertNames = AlertsDao.getAlertNames(DatabaseConnections.getConnection(), true, alertNamesQuery, 10);
+        List<String> alertNames = AlertsDao.getAlertNames_NoTemplates(DatabaseConnections.getConnection(), true, alertNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         

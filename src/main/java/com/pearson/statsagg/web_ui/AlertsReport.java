@@ -162,7 +162,7 @@ public class AlertsReport extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
         Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true);
         
         Connection connection = DatabaseConnections.getConnection();

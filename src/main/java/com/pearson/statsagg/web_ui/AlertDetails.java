@@ -125,14 +125,16 @@ public class AlertDetails extends HttpServlet {
 
     protected static String getAlertDetailsString(String alertName, boolean isAlertTemplate) {
         
-        if (alertName == null) {
-            return "<div class=\"col-md-4\"><b>No alert specified</b></div>";
-        }
+        if (alertName == null && !isAlertTemplate) return "<div class=\"col-md-4\"><b>No alert specified</b></div>";
+        else if (alertName == null && isAlertTemplate) return "<div class=\"col-md-4\"><b>No alert template specified</b></div>";
         
         Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         
-        if (alert == null) {
+        if (alert == null && !isAlertTemplate) {
             return "<div class=\"col-md-4\"><b>Alert not found</b></div>";
+        }
+        else if (alert == null && isAlertTemplate) {
+            return "<div class=\"col-md-4\"><b>Alert template not found</b></div>";
         }
         else {
             StringBuilder outputString = new StringBuilder();
@@ -159,6 +161,11 @@ public class AlertDetails extends HttpServlet {
                 String isAlertTemplateString = "No";
                 if ((alert.isTemplate() != null) && alert.isTemplate()) isAlertTemplateString = "Yes";
                 outputString.append("<b>Is alert template?</b> = ").append(isAlertTemplateString).append("<br>");
+            }
+            else {
+                String isAlertTemplateDerivedString = "No";
+                if ((alert.isTemplateDerived() != null) && alert.isTemplateDerived()) isAlertTemplateDerivedString = "Yes";
+                outputString.append("<b>Is alert template derived?</b> = ").append(isAlertTemplateDerivedString).append("<br>");
             }
             
             outputString.append("<b>Description</b> = ");

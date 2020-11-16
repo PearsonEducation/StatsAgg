@@ -130,7 +130,7 @@ public class Home extends HttpServlet {
         
         try {
             isConnectionValid = connection.isValid(5);
-            alerts = AlertsDao.getAlerts(connection, false);
+            alerts = AlertsDao.getAlerts(connection, false, false);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

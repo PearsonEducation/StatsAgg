@@ -8,7 +8,6 @@ import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -21,7 +20,6 @@ import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.threads.alert_related.NotificationThread;
@@ -96,7 +94,7 @@ public class Alerts extends HttpServlet {
         PrintWriter out = null;
                 
         try {
-            String html = buildAlertsHtml(false);
+            String html = buildAlertsHtml();
             
             Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
@@ -215,20 +213,15 @@ public class Alerts extends HttpServlet {
             return;
         }
         
-        try {
-            Connection connection = DatabaseConnections.getConnection();
-            Alert alert = AlertsDao.getAlert(connection, false, alertId);
-            List<Alert> allAlerts = AlertsDao.getAlerts(connection, false);
-            DatabaseUtils.cleanup(connection);
+        Connection connection = null;
         
+        try {
+            connection = DatabaseConnections.getConnection(); 
+            Alert alert = AlertsDao.getAlert(connection, false, alertId);
+
             if ((alert != null) && (alert.getName() != null)) {
-                Set<String> allAlertNames = new HashSet<>();
-                for (Alert currentAlert : allAlerts) {
-                    if (currentAlert.getName() != null) {
-                        allAlertNames.add(currentAlert.getName());
-                    }
-                }
-                
+                Set<String> allAlertNames = AlertsDao.getAlertNames(connection, true);
+
                 Alert clonedAlert = Alert.copy(alert);
                 clonedAlert.setId(-1);
                 String clonedAlertName = StatsAggHtmlFramework.createCloneName(alert.getName(), allAlertNames);
@@ -258,6 +251,10 @@ public class Alerts extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
     public static String removeAlert(Integer alertId) {
@@ -285,7 +282,7 @@ public class Alerts extends HttpServlet {
         return returnString;
     }
     
-    public static String buildAlertsHtml(boolean showAlertTemplates) {
+    public static String buildAlertsHtml() {
         
         StringBuilder html = new StringBuilder();
 
@@ -306,7 +303,7 @@ public class Alerts extends HttpServlet {
             "  <table id=\"AlertsTable\" style=\"display:none\" class=\"table table-bordered table-hover compact\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
-            "         <th>Alert name</th>\n" +
+            "         <th>Alert Name</th>\n" +
             "         <th>Metric Group Association</th>\n" +
             "         <th>Metric Group Tags</th>\n" +
             "         <th>Caution Notification Group</th>\n" +
@@ -324,7 +321,7 @@ public class Alerts extends HttpServlet {
 
         Connection connection = DatabaseConnections.getConnection();
         DatabaseUtils.setAutoCommit(connection, false);
-        List<Alert> alerts = AlertsDao.getAlerts(connection, false);
+        List<Alert> alerts = AlertsDao.getAlerts(connection, false, false);
         Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(connection, false);
         Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
         Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = SuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId(connection, false);
@@ -332,10 +329,6 @@ public class Alerts extends HttpServlet {
         
         for (Alert alert : alerts) {
             if (alert == null) continue;
-            
-            boolean isAlertTemplate = (alert.isTemplate() != null) && alert.isTemplate();
-            if (showAlertTemplates && !isAlertTemplate) continue;
-            else if (!showAlertTemplates && isAlertTemplate) continue;
 
             String rowAlertStatusContext = "";
             boolean isRowStatusInfo = false;
@@ -361,9 +354,6 @@ public class Alerts extends HttpServlet {
             
             if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
             else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
-            
-            // templates don't need alert status highlighting
-            if (showAlertTemplates) rowAlertStatusContext = "";
                 
             String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
             

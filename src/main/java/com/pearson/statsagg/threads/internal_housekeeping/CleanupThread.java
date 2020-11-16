@@ -77,7 +77,7 @@ public class CleanupThread implements Runnable {
         // prevents cleanup from running at the same time as the alert routine
         synchronized (GlobalVariables.alertRoutineLock) {
             // always remove metric data points 
-            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
             List<Alert> enabledAlerts = AlertThread.getEnabledAlerts(alerts);
             String cleanupRecentMetricTimestampsAndValuesOutput = cleanupRecentMetricTimestampsAndValues(enabledAlerts);
             String cleanupSubroutineOutputMessages = cleanupRecentMetricTimestampsAndValuesOutput;

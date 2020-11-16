@@ -121,6 +121,61 @@ function yadcf_init_AlertsTable(alertsTable) {
     ], 'footer');
 }
         
+// Setup for the table found on the 'Alert Templates' page
+$(document).ready(function () {
+    var table = document.getElementById('AlertTemplatesTable');
+
+    if (table !== null) {
+        var alertsTemplatesTable = $('#AlertTemplatesTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000, // 30 days
+            "columnDefs": [
+                {
+                    "targets": [3],
+                    "visible": true
+                },
+                {
+                    "targets": [4],
+                    "visible": true
+                }
+            ]});
+        
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) alertsTemplatesTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_AlertTemplatesTable(alertsTemplatesTable);
+
+        var colvis = new $.fn.dataTable.ColVis(alertsTemplatesTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#AlertTemplatesTable_filter');
+        
+        // re-initialize yadcf when a column is unhidden
+        alertsTemplatesTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_AlertTemplatesTable(alertsTemplatesTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+
+function yadcf_init_AlertTemplatesTable(alertsTemplatesTable) {
+    yadcf.init(alertsTemplatesTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 6, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
+
 // Setup for the table found on the 'Suspensions' page
 $(document).ready(function () {
     var table = document.getElementById('SuspensionsTable');
