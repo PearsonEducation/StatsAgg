@@ -80,6 +80,18 @@ public class DatabaseConnections {
         return DatabaseUtils.getConnection(connectionPool_);
     }
     
+    public static Connection getConnection(boolean autoCommit) {
+        
+        if ((connectionPool_ == null) || !connectionPool_.isRunning()) {
+            return null;
+        }
+        
+        Connection connection = DatabaseUtils.getConnection(connectionPool_);
+        DatabaseUtils.setAutoCommit(connection, autoCommit);
+        
+        return connection;
+    }
+    
     public static DataSource getDatasource() {
         return connectionPool_;
     }
