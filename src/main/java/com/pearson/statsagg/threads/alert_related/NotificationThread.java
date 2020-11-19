@@ -87,14 +87,14 @@ public class NotificationThread implements Runnable  {
             if (ApplicationConfiguration.isAlertSendEmailEnabled()) {
                 buildAlertEmail(ApplicationConfiguration.getAlertMaxMetricsInEmail(), metricGroup, metricGroupTags);
                 
-                List<String> emailAddesses;
-                if ((alertLevel_ == Alert.CAUTION) && !isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
-                else if ((alertLevel_ == Alert.CAUTION) && isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getCautionPositiveNotificationGroupId());
-                else if ((alertLevel_ == Alert.DANGER) && !isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerNotificationGroupId());
-                else if ((alertLevel_ == Alert.DANGER) && isPositiveAlert_) emailAddesses = getToEmailsAddressesForAlert(alert_.getDangerPositiveNotificationGroupId());
-                else emailAddesses = new ArrayList();
+                List<String> emailAddresses;
+                if ((alertLevel_ == Alert.CAUTION) && !isPositiveAlert_) emailAddresses = getToEmailsAddressesForAlert(alert_.getCautionNotificationGroupId());
+                else if ((alertLevel_ == Alert.CAUTION) && isPositiveAlert_) emailAddresses = getToEmailsAddressesForAlert(alert_.getCautionPositiveNotificationGroupId());
+                else if ((alertLevel_ == Alert.DANGER) && !isPositiveAlert_) emailAddresses = getToEmailsAddressesForAlert(alert_.getDangerNotificationGroupId());
+                else if ((alertLevel_ == Alert.DANGER) && isPositiveAlert_) emailAddresses = getToEmailsAddressesForAlert(alert_.getDangerPositiveNotificationGroupId());
+                else emailAddresses = new ArrayList();
                 
-                if (!emailAddesses.isEmpty()) sendEmail(emailAddesses, emailSubject_, emailBody_);
+                if (!emailAddresses.isEmpty()) sendEmail(emailAddresses, emailSubject_, emailBody_);
             }
 
             if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()){
