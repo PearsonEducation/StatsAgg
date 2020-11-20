@@ -1,11 +1,12 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.suspensions.SuspensionsLogic;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDaoWrapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -554,21 +555,26 @@ public class CreateSuspension extends HttpServlet {
         }
         
         // insert/update/delete records in the database
-        if (suspension != null) {
-            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-            returnString = suspensionsLogic.alterRecordInDatabase(suspension, oldName);
-            
-            if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
+        DatabaseObjectValidation databaseObjectValidation = Suspension.isValid(suspension);
+        
+        if (suspension == null) {
+            returnString = "Failed to create or alter suspension. Reason=\"One or more invalid suspension fields detected\".";
+            logger.warn(returnString);
+        } 
+        else if (!databaseObjectValidation.isValid()) {
+            returnString = "Failed to create or alter suspension. Reason=\"" + databaseObjectValidation.getReason() + "\".";
+        }
+        else {
+            SuspensionsDaoWrapper suspensionsDaoWrapper = SuspensionsDaoWrapper.alterRecordInDatabase(suspension, oldName);
+            returnString = suspensionsDaoWrapper.getReturnString();
+
+            if (suspensionsDaoWrapper.getLastAlterRecordStatus() == SuspensionsDaoWrapper.STATUS_CODE_SUCCESS) {
                 logger.info("Running suspension routine");
                 com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
             }
         }
-        else {
-            returnString = "Failed to add suspension. Reason=\"Field validation failed.\"";
-            logger.warn(returnString);
-        }
-        
+
         return returnString;
     }
     
@@ -577,9 +583,7 @@ public class CreateSuspension extends HttpServlet {
         if (request == null) {
             return null;
         }
-        
-        boolean didEncounterError = false;
-        
+                
         Suspension suspension = new Suspension();
 
         try {
@@ -590,8 +594,6 @@ public class CreateSuspension extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             suspension.setName(trimmedName);
-            suspension.setUppercaseName(trimmedName.toUpperCase());
-            if ((suspension.getName() == null) || suspension.getName().isEmpty()) didEncounterError = true;
             
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
@@ -781,14 +783,10 @@ public class CreateSuspension extends HttpServlet {
             }
         }
         catch (Exception e) {
-            didEncounterError = true;
+            suspension = null;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (didEncounterError) suspension = null;
-        boolean isValid = Suspension.isValid(suspension);
-        if (!isValid) suspension = null;
-        
         return suspension;
     }
     
