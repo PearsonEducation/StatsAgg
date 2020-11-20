@@ -201,7 +201,6 @@ public class Alert implements DatabaseObject<Alert> {
         
         alertCopy.setId(alert.getId());
         alertCopy.setName(alert.getName());
-        alertCopy.setUppercaseName(alert.getUppercaseName());
         alertCopy.setIsTemplate(alert.isTemplate());
         alertCopy.setIsTemplateDerived(alert.isTemplateDerived());
         alertCopy.setDescription(alert.getDescription());
@@ -1133,14 +1132,11 @@ public class Alert implements DatabaseObject<Alert> {
     
     public void setName(String name) {
         this.name_ = name;
+        if (name != null) this.uppercaseName_ = name.toUpperCase();
     }
     
     public String getUppercaseName() {
         return uppercaseName_;
-    }
-
-    public void setUppercaseName(String uppercaseName) {
-        this.uppercaseName_ = uppercaseName;
     }
     
     public Boolean isTemplate() {

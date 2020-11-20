@@ -118,7 +118,6 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         
         notificationGroupCopy.setId(notificationGroup.getId());
         notificationGroupCopy.setName(notificationGroup.getName());
-        notificationGroupCopy.setUppercaseName(notificationGroup.getUppercaseName());
         notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
         notificationGroupCopy.setPagerdutyServiceId(notificationGroup.getPagerdutyServiceId());
         
@@ -192,16 +191,13 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
 
     public void setName(String name) {
         this.name_ = name;
+        if (name != null) this.uppercaseName_ = name.toUpperCase();
     }
     
     public String getUppercaseName() {
         return uppercaseName_;
     }
 
-    public void setUppercaseName(String uppercaseName) {
-        this.uppercaseName_ = uppercaseName;
-    }
-    
     public String getEmailAddresses() {
         return emailAddresses_;
     }

@@ -72,7 +72,6 @@ public class MetricGroup implements DatabaseObject<MetricGroup>  {
         
         metricGroupCopy.setId(metricGroup.getId());
         metricGroupCopy.setName(metricGroup.getName());
-        metricGroupCopy.setUppercaseName(metricGroup.getUppercaseName());
         metricGroupCopy.setDescription(metricGroup.getDescription());
         
         return metricGroupCopy;
@@ -183,16 +182,13 @@ public class MetricGroup implements DatabaseObject<MetricGroup>  {
 
     public void setName(String name) {
         this.name_ = name;
+        if (name != null) this.uppercaseName_ = name.toUpperCase();
     }
     
     public String getUppercaseName() {
         return uppercaseName_;
     }
 
-    public void setUppercaseName(String uppercaseName) {
-        this.uppercaseName_ = uppercaseName;
-    }
-    
     public String getDescription() {
         return description_;
     }

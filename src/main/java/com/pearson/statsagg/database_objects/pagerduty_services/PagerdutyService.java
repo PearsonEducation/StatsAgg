@@ -61,7 +61,6 @@ public class PagerdutyService implements DatabaseObject<PagerdutyService> {
         
         pagerdutyServiceCopy.setId(pagerdutyService.getId());
         pagerdutyServiceCopy.setName(pagerdutyService.getName());
-        pagerdutyServiceCopy.setUppercaseName(pagerdutyService.getUppercaseName());
         pagerdutyServiceCopy.setDescription(pagerdutyService.getDescription());
         pagerdutyServiceCopy.setRoutingKey(pagerdutyService.getRoutingKey());
         
@@ -82,14 +81,11 @@ public class PagerdutyService implements DatabaseObject<PagerdutyService> {
 
     public void setName(String name) {
         this.name_ = name;
+        if (name != null) this.uppercaseName_ = name.toUpperCase();
     }
     
     public String getUppercaseName() {
         return uppercaseName_;
-    }
-
-    public void setUppercaseName(String uppercaseName) {
-        this.uppercaseName_ = uppercaseName;
     }
     
     public String getDescription() {
