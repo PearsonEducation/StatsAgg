@@ -10,9 +10,9 @@ import static org.junit.Assert.*;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricGroupsTest {
+public class MetricGroupTest {
     
-    public MetricGroupsTest() {
+    public MetricGroupTest() {
     }
     
     @BeforeClass

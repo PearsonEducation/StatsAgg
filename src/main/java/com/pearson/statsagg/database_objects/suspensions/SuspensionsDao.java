@@ -103,7 +103,38 @@ public class SuspensionsDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Suspension suspension, String oldSuspensionName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            Suspension suspensionFromDb = SuspensionsDao.getSuspension(connection, false, oldSuspensionName);
 
+            boolean upsertSuccess = true;
+            if (suspensionFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, suspension);
+            }
+            else {
+                suspension.setId(suspensionFromDb.getId());
+                if (!suspensionFromDb.isEqual(suspension)) upsertSuccess = update(connection, false, commitOnCompletion, suspension);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Suspension suspension) {
         
         try {                 

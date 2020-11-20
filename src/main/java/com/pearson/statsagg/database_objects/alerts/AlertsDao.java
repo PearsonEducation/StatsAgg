@@ -101,7 +101,38 @@ public class AlertsDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert, String oldAlertName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            Alert alertFromDb = AlertsDao.getAlert(connection, false, oldAlertName);
 
+            boolean upsertSuccess = true;
+            if (alertFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, alert);
+            }
+            else {
+                alert.setId(alertFromDb.getId());
+                if (!alertFromDb.isEqual(alert)) upsertSuccess = update(connection, false, commitOnCompletion, alert);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert) {
         
         try {                 

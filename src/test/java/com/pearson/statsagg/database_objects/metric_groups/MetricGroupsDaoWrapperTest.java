@@ -1,10 +1,7 @@
 package com.pearson.statsagg.database_objects.metric_groups;
 
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsLogic;
 import java.util.List;
 import java.util.TreeSet;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
 import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
@@ -26,11 +23,9 @@ import org.junit.Test;
  *
  * @author Jeffrey Schmidt
  */
-public class MetricGroupsLogicTest {
+public class MetricGroupsDaoWrapperTest {
     
-    private final MetricGroupsLogic metricGroupsLogic_ = new MetricGroupsLogic();
-
-    public MetricGroupsLogicTest() {
+    public MetricGroupsDaoWrapperTest() {
     }
     
     @BeforeClass
@@ -49,12 +44,12 @@ public class MetricGroupsLogicTest {
     @Before
     public void setUp() {
         // delete a metric group that was inserted into the database from a previous test. verify that it was deleted.
-        String result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test");
-        assertTrue(result.contains("success") || result.contains("Metric group not found"));
+        String result = MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test").getReturnString();
+        assertTrue(result.contains("success") || result.contains("The metric group was not found"));
         
         // delete a metric group that was inserted into the database from a previous test. verify that it was deleted.
-        result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test_11");
-        assertTrue(result.contains("success") || result.contains("Metric group not found"));
+        result = MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test_11").getReturnString();
+        assertTrue(result.contains("success") || result.contains("The metric group was not found"));
     }
     
     @After
@@ -63,7 +58,7 @@ public class MetricGroupsLogicTest {
     }
 
     /**
-     * Test of alterRecordInDatabase method, of class MetricGroupsLogic.
+     * Test of alterRecordInDatabase method, of class MetricGroupsDaoWrapper.
      */
     @Test
     public void testAlterRecordInDatabase() {
@@ -75,14 +70,14 @@ public class MetricGroupsLogicTest {
         tags1.add("tag1_1");
         tags1.add("tag1_2");
         
-        String result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, null, null, null);
+        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, null, null, null).getReturnString();
         assertTrue(result.contains("Fail"));
         
-        result = metricGroupsLogic_.alterRecordInDatabase(null, matchRegexes1, null, tags1);
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(null, matchRegexes1, null, tags1).getReturnString();
         assertTrue(result.contains("Fail"));
         
         // create a metric group & insert it into the db
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexes1, null, tags1);
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, matchRegexes1, null, tags1).getReturnString();
         assertTrue(result.contains("Success"));
 
         // check to see that the metric group is in the database & has correct values
@@ -105,7 +100,7 @@ public class MetricGroupsLogicTest {
         assertTrue(metricGroupFromDbOriginalName.getName().contains("metricgroup junit_test"));
         MetricGroup metricGroupFromDbNewName = MetricGroup.copy(metricGroupFromDbOriginalName);
         metricGroupFromDbNewName.setName("metricgroup junit_test_11");
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbNewName, matchRegexes1, null, tags1, metricGroupFromDbNewName.getName());
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbNewName, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName()).getReturnString();
         assertTrue(result.contains("Successful"));
         MetricGroup metricGroupFromDbNewNameVerify = MetricGroupsDao.getMetricGroup(connection, false, metricGroupFromDbNewName.getName()); // pt2
         assertTrue(metricGroupFromDbNewNameVerify.getName().contains(metricGroupFromDbNewName.getName()));
@@ -115,7 +110,7 @@ public class MetricGroupsLogicTest {
         assertEquals(metricGroupFromDbOriginalName_NoResult, null);
         MetricGroup metricGroupFromDbOriginalName_Reset = MetricGroup.copy(metricGroupFromDbOriginalName); // pt4
         metricGroupFromDbOriginalName_Reset.setName(metricGroupFromDbOriginalName.getName());  
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName());
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName()).getReturnString();
         assertTrue(result.contains("Successful"));
         DatabaseUtils.cleanup(connection);
         
@@ -132,9 +127,9 @@ public class MetricGroupsLogicTest {
         tags2.add("tag2_1");
         tags2.add("tag2_2");
         tags2.add("tag2_3");
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2);
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2).getReturnString();
         assertTrue(result.contains("Fail"));
-        result = metricGroupsLogic_.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2, metricGroup2.getName());
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2, metricGroup2.getName()).getReturnString();
         assertTrue(result.contains("Success"));
         
         // check to see that the second metric group is in the database & has correct values
@@ -166,7 +161,7 @@ public class MetricGroupsLogicTest {
         assertEquals(tags2.first(),"tag2_1");
         
         // cleanup
-        metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test");
+        MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test");
         metricGroupFromDb = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, "metricgroup junit_test");
         assertEquals(null, metricGroupFromDb);
         metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroupFromDb2);
@@ -174,7 +169,7 @@ public class MetricGroupsLogicTest {
     }
     
     /**
-     * Test of deleteRecordInDatabase method, of class MetricGroupsLogic.
+     * Test of deleteRecordInDatabase method, of class MetricGroupsDaoWrapper.
      */
     @Test
     public void testDeleteRecordInDatabase() {
@@ -189,7 +184,7 @@ public class MetricGroupsLogicTest {
         TreeSet<String> tags1 = new TreeSet<>();
         tags1.add("tag1_1");
         tags1.add("tag1_2");
-        String result = metricGroupsLogic_.alterRecordInDatabase(metricGroup1, matchRegexes1, blacklistRegexes1, tags1);
+        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, matchRegexes1, blacklistRegexes1, tags1).getReturnString();
         assertTrue(result.contains("Success"));
         
         // check to see that the metric group is in the database & has correct values
@@ -206,7 +201,7 @@ public class MetricGroupsLogicTest {
         assertEquals(tags1.size(), metricGroupTags.size());
         
         // delete the metric group & verify that everything is deleted (metric group, regexes, tags)
-        result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test_delete");
+        result = MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test_delete").getReturnString();
         assertTrue(result.contains("success"));
         metricGroupFromDb = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, "metricgroup junit_test_delete");
         assertEquals(null, metricGroupFromDb);
@@ -215,12 +210,11 @@ public class MetricGroupsLogicTest {
         metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroupIdFromDb);
         assertEquals(0, metricGroupTags.size());
         
-        result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test_delete");
+        result = MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test_delete").getReturnString();
         assertTrue(result.contains("not found"));
         
-        result = metricGroupsLogic_.deleteRecordInDatabase("metricgroup junit_test_this_doesnt_exist");
+        result = MetricGroupsDaoWrapper.deleteRecordInDatabase("metricgroup junit_test_this_doesnt_exist").getReturnString();
         assertTrue(result.contains("not found"));
     }
-
     
 }

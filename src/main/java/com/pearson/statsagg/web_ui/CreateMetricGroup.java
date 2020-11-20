@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsLogic;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -333,10 +333,10 @@ public class CreateMetricGroup extends HttpServlet {
         
         // insert/update records in the database
         if ((metricGroup != null) && (metricGroup.getName() != null)) {
-            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            returnString = metricGroupsLogic.alterRecordInDatabase(metricGroup, matchRegexes, blacklistRegexes, tags, oldName);
+            MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroup, matchRegexes, blacklistRegexes, tags, oldName);
+            returnString = metricGroupsDaoWrapper.getReturnString();
             
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastAlterRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(true, false);
             }
         }
@@ -365,7 +365,6 @@ public class CreateMetricGroup extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             metricGroup.setName(trimmedName);
-            metricGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((metricGroup.getName() == null) || metricGroup.getName().isEmpty()) didEncounterError = true;
 
             parameter = Common.getSingleParameterAsString(request, "Description");

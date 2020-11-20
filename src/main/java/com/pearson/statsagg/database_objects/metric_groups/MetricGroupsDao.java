@@ -78,7 +78,38 @@ public class MetricGroupsDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroup metricGroup, String oldMetricGroupName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            MetricGroup metricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, oldMetricGroupName);
 
+            boolean upsertSuccess = true;
+            if (metricGroupFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, metricGroup);
+            }
+            else {
+                metricGroup.setId(metricGroupFromDb.getId());
+                if (!metricGroupFromDb.isEqual(metricGroup)) upsertSuccess = update(connection, false, commitOnCompletion, metricGroup);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, MetricGroup metricGroup) {
         
         try {                 

@@ -85,7 +85,7 @@ public class SuspensionTest {
         endCalendar.set(Calendar.MINUTE, 1440);
         Timestamp endTimeTimestamp = new Timestamp(endCalendar.getTimeInMillis());
         suspension_Reference_Copy.setDeleteAtTimestamp(endTimeTimestamp);
-        return Suspension.isValid(suspension_Reference_Copy);
+        return Suspension.isValid(suspension_Reference_Copy).isValid();
     }
     
     public boolean testIsValid_DurationLessThanOneDay() {
@@ -101,7 +101,7 @@ public class SuspensionTest {
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1439), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
-        return Suspension.isValid(suspension);
+        return Suspension.isValid(suspension).isValid();
     }
     
     public boolean testIsValid_DurationOneDay() {
@@ -117,7 +117,7 @@ public class SuspensionTest {
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1440), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
-        return Suspension.isValid(suspension);
+        return Suspension.isValid(suspension).isValid();
     }
     
     public boolean testIsValid_DurationMoreThanOneDay() {
@@ -132,7 +132,7 @@ public class SuspensionTest {
                 false, true, true, true, true, true, true, true, true, 
                 startDateTimestamp, startTimeTimestamp, (60000l * 1441), DatabaseObjectCommon.TIME_UNIT_MINUTES, null);
         
-        return Suspension.isValid(suspension);
+        return Suspension.isValid(suspension).isValid();
     }
 
     /**

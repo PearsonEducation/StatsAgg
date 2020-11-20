@@ -1,8 +1,8 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
-import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
-import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDaoWrapper;
+import com.pearson.statsagg.database_objects.variable_set.VariableSet;
+import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
+import com.pearson.statsagg.database_objects.variable_set.VariableSetsDaoWrapper;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
@@ -17,11 +17,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class CreatePagerDutyService extends HttpServlet {
+public class CreateVariableSet extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreatePagerDutyService.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateVariableSet.class.getName());
     
-    public static final String PAGE_NAME = "Create PagerDuty Service";
+    public static final String PAGE_NAME = "Create Variable Set";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -78,11 +78,11 @@ public class CreatePagerDutyService extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             
-            PagerdutyService pagerdutyService = null;
+            VariableSet variableSet = null;
             String name = request.getParameter("Name");
-            if (name != null) pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, name.trim()); 
+            if (name != null) variableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, name.trim()); 
 
-            String htmlBodyContents = buildCreatePagerdutyServiceHtml(pagerdutyService);
+            String htmlBodyContents = buildCreateVariableSetHtml(variableSet);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -120,12 +120,12 @@ public class CreatePagerDutyService extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterPagerdutyService(request);
+            String result = parseAndAlterVariableSet(request);
 
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
-            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "PagerDutyServices", PagerDutyServices.PAGE_NAME);
+            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "CreateVariableSet", VariableSets.PAGE_NAME);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContent);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -144,7 +144,7 @@ public class CreatePagerDutyService extends HttpServlet {
         }
     }
     
-    private String buildCreatePagerdutyServiceHtml(PagerdutyService pagerdutyService) {
+    private String buildCreateVariableSetHtml(VariableSet variableSet) {
 
         StringBuilder htmlBody = new StringBuilder();
 
@@ -155,19 +155,19 @@ public class CreatePagerDutyService extends HttpServlet {
             "     <div class=\"content-header\"> \n" +
             "       <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "     </div> " +
-            "     <form action=\"CreatePagerDutyService\" method=\"POST\">\n");
+            "     <form action=\"CreateVariableSet\" method=\"POST\">\n");
         
-        if ((pagerdutyService != null) && (pagerdutyService.getName() != null) && !pagerdutyService.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName(), true)).append("\">");
+        if ((variableSet != null) && (variableSet.getName() != null) && !variableSet.getName().isEmpty()) {
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\">");
         }
         
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">PagerDuty service name</label>\n" +
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this PagerDuty service.\" name=\"Name\" id=\"Name\" ");
+            "         <label class=\"label_small_margin\">Variable Set name</label>\n" +
+            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this variable Set.\" name=\"Name\" id=\"Name\" ");
 
-        if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) {
-            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName(), true)).append("\"");
+        if ((variableSet != null) && (variableSet.getName() != null)) {
+            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\"");
         }
 
         htmlBody.append(      
@@ -176,26 +176,27 @@ public class CreatePagerDutyService extends HttpServlet {
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
 
-        if ((pagerdutyService != null) && (pagerdutyService.getDescription() != null)) {
-            htmlBody.append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getDescription(), true));
+        if ((variableSet != null) && (variableSet.getDescription() != null)) {
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getDescription(), true));
         }
 
         htmlBody.append(
             "</textarea>\n" +
             "</div>\n" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Routing Key</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a PagerDuty service routing key\" name=\"RoutingKey\" id=\"RoutingKey\" ");
+            "  <label class=\"label_small_margin\">Variables</label>\n" +
+            "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, k=v. List one variable pair per line.\" " +
+            "rows=\"15\" name=\"VariableSetVariables\" id=\"VariableSetVariables\" >");
 
-        if ((pagerdutyService != null) && (pagerdutyService.getRoutingKey() != null)) {
-            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getRoutingKey(), true)).append("\"");
+        if ((variableSet != null) && (variableSet.getVariables() != null)) {
+            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true)).append("\"");
         }
 
         htmlBody.append(
-            ">\n</div>\n" +
+            ">\n</textarea>\n</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
-            "       <a href=\"PagerDutyServices\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
+            "       <a href=\"VariableSets\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
             "     </form>\n"       +          
             "   </div>\n" +
             "</div>\n");
@@ -203,7 +204,7 @@ public class CreatePagerDutyService extends HttpServlet {
         return htmlBody.toString();
     }
     
-    public String parseAndAlterPagerdutyService(Object request) {
+    public String parseAndAlterVariableSet(Object request) {
         
         if (request == null) {
             return null;
@@ -211,7 +212,7 @@ public class CreatePagerDutyService extends HttpServlet {
         
         String returnString;
         
-        PagerdutyService pagerdutyService = getPagerdutyServiceFromPagerdutyServiceParameters(request);
+        VariableSet variableSet = getVariableSetFromVariableSetParameters(request);
         String oldName = Common.getSingleParameterAsString(request, "Old_Name");
         if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
@@ -221,26 +222,26 @@ public class CreatePagerDutyService extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    PagerdutyService oldPagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldPagerdutyService.getName();
+                    VariableSet oldVariableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, id_Integer);
+                    oldName = oldVariableSet.getName();
                 }
                 catch (Exception e){}
             }
         }
         
         // insert/update/delete records in the database
-        if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) {
-            returnString = PagerdutyServicesDaoWrapper.alterRecordInDatabase(pagerdutyService, oldName).getReturnString();
+        if ((variableSet != null) && (variableSet.getName() != null)) {
+            returnString = VariableSetsDaoWrapper.alterRecordInDatabase(variableSet, oldName).getReturnString();
         }
         else {
-            returnString = "Failed to add PagerDuty service. Reason=\"Field validation failed.\"";
+            returnString = "Failed to add Variable Set. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         
         return returnString;
     }
     
-    private PagerdutyService getPagerdutyServiceFromPagerdutyServiceParameters(Object request) {
+    private VariableSet getVariableSetFromVariableSetParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -248,7 +249,7 @@ public class CreatePagerDutyService extends HttpServlet {
         
         boolean didEncounterError = false;
         
-        PagerdutyService pagerdutyService = new PagerdutyService();
+        VariableSet variableSet = new VariableSet();
 
         try {
             String parameter;
@@ -256,8 +257,8 @@ public class CreatePagerDutyService extends HttpServlet {
             parameter = Common.getSingleParameterAsString(request, "Name");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
-            pagerdutyService.setName(trimmedName);
-            if ((pagerdutyService.getName() == null) || pagerdutyService.getName().isEmpty()) didEncounterError = true;
+            variableSet.setName(trimmedName);
+            if ((variableSet.getName() == null) || variableSet.getName().isEmpty()) didEncounterError = true;
 
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
@@ -266,15 +267,20 @@ public class CreatePagerDutyService extends HttpServlet {
                 String description;
                 if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
                 else description = trimmedParameter;
-                pagerdutyService.setDescription(description);
+                variableSet.setDescription(description);
             }
-            else pagerdutyService.setDescription("");
+            else variableSet.setDescription("");
             
-            parameter = Common.getSingleParameterAsString(request, "RoutingKey");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "routing_key");
-            String trimmedRoutingKey = parameter.trim();
-            pagerdutyService.setRoutingKey(trimmedRoutingKey);
-            if ((pagerdutyService.getRoutingKey() == null) || pagerdutyService.getRoutingKey().isEmpty()) didEncounterError = true;
+            parameter = Common.getSingleParameterAsString(request, "Variables");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "variables");
+            if (parameter != null) {
+                String trimmedParameter = parameter.trim();
+                String variables;
+                if (trimmedParameter.length() > 100000) variables = trimmedParameter.substring(0, 99999);
+                else variables = trimmedParameter;
+                variableSet.setVariables(variables);
+            }
+            else variableSet.setVariables("");
         }
         catch (Exception e) {
             didEncounterError = true;
@@ -282,10 +288,10 @@ public class CreatePagerDutyService extends HttpServlet {
         }
             
         if (didEncounterError) {
-            pagerdutyService = null;
+            variableSet = null;
         }
         
-        return pagerdutyService;
+        return variableSet;
     }
 
 }

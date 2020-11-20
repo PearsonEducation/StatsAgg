@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDaoWrapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
@@ -247,8 +247,7 @@ public class CreateNotificationGroup extends HttpServlet {
         
         // insert/update/delete records in the database
         if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
-            NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-            returnString = notificationGroupsLogic.alterRecordInDatabase(notificationGroup, oldName);
+            returnString = NotificationGroupsDaoWrapper.alterRecordInDatabase(notificationGroup, oldName).getReturnString();
         }
         else {
             returnString = "Failed to add notification group. Reason=\"Field validation failed.\"";
@@ -275,7 +274,6 @@ public class CreateNotificationGroup extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             notificationGroup.setName(trimmedName);
-            notificationGroup.setUppercaseName(trimmedName.toUpperCase());
             if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) didEncounterError = true;
 
             parameter = Common.getSingleParameterAsString(request, "EmailAddresses");
@@ -307,7 +305,6 @@ public class CreateNotificationGroup extends HttpServlet {
                     if (!parameterTrimmed.isEmpty()) {
                         PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, parameterTrimmed);
                         if ((pagerdutyService != null) && (pagerdutyService.getId() != null)) notificationGroup.setPagerdutyServiceId(pagerdutyService.getId());
-                        else didEncounterError = true;
                     }
                 }
                 else {
@@ -316,7 +313,6 @@ public class CreateNotificationGroup extends HttpServlet {
                     if (parameter != null) {
                         String parameterTrimmed = parameter.trim();
                         if (!parameterTrimmed.isEmpty()) notificationGroup.setPagerdutyServiceId(Integer.parseInt(parameterTrimmed));
-                        else didEncounterError = true;
                     }
                 }
             }

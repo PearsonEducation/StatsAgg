@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsLogic;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -186,12 +186,10 @@ public class MetricGroups extends HttpServlet {
                 clonedMetricGroup.setId(-1);
                 String clonedAlterName = StatsAggHtmlFramework.createCloneName(metricGroup.getName(), allMetricGroupNames);
                 clonedMetricGroup.setName(clonedAlterName);
-                clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
 
-                MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexes, allMetricGroupBlacklistRegexes, allMetricGroupTags);
+                MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.createRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexes, allMetricGroupBlacklistRegexes, allMetricGroupTags);
                 
-                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(true, false);
                 }
             }
@@ -208,10 +206,10 @@ public class MetricGroups extends HttpServlet {
         
         try {
             MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);                
-            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroup.getName());
+            MetricGroupsDaoWrapper netricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
+            returnString = netricGroupsDaoWrapper.getReturnString();
 
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == netricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(true, false);
             }
             

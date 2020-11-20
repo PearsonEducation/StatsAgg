@@ -78,7 +78,38 @@ public class PagerdutyServicesDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService, String oldPagerdutyServiceName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            PagerdutyService pagerdutyServiceFromDb = PagerdutyServicesDao.getPagerdutyService(connection, false, oldPagerdutyServiceName);
 
+            boolean upsertSuccess = true;
+            if (pagerdutyServiceFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, pagerdutyService);
+            }
+            else {
+                pagerdutyService.setId(pagerdutyServiceFromDb.getId());
+                if (!pagerdutyServiceFromDb.isEqual(pagerdutyService)) upsertSuccess = update(connection, false, commitOnCompletion, pagerdutyService);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, PagerdutyService pagerdutyService) {
         
         try {                 

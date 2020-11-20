@@ -2,7 +2,7 @@ package com.pearson.statsagg.web_ui;
 
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
-import com.pearson.statsagg.database_objects.alerts.AlertsLogic;
+import com.pearson.statsagg.database_objects.alerts.AlertsDaoWrapper;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
@@ -152,7 +152,7 @@ public class Alerts extends HttpServlet {
 
                 try {
                     Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);
-                    AlertsLogic.changeAlertAcknowledge(alertId, isAcknowledged_Boolean);
+                    AlertsDaoWrapper.changeAlertAcknowledge(alertId, isAcknowledged_Boolean);
                     sendPagerDutyAcknowledgeRequest(alertId);
                 }
                 catch (Exception e) {
@@ -193,10 +193,9 @@ public class Alerts extends HttpServlet {
                 alert.setDangerActiveAlertsSet(null);
             }
 
-            AlertsLogic alertsLogic = new AlertsLogic();
-            alertsLogic.alterRecordInDatabase(alert, alert.getName(), false);
+            AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.alterRecordInDatabase(alert, alert.getName());
             
-            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
                 isSuccess = true;
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
@@ -227,7 +226,6 @@ public class Alerts extends HttpServlet {
                 String clonedAlertName = StatsAggHtmlFramework.createCloneName(alert.getName(), allAlertNames);
 
                 clonedAlert.setName(clonedAlertName);
-                clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
                 clonedAlert.setIsEnabled(false);
                 clonedAlert.setIsCautionAlertActive(false);
                 clonedAlert.setCautionFirstActiveAt(null);
@@ -240,10 +238,9 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setDangerActiveAlertsSet(null);
                 clonedAlert.setDangerFirstActiveAt(null);
                 
-                AlertsLogic alertsLogic = new AlertsLogic();
-                alertsLogic.alterRecordInDatabase(clonedAlert);
+                AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.createRecordInDatabase(clonedAlert);
                 
-                if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(false, true);
                 }
             }
@@ -267,12 +264,11 @@ public class Alerts extends HttpServlet {
         
         try {
             Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertId);
-            String alertName = alert.getName();
 
-            AlertsLogic alertsLogic = new AlertsLogic();
-            returnString = alertsLogic.deleteRecordInDatabase(alertName);
+            AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.deleteRecordInDatabase(alert);
+            returnString = alertsDaoWrapper.getReturnString();
 
-            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastDeleteRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
@@ -585,7 +581,7 @@ public class Alerts extends HttpServlet {
         return isAcknowledged;
     }
     
-    private static void sendPagerDutyAcknowledgeRequest(Integer alertId) {
+    protected static void sendPagerDutyAcknowledgeRequest(Integer alertId) {
 
         if (!ApplicationConfiguration.isPagerdutyIntegrationEnabled()) return;
 

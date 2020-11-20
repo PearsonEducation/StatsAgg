@@ -85,7 +85,38 @@ public class NotificationGroupsDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup, String oldNotificationGroupName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            NotificationGroup notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, oldNotificationGroupName);
 
+            boolean upsertSuccess = true;
+            if (notificationGroupFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, notificationGroup);
+            }
+            else {
+                notificationGroup.setId(notificationGroupFromDb.getId());
+                if (!notificationGroupFromDb.isEqual(notificationGroup)) upsertSuccess = update(connection, false, commitOnCompletion, notificationGroup);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
         
         try {                 

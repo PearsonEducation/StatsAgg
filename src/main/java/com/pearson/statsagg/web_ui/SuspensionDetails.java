@@ -166,7 +166,7 @@ public class SuspensionDetails extends HttpServlet {
             outputString.append("<br>");
             
             String isValid = "No";
-            if (Suspension.isValid(suspension)) isValid = "Yes";
+            if (Suspension.isValid(suspension).isValid()) isValid = "Yes";
             outputString.append("<b>Is suspension configuration valid?</b> = ").append(isValid).append("<br>");
             
             String isSuspensionInSuspensionTimeWindow = "No";

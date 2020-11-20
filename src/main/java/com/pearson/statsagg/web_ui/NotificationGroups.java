@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsLogic;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDaoWrapper;
 import java.io.PrintWriter;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
@@ -178,10 +178,8 @@ public class NotificationGroups extends HttpServlet {
                 clonedNotificationGroup.setId(-1);
                 String clonedAlterName = StatsAggHtmlFramework.createCloneName(notificationGroup.getName(), allNotificationGroupNames);
                 clonedNotificationGroup.setName(clonedAlterName);
-                clonedNotificationGroup.setUppercaseName(clonedAlterName.toUpperCase());
 
-                NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-                notificationGroupsLogic.alterRecordInDatabase(clonedNotificationGroup);
+                NotificationGroupsDaoWrapper.createRecordInDatabase(clonedNotificationGroup);
             }
         }
         catch (Exception e) {
@@ -196,8 +194,7 @@ public class NotificationGroups extends HttpServlet {
         
         try {
             NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);   
-            NotificationGroupsLogic notificationGroupsLogic = new NotificationGroupsLogic();
-            returnString = notificationGroupsLogic.deleteRecordInDatabase(notificationGroup.getName());
+            returnString = NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup).getReturnString();
             return returnString;
         }
         catch (Exception e) {

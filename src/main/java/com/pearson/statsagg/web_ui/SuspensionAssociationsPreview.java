@@ -171,7 +171,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (Suspension.isValid_CheckSuspendBy(suspension)) return suspension;
+        if (Suspension.isValid_CheckSuspendBy(suspension).isValid()) return suspension;
         else return null;
     }
    

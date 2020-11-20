@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.alerts.AlertsLogic;
+import com.pearson.statsagg.database_objects.alerts.AlertsDaoWrapper;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
@@ -961,10 +961,10 @@ public class CreateAlert extends HttpServlet {
         
         // insert/update/delete records in the database
         if ((alert != null) && (alert.getName() != null)) {
-            AlertsLogic alertsLogic = new AlertsLogic();
-            returnString = alertsLogic.alterRecordInDatabase(alert, oldName, false);
+            AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.alterRecordInDatabase(alert, oldName);
+            returnString = alertsDaoWrapper.getReturnString();
             
-            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(false, true);
             }
         }
@@ -994,7 +994,6 @@ public class CreateAlert extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
             alert.setName(trimmedName);
-            alert.setUppercaseName(trimmedName.toUpperCase());
             if ((alert.getName() == null) || alert.getName().isEmpty()) didEncounterError = true;
             
             alert.setIsTemplate(isAlertTemplate);

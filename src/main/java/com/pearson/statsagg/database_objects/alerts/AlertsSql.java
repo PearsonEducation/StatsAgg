@@ -21,7 +21,7 @@ public class AlertsSql {
     protected final static String Select_Alert_Names_NoTemplates_OrderByName = 
                     "SELECT NAME FROM ALERTS " +
                     "WHERE NAME LIKE ? " +
-                    "AND IS_TEMPLATE = FALSE" +
+                    "AND IS_TEMPLATE = FALSE " +
                     "ORDER BY NAME";
     
     protected final static String Select_AllAlerts = 

@@ -1,6 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.suspensions.SuspensionsLogic;
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDaoWrapper;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
@@ -159,10 +159,9 @@ public class Suspensions extends HttpServlet {
         if (suspension != null) {
             suspension.setIsEnabled(isEnabled);
 
-            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-            suspensionsLogic.alterRecordInDatabase(suspension, suspension.getName());
+            SuspensionsDaoWrapper suspensionsDaoWrapper = SuspensionsDaoWrapper.alterRecordInDatabase(suspension, suspension.getName());
 
-            if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
+            if (suspensionsDaoWrapper.getLastAlterRecordStatus() == SuspensionsDaoWrapper.STATUS_CODE_SUCCESS) {
                 isSuccess = true;
                 com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
@@ -199,10 +198,8 @@ public class Suspensions extends HttpServlet {
                 clonedSuspension.setId(-1);
                 String clonedSuspensionName = StatsAggHtmlFramework.createCloneName(suspension.getName(), allSuspensionsNames);
                 clonedSuspension.setName(clonedSuspensionName);
-                clonedSuspension.setUppercaseName(clonedSuspensionName.toUpperCase());
 
-                SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-                suspensionsLogic.alterRecordInDatabase(clonedSuspension);
+                SuspensionsDaoWrapper.createRecordInDatabase(clonedSuspension);
 
                 com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
@@ -225,8 +222,7 @@ public class Suspensions extends HttpServlet {
             Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionId);
             if (suspension == null) return null;    
 
-            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-            returnString = suspensionsLogic.deleteRecordInDatabase(suspension.getName());
+            returnString = SuspensionsDaoWrapper.deleteRecordInDatabase(suspension).getReturnString();
 
             com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
             suspensions.runSuspensionRoutine();
