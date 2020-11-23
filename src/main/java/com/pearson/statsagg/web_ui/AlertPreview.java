@@ -164,7 +164,7 @@ public class AlertPreview extends HttpServlet {
         Map<String,BigDecimal> alertMetricValues = generateFakeMetricValues(warningLevel, alert);
         
         if (warningLevel.equalsIgnoreCase("caution")) {
-            boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
+            boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid().isValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
             
             if (isAlertValidAndEnabled) {
                 NotificationThread notificationThread = new NotificationThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
@@ -178,7 +178,7 @@ public class AlertPreview extends HttpServlet {
         }
         
         if (warningLevel.equalsIgnoreCase("danger")) {
-            boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
+            boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid().isValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
             
             if (isAlertValidAndEnabled) {
                 NotificationThread emailThread = new NotificationThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),

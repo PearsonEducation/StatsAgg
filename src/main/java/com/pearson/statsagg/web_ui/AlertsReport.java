@@ -240,19 +240,19 @@ public class AlertsReport extends HttpServlet {
 
                 // alert - caution criteria
                 String alertCriteriaCaution = "N/A";
-                if (alert.isCautionEnabled() && (alert.getAlertType() == Alert.TYPE_THRESHOLD) && alert.isCautionAlertCriteriaValid()) {
+                if (alert.isCautionEnabled() && (alert.getAlertType() == Alert.TYPE_THRESHOLD) && alert.isCautionAlertCriteriaValid().isValid()) {
                     alertCriteriaCaution = alert.getHumanReadable_AlertCriteria_MinimumSampleCount(Alert.CAUTION) + "<br><br>" + alert.getHumanReadable_AlertCriteria_ThresholdCriteria(Alert.CAUTION);
                 }
-                else if (alert.isCautionEnabled() && (alert.getAlertType() == Alert.TYPE_AVAILABILITY) && alert.isCautionAlertCriteriaValid()) {
+                else if (alert.isCautionEnabled() && (alert.getAlertType() == Alert.TYPE_AVAILABILITY) && alert.isCautionAlertCriteriaValid().isValid()) {
                     alertCriteriaCaution = alert.getHumanReadable_AlertCriteria_AvailabilityCriteria(Alert.CAUTION);
                 }
                 
                 // alert - danger criteria
                 String alertCriteriaDanger = "N/A";
-                if (alert.isDangerEnabled() && (alert.getAlertType() == Alert.TYPE_THRESHOLD) && alert.isDangerAlertCriteriaValid()) {
+                if (alert.isDangerEnabled() && (alert.getAlertType() == Alert.TYPE_THRESHOLD) && alert.isDangerAlertCriteriaValid().isValid()) {
                     alertCriteriaDanger = alert.getHumanReadable_AlertCriteria_MinimumSampleCount(Alert.DANGER) + "<br><br>" + alert.getHumanReadable_AlertCriteria_ThresholdCriteria(Alert.DANGER);
                 }
-                else if (alert.isDangerEnabled() && (alert.getAlertType() == Alert.TYPE_AVAILABILITY) && alert.isDangerAlertCriteriaValid()) {
+                else if (alert.isDangerEnabled() && (alert.getAlertType() == Alert.TYPE_AVAILABILITY) && alert.isDangerAlertCriteriaValid().isValid()) {
                     alertCriteriaDanger = alert.getHumanReadable_AlertCriteria_AvailabilityCriteria(Alert.DANGER);
                 }
                 

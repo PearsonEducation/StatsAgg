@@ -10,6 +10,7 @@ import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.Objects;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
@@ -428,42 +429,82 @@ public class Alert implements DatabaseObject<Alert> {
         
     }
        
-    public boolean isCautionAlertCriteriaValid() {
+    public static DatabaseObjectValidation isValid(Alert alert) {
+        if (alert == null) return new DatabaseObjectValidation(false, "Invalid alert");
         
-        if (alertType_ == null) return false;
+        DatabaseObjectValidation databaseObjectValidation_CoreCriteria = alert.isCoreAlertCriteriaValid();
+        if (!databaseObjectValidation_CoreCriteria.isValid()) return databaseObjectValidation_CoreCriteria;
         
-        if (alertType_ == TYPE_AVAILABILITY) {
-            if (!isValid_CautionWindowDuration()) return false;
-            if (!isValid_CautionStopTrackingAfter()) return false;
-        }
-        else if (alertType_ == TYPE_THRESHOLD) {
-            if (!isValid_CautionOperation()) return false;
-            if (!isValid_CautionCombination()) return false;
-            if (getCautionThreshold() == null) return false;
-            if (!isValid_CautionWindowDuration()) return false;
-            if (!isValid_CautionMinimumSampleCount()) return false;
-        }
+        DatabaseObjectValidation databaseObjectValidation_CautionCriteria = alert.isCautionAlertCriteriaValid(true);
+        if (!databaseObjectValidation_CautionCriteria.isValid()) return databaseObjectValidation_CautionCriteria;
         
-        return true;
+        DatabaseObjectValidation databaseObjectValidation_DangerCriteria = alert.isDangerAlertCriteriaValid(true);
+        if (!databaseObjectValidation_DangerCriteria.isValid()) return databaseObjectValidation_DangerCriteria;
+        
+        return new DatabaseObjectValidation(true);
     }
     
-    public boolean isDangerAlertCriteriaValid() {
+    public DatabaseObjectValidation isCoreAlertCriteriaValid() {
+        if ((name_ == null) || name_.isEmpty()) return new DatabaseObjectValidation(false, "Invalid alert name");
+        if (metricGroupId_ == null) return new DatabaseObjectValidation(false, "Invalid metric group");
+        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
+        if (isEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is alert enabled?' value");
+        if (isCautionEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is caution alerting enabled?' value");
+        if (isDangerEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is danger alerting enabled?' value");
+        if (alertOnPositive_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert on positive?' value");
+        if (allowResendAlert_ == null) return new DatabaseObjectValidation(false, "Invalid 'resend alert?' value");
+        if (allowResendAlert_ && (resendAlertEvery_ == null)) return new DatabaseObjectValidation(false, "Invalid 'resend alert frequency?' value");
+        if (allowResendAlert_ && (resendAlertEveryTimeUnit_ == null)) return new DatabaseObjectValidation(false, "Invalid 'resend alert time unit' value");
+
+        return new DatabaseObjectValidation(true);
+    }
+    
+    public DatabaseObjectValidation isCautionAlertCriteriaValid() {
+        return isCautionAlertCriteriaValid(false);
+    }
+    
+    public DatabaseObjectValidation isCautionAlertCriteriaValid(boolean skipCheckIfCautionNotEnabled) {
+        if (skipCheckIfCautionNotEnabled && (isCautionEnabled_ != null) && !isCautionEnabled_) return new DatabaseObjectValidation(true);
         
-        if (alertType_ == null) return false;
+        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
         
         if (alertType_ == TYPE_AVAILABILITY) {
-            if (!isValid_DangerWindowDuration()) return false;
-            if (!isValid_DangerStopTrackingAfter()) return false;
+            if (!isValid_CautionWindowDuration()) return new DatabaseObjectValidation(false, "Invalid caution 'window duration' value");
+            if (!isValid_CautionStopTrackingAfter()) return new DatabaseObjectValidation(false, "Invalid caution 'stop tracking after' value");
         }
         else if (alertType_ == TYPE_THRESHOLD) {
-            if (!isValid_DangerOperation()) return false;
-            if (!isValid_DangerCombination()) return false;
-            if (getDangerThreshold() == null) return false;
-            if (!isValid_DangerWindowDuration()) return false;
-            if (!isValid_DangerMinimumSampleCount()) return false;
+            if (!isValid_CautionOperation()) return new DatabaseObjectValidation(false, "Invalid caution operation");
+            if (!isValid_CautionCombination()) return new DatabaseObjectValidation(false, "Invalid caution combination");
+            if (getCautionThreshold() == null) return new DatabaseObjectValidation(false, "Invalid caution threshold value");
+            if (!isValid_CautionWindowDuration()) return new DatabaseObjectValidation(false, "Invalid caution 'window duration' value");
+            if (!isValid_CautionMinimumSampleCount()) return new DatabaseObjectValidation(false, "Invalid caution 'minimum sample count' value");
         }
         
-        return true;
+        return new DatabaseObjectValidation(true);
+    }
+    
+    public DatabaseObjectValidation isDangerAlertCriteriaValid() {
+        return isDangerAlertCriteriaValid(false);
+    }
+    
+    public DatabaseObjectValidation isDangerAlertCriteriaValid(boolean skipCheckIfDangerNotEnabled) {
+        if (skipCheckIfDangerNotEnabled && (isDangerEnabled_ != null) && !isDangerEnabled_) return new DatabaseObjectValidation(true);
+        
+        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
+        
+        if (alertType_ == TYPE_AVAILABILITY) {
+            if (!isValid_DangerWindowDuration()) return new DatabaseObjectValidation(false, "Invalid danger 'window duration' value");
+            if (!isValid_DangerStopTrackingAfter()) return new DatabaseObjectValidation(false, "Invalid danger 'stop tracking after' value");
+        }
+        else if (alertType_ == TYPE_THRESHOLD) {
+            if (!isValid_DangerOperation()) return new DatabaseObjectValidation(false, "Invalid danger operation");
+            if (!isValid_DangerCombination()) return new DatabaseObjectValidation(false, "Invalid danger combination");
+            if (getDangerThreshold() == null) return new DatabaseObjectValidation(false, "Invalid danger threshold value");
+            if (!isValid_DangerWindowDuration()) return new DatabaseObjectValidation(false, "Invalid danger 'window duration' value");
+            if (!isValid_DangerMinimumSampleCount()) return new DatabaseObjectValidation(false, "Invalid danger 'minimum sample count' value");
+        }
+        
+        return new DatabaseObjectValidation(true);
     }
     
     public boolean isValid_CautionOperation() {

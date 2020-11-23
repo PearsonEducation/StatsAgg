@@ -733,8 +733,8 @@ public class AlertThread implements Runnable {
             }
             
             for (Alert alert : alerts__) {
-                boolean isCautionAlertCriteriaValid = alert.isCautionAlertCriteriaValid();
-                boolean isDangerAlertCriteriaValid = alert.isDangerAlertCriteriaValid();
+                boolean isCautionAlertCriteriaValid = alert.isCautionAlertCriteriaValid().isValid();
+                boolean isDangerAlertCriteriaValid = alert.isDangerAlertCriteriaValid().isValid();
                 
                 List<String> metricKeysAssociatedWithAlert = MetricAssociation.getMetricKeysAssociatedWithAlert(alert, suspendedMetricKeys__);
                 

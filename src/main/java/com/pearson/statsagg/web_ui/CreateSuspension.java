@@ -17,6 +17,7 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -592,7 +593,7 @@ public class CreateSuspension extends HttpServlet {
             // column #1 parameters
             parameter = Common.getSingleParameterAsString(request, "Name");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
-            String trimmedName = parameter.trim();
+            String trimmedName = (parameter != null) ? parameter.trim() : "";
             suspension.setName(trimmedName);
             
             parameter = Common.getSingleParameterAsString(request, "Description");
@@ -635,15 +636,13 @@ public class CreateSuspension extends HttpServlet {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_inclusive");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricGroupTagsInclusive(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_inclusive");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricGroupTagsInclusive(stringBuilder.toString().trim()); 
                 }
             }
             
@@ -652,34 +651,31 @@ public class CreateSuspension extends HttpServlet {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsExclusive(trimmedTags);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_exclusive");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricGroupTagsExclusive(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_exclusive");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricGroupTagsExclusive(stringBuilder.toString().trim()); 
                 }
             }
-            
+
             parameter = Common.getSingleParameterAsString(request, "MetricSuspensionRegexes");
             if (parameter != null) {
                 String metricSuspensionRegexes = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricSuspensionRegexes(metricSuspensionRegexes);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_suspension_regexes");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricSuspensionRegexes(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_suspension_regexes");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricSuspensionRegexes(stringBuilder.toString().trim()); 
                 }
             }
+            
             
             // column #3 parameters
             parameter = Common.getSingleParameterAsString(request, "Type");
@@ -757,7 +753,7 @@ public class CreateSuspension extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                if (!parameterTrimmed.isEmpty()) {    
+                if (!parameterTrimmed.isEmpty() && MathUtilities.isStringABigDecimal(parameterTrimmed)) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, suspension.getDurationTimeUnit());
                     if (timeInMs != null) suspension.setDuration(timeInMs.longValue());
@@ -783,8 +779,8 @@ public class CreateSuspension extends HttpServlet {
             }
         }
         catch (Exception e) {
-            suspension = null;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            suspension = null;
         }
             
         return suspension;

@@ -322,7 +322,7 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<br>");
             
             String isCautionAlertCriteriaValid = "No";
-            if (alert.isCautionAlertCriteriaValid()) isCautionAlertCriteriaValid = "Yes";
+            if (alert.isCautionAlertCriteriaValid().isValid()) isCautionAlertCriteriaValid = "Yes";
             outputString.append("<b>Is the caution criteria valid?</b> = ").append(isCautionAlertCriteriaValid).append("<br>");
             
             String isCautionAlertActive = "No";
@@ -424,7 +424,7 @@ public class AlertDetails extends HttpServlet {
             outputString.append("<br>");
 
             String isDangerAlertCriteriaValid = "No";
-            if (alert.isDangerAlertCriteriaValid()) isDangerAlertCriteriaValid = "Yes";
+            if (alert.isDangerAlertCriteriaValid().isValid()) isDangerAlertCriteriaValid = "Yes";
             outputString.append("<b>Is the danger criteria valid?</b> = ").append(isDangerAlertCriteriaValid).append("<br>");
             
             String isDangerAlertActive = "No";
