@@ -173,6 +173,10 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.NotificationGroupDetails.class, "/api/notification-group-details");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.NotificationGroupRemove.class, "/api/notification-group-remove");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.NotificationGroupsList.class, "/api/notification-groups-list");
+        servletContextHandler.addServlet(com.pearson.statsagg.web_api.PagerDutyServiceCreate.class, "/api/pagerduty-service-create");
+        servletContextHandler.addServlet(com.pearson.statsagg.web_api.PagerDutyServiceDetails.class, "/api/pagerduty-service-details");
+        servletContextHandler.addServlet(com.pearson.statsagg.web_api.PagerDutyServiceRemove.class, "/api/pagerduty-service-remove");
+        servletContextHandler.addServlet(com.pearson.statsagg.web_api.PagerDutyServicesList.class, "/api/pagerduty-services-list");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.SuspensionCreate.class, "/api/suspension-create");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.SuspensionDetails.class, "/api/suspension-details");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.SuspensionEnable.class, "/api/suspension-enable");
