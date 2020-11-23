@@ -74,8 +74,8 @@ public class NotificationGroupCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         com.pearson.statsagg.web_ui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.web_ui.CreateNotificationGroup();
-        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createNotificationGroup.parseAndAlterNotificationGroup(suspensionJsonObject);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createNotificationGroup.parseAndAlterNotificationGroup(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

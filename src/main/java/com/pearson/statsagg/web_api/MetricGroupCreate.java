@@ -74,8 +74,8 @@ public class MetricGroupCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         com.pearson.statsagg.web_ui.CreateMetricGroup createMetricGroup = new com.pearson.statsagg.web_ui.CreateMetricGroup();
-        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createMetricGroup.parseAndAlterMetricGroup(suspensionJsonObject);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createMetricGroup.parseAndAlterMetricGroup(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     
