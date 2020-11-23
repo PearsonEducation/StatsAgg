@@ -74,8 +74,8 @@ public class AlertTemplateCreate extends HttpServlet {
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        JsonObject alertJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = CreateAlert.parseAndAlterAlert(alertJsonObject, true);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = CreateAlert.parseAndAlterAlert(jsonObject, true);
         return Helper.createSimpleJsonResponse(result);
     }
     
