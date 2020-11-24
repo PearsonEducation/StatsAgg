@@ -17,6 +17,7 @@ import com.pearson.statsagg.web_ui.CreateMetricGroup;
 import com.pearson.statsagg.web_ui.CreateNotificationGroup;
 import com.pearson.statsagg.web_ui.CreatePagerDutyService;
 import com.pearson.statsagg.web_ui.CreateSuspension;
+import com.pearson.statsagg.web_ui.CreateVariableSet;
 import com.pearson.statsagg.web_ui.ForgetMetrics;
 import com.pearson.statsagg.web_ui.ForgetMetricsPreview;
 import com.pearson.statsagg.web_ui.HealthCheck;
@@ -41,6 +42,8 @@ import com.pearson.statsagg.web_ui.SuspensionDetails;
 import com.pearson.statsagg.web_ui.Suspension_AlertAssociations;
 import com.pearson.statsagg.web_ui.Suspension_MetricKeyAssociations;
 import com.pearson.statsagg.web_ui.Suspensions;
+import com.pearson.statsagg.web_ui.VariableSetDetails;
+import com.pearson.statsagg.web_ui.VariableSets;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -128,6 +131,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(CreateNotificationGroup.class, "/CreateNotificationGroup");
         servletContextHandler.addServlet(CreatePagerDutyService.class, "/CreatePagerDutyService");
         servletContextHandler.addServlet(CreateSuspension.class, "/CreateSuspension");
+        servletContextHandler.addServlet(CreateVariableSet.class, "/CreateVariableSet");
         servletContextHandler.addServlet(ForgetMetrics.class, "/ForgetMetrics");
         servletContextHandler.addServlet(ForgetMetricsPreview.class, "/ForgetMetricsPreview");
         servletContextHandler.addServlet(HealthCheck.class, "/HealthCheck");
@@ -152,6 +156,8 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(Suspension_AlertAssociations.class, "/Suspension-AlertAssociations");
         servletContextHandler.addServlet(Suspension_MetricKeyAssociations.class, "/Suspension-MetricKeyAssociations");
         servletContextHandler.addServlet(Suspensions.class, "/Suspensions");
+        servletContextHandler.addServlet(VariableSetDetails.class, "/VariableSetDetails");
+        servletContextHandler.addServlet(VariableSets.class, "/VariableSets");
     }
     
     private void addApiServletsToContext(ServletContextHandler servletContextHandler) {

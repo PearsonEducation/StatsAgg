@@ -125,7 +125,7 @@ public class CreateVariableSet extends HttpServlet {
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
-            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "CreateVariableSet", VariableSets.PAGE_NAME);
+            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "VariableSets", VariableSets.PAGE_NAME);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContent);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -180,20 +180,21 @@ public class CreateVariableSet extends HttpServlet {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getDescription(), true));
         }
 
-        htmlBody.append(
+        htmlBody.append( //
             "</textarea>\n" +
             "</div>\n" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Variables</label>\n" +
+            "  <label class=\"label_small_margin\">Variables</label>\n " +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, k=v. List one variable pair per line.\" " +
-            "rows=\"15\" name=\"VariableSetVariables\" id=\"VariableSetVariables\" >");
+            "              rows=\"15\" name=\"Variables\" id=\"Variables\" >");
 
         if ((variableSet != null) && (variableSet.getVariables() != null)) {
-            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true)).append("\"");
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true));
         }
 
         htmlBody.append(
-            ">\n</textarea>\n</div>\n" +
+            "</textarea>\n" +
+            "</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
             "       <a href=\"VariableSets\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
