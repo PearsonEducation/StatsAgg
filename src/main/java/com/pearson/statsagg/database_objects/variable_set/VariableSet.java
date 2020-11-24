@@ -6,6 +6,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.database_objects.JsonOutputFieldNamingStrategy;
@@ -76,6 +77,14 @@ public class VariableSet implements DatabaseObject<VariableSet>  {
         return variableSetCopy;
     }
     
+    public List<String> getVariables_List() {
+        return StringUtilities.getListOfStringsFromDelimitedString(variables_, '\n');
+    }
+    
+    public static String trimNewLineDelimitedVariables(String newLineDelimitedVariables) {
+        return DatabaseObjectCommon.trimNewLineDelimitedString(newLineDelimitedVariables);
+    }
+
     public static JsonObject getJsonObject_ApiFriendly(VariableSet variableSet) {
         
         if (variableSet == null) {

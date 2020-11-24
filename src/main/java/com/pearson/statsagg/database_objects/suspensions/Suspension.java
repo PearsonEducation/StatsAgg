@@ -473,23 +473,7 @@ public class Suspension implements DatabaseObject<Suspension> {
     }
 
     public static String trimNewLineDelimitedTags(String newLineDelimitedTags) {
-        
-        if ((newLineDelimitedTags == null) || newLineDelimitedTags.isEmpty()) {
-            return newLineDelimitedTags;
-        }
-        
-        StringBuilder tagStringBuilder = new StringBuilder();
-
-        List<String> tags = StringUtilities.getListOfStringsFromDelimitedString(newLineDelimitedTags, '\n');
-        
-        if ((tags != null) && !tags.isEmpty()) {
-            for (String tag : tags) {
-                String trimmedTag = tag.trim();
-                if (!trimmedTag.isEmpty()) tagStringBuilder.append(trimmedTag).append("\n");
-            }
-        }
-        
-        return tagStringBuilder.toString().trim();
+        return DatabaseObjectCommon.trimNewLineDelimitedString(newLineDelimitedTags);
     }
     
     public static String getSuspendByStringFromCode(Integer suspendByCode) {
