@@ -20,7 +20,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.7.0</version>
+                <version>3.8.1</version>
                 <configuration>
                     <source>11</source>
                     <target>11</target>
@@ -29,7 +29,7 @@
             
             <plugin>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>2.10</version>
+                <version>3.1.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -46,7 +46,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>2.6</version>
+                <version>3.2.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -73,6 +73,150 @@
                     </execution>
                 </executions>
             </plugin>
+            
+            <!--
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>rpm-maven-plugin</artifactId>
+                <version>2.2.0</version>
+                
+                <executions>
+                    <execution>
+                        <id>generate-rpm</id>
+                        <goals>
+                            <goal>rpm</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            
+                <configuration>
+                    <license>Apache 2.0</license>
+                    <name>statsagg</name>
+                    <packager>Pearson</packager>
+                    <group>Applications/System</group>
+                    <targetVendor>redhat</targetVendor>
+                    <prefix>/opt/StatsAgg</prefix>
+                    
+                    <defineStatements>
+                        <defineStatement>_unpackaged_files_terminate_build 0</defineStatement>
+                    </defineStatements>
+                    
+                    <mappings>
+
+                        <mapping>
+                            <directory>/opt/StatsAgg</directory>
+                            <filemode>755</filemode>
+                        </mapping>
+                        
+                        <mapping>
+                            <directory>/opt/StatsAgg</directory>
+                            <filemode>744</filemode>
+                            <sources>
+                                <source>
+                                    <location>target/StatsAgg.jar</location>
+                                </source>
+                            </sources>
+                        </mapping>
+
+                        <mapping>
+                            <directory>/opt/StatsAgg/conf</directory>
+                            <filemode>755</filemode>
+                        </mapping>
+
+                        <mapping>
+                            <directory>/opt/StatsAgg/conf</directory>
+                            <configuration>true</configuration>
+                            <directoryIncluded>false</directoryIncluded>
+                            <recurseDirectories>false</recurseDirectories>
+                            <filemode>644</filemode>
+                            <sources>
+                                <source><location>conf/statsagg.profile</location></source>
+                            </sources>
+                        </mapping>
+            
+                        <mapping>
+                            <directory>/opt/StatsAgg/conf</directory>
+                            <configuration>true</configuration>
+                            <directoryIncluded>false</directoryIncluded>
+                            <recurseDirectories>false</recurseDirectories>
+                            <filemode>640</filemode>
+                            <sources>
+                                <source><location>conf/application.ini</location></source>
+                                <source><location>conf/database.properties</location></source>
+                                <source><location>conf/flyway.properties</location></source>
+                                <source><location>conf/logback-config.xml</location></source>
+                            </sources>
+                        </mapping>
+            
+                        <mapping>
+                            <directory>/opt/StatsAgg/conf</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <recurseDirectories>false</recurseDirectories>
+                            <filemode>644</filemode>
+                            <sources>
+                                <source><location>conf/example-application.properties</location></source>
+                                <source><location>conf/example-database.properties</location></source>
+                                <source><location>conf/example-flyway.properties</location></source>
+                            </sources>
+                        </mapping>          
+                          
+                        <mapping>
+                            <directory>/opt/StatsAgg/lib</directory>
+                            <filemode>755</filemode>
+                        </mapping>
+                        
+                        <mapping>
+                            <directory>/opt/StatsAgg/lib</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>444</filemode>
+                            <sources>
+                                <source>
+                                    <location>target/lib</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                    
+                        <mapping>
+                            <directory>/opt/StatsAgg/logs</directory>
+                            <filemode>755</filemode>
+                        </mapping>
+                           
+                        <mapping>
+                            <directory>/etc/init.d</directory>
+                            <directoryIncluded>false</directoryIncluded>
+                            <filemode>755</filemode>
+                            <sources>
+                                <source>
+                                    <location>init.d/statsagg</location>
+                                </source>
+                            </sources>
+                        </mapping>
+                        
+                    </mappings>
+                    
+                    <postinstallScriptlet>
+                        <script>
+                            /usr/bin/systemctl daemon-reload > /dev/null 2>&amp;1
+                            printf "Post-installation notice: Please remember to start/restart StatsAgg\n"
+                        </script>
+                    </postinstallScriptlet>
+
+                    <preremoveScriptlet>
+                        <script>/sbin/service statsagg stop</script>
+                    </preremoveScriptlet>  
+
+                    <postremoveScriptlet>
+                        <script>
+                            [ $1 = 0 ] &amp;&amp; rm -R /opt/StatsAgg
+                            /usr/bin/systemctl daemon-reload > /dev/null 2>&amp;1
+                            printf "StatsAgg has been uninstalled\n"
+                        </script>
+                    </postremoveScriptlet>    
+                    
+                </configuration>
+
+            </plugin>
+            --> 
             
         </plugins>
         
@@ -114,7 +258,7 @@
         <dependency>
             <groupId>mysql</groupId>
             <artifactId>mysql-connector-java</artifactId>
-            <version>8.0.21</version>
+            <version>8.0.22</version>
         </dependency>
         
         <dependency>
@@ -192,13 +336,13 @@
         <dependency>
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
-            <version>29.0-jre</version>
+            <version>30.0-jre</version>
         </dependency>
             
         <dependency>
             <groupId>io.netty</groupId>
             <artifactId>netty-all</artifactId>
-            <version>4.1.52.Final</version>
+            <version>4.1.53.Final</version>
         </dependency>
         
         <dependency>
@@ -246,13 +390,13 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>7.0.0</version>
+            <version>7.2.1</version>
         </dependency>
         
         <dependency>
             <groupId>org.apache.httpcomponents</groupId>
             <artifactId>httpclient</artifactId>
-            <version>4.5.9</version>
+            <version>4.5.13</version>
             <type>jar</type>
         </dependency>
         
