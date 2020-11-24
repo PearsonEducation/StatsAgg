@@ -1,11 +1,11 @@
 StatsAgg 1.6  - released xxxx-yy-zz
+ * New feature: Integration with PagerDuty. StatsAgg can now send alerts directly to the PagerDuty "events" api. StatsAgg can also acknowledge & auto-resolve the alerts through the PagerDuty "events" api.
+ * New feature: Improved feedback to users when creating alerts/suspensions/etc with invalid criteria.
  * StatsAgg now requires Java 11 (or newer) for it's runtime
- * Converted the StatsAgg project from using a middleware app (Tomcat) to being a standalone project that uses an embedded HTTP server. As a result, installation/setup steps will be significantly different.
+ * Converted the StatsAgg project from using a middleware app (Tomcat) to being a standalone project that uses an embedded HTTP server (Jetty). As a result, the installation/upgrade/setup steps will be significantly different.
  * Switched StatsAgg to use HikariCP for it's JDBC connection pool. Note that some connection pool variables in the database.properties file have changed.
  * Significant refactoring on how StatsAgg interacts with it's database. This should improve StatsAgg's performance & make it easier to improve/update in the future. 
  * Database schema changes are now made automatically via Flyway. If updating from a previous StatsAgg installation (1.5 or older), see the manual for additional steps.
- * Integration with PagerDuty. StatsAgg can now send alerts directly to the PagerDuty "events" api. StatsAgg can also acknowledge & auto-resolve the alerts through the PagerDuty "events" api.
- * Improved feedback to users when creating alerts/suspensions/etc with invalid criteria.
  * Apache Derby databases will be upgraded to version 10.15.2.0 (this happens automatically)
  * Libraries were updated on both the frontend (javascript/css/etc) and the backend (java). 
 
