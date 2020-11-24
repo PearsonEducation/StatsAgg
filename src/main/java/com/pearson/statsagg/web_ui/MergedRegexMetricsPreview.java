@@ -16,7 +16,6 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static com.pearson.statsagg.web_ui.CreateMetricGroup.getMetricGroupParameterValues;
 
 /**
  * @author Jeffrey Schmidt
@@ -76,8 +75,8 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         
         PrintWriter out = null;
         
-        TreeSet<String> matchRegexes = getMetricGroupParameterValues(request, "MatchRegexes");
-        TreeSet<String> blacklistRegexes = getMetricGroupParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> matchRegexes = Common.getMultilineParameterValues(request, "MatchRegexes");
+        TreeSet<String> blacklistRegexes = Common.getMultilineParameterValues(request, "BlacklistRegexes");
         
         List matchRegexes_List = null, blacklistRegexes_List = null;
         if ((matchRegexes != null) && !matchRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(matchRegexes);

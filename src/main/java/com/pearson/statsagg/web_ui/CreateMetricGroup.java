@@ -1,13 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.List;
-import java.util.Scanner;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
@@ -301,9 +297,9 @@ public class CreateMetricGroup extends HttpServlet {
         }
 
         TreeSet<String> matchRegexes = null;
-        TreeSet<String> matchRegexes_Ui = getMetricGroupParameterValues(request, "MatchRegexes");
-        TreeSet<String> matchRegexes_Api_1 = getMetricGroupParameterValues(request, "match_regexes");
-        TreeSet<String> matchRegexes_Api_2 = getMetricGroupParameterValues(request, "match-regexes");
+        TreeSet<String> matchRegexes_Ui = Common.getMultilineParameterValues(request, "MatchRegexes");
+        TreeSet<String> matchRegexes_Api_1 = Common.getMultilineParameterValues(request, "match_regexes");
+        TreeSet<String> matchRegexes_Api_2 = Common.getMultilineParameterValues(request, "match-regexes");
         if ((matchRegexes_Ui != null) || (matchRegexes_Api_1 != null) || (matchRegexes_Api_2 != null)) {
             matchRegexes = new TreeSet<>();
             if (matchRegexes_Ui != null) matchRegexes.addAll(matchRegexes_Ui);
@@ -312,9 +308,9 @@ public class CreateMetricGroup extends HttpServlet {
         }
         
         TreeSet<String> blacklistRegexes = null;
-        TreeSet<String> blacklistRegexes_Ui = getMetricGroupParameterValues(request, "BlacklistRegexes");
-        TreeSet<String> blacklistRegexes_Api_1 = getMetricGroupParameterValues(request, "blacklist_regexes");
-        TreeSet<String> blacklistRegexes_Api_2 = getMetricGroupParameterValues(request, "blacklist-regexes");
+        TreeSet<String> blacklistRegexes_Ui = Common.getMultilineParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> blacklistRegexes_Api_1 = Common.getMultilineParameterValues(request, "blacklist_regexes");
+        TreeSet<String> blacklistRegexes_Api_2 = Common.getMultilineParameterValues(request, "blacklist-regexes");
         if ((blacklistRegexes_Ui != null) || (blacklistRegexes_Api_1 != null) || (blacklistRegexes_Api_2 != null)) {
             blacklistRegexes = new TreeSet<>();
             if (blacklistRegexes_Ui != null) blacklistRegexes.addAll(blacklistRegexes_Ui);
@@ -323,8 +319,8 @@ public class CreateMetricGroup extends HttpServlet {
         }
         
         TreeSet<String> tags = null;
-        TreeSet<String> tags_Ui = getMetricGroupParameterValues(request, "Tags");
-        TreeSet<String> tags_Api = getMetricGroupParameterValues(request, "tags");
+        TreeSet<String> tags_Ui = Common.getMultilineParameterValues(request, "Tags");
+        TreeSet<String> tags_Api = Common.getMultilineParameterValues(request, "tags");
         if ((tags_Ui != null) || (tags_Api != null)) {
             tags = new TreeSet<>();
             if (tags_Ui != null) tags.addAll(tags_Ui);
@@ -388,43 +384,6 @@ public class CreateMetricGroup extends HttpServlet {
         }
         
         return metricGroup;
-    }
-
-    protected static TreeSet<String> getMetricGroupParameterValues(Object request, String parameterName) {
-        
-        if ((request == null) || (parameterName == null)) {
-            return null;
-        }
-        
-        boolean didEncounterError = false;
-        TreeSet<String> parameterValues = new TreeSet<>();
-
-        try {
-            if (request instanceof HttpServletRequest) {
-                String parameter = Common.getSingleParameterAsString(request, parameterName);
-                
-                if (parameter != null) {
-                    Scanner scanner = new Scanner(parameter);
-
-                    while (scanner.hasNext()) {
-                        parameterValues.add(scanner.nextLine().trim());
-                    }
-                }
-            }
-            else if (request instanceof JsonObject) {
-                JsonObject jsonObject = (JsonObject) request;
-                JsonArray jsonArray = jsonObject.getAsJsonArray(parameterName);
-                if (jsonArray != null) for (JsonElement jsonElement : jsonArray) parameterValues.add(jsonElement.getAsString());
-            }
-        }
-        catch (Exception e) {
-            didEncounterError = true;
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-            
-        if (didEncounterError) parameterValues = null;
-        
-        return parameterValues;
     }
 
 }
