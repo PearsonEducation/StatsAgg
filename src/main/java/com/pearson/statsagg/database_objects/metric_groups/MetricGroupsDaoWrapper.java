@@ -47,10 +47,6 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
     }
 
     private MetricGroupsDaoWrapper alterRecordInDatabase(TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
-        return alterRecordInDatabase(matchRegexes, blacklistRegexes, tags, null);
-    }
-    
-    private MetricGroupsDaoWrapper alterRecordInDatabase(TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags, String oldName) {
         
         if ((metricGroup_ == null) || (metricGroup_.getName() == null) || (matchRegexes == null) || (tags == null)) {
             getReturnString_AlterFail_InitialChecks();
