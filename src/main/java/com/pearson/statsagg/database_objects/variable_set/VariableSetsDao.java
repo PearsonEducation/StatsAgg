@@ -4,6 +4,7 @@ import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
+import java.util.ArrayList;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -185,4 +186,33 @@ public class VariableSetsDao {
         
     }
 
+    public static List<String> getVariableSetNames_OrderedByName(Connection connection, boolean closeConnectionOnCompletion, List<Integer> variableSetIds) {
+        
+        try {
+            if (variableSetIds.isEmpty()) return new ArrayList<>();
+            
+            List<VariableSet> variableSets = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetsResultSetHandler(), 
+                    VariableSetsSql.selectVariableSetNames_ByListOfVariableSetIds_OrderByNameAsc(variableSetIds), 
+                    variableSetIds);
+            
+            List<String> variableSetNames = new ArrayList<>();
+            
+            for (VariableSet variableSet : variableSets) {
+                if ((variableSet == null) || (variableSet.getName() == null)) continue;
+                variableSetNames.add(variableSet.getName());
+            }
+            
+            return variableSetNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
 }

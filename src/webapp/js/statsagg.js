@@ -348,6 +348,47 @@ function yadcf_init_VariableSetsTable(variableSetsTable) {
     ], 'footer');
 }
 
+// Setup for the table found on the 'VariableSetLists' page
+$(document).ready(function () {
+    var table = document.getElementById('VariableSetListsTable');
+
+    if (table !== null) {
+        var variableSetListsTable = $('#VariableSetListsTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000 // 30 days
+        });
+       
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) variableSetListsTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_VariableSetListsTable(variableSetListsTable);
+
+        var colvis = new $.fn.dataTable.ColVis(variableSetListsTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#VariableSetListsTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        variableSetListsTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_VariableSetListsTable(variableSetListsTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+
+function yadcf_init_VariableSetListsTable(variableSetListsTable) {
+    yadcf.init(variableSetListsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
+
 // Setup for the table found on the 'Alerts Report' page
 $(document).ready(function () {
     var table = document.getElementById('AlertsReportTable');

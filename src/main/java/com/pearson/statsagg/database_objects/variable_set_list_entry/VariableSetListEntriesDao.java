@@ -4,6 +4,9 @@ import java.util.List;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -96,7 +99,45 @@ public class VariableSetListEntriesDao {
         }
         
     }
-
+    
+    public static boolean delete_ByVariableSetListId(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Integer variableSetListId) {
+        
+        try {     
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    VariableSetListEntriesSql.Delete_VariableSetListEntry_ByVariableSetListId, 
+                    variableSetListId);
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<VariableSetListEntry> getVariableSetListEntries(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListEntriesResultSetHandler(), 
+                    VariableSetListEntriesSql.Select_AllVariableSetListEntries);
+            
+            return variableSetListEntries;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static VariableSetListEntry getVariableSetListEntry(Connection connection, boolean closeConnectionOnCompletion, Integer id) {
         
         try {
@@ -116,14 +157,86 @@ public class VariableSetListEntriesDao {
         
     }
     
-    public static List<VariableSetListEntry> getVariableSetListEntries(Connection connection, boolean closeConnectionOnCompletion) {
+    public static List<VariableSetListEntry> getVariableSetListEntries_ByVariableSetId(Connection connection, boolean closeConnectionOnCompletion, Integer variableSetId) {
         
         try {
-            List<VariableSetListEntry> variableSetListEntrys = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+            List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new VariableSetListEntriesResultSetHandler(), 
-                    VariableSetListEntriesSql.Select_AllVariableSetListEntries);
+                    VariableSetListEntriesSql.Select_VariableSetListEntries_ByVariableSetId, variableSetId);
             
-            return variableSetListEntrys;
+            return variableSetListEntries;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<VariableSetListEntry> getVariableSetListEntries_ByVariableSetListId(Connection connection, boolean closeConnectionOnCompletion, Integer variableSetListId) {
+        
+        try {
+            List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListEntriesResultSetHandler(), 
+                    VariableSetListEntriesSql.Select_VariableSetListEntries_ByVariableSetListId, variableSetListId);
+            
+            return variableSetListEntries;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<Integer> getVariableSetIds_ByVariableSetListId(Connection connection, boolean closeConnectionOnCompletion, Integer variableSetListId) {
+        
+        try {
+            List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListEntriesResultSetHandler(), 
+                    VariableSetListEntriesSql.Select_VariableSetIds_ByVariableSetListId, 
+                    variableSetListId);
+            
+            List<Integer> variableSetIds = new ArrayList<>();
+            
+            for (VariableSetListEntry variableSetListEntry : variableSetListEntries) {
+                if ((variableSetListEntry == null) || (variableSetListEntry.getVariableSetId() == null)) continue;
+                variableSetIds.add(variableSetListEntry.getVariableSetId());
+            }
+            
+            return variableSetIds;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Set<Integer> getAllDistinctVariableSetIds(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListEntriesResultSetHandler(), 
+                    VariableSetListEntriesSql.Select_DistinctVariableSetIds);
+            
+            Set<Integer> variableSetIds = new HashSet<>();
+            
+            for (VariableSetListEntry variableSetListEntry : variableSetListEntries) {
+                if ((variableSetListEntry == null) || (variableSetListEntry.getVariableSetId() == null)) continue;
+                variableSetIds.add(variableSetListEntry.getVariableSetId());
+            }
+            
+            return variableSetIds;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

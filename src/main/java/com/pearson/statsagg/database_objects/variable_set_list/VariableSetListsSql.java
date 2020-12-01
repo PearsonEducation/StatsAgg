@@ -32,6 +32,9 @@ public class VariableSetListsSql {
                     "SELECT * FROM VARIABLE_SET_LISTS " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_VariableSetList_Names = 
+                    "SELECT NAME FROM VARIABLE_SET_LISTS";
+    
     protected final static String Select_VariableSetList_Names_OrderByName = 
                     "SELECT NAME FROM VARIABLE_SET_LISTS " +
                     "WHERE NAME LIKE ? " +

@@ -6,7 +6,9 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -80,7 +82,38 @@ public class VariableSetListsDao {
         }
 
     }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, VariableSetList variableSetList, String oldVariableSetListName) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            VariableSetList variableSetListFromDb = VariableSetListsDao.getVariableSetList(connection, false, oldVariableSetListName);
 
+            boolean upsertSuccess = true;
+            if (variableSetListFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, variableSetList);
+            }
+            else {
+                variableSetList.setId(variableSetListFromDb.getId());
+                if (!variableSetListFromDb.isEqual(variableSetList)) upsertSuccess = update(connection, false, commitOnCompletion, variableSetList);
+            }
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+    
     public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, VariableSetList variableSetList) {
         
         try {                 
@@ -165,6 +198,34 @@ public class VariableSetListsDao {
                     VariableSetListsSql.Select_AllVariableSetLists);
             
             return variableSetLists;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Set<String> getVariableSetListNames(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<VariableSetList> variableSetLists = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListsResultSetHandler(), 
+                    VariableSetListsSql.Select_VariableSetList_Names);
+            
+            Set<String> variableSetListNames = new HashSet();
+            
+            if (variableSetLists != null) {
+                for (VariableSetList variableSetList : variableSetLists) {
+                    if ((variableSetList != null) && (variableSetList.getName() != null))
+                    variableSetListNames.add(variableSetList.getName());
+                }
+            }
+            
+            return variableSetListNames;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

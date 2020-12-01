@@ -1,14 +1,21 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.variable_set.VariableSet;
 import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
-import com.pearson.statsagg.database_objects.variable_set.VariableSetsDaoWrapper;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetList;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDaoWrapper;
+import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
+import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntry;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.util.List;
+import java.util.TreeSet;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -17,11 +24,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class CreateVariableSet extends HttpServlet {
+public class CreateVariableSetList extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateVariableSet.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(CreateVariableSetList.class.getName());
     
-    public static final String PAGE_NAME = "Create Variable Set";
+    public static final String PAGE_NAME = "Create Variable Set List";
     
     /**
      * Handles the HTTP <code>GET</code> method.
@@ -78,11 +85,11 @@ public class CreateVariableSet extends HttpServlet {
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
             
-            VariableSet variableSet = null;
+            VariableSetList variableSetList = null;
             String name = request.getParameter("Name");
-            if (name != null) variableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, name.trim()); 
+            if (name != null) variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, name.trim()); 
 
-            String htmlBodyContents = buildCreateVariableSetHtml(variableSet);
+            String htmlBodyContents = buildCreateVariableSetListHtml(variableSetList);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -120,12 +127,12 @@ public class CreateVariableSet extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterVariableSet(request);
+            String result = parseAndAlterVariableSetList(request);
 
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
             String htmlHeader = statsAggHtmlFramework.createHtmlHeader("StatsAgg - " + PAGE_NAME, "");
-            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "VariableSets", VariableSets.PAGE_NAME);
+            String htmlBodyContent = statsAggHtmlFramework.buildHtmlBodyForPostResult(PAGE_NAME, StatsAggHtmlFramework.htmlEncode(result), "VariableSetLists", VariableSetLists.PAGE_NAME);
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContent);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
@@ -144,7 +151,7 @@ public class CreateVariableSet extends HttpServlet {
         }
     }
     
-    private String buildCreateVariableSetHtml(VariableSet variableSet) {
+    private String buildCreateVariableSetListHtml(VariableSetList variableSetList) {
 
         StringBuilder htmlBody = new StringBuilder();
 
@@ -155,19 +162,19 @@ public class CreateVariableSet extends HttpServlet {
             "     <div class=\"content-header\"> \n" +
             "       <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "     </div> " +
-            "     <form action=\"CreateVariableSet\" method=\"POST\">\n");
+            "     <form action=\"CreateVariableSetList\" method=\"POST\">\n");
         
-        if ((variableSet != null) && (variableSet.getName() != null) && !variableSet.getName().isEmpty()) {
-            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\">");
+        if ((variableSetList != null) && (variableSetList.getName() != null) && !variableSetList.getName().isEmpty()) {
+            htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName(), true)).append("\">");
         }
         
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">Variable set name</label>\n" +
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this variable set.\" name=\"Name\" id=\"Name\" ");
+            "         <label class=\"label_small_margin\">Variable set list name</label>\n" +
+            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this variable set list.\" name=\"Name\" id=\"Name\" ");
 
-        if ((variableSet != null) && (variableSet.getName() != null)) {
-            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\"");
+        if ((variableSetList != null) && (variableSetList.getName() != null)) {
+            htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName(), true)).append("\"");
         }
 
         htmlBody.append(      
@@ -176,8 +183,8 @@ public class CreateVariableSet extends HttpServlet {
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
 
-        if ((variableSet != null) && (variableSet.getDescription() != null)) {
-            htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getDescription(), true));
+        if ((variableSetList != null) && (variableSetList.getDescription() != null)) {
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSetList.getDescription(), true));
         }
 
         htmlBody.append( //
@@ -185,19 +192,27 @@ public class CreateVariableSet extends HttpServlet {
             "</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Variables</label>\n " +
-            "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, key=value. List one variable pair per line.\" " +
-            "              rows=\"15\" name=\"Variables\" id=\"Variables\" >");
+            "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, k=v. List one variable pair per line.\" " +
+            "              rows=\"15\" name=\"VariableSets\" id=\"VariableSets\" >");
 
-        if ((variableSet != null) && (variableSet.getVariables() != null)) {
-            htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true));
+        Connection connection = DatabaseConnections.getConnection();
+        if ((variableSetList != null)) {
+            List<Integer> variableSetListEntries =  VariableSetListEntriesDao.getVariableSetIds_ByVariableSetListId(connection, false, variableSetList.getId());
+            List<String> variableSetNames = VariableSetsDao.getVariableSetNames_OrderedByName(connection, true, variableSetListEntries);
+                    
+            for (int i = 0; (variableSetNames != null) && i < variableSetNames.size(); i++) {
+                htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSetNames.get(i), true));
+                if ((i + 1) < variableSetListEntries.size()) htmlBody.append("\n");
+            }
         }
+        DatabaseUtils.cleanup(connection);
 
         htmlBody.append(
             "</textarea>\n" +
             "</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
-            "       <a href=\"VariableSets\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
+            "       <a href=\"VariableSetLists\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
             "     </form>\n"       +          
             "   </div>\n" +
             "</div>\n");
@@ -205,7 +220,7 @@ public class CreateVariableSet extends HttpServlet {
         return htmlBody.toString();
     }
     
-    public String parseAndAlterVariableSet(Object request) {
+    public String parseAndAlterVariableSetList(Object request) {
         
         if (request == null) {
             return null;
@@ -213,7 +228,7 @@ public class CreateVariableSet extends HttpServlet {
         
         String returnString;
         
-        VariableSet variableSet = getVariableSetFromVariableSetParameters(request);
+        VariableSetList variableSetList = getVariableSetListFromVariableSetListParameters(request);
         String oldName = Common.getSingleParameterAsString(request, "Old_Name");
         if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
         if (oldName == null) {
@@ -223,26 +238,35 @@ public class CreateVariableSet extends HttpServlet {
             if (id != null) {
                 try {
                     Integer id_Integer = Integer.parseInt(id.trim());
-                    VariableSet oldVariableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldVariableSet.getName();
+                    VariableSetList oldVariableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, id_Integer);
+                    oldName = oldVariableSetList.getName();
                 }
                 catch (Exception e){}
             }
         }
         
+        TreeSet<String> variableSetNames = null;
+        TreeSet<String> variableSets_Ui = Common.getMultilineParameterValues(request, "VariableSets");
+        TreeSet<String> variableSets_Api = Common.getMultilineParameterValues(request, "variable_sets");
+        if ((variableSets_Ui != null) || (variableSets_Api != null)) {
+            variableSetNames = new TreeSet<>();
+            if (variableSets_Ui != null) variableSetNames.addAll(variableSets_Ui);
+            if (variableSets_Api != null) variableSetNames.addAll(variableSets_Api);
+        }
+            
         // insert/update/delete records in the database
-        if ((variableSet != null) && (variableSet.getName() != null)) {
-            returnString = VariableSetsDaoWrapper.alterRecordInDatabase(variableSet, oldName).getReturnString();
+        if ((variableSetList != null) && (variableSetList.getName() != null)) {
+            returnString = VariableSetListsDaoWrapper.alterRecordInDatabase(variableSetList, variableSetNames, oldName).getReturnString();
         }
         else {
-            returnString = "Failed to create or alter variable set. Reason=\"Field validation failed.\"";
+            returnString = "Failed to create or alter variable set list. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         
         return returnString;
     }
     
-    private VariableSet getVariableSetFromVariableSetParameters(Object request) {
+    private VariableSetList getVariableSetListFromVariableSetListParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -250,7 +274,7 @@ public class CreateVariableSet extends HttpServlet {
         
         boolean didEncounterError = false;
         
-        VariableSet variableSet = new VariableSet();
+        VariableSetList variableSetList = new VariableSetList();
 
         try {
             String parameter;
@@ -258,8 +282,8 @@ public class CreateVariableSet extends HttpServlet {
             parameter = Common.getSingleParameterAsString(request, "Name");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = parameter.trim();
-            variableSet.setName(trimmedName);
-            if ((variableSet.getName() == null) || variableSet.getName().isEmpty()) didEncounterError = true;
+            variableSetList.setName(trimmedName);
+            if ((variableSetList.getName() == null) || variableSetList.getName().isEmpty()) didEncounterError = true;
 
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
@@ -268,20 +292,9 @@ public class CreateVariableSet extends HttpServlet {
                 String description;
                 if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
                 else description = trimmedParameter;
-                variableSet.setDescription(description);
+                variableSetList.setDescription(description);
             }
-            else variableSet.setDescription("");
-            
-            parameter = Common.getSingleParameterAsString(request, "Variables");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "variables");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String variables;
-                if (trimmedParameter.length() > 100000) variables = trimmedParameter.substring(0, 99999);
-                else variables = trimmedParameter;
-                variableSet.setVariables(variables);
-            }
-            else variableSet.setVariables("");
+            else variableSetList.setDescription("");
         }
         catch (Exception e) {
             didEncounterError = true;
@@ -289,10 +302,10 @@ public class CreateVariableSet extends HttpServlet {
         }
             
         if (didEncounterError) {
-            variableSet = null;
+            variableSetList = null;
         }
         
-        return variableSet;
+        return variableSetList;
     }
 
 }

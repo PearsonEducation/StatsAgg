@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.variable_set;
 
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,5 +35,18 @@ public class VariableSetsSql {
     protected final static String Select_VariableSet_ByName = 
                     "SELECT * FROM VARIABLE_SETS " +
                     "WHERE NAME = ?";
+    
+    protected static final String selectVariableSetNames_ByListOfVariableSetIds_OrderByNameAsc(List<Integer> variableSetIds) {
+        StringBuilder parameters = new StringBuilder();
+        
+        if ((variableSetIds != null) && !variableSetIds.isEmpty()) {
+            for (int i = 0; i < variableSetIds.size(); i++) {
+                parameters.append("?");
+                if ((i+1) < variableSetIds.size()) parameters.append(",");
+            }
+        }
+        
+        return "SELECT NAME FROM VARIABLE_SETS WHERE ID IN ( " + parameters.toString() + " ) ORDER BY NAME ASC";
+    }
 
 }

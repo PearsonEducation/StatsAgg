@@ -18,6 +18,7 @@ import com.pearson.statsagg.web_ui.CreateNotificationGroup;
 import com.pearson.statsagg.web_ui.CreatePagerDutyService;
 import com.pearson.statsagg.web_ui.CreateSuspension;
 import com.pearson.statsagg.web_ui.CreateVariableSet;
+import com.pearson.statsagg.web_ui.CreateVariableSetList;
 import com.pearson.statsagg.web_ui.ForgetMetrics;
 import com.pearson.statsagg.web_ui.ForgetMetricsPreview;
 import com.pearson.statsagg.web_ui.HealthCheck;
@@ -43,6 +44,7 @@ import com.pearson.statsagg.web_ui.Suspension_AlertAssociations;
 import com.pearson.statsagg.web_ui.Suspension_MetricKeyAssociations;
 import com.pearson.statsagg.web_ui.Suspensions;
 import com.pearson.statsagg.web_ui.VariableSetDetails;
+import com.pearson.statsagg.web_ui.VariableSetLists;
 import com.pearson.statsagg.web_ui.VariableSets;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
@@ -132,6 +134,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(CreatePagerDutyService.class, "/CreatePagerDutyService");
         servletContextHandler.addServlet(CreateSuspension.class, "/CreateSuspension");
         servletContextHandler.addServlet(CreateVariableSet.class, "/CreateVariableSet");
+        servletContextHandler.addServlet(CreateVariableSetList.class, "/CreateVariableSetList");
         servletContextHandler.addServlet(ForgetMetrics.class, "/ForgetMetrics");
         servletContextHandler.addServlet(ForgetMetricsPreview.class, "/ForgetMetricsPreview");
         servletContextHandler.addServlet(HealthCheck.class, "/HealthCheck");
@@ -157,6 +160,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(Suspension_MetricKeyAssociations.class, "/Suspension-MetricKeyAssociations");
         servletContextHandler.addServlet(Suspensions.class, "/Suspensions");
         servletContextHandler.addServlet(VariableSetDetails.class, "/VariableSetDetails");
+        servletContextHandler.addServlet(VariableSetLists.class, "/VariableSetLists");
         servletContextHandler.addServlet(VariableSets.class, "/VariableSets");
     }
     

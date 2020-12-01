@@ -1,8 +1,8 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.variable_set.VariableSet;
-import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
-import com.pearson.statsagg.database_objects.variable_set.VariableSetsDaoWrapper;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetList;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDaoWrapper;
 import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
 import java.io.PrintWriter;
 import java.util.ArrayList;
@@ -25,11 +25,11 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class VariableSets extends HttpServlet {
+public class VariableSetLists extends HttpServlet {
 
-    private static final Logger logger = LoggerFactory.getLogger(VariableSets.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(VariableSetLists.class.getName());
 
-    public static final String PAGE_NAME = "Variable Sets";
+    public static final String PAGE_NAME = "Variable Set Lists";
     
     /**
      * Handles the HTTP
@@ -83,7 +83,7 @@ public class VariableSets extends HttpServlet {
         PrintWriter out = null;
 
         try {
-            String html = buildVariableSetsHtml();
+            String html = buildVariableSetListsHtml();
             
             Document htmlDocument = Jsoup.parse(html);
             String htmlFormatted  = htmlDocument.toString();
@@ -121,44 +121,40 @@ public class VariableSets extends HttpServlet {
 
             if ((operation != null) && operation.equals("Clone")) {
                 Integer id = Integer.parseInt(request.getParameter("Id"));
-                cloneVariableSet(id);
+                cloneVariableSetList(id);
             }
 
             if ((operation != null) && operation.equals("Remove")) {
                 Integer id = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
-                removeVariableSet(id);
+                removeVariableSetList(id);
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-        StatsAggHtmlFramework.redirectAndGet(response, 303, "VariableSets");
+        StatsAggHtmlFramework.redirectAndGet(response, 303, "VariableSetLists");
     }
     
-    private void cloneVariableSet(Integer variableSetId) {
+    private void cloneVariableSetList(Integer variableSetListId) {
         
-        if (variableSetId == null) {
+        if (variableSetListId == null) {
             return;
         }
         
         try {
             Connection connection = DatabaseConnections.getConnection();
-            VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetId);
-            List<VariableSet> allVariableSets = VariableSetsDao.getVariableSets(connection, false);
+            VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(connection, false, variableSetListId);
+            Set<String> allVariableSetListNames = VariableSetListsDao.getVariableSetListNames(connection, false);
+            List<Integer> variableSetIds = VariableSetListEntriesDao.getVariableSetIds_ByVariableSetListId(connection, false, variableSetListId);
             DatabaseUtils.cleanup(connection);
 
-            if ((variableSet != null) && (variableSet.getName() != null)) {
-                Set<String> allVariableSetNames = new HashSet<>();
-                for (VariableSet currentVariableSet : allVariableSets) {
-                    if (currentVariableSet.getName() != null) allVariableSetNames.add(currentVariableSet.getName());
-                }
+            if ((variableSetList != null) && (variableSetList.getName() != null)) {
+                VariableSetList clonedVariableSetList = VariableSetList.copy(variableSetList);
+                clonedVariableSetList.setId(-1);
+                String clonedAlterName = StatsAggHtmlFramework.createCloneName(variableSetList.getName(), allVariableSetListNames);
+                clonedVariableSetList.setName(clonedAlterName);
 
-                VariableSet clonedVariableSet = VariableSet.copy(variableSet);
-                clonedVariableSet.setId(-1);
-                String clonedAlterName = StatsAggHtmlFramework.createCloneName(variableSet.getName(), allVariableSetNames);
-                clonedVariableSet.setName(clonedAlterName);
-
-                VariableSetsDaoWrapper.createRecordInDatabase(clonedVariableSet);
+                VariableSetListsDaoWrapper.createRecordInDatabase(clonedVariableSetList, variableSetIds);
             }
         }
         catch (Exception e) {
@@ -166,25 +162,25 @@ public class VariableSets extends HttpServlet {
         }
     }
     
-    public String removeVariableSet(Integer variableSetId) {
+    public String removeVariableSetList(Integer variableSetListId) {
         
-        String returnString = "Variable Set ID field can't be null.";
-        if (variableSetId == null) return returnString;
+        String returnString = "Variable Set List ID field can't be null.";
+        if (variableSetListId == null) return returnString;
         
         try {
-            VariableSet variableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, variableSetId);   
-            returnString = VariableSetsDaoWrapper.deleteRecordInDatabase(variableSet).getReturnString();
+            VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, variableSetListId);   
+            returnString = VariableSetListsDaoWrapper.deleteRecordInDatabase(variableSetList).getReturnString();
             return returnString;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            returnString = "Error removing variable set";
+            returnString = "Error removing variable set list";
             return returnString;
         }
 
     }
     
-    private String buildVariableSetsHtml() {
+    private String buildVariableSetListsHtml() {
         
         StringBuilder html = new StringBuilder();
 
@@ -199,47 +195,45 @@ public class VariableSets extends HttpServlet {
             "  <div class=\"content-header\"> \n" +
             "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "    <div class=\"pull-right \">\n" +
-            "     <a href=\"CreateVariableSet\" class=\"btn btn-primary statsagg_page_content_font\">Create New Variable Set <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
+            "     <a href=\"CreateVariableSetList\" class=\"btn btn-primary statsagg_page_content_font\">Create New Variable Set List <i class=\"fa fa-long-arrow-right\"></i></a> \n" +
             "    </div>" +   
             "  </div>" +    
-            "  <table id=\"VariableSetsTable\" style=\"display:none\" class=\"table table-bordered table-hover \">\n" +
+            "  <table id=\"VariableSetListsTable\" style=\"display:none\" class=\"table table-bordered table-hover \">\n" +
             "    <thead>\n" +
             "      <tr>\n" +
-            "        <th>Variable Set Name</th>\n" +
+            "        <th>Variable Set List Name</th>\n" +
             "        <th>Operations</th>\n" +
             "      </tr>\n" +
             "    </thead>\n" +
             "    <tbody>\n");
 
-        Connection connection = DatabaseConnections.getConnection();
-        Set<Integer> variableSetIdsAssociatedWithVariableSetLists = VariableSetListEntriesDao.getAllDistinctVariableSetIds(connection, false);
-        List<VariableSet> variableSets = VariableSetsDao.getVariableSets(DatabaseConnections.getConnection(), false);
-        DatabaseUtils.cleanup(connection);
-        
-        for (VariableSet variableSet : variableSets) {     
-            if (variableSet == null) continue;
+        Set<Integer> variableSetListIdsAssociatedWithTemplates = new HashSet<>();
+        List<VariableSetList> variableSetLists = VariableSetListsDao.getVariableSetLists(DatabaseConnections.getConnection(), true);
+
+        for (VariableSetList variableSetList : variableSetLists) {     
+            if (variableSetList == null) continue;
             
-            String variableSetDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSet.getName()) + "</a>";
+            String variableSetListDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetListDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetList.getName()) + "</a>";
             
-            String alter = "<a href=\"CreateVariableSet?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">alter</a>";
+            String alter = "<a href=\"CreateVariableSetList?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">alter</a>";
 
             List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
             cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSet.getName(), "VariableSets", "clone", cloneKeysAndValues);
+            cloneKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
+            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSetList.getName(), "VariableSetLists", "clone", cloneKeysAndValues);
             
             List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
             removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSet.getName(), "VariableSets", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this variable set?");       
+            removeKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
+            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSetList.getName(), "VariableSetLists", "remove", 
+                    removeKeysAndValues, true, "Are you sure you want to remove this variable set list?");       
             
             htmlBodyStringBuilder.append("<tr>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(variableSetDetails).append("</td>\n")
+                .append("<td class=\"statsagg_force_word_break\">").append(variableSetListDetails).append("</td>\n")
                 .append("<td>").append(alter).append(", ").append(clone);
             
-            if (variableSetIdsAssociatedWithVariableSetLists == null) htmlBodyStringBuilder.append(", ").append(remove);
-            else if (!variableSetIdsAssociatedWithVariableSetLists.contains(variableSet.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+            if (variableSetListIdsAssociatedWithTemplates == null) htmlBodyStringBuilder.append(", ").append(remove);
+            else if (!variableSetListIdsAssociatedWithTemplates.contains(variableSetList.getId())) htmlBodyStringBuilder.append(", ").append(remove);
  
             htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
         }
