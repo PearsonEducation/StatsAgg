@@ -337,7 +337,7 @@ public class CreateMetricGroup extends HttpServlet {
             }
         }
         else {
-            returnString = "Failed to add metric group. Reason=\"Field validation failed.\"";
+            returnString = "Failed to create or alter metric group. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         

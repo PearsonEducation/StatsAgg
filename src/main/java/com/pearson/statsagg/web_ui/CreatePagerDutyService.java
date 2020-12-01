@@ -233,7 +233,7 @@ public class CreatePagerDutyService extends HttpServlet {
             returnString = PagerdutyServicesDaoWrapper.alterRecordInDatabase(pagerdutyService, oldName).getReturnString();
         }
         else {
-            returnString = "Failed to add PagerDuty service. Reason=\"Field validation failed.\"";
+            returnString = "Failed to create or alter PagerDuty service. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         

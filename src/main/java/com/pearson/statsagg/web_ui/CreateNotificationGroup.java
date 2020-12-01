@@ -250,7 +250,7 @@ public class CreateNotificationGroup extends HttpServlet {
             returnString = NotificationGroupsDaoWrapper.alterRecordInDatabase(notificationGroup, oldName).getReturnString();
         }
         else {
-            returnString = "Failed to add notification group. Reason=\"Field validation failed.\"";
+            returnString = "Failed to create or alter notification group. Reason=\"Field validation failed.\"";
             logger.warn(returnString);
         }
         
