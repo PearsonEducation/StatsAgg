@@ -211,7 +211,7 @@ public class MetricAlertAssociations extends HttpServlet {
             }
         }
                 
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
         if ((alerts == null) || alerts.isEmpty()) return null;
         
         Set<Alert> alertsAssociatedWithMetrics = new HashSet<>();

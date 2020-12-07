@@ -317,7 +317,8 @@ public class Alerts extends HttpServlet {
 
         Connection connection = DatabaseConnections.getConnection();
         DatabaseUtils.setAutoCommit(connection, false);
-        List<Alert> alerts = AlertsDao.getAlerts(connection, false, false);
+        List<Alert> alerts = AlertsDao.getAlerts(connection, false);
+        if (alerts == null) alerts = new ArrayList<>();
         Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(connection, false);
         Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
         Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = SuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId(connection, false);

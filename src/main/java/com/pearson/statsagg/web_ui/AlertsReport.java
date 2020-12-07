@@ -22,6 +22,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.math.BigDecimal;
 import java.sql.Connection;
+import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -162,7 +163,8 @@ public class AlertsReport extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        if (alerts == null) alerts = new ArrayList<>();
         Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = MetricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true);
         
         Connection connection = DatabaseConnections.getConnection();
