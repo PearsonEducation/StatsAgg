@@ -71,27 +71,31 @@ public class CleanupThread implements Runnable {
         }
         
         long threadStartTime = System.currentTimeMillis();
-        
         immediateCleanupMetricKeys_ = new HashSet<>(GlobalVariables.immediateCleanupMetrics.keySet());
 
         // prevents cleanup from running at the same time as the alert routine
         synchronized (GlobalVariables.alertRoutineLock) {
-            // always remove metric data points 
-            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
-            List<Alert> enabledAlerts = AlertThread.getEnabledAlerts(alerts);
-            String cleanupRecentMetricTimestampsAndValuesOutput = cleanupRecentMetricTimestampsAndValues(enabledAlerts);
-            String cleanupSubroutineOutputMessages = cleanupRecentMetricTimestampsAndValuesOutput;
+            try {
+                // always remove metric data points 
+                List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+                List<Alert> enabledAlerts = AlertThread.getEnabledAlerts(alerts);
+                String cleanupRecentMetricTimestampsAndValuesOutput = cleanupRecentMetricTimestampsAndValues(enabledAlerts);
+                String cleanupSubroutineOutputMessages = cleanupRecentMetricTimestampsAndValuesOutput;
 
-            // don't cleanup metric keys when the metric association routine is running
-            if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get() && !MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get()) {
-                String cleanupMetricsAssociationsOutput = cleanupMetricsAssociations();
-                cleanupSubroutineOutputMessages = cleanupSubroutineOutputMessages + ", " + cleanupMetricsAssociationsOutput;
+                // don't cleanup metric keys when the metric association routine is running
+                if (!MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get() && !MetricAssociation.IsMetricAssociationRoutineCurrentlyRunning_CurrentlyAssociating.get()) {
+                    String cleanupMetricsAssociationsOutput = cleanupMetricsAssociations();
+                    cleanupSubroutineOutputMessages = cleanupSubroutineOutputMessages + ", " + cleanupMetricsAssociationsOutput;
+                }
+
+                long threadEndTime = System.currentTimeMillis();
+                String cleanupSummaryMessage = "ThreadId=" + threadId_ + ", CleanupTotalTime=" + (threadEndTime - threadStartTime) + ", ";
+
+                logger.info(cleanupSummaryMessage + cleanupSubroutineOutputMessages);
             }
-            
-            long threadEndTime = System.currentTimeMillis();
-            String cleanupSummaryMessage = "ThreadId=" + threadId_ + ", CleanupTotalTime=" + (threadEndTime - threadStartTime) + ", ";
-            
-            logger.info(cleanupSummaryMessage + cleanupSubroutineOutputMessages);
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
         }
         
         isCleanupThreadCurrentlyRunning.set(false);
