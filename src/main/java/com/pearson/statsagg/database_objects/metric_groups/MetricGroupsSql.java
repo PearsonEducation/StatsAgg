@@ -18,6 +18,10 @@ public class MetricGroupsSql {
                     "SELECT * FROM METRIC_GROUPS " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_MetricGroup_ByUppercaseName = 
+                    "SELECT * FROM METRIC_GROUPS " +
+                    "WHERE UPPERCASE_NAME = ?";
+    
     protected final static String Select_MetricGroup_Names_OrderByName = 
                     "SELECT NAME FROM METRIC_GROUPS " +
                     "WHERE NAME LIKE ? " +
@@ -37,6 +41,11 @@ public class MetricGroupsSql {
     protected final static String Update_MetricGroup_ByPrimaryKey =
                     "UPDATE METRIC_GROUPS " +
                     "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ? " +
+                    "WHERE ID = ?";
+    
+    protected final static String Update_MetricGroup_Name =
+                    "UPDATE METRIC_GROUPS " +
+                    "SET NAME = ?, UPPERCASE_NAME = ? " +
                     "WHERE ID = ?";
     
     protected final static String Delete_MetricGroup_ByPrimaryKey = 
