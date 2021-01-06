@@ -20,6 +20,11 @@ public class NotificationGroupsSql {
                     "SET NAME = ?, UPPERCASE_NAME = ?, EMAIL_ADDRESSES = ?, PAGERDUTY_SERVICE_ID = ? " +
                     "WHERE ID = ?";
     
+    protected final static String Update_NotificationGroup_Name =
+                    "UPDATE NOTIFICATION_GROUPS " +
+                    "SET NAME = ?, UPPERCASE_NAME = ? " +
+                    "WHERE ID = ?";
+    
     protected final static String Delete_NotificationGroup_ByPrimaryKey = 
                     "DELETE FROM NOTIFICATION_GROUPS " +
                     "WHERE ID = ?";
@@ -31,6 +36,10 @@ public class NotificationGroupsSql {
     protected final static String Select_NotificationGroup_ByName = 
                     "SELECT * FROM NOTIFICATION_GROUPS " +
                     "WHERE NAME = ?";
+    
+    protected final static String Select_NotificationGroup_ByUppercaseName = 
+                    "SELECT * FROM NOTIFICATION_GROUPS " +
+                    "WHERE UPPERCASE_NAME = ?";
     
     protected final static String Select_NotificationGroup_Names_OrderByName = 
                     "SELECT NAME FROM NOTIFICATION_GROUPS " +
