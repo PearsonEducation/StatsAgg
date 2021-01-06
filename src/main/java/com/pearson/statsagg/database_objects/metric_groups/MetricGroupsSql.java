@@ -9,7 +9,26 @@ import org.slf4j.LoggerFactory;
 public class MetricGroupsSql {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupsSql.class.getName());
-
+    
+    protected final static String Insert_MetricGroup =
+                    "INSERT INTO METRIC_GROUPS " +
+                    "(NAME, UPPERCASE_NAME, DESCRIPTION) " +
+                    "VALUES(?,?,?)";
+    
+    protected final static String Update_MetricGroup_ByPrimaryKey =
+                    "UPDATE METRIC_GROUPS " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ? " +
+                    "WHERE ID = ?";
+    
+    protected final static String Update_MetricGroup_Name =
+                    "UPDATE METRIC_GROUPS " +
+                    "SET NAME = ?, UPPERCASE_NAME = ? " +
+                    "WHERE ID = ?";
+    
+    protected final static String Delete_MetricGroup_ByPrimaryKey = 
+                    "DELETE FROM METRIC_GROUPS " +
+                    "WHERE ID = ?";
+    
     protected final static String Select_MetricGroup_ByPrimaryKey = 
                     "SELECT * FROM METRIC_GROUPS " +
                     "WHERE ID = ?";
@@ -33,23 +52,4 @@ public class MetricGroupsSql {
     protected final static String Select_DistinctMetricGroupIds = 
                     "SELECT DISTINCT ID FROM METRIC_GROUPS";
     
-    protected final static String Insert_MetricGroup =
-                    "INSERT INTO METRIC_GROUPS " +
-                    "(NAME, UPPERCASE_NAME, DESCRIPTION) " +
-                    "VALUES(?,?,?)";
-    
-    protected final static String Update_MetricGroup_ByPrimaryKey =
-                    "UPDATE METRIC_GROUPS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ? " +
-                    "WHERE ID = ?";
-    
-    protected final static String Update_MetricGroup_Name =
-                    "UPDATE METRIC_GROUPS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ? " +
-                    "WHERE ID = ?";
-    
-    protected final static String Delete_MetricGroup_ByPrimaryKey = 
-                    "DELETE FROM METRIC_GROUPS " +
-                    "WHERE ID = ?";
-
 }
