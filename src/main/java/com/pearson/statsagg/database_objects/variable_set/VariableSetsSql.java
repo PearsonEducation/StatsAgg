@@ -36,6 +36,10 @@ public class VariableSetsSql {
                     "SELECT * FROM VARIABLE_SETS " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_VariableSet_ByUppercaseName = 
+                    "SELECT * FROM VARIABLE_SETS " +
+                    "WHERE UPPERCASE_NAME = ?";
+    
     protected static final String selectVariableSetNames_ByListOfVariableSetIds_OrderByNameAsc(List<Integer> variableSetIds) {
         StringBuilder parameters = new StringBuilder();
         

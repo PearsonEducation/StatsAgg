@@ -32,6 +32,10 @@ public class VariableSetListsSql {
                     "SELECT * FROM VARIABLE_SET_LISTS " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_VariableSetList_ByUppercaseName = 
+                    "SELECT * FROM VARIABLE_SET_LISTS " +
+                    "WHERE UPPERCASE_NAME = ?";
+    
     protected final static String Select_VariableSetList_Names = 
                     "SELECT NAME FROM VARIABLE_SET_LISTS";
     

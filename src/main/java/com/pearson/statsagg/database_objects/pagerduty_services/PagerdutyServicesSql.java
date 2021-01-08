@@ -35,6 +35,10 @@ public class PagerdutyServicesSql {
                     "SELECT * FROM PAGERDUTY_SERVICES " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_PagerdutyService_ByUppercaseName = 
+                    "SELECT * FROM PAGERDUTY_SERVICES " +
+                    "WHERE UPPERCASE_NAME = ?";
+    
     protected final static String Select_PagerdutyService_Names_OrderByName = 
                     "SELECT NAME FROM PAGERDUTY_SERVICES " +
                     "WHERE NAME LIKE ? " +

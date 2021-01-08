@@ -18,6 +18,10 @@ public class SuspensionsSql {
                     "SELECT * FROM SUSPENSIONS " +
                     "WHERE NAME = ?";
     
+    protected final static String Select_Suspension_ByUppercaseName = 
+                    "SELECT * FROM SUSPENSIONS " +
+                    "WHERE UPPERCASE_NAME = ?";
+    
     protected final static String Select_AllSuspensions = 
                     "SELECT * FROM SUSPENSIONS";
     
@@ -28,6 +32,10 @@ public class SuspensionsSql {
     protected final static String Select_Suspension_BySuspendBy = 
                     "SELECT * FROM SUSPENSIONS " +
                     "WHERE SUSPEND_BY = ?";
+    
+    protected final static String Select_Suspension_ByAlertId = 
+                    "SELECT * FROM SUSPENSIONS " +
+                    "WHERE ALERT_ID = ?";
     
     protected final static String Insert_Suspension =
                     "INSERT INTO SUSPENSIONS " +
