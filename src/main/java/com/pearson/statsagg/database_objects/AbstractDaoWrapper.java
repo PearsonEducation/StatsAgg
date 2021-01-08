@@ -83,6 +83,24 @@ public abstract class AbstractDaoWrapper {
         returnString_ = returnString;
     }
     
+    protected void getReturnString_AlterFail_TemplateConflict(String databaseObjectName) {
+        lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
+        String returnString;
+
+        if (isNewDatabaseObject_) {
+            returnString = "Failed to create " + databaseObjectHumanFriendlyName_ + " due to a " + databaseObjectHumanFriendlyName_ + " template conflict. " + 
+                    databaseObjectLogFriendlyName_ + "Name=\"" + databaseObjectName + "\"";
+        }
+        else {
+            returnString = "Failed to alter " + databaseObjectHumanFriendlyName_ + " due to a " + databaseObjectHumanFriendlyName_ + " template conflict. " + 
+                    databaseObjectLogFriendlyName_ + "Name=\"" + databaseObjectName + "\"";
+        }
+
+        String cleanReturnString = StringUtilities.removeNewlinesFromString(returnString, ' ');
+        logger.info(cleanReturnString);
+        returnString_ = returnString;
+    }
+    
     protected void getReturnString_AlterFail_CommitFail(String databaseObjectName) {
         lastAlterRecordStatus_ = STATUS_CODE_FAILURE;
         String returnString;
