@@ -42,7 +42,7 @@ public class NotificationGroupsDaoWrapper extends AbstractDaoWrapper {
         try {
             getReturnString_AlterInitialValue(notificationGroup_.getName());
             
-            NotificationGroup notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroup_.getName());
+            NotificationGroup notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup_FilterByUppercaseName(connection, false, notificationGroup_.getName());
             
             if (isNewDatabaseObject_ && (notificationGroupFromDb != null)) { 
                 getReturnString_CreateFail_SameNameAlreadyExists(notificationGroup_.getName());
