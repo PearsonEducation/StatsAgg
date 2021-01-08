@@ -150,18 +150,18 @@ public class DatabaseObjectCommon {
             return newLineDelimitedString;
         }
         
-        StringBuilder tagStringBuilder = new StringBuilder();
+        StringBuilder stringBuilder = new StringBuilder();
 
-        List<String> tags = StringUtilities.getListOfStringsFromDelimitedString(newLineDelimitedString, '\n');
+        List<String> strings = StringUtilities.getListOfStringsFromDelimitedString(newLineDelimitedString, '\n');
         
-        if ((tags != null) && !tags.isEmpty()) {
-            for (String tag : tags) {
-                String trimmedTag = tag.trim();
-                if (!trimmedTag.isEmpty()) tagStringBuilder.append(trimmedTag).append("\n");
+        if ((strings != null) && !strings.isEmpty()) {
+            for (String string : strings) {
+                String trimmedString = string.trim();
+                if (!trimmedString.isEmpty()) stringBuilder.append(trimmedString).append("\n");
             }
         }
         
-        return tagStringBuilder.toString().trim();
+        return stringBuilder.toString().trim();
     }
     
 }
