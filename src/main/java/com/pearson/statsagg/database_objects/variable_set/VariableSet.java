@@ -11,7 +11,10 @@ import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.database_objects.JsonOutputFieldNamingStrategy;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +80,36 @@ public class VariableSet implements DatabaseObject<VariableSet>  {
         return variableSetCopy;
     }
     
-    public List<String> getVariables_List() {
-        return StringUtilities.getListOfStringsFromDelimitedString(variables_, '\n');
+    public List<String> getVariables_KeysAndValues() {
+        String trimmedNewLineDelimitedString = trimNewLineDelimitedVariables(variables_);
+        return StringUtilities.getListOfStringsFromDelimitedString(trimmedNewLineDelimitedString, '\n');
+    }
+    
+    public Map<String,String> getVariables_Map() {
+        List<String> variableSetKeysAndValues = getVariables_KeysAndValues();
+        if (variableSetKeysAndValues == null) return new HashMap<>();
+        
+        Map<String,String> variablesMap = new HashMap<>();
+        
+        for (String variableKeyAndValue : variableSetKeysAndValues) {
+            try {
+                if ((variableKeyAndValue == null) || variableKeyAndValue.isEmpty()) continue;
+                
+                String[] variableKeyAndValue_Seperated = StringUtils.split(variableKeyAndValue, "=", 2);
+                
+                if (variableKeyAndValue_Seperated != null) {
+                    if (variableKeyAndValue_Seperated.length == 0) continue;
+                    if (variableKeyAndValue_Seperated.length == 1) continue;
+                    if (variableKeyAndValue_Seperated.length > 2) continue;
+                    if (variableKeyAndValue_Seperated.length == 2) variablesMap.put(variableKeyAndValue_Seperated[0], variableKeyAndValue_Seperated[1]);
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
+        return variablesMap;
     }
     
     public static String trimNewLineDelimitedVariables(String newLineDelimitedVariables) {
