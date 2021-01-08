@@ -60,7 +60,7 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
             try {
                 getReturnString_AlterInitialValue(metricGroup_.getName());
                 
-                MetricGroup metricGroupFromDb = MetricGroupsDao.getMetricGroup(connection, false, metricGroup_.getName());
+                MetricGroup metricGroupFromDb = MetricGroupsDao.getMetricGroup_FilterByUppercaseName(connection, false, metricGroup_.getName());
                 
                 if (isNewDatabaseObject_ && (metricGroupFromDb != null)) {
                     getReturnString_CreateFail_SameNameAlreadyExists(metricGroup_.getName());
