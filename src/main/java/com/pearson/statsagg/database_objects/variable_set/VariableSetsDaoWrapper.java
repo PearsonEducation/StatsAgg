@@ -42,7 +42,7 @@ public class VariableSetsDaoWrapper extends AbstractDaoWrapper {
         try {
             getReturnString_AlterInitialValue(variableSet_.getName());
             
-            VariableSet variableSetFromDb = VariableSetsDao.getVariableSet(connection, false, variableSet_.getName());
+            VariableSet variableSetFromDb = VariableSetsDao.getVariableSet_FilterByUppercaseName(connection, false, variableSet_.getName());
 
             if (isNewDatabaseObject_ && (variableSetFromDb != null)) {
                 getReturnString_CreateFail_SameNameAlreadyExists(variableSet_.getName());

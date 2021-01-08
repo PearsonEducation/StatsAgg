@@ -44,7 +44,7 @@ public class SuspensionsDaoWrapper extends AbstractDaoWrapper {
             try {
                 getReturnString_AlterInitialValue(suspension_.getName());
                 
-                Suspension suspensionFromDb = SuspensionsDao.getSuspension(connection, false, suspension_.getName());
+                Suspension suspensionFromDb = SuspensionsDao.getSuspension_FilterByUppercaseName(connection, false, suspension_.getName());
                 
                 if (isNewDatabaseObject_ && (suspensionFromDb != null)) { 
                     getReturnString_CreateFail_SameNameAlreadyExists(suspension_.getName());

@@ -42,7 +42,7 @@ public class PagerdutyServicesDaoWrapper extends AbstractDaoWrapper {
         try {
             getReturnString_AlterInitialValue(pagerdutyService_.getName());
             
-            PagerdutyService pagerdutyServiceFromDb = PagerdutyServicesDao.getPagerdutyService(connection, false, pagerdutyService_.getName());
+            PagerdutyService pagerdutyServiceFromDb = PagerdutyServicesDao.getPagerdutyService_FilterByUppercaseName(connection, false, pagerdutyService_.getName());
             
             if (isNewDatabaseObject_ && (pagerdutyServiceFromDb != null)) {
                 getReturnString_CreateFail_SameNameAlreadyExists(pagerdutyService_.getName());
