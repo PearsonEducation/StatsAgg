@@ -213,7 +213,7 @@ public class VariableSets extends HttpServlet {
 
         Connection connection = DatabaseConnections.getConnection();
         Set<Integer> variableSetIdsAssociatedWithVariableSetLists = VariableSetListEntriesDao.getAllDistinctVariableSetIds(connection, false);
-        List<VariableSet> variableSets = VariableSetsDao.getVariableSets(DatabaseConnections.getConnection(), false);
+        List<VariableSet> variableSets = VariableSetsDao.getVariableSets(connection, false);
         DatabaseUtils.cleanup(connection);
         
         for (VariableSet variableSet : variableSets) {     
