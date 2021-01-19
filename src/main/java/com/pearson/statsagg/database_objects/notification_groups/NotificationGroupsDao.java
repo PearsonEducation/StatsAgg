@@ -60,6 +60,27 @@ public class NotificationGroupsDao {
         
     }
     
+    public static boolean update_Name(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, 
+            int notificationGroupId, String newNotificationGroupName) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    NotificationGroupsSql.Update_NotificationGroup_Name, 
+                    newNotificationGroupName, newNotificationGroupName.toUpperCase(), 
+                    notificationGroupId);
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, NotificationGroup notificationGroup) {
         
         try {                   
@@ -161,6 +182,25 @@ public class NotificationGroupsDao {
             List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new NotificationGroupsResultSetHandler(), 
                     NotificationGroupsSql.Select_NotificationGroup_ByName, notificationGroupName);
+            
+            return DatabaseUtils.getSingleResultFromList(notificationGroups);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static NotificationGroup getNotificationGroup_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String notificationGroupName) {
+        
+        try {
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_NotificationGroup_ByUppercaseName, notificationGroupName.toUpperCase());
             
             return DatabaseUtils.getSingleResultFromList(notificationGroups);
         }
@@ -278,40 +318,73 @@ public class NotificationGroupsDao {
     
     public static Map<Integer, NotificationGroup> getNotificationGroups_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
-        Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();
-        
         try {
+            Map<Integer, NotificationGroup> notificationGroupsById = new HashMap<>();
+
             List<NotificationGroup> notificationGroups = getNotificationGroups(connection, closeConnectionOnCompletion);
-            if (notificationGroups == null) return notificationGroupsById;
+            if (notificationGroups == null) return null;
 
             for (NotificationGroup notificationGroup : notificationGroups) {
-                if (notificationGroup.getId() != null) notificationGroupsById.put(notificationGroup.getId(), notificationGroup);
+                if (notificationGroup.getId() != null) {
+                    notificationGroupsById.put(notificationGroup.getId(), notificationGroup);
+                }
             }
+            
+            return notificationGroupsById;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
-        
-        return notificationGroupsById;
+
     }
         
     public static Map<Integer, String> getNotificationGroupNames_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
-        Map<Integer, String> notificationGroupNamesById = new HashMap<>();
-        
         try {
+            Map<Integer, String> notificationGroupNamesById = new HashMap<>();
+
             List<NotificationGroup> notificationGroups = getNotificationGroupIdsAndNames(connection, closeConnectionOnCompletion);
-            if (notificationGroups == null) return notificationGroupNamesById;
+            if (notificationGroups == null) return null;
 
             for (NotificationGroup notificationGroup : notificationGroups) {
-                if (notificationGroup.getName() != null) notificationGroupNamesById.put(notificationGroup.getId(), notificationGroup.getName());
+                if ((notificationGroup.getName() != null) && (notificationGroup.getId() != null)) {
+                    notificationGroupNamesById.put(notificationGroup.getId(), notificationGroup.getName());
+                }
             }
+            
+            return notificationGroupNamesById;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
-        
-        return notificationGroupNamesById;
+
     }
 
+    public static Map<String,NotificationGroup> getNotificationGroups_ByName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<String,NotificationGroup> notificationGroups_ByName = new HashMap<>();
+            
+            List<NotificationGroup> notificationGroups = getNotificationGroups(connection, false);
+            if (notificationGroups == null) return null;
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup == null) || (notificationGroup.getName() == null)) continue;
+                notificationGroups_ByName.put(notificationGroup.getName(), notificationGroup);
+            }
+
+            return notificationGroups_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
 }
