@@ -161,6 +161,8 @@ public class CreatePagerDutyService extends HttpServlet {
             htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName(), true)).append("\">");
         }
         
+        
+        // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">PagerDuty service name</label>\n" +
@@ -170,8 +172,11 @@ public class CreatePagerDutyService extends HttpServlet {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName(), true)).append("\"");
         }
 
+        htmlBody.append(">\n</div>\n");
+        
+                   
+        // description
         htmlBody.append(      
-            ">\n</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
@@ -180,9 +185,11 @@ public class CreatePagerDutyService extends HttpServlet {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getDescription(), true));
         }
 
+        htmlBody.append("</textarea>\n" + "</div>\n");
+        
+        
+        // pagerduty service routing key
         htmlBody.append(
-            "</textarea>\n" +
-            "</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Routing Key</label>\n" +
             "  <input class=\"form-control-statsagg\" placeholder=\"Enter a PagerDuty service routing key\" name=\"RoutingKey\" id=\"RoutingKey\" ");
@@ -190,9 +197,11 @@ public class CreatePagerDutyService extends HttpServlet {
         if ((pagerdutyService != null) && (pagerdutyService.getRoutingKey() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getRoutingKey(), true)).append("\"");
         }
+        
+        htmlBody.append(">\n</div>\n");
 
+        
         htmlBody.append(
-            ">\n</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
             "       <a href=\"PagerDutyServices\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
