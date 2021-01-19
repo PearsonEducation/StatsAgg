@@ -83,7 +83,7 @@ public class Suspension_MetricKeyAssociations extends HttpServlet {
     
         String name = request.getParameter("Name");
         boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
-        String suspensionMetricKeyAssociations = getSuspensionMetricKeyAssociations(name);
+        String suspensionMetricKeyAssociations = getSuspensionMetricKeyAssociations(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -123,7 +123,7 @@ public class Suspension_MetricKeyAssociations extends HttpServlet {
         
     }
 
-    private String getSuspensionMetricKeyAssociations(String suspensionName) {
+    private String getSuspensionMetricKeyAssociations(String suspensionName, boolean excludeNavbar) {
         
         if (suspensionName == null) {
             return "";
@@ -171,7 +171,7 @@ public class Suspension_MetricKeyAssociations extends HttpServlet {
                         if ((metricTimestampsAndValues != null) && !metricTimestampsAndValues.isEmpty()) mostRecentValue = metricTimestampsAndValues.get(metricTimestampsAndValues.size() - 1).getMetricValue();
                         
                         outputString.append("<li>");
-                        outputString.append("<a href=\"MetricRecentValues?MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
+                        outputString.append("<a class=\"iframe cboxElement\" href=\"MetricRecentValues?ExcludeNavbar=").append(excludeNavbar).append("&amp;MetricKey=").append(StatsAggHtmlFramework.urlEncode(metricKey)).append("\">");
                         outputString.append(StatsAggHtmlFramework.htmlEncode(metricKey)).append("</a>");
                         if (mostRecentValue != null) outputString.append(" = ").append(mostRecentValue.stripTrailingZeros().toPlainString()).append(" (most recent value)");
                         outputString.append("</li>");
