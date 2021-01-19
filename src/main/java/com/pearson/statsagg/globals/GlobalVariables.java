@@ -17,6 +17,7 @@ import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v2;
 import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
+import com.pearson.statsagg.threads.invokers.TemplateInvokerThread;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -38,6 +39,9 @@ public class GlobalVariables {
     
     // the 'invoker' thread for the alert routine. this is global so that the webui can trigger the alert-routine.
     public static AlertInvokerThread alertInvokerThread = null;
+    
+    // the 'invoker' thread for the template routine. this is global so that the webui can trigger the template-routine.
+    public static TemplateInvokerThread templateInvokerThread = null;
     
     // the 'invoker' thread for the cleanup routine. this is global so that the webui can trigger the cleanup-routine.
     public static CleanupInvokerThread cleanupInvokerThread = null;

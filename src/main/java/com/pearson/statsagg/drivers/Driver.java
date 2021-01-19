@@ -38,6 +38,7 @@ import com.pearson.statsagg.servers.http.JettyOpenTsdb;
 import com.pearson.statsagg.servers.http.JettyUiAndApi;
 import com.pearson.statsagg.servers.tcp.TcpServer;
 import com.pearson.statsagg.servers.udp.UdpServer;
+import com.pearson.statsagg.threads.invokers.TemplateInvokerThread;
 import com.pearson.statsagg.utilities.core_utils.InvokerThread;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.core_utils.Threads;
@@ -79,6 +80,7 @@ public class Driver {
     private static InfluxdbV1InvokerThread influxdbInvokerThread_ = null;
     private static MetricAssociationOutputBlacklistInvokerThread metricAssociationOutputBlacklistInvokerThread_ = null;
     private static AlertInvokerThread alertInvokerThread_ = null;
+    private static TemplateInvokerThread templateInvokerThread_ = null;
     private static CleanupInvokerThread cleanupInvokerThread_ = null;
     private static InternalStatsInvokerThread internalStatsInvokerThread_ = null;
     
@@ -194,6 +196,11 @@ public class Driver {
         Thread alertInvokerThread = new Thread(alertInvokerThread_);
         alertInvokerThread.start();
         GlobalVariables.alertInvokerThread = alertInvokerThread_;
+        
+        templateInvokerThread_ = new TemplateInvokerThread();
+        Thread templateInvokerThread = new Thread(templateInvokerThread_);
+        templateInvokerThread.start();
+        GlobalVariables.templateInvokerThread = templateInvokerThread_;
         
         cleanupInvokerThread_ = new CleanupInvokerThread();
         Thread cleanupInvokerThread = new Thread(cleanupInvokerThread_);
@@ -705,6 +712,10 @@ public class Driver {
         ShutdownInvokerThread_Thread shutdownAlertInvokerThread = new ShutdownInvokerThread_Thread(alertInvokerThread_);
         Thread shutdownAlertInvokerThread_Thread = new Thread(shutdownAlertInvokerThread);
         shutdownThreadInvokerThreads.add(shutdownAlertInvokerThread_Thread);
+        
+        ShutdownInvokerThread_Thread shutdownTemplateInvokerThread = new ShutdownInvokerThread_Thread(templateInvokerThread_);
+        Thread shutdownTemplateInvokerThread_Thread = new Thread(shutdownTemplateInvokerThread);
+        shutdownThreadInvokerThreads.add(shutdownTemplateInvokerThread_Thread);
         
         ShutdownInvokerThread_Thread shutdownCleanupInvokerThread = new ShutdownInvokerThread_Thread(cleanupInvokerThread_);
         Thread shutdownCleanupInvokerThread_Thread = new Thread(shutdownCleanupInvokerThread);
