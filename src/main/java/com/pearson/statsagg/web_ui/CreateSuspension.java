@@ -539,21 +539,7 @@ public class CreateSuspension extends HttpServlet {
         Suspension suspension = getSuspensionFromRequestParameters(request);
         
         // help determine if the suspension is being renamed by getting the previous name of the suspension (if it exists)
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    Suspension oldSuspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldSuspension.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        String oldName = getOldSuspensionName(request);
         
         // insert/update/delete records in the database
         DatabaseObjectValidation databaseObjectValidation = Suspension.isValid(suspension);
@@ -577,6 +563,37 @@ public class CreateSuspension extends HttpServlet {
         }
 
         return returnString;
+    }
+    
+    protected static String getOldSuspensionName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        Suspension oldSuspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldSuspension.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     private Suspension getSuspensionFromRequestParameters(Object request) {
