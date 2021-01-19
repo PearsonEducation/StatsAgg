@@ -211,12 +211,51 @@ public class SuspensionsDao {
         
     }
     
+    public static Suspension getSuspension_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String suspensionName) {
+        
+        try {
+            List<Suspension> suspensions = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new SuspensionsResultSetHandler(), 
+                    SuspensionsSql.Select_Suspension_ByUppercaseName, suspensionName.toUpperCase());
+            
+            return DatabaseUtils.getSingleResultFromList(suspensions);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static List<Suspension> getSuspensions(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
             List<Suspension> suspensions = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
                     new SuspensionsResultSetHandler(), 
                     SuspensionsSql.Select_AllSuspensions);
+            
+            return suspensions;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<Suspension> getSuspensions_FilterByAlertId(Connection connection, boolean closeConnectionOnCompletion, int alertId) {
+        
+        try {
+            List<Suspension> suspensions = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new SuspensionsResultSetHandler(), 
+                    SuspensionsSql.Select_Suspension_ByAlertId,
+                    alertId);
             
             return suspensions;
         }
