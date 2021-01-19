@@ -147,7 +147,7 @@ public class MetricGroupAlertAssociations extends HttpServlet {
         outputString.append("<ul>");
         
         for (String alertName : alertNames) {
-            String alertDetailsUrl = "<a href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
+            String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
             outputString.append("<li>").append(alertDetailsUrl).append("</li>");
         }
 
