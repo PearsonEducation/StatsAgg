@@ -5,6 +5,8 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
  
@@ -167,6 +169,25 @@ public class VariableSetsDao {
         
     }
     
+    public static VariableSet getVariableSet_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String variableSetName) {
+        
+        try {
+            List<VariableSet> variableSets = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetsResultSetHandler(), 
+                    VariableSetsSql.Select_VariableSet_ByUppercaseName, variableSetName.toUpperCase());
+            
+            return DatabaseUtils.getSingleResultFromList(variableSets);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static List<VariableSet> getVariableSets(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
@@ -185,7 +206,57 @@ public class VariableSetsDao {
         }
         
     }
+    
+    public static Map<Integer,VariableSet> getVariableSets_ById(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<Integer,VariableSet> variableSets_ById = new HashMap<>();
+            
+            List<VariableSet> variableSets = getVariableSets(connection, false);
+            if (variableSets == null) return null;
+            
+            for (VariableSet variableSet : variableSets) {
+                if ((variableSet == null) || (variableSet.getId() == null)) continue;
+                variableSets_ById.put(variableSet.getId(), variableSet);
+            }
 
+            return variableSets_ById;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Map<String,VariableSet> getVariableSets_ByName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<String,VariableSet> variableSets_ByName = new HashMap<>();
+            
+            List<VariableSet> variableSets = getVariableSets(connection, false);
+            if (variableSets == null) return null;
+            
+            for (VariableSet variableSet : variableSets) {
+                if ((variableSet == null) || (variableSet.getName() == null)) continue;
+                variableSets_ByName.put(variableSet.getName(), variableSet);
+            }
+
+            return variableSets_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static List<String> getVariableSetNames_OrderedByName(Connection connection, boolean closeConnectionOnCompletion, List<Integer> variableSetIds) {
         
         try {
