@@ -195,7 +195,7 @@ public class VariableSetListEntriesDao {
         
     }
     
-    public static List<Integer> getVariableSetIds_ByVariableSetListId(Connection connection, boolean closeConnectionOnCompletion, Integer variableSetListId) {
+    public static List<Integer> getVariableSetIds_ForVariableSetListId(Connection connection, boolean closeConnectionOnCompletion, Integer variableSetListId) {
         
         try {
             List<VariableSetListEntry> variableSetListEntries = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
