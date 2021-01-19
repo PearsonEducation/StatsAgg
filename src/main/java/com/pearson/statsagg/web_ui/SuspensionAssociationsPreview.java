@@ -191,8 +191,9 @@ public class SuspensionAssociationsPreview extends HttpServlet {
     private String getAlertSuspension_AlertAssociations_ResponseHtml(Suspension suspension) {
         List<String> alertNames = new ArrayList<>();
         
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
-        
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        if (alerts == null) alerts = new ArrayList<>();
+
         for (Alert alert : alerts) {
             if ((alert.getName() == null) || alert.getName().isEmpty()) continue;
             
