@@ -12,12 +12,12 @@ public class MetricGroupsSql {
     
     protected final static String Insert_MetricGroup =
                     "INSERT INTO METRIC_GROUPS " +
-                    "(NAME, UPPERCASE_NAME, DESCRIPTION) " +
-                    "VALUES(?,?,?)";
+                    "(NAME, UPPERCASE_NAME, DESCRIPTION, METRIC_GROUP_TEMPLATE_ID, VARIABLE_SET_ID) " +
+                    "VALUES(?,?,?,?,?)";
     
     protected final static String Update_MetricGroup_ByPrimaryKey =
                     "UPDATE METRIC_GROUPS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ? " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, DESCRIPTION = ?, METRIC_GROUP_TEMPLATE_ID = ?, VARIABLE_SET_ID = ? " +
                     "WHERE ID = ?";
     
     protected final static String Update_MetricGroup_Name =
@@ -48,8 +48,15 @@ public class MetricGroupsSql {
     
     protected final static String Select_AllMetricGroups = 
                     "SELECT * FROM METRIC_GROUPS";
-
+    
+    protected final static String Select_MetricGroupNames = 
+                    "SELECT NAME FROM METRIC_GROUPS";
+    
     protected final static String Select_DistinctMetricGroupIds = 
                     "SELECT DISTINCT ID FROM METRIC_GROUPS";
+    
+    protected final static String Select_MetricGroup_ByMetricGroupTemplateId = 
+                    "SELECT * FROM METRIC_GROUPS " +
+                    "WHERE METRIC_GROUP_TEMPLATE_ID = ?";
     
 }

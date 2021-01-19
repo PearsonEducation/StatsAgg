@@ -8,10 +8,6 @@ import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
@@ -101,13 +97,7 @@ public class MetricGroupsList extends HttpServlet {
             List<JsonObject> metricGroupsJsonObjects = new ArrayList<>();
             
             for (MetricGroup metricGroup : metricGroups) {
-                List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
-                if (metricGroup != null) metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(connection, false, metricGroup.getId());
-                
-                List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-                if (metricGroup != null) metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, metricGroup.getId());
-                
-                JsonObject metricGroupJsonObject = MetricGroup.getJsonObject_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, false, -1);
+                JsonObject metricGroupJsonObject = MetricGroup.getJsonObject_ApiFriendly(metricGroup, false, -1);
                 if (metricGroupJsonObject != null) metricGroupsJsonObjects.add(metricGroupJsonObject);
             }
             

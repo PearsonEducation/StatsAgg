@@ -2,10 +2,6 @@ package com.pearson.statsagg.database_objects.metric_groups;
 
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.util.TreeSet;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
@@ -47,9 +43,9 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
         this.metricGroup_ = metricGroup;
     }
 
-    private MetricGroupsDaoWrapper alterRecordInDatabase(TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
+    private MetricGroupsDaoWrapper alterRecordInDatabase() {
         
-        if ((metricGroup_ == null) || (metricGroup_.getName() == null) || (matchRegexes == null) || (tags == null)) {
+        if ((metricGroup_ == null) || (metricGroup_.getName() == null) || (metricGroup_.getMatchRegexes() == null) || (metricGroup_.getMatchRegexes().isEmpty())) {
             getReturnString_AlterFail_InitialChecks();
             return this;
         }
@@ -66,7 +62,7 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
                     getReturnString_CreateFail_SameNameAlreadyExists(metricGroup_.getName());
                 }
                 else {
-                    boolean isOverallUpsertSuccess = upsertMetricGroupAndRegexesAndTags(connection, matchRegexes, blacklistRegexes, tags);
+                    boolean isOverallUpsertSuccess = upsertMetricGroupAndRegexesAndTags(connection, metricGroup_);
 
                     if (isOverallUpsertSuccess) {
                         boolean didCommitSucceed = DatabaseUtils.commit(connection, false);
@@ -97,7 +93,7 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
         return this;
     }
     
-    private boolean upsertMetricGroupAndRegexesAndTags(Connection connection, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
+    private boolean upsertMetricGroupAndRegexesAndTags(Connection connection, MetricGroup metricGroup) {
         boolean isOverallUpsertSuccess = true;
                 
         if (oldDatabaseObjectName_ == null) isMetricGroupUpsertSuccess_ = MetricGroupsDao.upsert(connection, false, false, metricGroup_);
@@ -106,12 +102,12 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
         if (isMetricGroupUpsertSuccess_) { // upsert regexes & tags after successful update of the parent metric-group
             metricGroupFromDb_AfterUpsert_ = MetricGroupsDao.getMetricGroup(connection, false, metricGroup_.getName());
             
-            boolean haveMetricGroupRegexSetsChanged = haveMetricGroupRegexSetsChanged(connection, metricGroupFromDb_AfterUpsert_, matchRegexes, blacklistRegexes);
+            boolean haveMetricGroupRegexSetsChanged = haveMetricGroupRegexSetsChanged(connection, metricGroupFromDb_AfterUpsert_, metricGroup.getMatchRegexes(), metricGroup.getBlacklistRegexes());
             isMetricGroupAssociationRoutineRequired_ = haveMetricGroupRegexSetsChanged;
-            if (haveMetricGroupRegexSetsChanged) isAllMetricGroupRegexesUpsertSuccess_ = upsertMetricGroupAndRegexesAndTags_UpsertRegexes(connection, metricGroupFromDb_AfterUpsert_, matchRegexes, blacklistRegexes);
+            if (haveMetricGroupRegexSetsChanged) isAllMetricGroupRegexesUpsertSuccess_ = upsertMetricGroupAndRegexesAndTags_UpsertRegexes(connection, metricGroupFromDb_AfterUpsert_, metricGroup.getMatchRegexes(), metricGroup.getBlacklistRegexes());
             
-            boolean haveMetricGroupTagsChanged = haveMetricGroupTagsChanged(connection, metricGroupFromDb_AfterUpsert_, tags) ;
-            if (haveMetricGroupTagsChanged) isAllMetricGroupTagsUpsertSuccess_ = upsertMetricGroupAndRegexesAndTags_UpsertTags(connection, metricGroupFromDb_AfterUpsert_, tags);
+            boolean haveMetricGroupTagsChanged = haveMetricGroupTagsChanged(connection, metricGroupFromDb_AfterUpsert_, metricGroup.getTags()) ;
+            if (haveMetricGroupTagsChanged) isAllMetricGroupTagsUpsertSuccess_ = upsertMetricGroupAndRegexesAndTags_UpsertTags(connection, metricGroupFromDb_AfterUpsert_, metricGroup.getTags());
         }
         
         isOverallUpsertSuccess = isMetricGroupUpsertSuccess_ && isAllMetricGroupRegexesUpsertSuccess_ && isAllMetricGroupTagsUpsertSuccess_;
@@ -320,20 +316,20 @@ public class MetricGroupsDaoWrapper extends AbstractDaoWrapper {
         return this;
     }
     
-    public static MetricGroupsDaoWrapper createRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
+    public static MetricGroupsDaoWrapper createRecordInDatabase(MetricGroup metricGroup) {
         MetricGroupsDaoWrapper metricGroupsDaoWrapper = new MetricGroupsDaoWrapper(metricGroup);
-        return metricGroupsDaoWrapper.alterRecordInDatabase(matchRegexes, blacklistRegexes, tags);
+        return metricGroupsDaoWrapper.alterRecordInDatabase();
     }
     
-    public static MetricGroupsDaoWrapper alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags) {
+    public static MetricGroupsDaoWrapper alterRecordInDatabase(MetricGroup metricGroup) {
         String metricGroupName = (metricGroup != null) ? metricGroup.getName() : null;
         MetricGroupsDaoWrapper metricGroupsDaoWrapper = new MetricGroupsDaoWrapper(metricGroup, metricGroupName);
-        return metricGroupsDaoWrapper.alterRecordInDatabase(matchRegexes, blacklistRegexes, tags);
+        return metricGroupsDaoWrapper.alterRecordInDatabase();
     }
 
-    public static MetricGroupsDaoWrapper alterRecordInDatabase(MetricGroup metricGroup, TreeSet<String> matchRegexes, TreeSet<String> blacklistRegexes, TreeSet<String> tags, String oldName) {
+    public static MetricGroupsDaoWrapper alterRecordInDatabase(MetricGroup metricGroup, String oldName) {
         MetricGroupsDaoWrapper metricGroupsDaoWrapper = new MetricGroupsDaoWrapper(metricGroup, oldName);
-        return metricGroupsDaoWrapper.alterRecordInDatabase(matchRegexes, blacklistRegexes, tags);
+        return metricGroupsDaoWrapper.alterRecordInDatabase();
     }
 
     public static MetricGroupsDaoWrapper deleteRecordInDatabase(String metricGroupName) {

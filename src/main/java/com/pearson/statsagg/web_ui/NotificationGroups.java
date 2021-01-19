@@ -19,7 +19,7 @@ import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
@@ -329,8 +329,9 @@ public class NotificationGroups extends HttpServlet {
         }
         
         String testAlertName = "Notification test - alert";
-        Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(), false, false, 
+        Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(), 
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
+                null, null,
                 88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 60l, DatabaseObjectCommon.TIME_UNIT_MINUTES,
                 77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, 
                 DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
@@ -339,7 +340,8 @@ public class NotificationGroups extends HttpServlet {
         
         String testMetricGroupName = "Notification test - metric group";
         MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),
-                "This is a fake metric group to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'");
+                "This is a fake metric group to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
+                null, null, null, null, null);
         
         List<String> metricKeys = new ArrayList<>();
         metricKeys.add("emailtest.metric2");
@@ -386,8 +388,9 @@ public class NotificationGroups extends HttpServlet {
         }
         
         String testAlertName = "Notification test - alert";
-        Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(), false, false, 
+        Alert testAlert = new Alert(99999, testAlertName, testAlertName.toUpperCase(), 
                 "This is a fake alert to test sending email alerts to the notification group named '" + notificationGroup.getName() + "'",
+                null, null,
                 88888, true, true, true, Alert.TYPE_THRESHOLD, false, false, 60l, DatabaseObjectCommon.TIME_UNIT_MINUTES,
                 77777, 77777, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 9900L, 
                 DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, true, new Timestamp(System.currentTimeMillis()), false, null, null,
@@ -396,7 +399,8 @@ public class NotificationGroups extends HttpServlet {
         
         String testMetricGroupName = "Notification test - metric group";
         MetricGroup metricGroup = new MetricGroup(88888, testMetricGroupName, testMetricGroupName.toUpperCase(),
-                "This is a fake metric group to test sending pager duty alerts to the notification group named '" + notificationGroup.getName() + "'");
+                "This is a fake metric group to test sending pager duty alerts to the notification group named '" + notificationGroup.getName() + "'",
+                null, null, null, null, null);
         
         List<String> metricKeys = new ArrayList<>();
         metricKeys.add("pagerduty.test.metric2");

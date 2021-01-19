@@ -4,18 +4,10 @@ import com.google.gson.JsonObject;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
-import java.sql.Connection;
-import java.util.ArrayList;
-import java.util.List;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -122,31 +114,14 @@ public class MetricGroupDetails extends HttpServlet {
             }
 
             MetricGroup metricGroup = null;
-            List<MetricGroupRegex> metricGroupRegexes = new ArrayList<>();
-            List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-            Connection connection = DatabaseConnections.getConnection();
-
-            try {
-                if (metricGroupId != null) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupId);
-                else if (metricGroupName != null) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupName);
-
-                if (metricGroup != null) {
-                    metricGroupRegexes = MetricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(connection, false, metricGroup.getId());
-                    metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, metricGroup.getId());
-                }
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-            finally {
-                DatabaseUtils.cleanup(connection);
-            }
+            if (metricGroupId != null) metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);
+            else if (metricGroupName != null) metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
             
             if ((metricGroup != null) && (includeMetricAssociations != null) && includeMetricAssociations) {
-                return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, true, ApplicationConfiguration.getMetricGroupApiMaxMetricAssociations());
+                return MetricGroup.getJsonString_ApiFriendly(metricGroup, true, ApplicationConfiguration.getMetricGroupApiMaxMetricAssociations());
             }
             else if (metricGroup != null) {
-                return MetricGroup.getJsonString_ApiFriendly(metricGroup, metricGroupRegexes, metricGroupTags, false, -1);
+                return MetricGroup.getJsonString_ApiFriendly(metricGroup, false, -1);
             }
             else return Helper.ERROR_NOTFOUND_JSON;
         }

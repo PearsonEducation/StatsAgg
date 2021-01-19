@@ -31,8 +31,10 @@ public class MetricGroupsResultSetHandler extends MetricGroup implements Databas
                     String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
                     String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
                     String description = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description", String.class);
+                    Integer metricGroupTemplateId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_template_id", Integer.class);
+                    Integer variableSetId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "variable_set_id", Integer.class);
                     
-                    MetricGroup metricGroup = new MetricGroup(id, name, uppercaseName, description);
+                    MetricGroup metricGroup = new MetricGroup(id, name, uppercaseName, description, metricGroupTemplateId, variableSetId, null, null, null);
                     metricGroups.add(metricGroup);
                 }
                 catch (Exception e) {
