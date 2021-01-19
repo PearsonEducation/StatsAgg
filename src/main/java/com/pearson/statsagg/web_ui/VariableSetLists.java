@@ -145,7 +145,7 @@ public class VariableSetLists extends HttpServlet {
             Connection connection = DatabaseConnections.getConnection();
             VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(connection, false, variableSetListId);
             Set<String> allVariableSetListNames = VariableSetListsDao.getVariableSetListNames(connection, false);
-            List<Integer> variableSetIds = VariableSetListEntriesDao.getVariableSetIds_ByVariableSetListId(connection, false, variableSetListId);
+            List<Integer> variableSetIds = VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
             DatabaseUtils.cleanup(connection);
 
             if ((variableSetList != null) && (variableSetList.getName() != null)) {
