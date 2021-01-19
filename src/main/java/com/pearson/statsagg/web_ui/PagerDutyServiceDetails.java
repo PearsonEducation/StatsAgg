@@ -131,8 +131,8 @@ public class PagerDutyServiceDetails extends HttpServlet {
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName())).append("<br>");
             
-            outputString.append("<b>ID</b> = ").append(pagerdutyService.getId()).append("<br>");
-
+            outputString.append("<b>ID</b> = ").append(pagerdutyService.getId()).append("<br><br>");
+            
             outputString.append("<b>Description</b> = ");
             if (pagerdutyService.getDescription() != null) {
                 String encodedDescription = StatsAggHtmlFramework.htmlEncode(pagerdutyService.getDescription());
