@@ -5,7 +5,6 @@ import com.pearson.statsagg.database_objects.variable_set_list.VariableSetList;
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDaoWrapper;
 import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
-import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntry;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
@@ -168,6 +167,8 @@ public class CreateVariableSetList extends HttpServlet {
             htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName(), true)).append("\">");
         }
         
+        
+        // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Variable set list name</label>\n" +
@@ -176,9 +177,12 @@ public class CreateVariableSetList extends HttpServlet {
         if ((variableSetList != null) && (variableSetList.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName(), true)).append("\"");
         }
-
+        
+        htmlBody.append(">\n</div>\n");
+        
+                    
+        // description
         htmlBody.append(      
-            ">\n</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
@@ -186,18 +190,20 @@ public class CreateVariableSetList extends HttpServlet {
         if ((variableSetList != null) && (variableSetList.getDescription() != null)) {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSetList.getDescription(), true));
         }
-
-        htmlBody.append( //
-            "</textarea>\n" +
-            "</div>\n" +
+        
+        htmlBody.append("</textarea>\n" + "</div>\n");
+        
+        
+        // variable sets
+        htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Variables</label>\n " +
-            "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, k=v. List one variable pair per line.\" " +
+            "  <label class=\"label_small_margin\">Variable Sets</label>\n " +
+            "    <textarea class=\"form-control-statsagg\" placeholder=\"List one variable set per line.\" " +
             "              rows=\"15\" name=\"VariableSets\" id=\"VariableSets\" >");
 
         Connection connection = DatabaseConnections.getConnection();
         if ((variableSetList != null)) {
-            List<Integer> variableSetListEntries =  VariableSetListEntriesDao.getVariableSetIds_ByVariableSetListId(connection, false, variableSetList.getId());
+            List<Integer> variableSetListEntries =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetList.getId());
             List<String> variableSetNames = VariableSetsDao.getVariableSetNames_OrderedByName(connection, true, variableSetListEntries);
                     
             for (int i = 0; (variableSetNames != null) && i < variableSetNames.size(); i++) {
@@ -207,9 +213,10 @@ public class CreateVariableSetList extends HttpServlet {
         }
         DatabaseUtils.cleanup(connection);
 
+        htmlBody.append("</textarea>\n" + "</div>\n");
+        
+        
         htmlBody.append(
-            "</textarea>\n" +
-            "</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
             "       <a href=\"VariableSetLists\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
@@ -229,21 +236,7 @@ public class CreateVariableSetList extends HttpServlet {
         String returnString;
         
         VariableSetList variableSetList = getVariableSetListFromVariableSetListParameters(request);
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    VariableSetList oldVariableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldVariableSetList.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        String oldName = getOldVariableSetListName(request);
         
         TreeSet<String> variableSetNames = null;
         TreeSet<String> variableSets_Ui = Common.getMultilineParameterValues(request, "VariableSets");
@@ -264,6 +257,37 @@ public class CreateVariableSetList extends HttpServlet {
         }
         
         return returnString;
+    }
+    
+    protected static String getOldVariableSetListName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        VariableSetList oldVariableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldVariableSetList.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     private VariableSetList getVariableSetListFromVariableSetListParameters(Object request) {
