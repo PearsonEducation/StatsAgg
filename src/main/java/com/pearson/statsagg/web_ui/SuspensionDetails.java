@@ -142,6 +142,8 @@ public class SuspensionDetails extends HttpServlet {
             
             outputString.append("<b>ID</b> = ").append(suspension.getId()).append("<br>");
             
+            outputString.append("<br>");
+            
             outputString.append("<b>Description</b> = ");
             if (suspension.getDescription() != null) {
                 String encodedAlertDescription = StatsAggHtmlFramework.htmlEncode(suspension.getDescription());
