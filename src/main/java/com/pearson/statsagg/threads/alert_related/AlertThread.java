@@ -133,7 +133,7 @@ public class AlertThread implements Runnable {
             long alertRoutineTimeElasped = 0, suspensionRoutineTimeElapsed;
             synchronized (GlobalVariables.alertRoutineLock) {
                 // gets all alerts from the database.
-                List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
+                List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
                 alertsByAlertId_ = getAlertsByAlertId(alerts);
 
                 // run the suspension routine
