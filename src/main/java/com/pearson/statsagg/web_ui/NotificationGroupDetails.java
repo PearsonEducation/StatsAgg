@@ -80,7 +80,7 @@ public class NotificationGroupDetails extends HttpServlet {
     
         String name = request.getParameter("Name");
         boolean excludeNavbar = StringUtilities.isStringValueBooleanTrue(request.getParameter("ExcludeNavbar"));
-        String notificationGroupDetails = getNotificationDetailsString(name);
+        String notificationGroupDetails = getNotificationDetailsString(name, excludeNavbar);
                 
         try {  
             StringBuilder htmlBuilder = new StringBuilder();
@@ -120,7 +120,7 @@ public class NotificationGroupDetails extends HttpServlet {
         
     }
 
-    private String getNotificationDetailsString(String notificationGroupName) {
+    private String getNotificationDetailsString(String notificationGroupName, boolean excludeNavbar) {
         
         if (notificationGroupName == null) {
             return "<b>No notification group specified</b>";
@@ -136,7 +136,7 @@ public class NotificationGroupDetails extends HttpServlet {
             
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName())).append("<br>");
             
-            outputString.append("<b>ID</b> = ").append(notificationGroup.getId()).append("<br>");
+            outputString.append("<b>ID</b> = ").append(notificationGroup.getId()).append("<br><br>");
 
             outputString.append("<b>Email addresses</b> = ");
             
@@ -149,8 +149,10 @@ public class NotificationGroupDetails extends HttpServlet {
                 if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) pagerdutyServiceName = pagerdutyService.getName();
                 
                 outputString.append("<b>PagerDuty service name</b> = ");
-                if (!pagerdutyServiceName.isEmpty()) outputString.append(StatsAggHtmlFramework.htmlEncode(pagerdutyServiceName)).append("<br>");
-                else outputString.append("N/A <br>");
+                if (!pagerdutyServiceName.isEmpty()) outputString.append("<a class=\"iframe cboxElement\" href=\"PagerDutyServiceDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(pagerdutyServiceName) + "\">" + StatsAggHtmlFramework.htmlEncode(pagerdutyServiceName) + "</a>");
+                else outputString.append("N/A");
+                
+                outputString.append("<br>");
             }
             
             outputString.append("<br>");
