@@ -178,7 +178,7 @@ public class Suspension_AlertAssociations extends HttpServlet {
         
         outputString.append("<ul>");
         for (String alertName : alertNames) {
-            String alertDetailsUrl = "<a href=\"AlertDetails?" +
+            String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?" +
                     "ExcludeNavbar=" + excludeNavbar +
                     "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
 
