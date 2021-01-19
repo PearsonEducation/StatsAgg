@@ -1,11 +1,10 @@
-package com.pearson.statsagg.database_objects.alerts;
+package com.pearson.statsagg.database_objects.alert_templates;
 
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseResultSetHandler;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.math.BigDecimal;
 import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -15,14 +14,14 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHandler {
+public class AlertTemplatesResultSetHandler extends AlertTemplate implements DatabaseResultSetHandler {
     
-    private static final Logger logger = LoggerFactory.getLogger(AlertsResultSetHandler.class.getName());
+    private static final Logger logger = LoggerFactory.getLogger(AlertTemplatesResultSetHandler.class.getName());
     
     @Override
-    public List<Alert> handleResultSet(ResultSet resultSet) {
+    public List<AlertTemplate> handleResultSet(ResultSet resultSet) {
         
-        List<Alert> alerts = new ArrayList<>();
+        List<AlertTemplate> alertTemplates = new ArrayList<>();
         
         try {
             Set<String> lowercaseColumnNames = DatabaseUtils.getResultSetColumnNames_Lowercase(resultSet);
@@ -32,10 +31,10 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                     Integer id = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "id", Integer.class);
                     String name = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "name", String.class);
                     String uppercaseName = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "uppercase_name", String.class);
-                    String description = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description", String.class);
-                    Integer alertTemplateId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "alert_template_id", Integer.class);
-                    Integer variableSetId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "variable_set_id", Integer.class);
-                    Integer metricGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_id", Integer.class);
+                    Integer variableSetListId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "variable_set_list_id", Integer.class);
+                    String descriptionVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "description_variable", String.class);
+                    String alertNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "alert_name_variable", String.class);
+                    String metricGroupNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "metric_group_name_variable", String.class);
                     Boolean isEnabled = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_enabled", Boolean.class);
                     Boolean isCautionEnabled = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_caution_enabled", Boolean.class);
                     Boolean isDangerEnabled = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_danger_enabled", Boolean.class);
@@ -44,8 +43,8 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                     Boolean allowResendAlert = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "allow_resend_alert", Boolean.class);
                     Long resendAlertEvery = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "resend_alert_every", Long.class);
                     Integer resendAlertEveryTimeUnit = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "resend_alert_every_time_unit", Integer.class);
-                    Integer cautionNotificationGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_notification_group_id", Integer.class);
-                    Integer cautionPositiveNotificationGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_positive_notification_group_id", Integer.class);
+                    String cautionNotificationGroupNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_notification_group_name_variable", String.class);
+                    String cautionPositiveNotificationGroupNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_positive_notification_group_name_variable", String.class);
                     Integer cautionOperator = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_operator", Integer.class);
                     Integer cautionCombination = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_combination", Integer.class);
                     Integer cautionCombinationCount = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_combination_count", Integer.class);
@@ -55,13 +54,8 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                     Long cautionStopTrackingAfter = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_stop_tracking_after", Long.class);
                     Integer cautionStopTrackingAfterTimeUnit = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_stop_tracking_after_time_unit", Integer.class);
                     Integer cautionMinimumSampleCount = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_minimum_sample_count", Integer.class);
-                    Boolean isCautionAlertActive = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_caution_alert_active", Boolean.class);
-                    Timestamp cautionAlertLastSentTimestamp = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_alert_last_sent_timestamp", Timestamp.class);
-                    Boolean isCautionAcknowledged = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_caution_acknowledged", Boolean.class);
-                    String cautionActiveAlertsSet = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_active_alerts_set", String.class);
-                    Timestamp cautionFirstActiveAt = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "caution_first_active_at", Timestamp.class);
-                    Integer dangerNotificationGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_notification_group_id", Integer.class);
-                    Integer dangerPositiveNotificationGroupId = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_positive_notification_group_id", Integer.class);
+                    String dangerNotificationGroupNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_notification_group_name_variable", String.class);
+                    String dangerPositiveNotificationGroupNameVariable = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_positive_notification_group_name_variable", String.class);
                     Integer dangerOperator = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_operator", Integer.class);
                     Integer dangerCombination = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_combination", Integer.class);
                     Integer dangerCombinationCount = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_combination_count", Integer.class);
@@ -71,23 +65,17 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
                     Long dangerStopTrackingAfter = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_stop_tracking_after", Long.class);
                     Integer dangerStopTrackingAfterTimeUnit = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_stop_tracking_after_time_unit", Integer.class);
                     Integer dangerMinimumSampleCount = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_minimum_sample_count", Integer.class);
-                    Boolean isDangerAlertActive = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_danger_alert_active", Boolean.class);
-                    Timestamp dangerAlertLastSentTimestamp = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_alert_last_sent_timestamp", Timestamp.class);
-                    Boolean isDangerAcknowledged = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "is_danger_acknowledged", Boolean.class);
-                    String dangerActiveAlertsSet = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_active_alerts_set", String.class);
-                    Timestamp dangerFirstActiveAt = DatabaseUtils.getResultSetValue(resultSet, lowercaseColumnNames, "danger_first_active_at", Timestamp.class);
 
-                    Alert alert = new Alert(id, name, uppercaseName, description, alertTemplateId, variableSetId, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled, 
-                            alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit, cautionNotificationGroupId, 
-                            cautionPositiveNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
-                            cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, 
-                            cautionMinimumSampleCount, isCautionAlertActive, cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet, 
-                            cautionFirstActiveAt, dangerNotificationGroupId, dangerPositiveNotificationGroupId, dangerOperator, dangerCombination, 
+                    AlertTemplate alertTemplate = new AlertTemplate(id, name, uppercaseName, variableSetListId, descriptionVariable, alertNameVariable, metricGroupNameVariable, 
+                            isEnabled, isCautionEnabled, isDangerEnabled, 
+                            alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit, cautionNotificationGroupNameVariable, 
+                            cautionPositiveNotificationGroupNameVariable, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
+                            cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, 
+                            dangerNotificationGroupNameVariable, dangerPositiveNotificationGroupNameVariable, dangerOperator, dangerCombination, 
                             dangerCombinationCount, dangerThreshold, dangerWindowDuration, dangerWindowDurationTimeUnit, dangerStopTrackingAfter, 
-                            dangerStopTrackingAfterTimeUnit, dangerMinimumSampleCount, isDangerAlertActive, dangerAlertLastSentTimestamp, isDangerAcknowledged, 
-                            dangerActiveAlertsSet, dangerFirstActiveAt);
+                            dangerStopTrackingAfterTimeUnit, dangerMinimumSampleCount);
             
-                    alerts.add(alert);
+                    alertTemplates.add(alertTemplate);
                 }
                 catch (Exception e) {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
@@ -98,7 +86,7 @@ public class AlertsResultSetHandler extends Alert implements DatabaseResultSetHa
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
         }
         
-        return alerts;
+        return alertTemplates;
     }
 
 }

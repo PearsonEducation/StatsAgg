@@ -95,8 +95,7 @@ public class AlertEnable extends HttpServlet {
             Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, id);
             if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.web_ui.Alerts alerts = new com.pearson.statsagg.web_ui.Alerts();
-            String result = alerts.changeAlertEnabled(alert.getId(), isEnabled);
+            String result = com.pearson.statsagg.web_ui.Alerts.changeAlertEnabled(alert.getId(), isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }

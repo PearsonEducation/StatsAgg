@@ -10,8 +10,6 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -67,7 +65,7 @@ public class AlertsList extends HttpServlet {
         }
         
         try {    
-            String json = getAlertsList(request, false);       
+            String json = getAlertsList(request);       
             out = response.getWriter();
             out.println(json);
         }
@@ -85,32 +83,28 @@ public class AlertsList extends HttpServlet {
      * Returns a json object containing a list of alerts.
      * 
      * @param request servlet request
-     * @param showAlertTemplates
      * @return json string of alerts
      */ 
-    protected static String getAlertsList(HttpServletRequest request, boolean showAlertTemplates) {
+    protected static String getAlertsList(HttpServletRequest request) {
         
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
         
-        Connection connection = DatabaseConnections.getConnection();
+        Connection connection = null;
         
         try {
-            List<Alert> alerts = AlertsDao.getAlerts(connection, false, false);
+            connection = DatabaseConnections.getConnection();
+            
+            List<Alert> alerts = AlertsDao.getAlerts(connection, false);
             if (alerts == null) alerts = new ArrayList<>();
             
             List<JsonObject> alertsJsonObjects = new ArrayList<>();
             for (Alert alert : alerts) {
                 if (alert == null) continue;
-                if (!showAlertTemplates && (alert.isTemplate() != null) && alert.isTemplate()) continue;
 
                 MetricGroup metricGroup = null;
-                List<MetricGroupTag> metricGroupTags = null;
-                if (alert.getMetricGroupId() != null) {
-                    metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
-                    metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, alert.getMetricGroupId());
-                }
+                if (alert.getMetricGroupId() != null) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
                 
                 NotificationGroup cautionNotificationGroup = null;
                 NotificationGroup cautionPositiveNotificationGroup = null;
@@ -121,7 +115,7 @@ public class AlertsList extends HttpServlet {
                 if ((alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
                 if ((alert.getDangerPositiveNotificationGroupId() != null)) dangerPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerPositiveNotificationGroupId());
                           
-                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, showAlertTemplates, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+                JsonObject alertJsonObject = Alert.getJsonObject_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
                 if (alertJsonObject != null) alertsJsonObjects.add(alertJsonObject);
             }
             

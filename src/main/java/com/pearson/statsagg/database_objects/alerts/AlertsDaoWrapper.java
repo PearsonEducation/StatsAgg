@@ -46,9 +46,14 @@ public class AlertsDaoWrapper extends AbstractDaoWrapper {
             try {
                 getReturnString_AlterInitialValue(alertToUpsert.getName());
                 
-                Alert alertFromDb = AlertsDao.getAlert(connection, false, alertToUpsert.getName());
+                Alert alertFromDb = AlertsDao.getAlert_FilterByUppercaseName(connection, false, alertToUpsert.getName());
                 
-                if (isNewDatabaseObject_ && (alertFromDb != null)) { 
+                boolean isAlertTemplateIdConflict = Alert.areAlertTemplateIdsInConflict(alertToUpsert, alertFromDb);
+                
+                if (isAlertTemplateIdConflict) {
+                    getReturnString_AlterFail_TemplateConflict(alertToUpsert.getName());
+                }
+                else if (isNewDatabaseObject_ && (alertFromDb != null)) { 
                     getReturnString_CreateFail_SameNameAlreadyExists(alertToUpsert.getName());
                 }
                 else {
@@ -73,14 +78,14 @@ public class AlertsDaoWrapper extends AbstractDaoWrapper {
         
         return this;
     }
-    
+   
     private void copyStatusMetadataFields(boolean isAcknowledgementChange, Alert alertToUpsert, Alert alertFromDb) {
         
         if ((alertToUpsert == null) || (alertFromDb == null)) {
             return;
         }
         
-        if (alertToUpsert.isCautionCriteriaEqual(alertFromDb)) {
+        if (alertToUpsert.isCautionCriteriaEqual(alertFromDb, false)) {
             alertFromDb.copyCautionMetadataFields(alertToUpsert);
             if (!isAcknowledgementChange) alertToUpsert.setIsCautionAlertAcknowledged(alertFromDb.isCautionAlertAcknowledged());
             logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying caution criteria fields. Caution triggered status will be preserved.");
@@ -89,7 +94,7 @@ public class AlertsDaoWrapper extends AbstractDaoWrapper {
             logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is modifying caution alert criteria fields. Caution triggered status will not be preserved.");
         }
 
-        if (alertToUpsert.isDangerCriteriaEqual(alertFromDb)) {
+        if (alertToUpsert.isDangerCriteriaEqual(alertFromDb, false)) {
             alertFromDb.copyDangerMetadataFields(alertToUpsert);
             if (!isAcknowledgementChange) alertToUpsert.setIsDangerAlertAcknowledged(alertFromDb.isDangerAlertAcknowledged());
             logger.info("Alter alert: Alert \"" + alertToUpsert.getName() + "\" is not modifying danger criteria fields. Danger triggered status will be preserved.");
@@ -134,7 +139,7 @@ public class AlertsDaoWrapper extends AbstractDaoWrapper {
         
         return this;
     }
-    
+       
     public static AlertsDaoWrapper createRecordInDatabase(Alert alert) {
         AlertsDaoWrapper alertsDaoWrapper = new AlertsDaoWrapper(alert);
         return alertsDaoWrapper.alterRecordInDatabase(false);

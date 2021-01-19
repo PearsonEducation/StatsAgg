@@ -64,7 +64,7 @@ public class AlertTemplateDetails extends HttpServlet {
         }
         
         try {
-            String json = AlertDetails.getAlertDetails(request, true);
+            String json = AlertDetails.getAlertDetails(request);
             out = response.getWriter();
             out.println(json);
         }

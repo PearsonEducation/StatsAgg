@@ -6,8 +6,8 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
@@ -78,7 +78,7 @@ public class AlertDetails extends HttpServlet {
         }
         
         try {
-            String json = getAlertDetails(request, false);
+            String json = getAlertDetails(request);
             out = response.getWriter();
             out.println(json);
         }
@@ -97,10 +97,9 @@ public class AlertDetails extends HttpServlet {
      * Returns a json string containing the details of the requested alert.
      * 
      * @param request servlet request
-     * @param isAlertTemplate
      * @return details of the requested alert
      */
-    protected static String getAlertDetails(HttpServletRequest request, boolean isAlertTemplate) {
+    protected static String getAlertDetails(HttpServletRequest request) {
         
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
@@ -125,7 +124,6 @@ public class AlertDetails extends HttpServlet {
             NotificationGroup dangerNotificationGroup = null;
             NotificationGroup dangerPositiveNotificationGroup = null;
             MetricGroup metricGroup = null;
-            List<MetricGroupTag> metricGroupTags = null;
             
             Connection connection = DatabaseConnections.getConnection();
  
@@ -133,14 +131,7 @@ public class AlertDetails extends HttpServlet {
                 if (alertId != null) alert = AlertsDao.getAlert(connection, false, alertId);
                 else if (alertName != null) alert = AlertsDao.getAlert(connection, false, alertName);
 
-                // don't show alert template unless viewed through alert template page
-                if ((alert != null) && isAlertTemplate && (alert.isTemplate() != null) && !alert.isTemplate()) alert = null;
-                
-                if ((alert != null) && (alert.getMetricGroupId() != null)) {
-                    metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
-                    metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(connection, false, alert.getMetricGroupId());
-                }
-
+                if ((alert != null) && (alert.getMetricGroupId() != null)) metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
                 if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) cautionNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionNotificationGroupId());
                 if ((alert != null) && (alert.getCautionPositiveNotificationGroupId() != null)) cautionPositiveNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getCautionPositiveNotificationGroupId());
                 if ((alert != null) && (alert.getDangerNotificationGroupId() != null)) dangerNotificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, alert.getDangerNotificationGroupId());
@@ -153,7 +144,7 @@ public class AlertDetails extends HttpServlet {
                 DatabaseUtils.cleanup(connection);
             }
         
-            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, isAlertTemplate, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            if (alert != null) return Alert.getJsonString_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             else return Helper.ERROR_NOTFOUND_JSON;
         }
         catch (Exception e) {

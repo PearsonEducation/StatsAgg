@@ -8,18 +8,18 @@ import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import java.util.Objects;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
+import com.pearson.statsagg.database_objects.abstract_objects.AbstractAlert;
+import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.json_utils.JsonBigDecimal;
 import java.util.Calendar;
-import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -28,56 +28,19 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Alert implements DatabaseObject<Alert> {
+public class Alert extends AbstractAlert implements DatabaseObject<Alert> {
     
     private static final Logger logger = LoggerFactory.getLogger(Alert.class.getName());
-    
-    public static final int CAUTION = 61;
-    public static final int DANGER = 62;
-    
-    public static final int TYPE_AVAILABILITY = 1001;
-    public static final int TYPE_THRESHOLD = 1002;
-    
-    public static final int OPERATOR_GREATER = 1;
-    public static final int OPERATOR_GREATER_EQUALS = 2;
-    public static final int OPERATOR_LESS = 3;
-    public static final int OPERATOR_LESS_EQUALS = 4;
-    public static final int OPERATOR_EQUALS = 5;
-    
-    public static final int COMBINATION_ANY = 101;
-    public static final int COMBINATION_ALL = 102;
-    public static final int COMBINATION_AVERAGE = 103;
-    public static final int COMBINATION_AT_MOST_COUNT = 105;
-    public static final int COMBINATION_AT_LEAST_COUNT = 106;
      
-    @SerializedName("id") private Integer id_;
-    @SerializedName("name") private String name_ = null;
-    private transient String uppercaseName_ = null;
-    @SerializedName("is_template") private Boolean isTemplate_ = null;
-    @SerializedName("is_template_derived") private Boolean isTemplateDerived_ = null;
-    @SerializedName("description") private String description_ = null;
-    @SerializedName("metric_group_id") private Integer metricGroupId_ = null;
-    @SerializedName("enabled") private Boolean isEnabled_ = null;
-    @SerializedName("caution_enabled") private Boolean isCautionEnabled_ = null;
-    @SerializedName("danger_enabled") private Boolean isDangerEnabled_ = null;
-    @SerializedName("alert_type") private Integer alertType_ = null;
+    @SerializedName("description") protected String description_ = null;
 
-    @SerializedName("alert_on_positive") private Boolean alertOnPositive_ = null;
-    @SerializedName("allow_resend_alert") private Boolean allowResendAlert_ = null;
-    @SerializedName("resend_alert_every") private Long resendAlertEvery_ = null;
-    @SerializedName("resend_alert_every_time_unit") private Integer resendAlertEveryTimeUnit_ = null;
+    @SerializedName("alert_template_id") private Integer alertTemplateId_ = null;
+    @SerializedName("variable_set_id") private Integer variableSetId_ = null;
     
+    @SerializedName("metric_group_id") private Integer metricGroupId_ = null;
+
     @SerializedName("caution_notification_group_id") private Integer cautionNotificationGroupId_ = null;
     @SerializedName("caution_positive_notification_group_id") private Integer cautionPositiveNotificationGroupId_ = null;
-    @SerializedName("caution_operator") private Integer cautionOperator_ = null;
-    @SerializedName("caution_combination") private Integer cautionCombination_ = null; 
-    @SerializedName("caution_combination_count") private Integer cautionCombinationCount_ = null;
-    @SerializedName("caution_threshold") private BigDecimal cautionThreshold_ = null; 
-    @SerializedName("caution_window_duration") private Long cautionWindowDuration_ = null;  // native timeunit is milliseconds
-    @SerializedName("caution_window_duration_time_unit") private Integer cautionWindowDurationTimeUnit_ = null;
-    @SerializedName("caution_stop_tracking_after") private Long cautionStopTrackingAfter_ = null;
-    @SerializedName("caution_stop_tracking_after_time_unit") private Integer cautionStopTrackingAfterTimeUnit_ = null;
-    @SerializedName("caution_minimum_sample_count") private Integer cautionMinimumSampleCount_ = null;
     @SerializedName("caution_alert_active") private Boolean isCautionAlertActive_ = null;
     @SerializedName("caution_alert_last_sent_timestamp") private Timestamp cautionAlertLastSentTimestamp_ = null;
     @SerializedName("caution_alert_acknowledged_status") private Boolean isCautionAlertAcknowledged_ = null;
@@ -86,15 +49,6 @@ public class Alert implements DatabaseObject<Alert> {
     
     @SerializedName("danger_notification_group_id") private Integer dangerNotificationGroupId_ = null;
     @SerializedName("danger_positive_notification_group_id") private Integer dangerPositiveNotificationGroupId_ = null;
-    @SerializedName("danger_operator") private Integer dangerOperator_ = null; 
-    @SerializedName("danger_combination") private Integer dangerCombination_ = null; 
-    @SerializedName("danger_combination_count") private Integer dangerCombinationCount_ = null;
-    @SerializedName("danger_threshold") private BigDecimal dangerThreshold_ = null; 
-    @SerializedName("danger_window_duration") private Long dangerWindowDuration_ = null; // native timeunit is milliseconds
-    @SerializedName("danger_window_duration_time_unit") private Integer dangerWindowDurationTimeUnit_ = null;
-    @SerializedName("danger_stop_tracking_after") private Long dangerStopTrackingAfter_ = null;
-    @SerializedName("danger_stop_tracking_after_time_unit") private Integer dangerStopTrackingAfterTimeUnit_ = null;
-    @SerializedName("danger_minimum_sample_count") private Integer dangerMinimumSampleCount_ = null;
     @SerializedName("danger_alert_active") private Boolean isDangerAlertActive_ = null;
     @SerializedName("danger_alert_last_sent_timestamp") private Timestamp dangerAlertLastSentTimestamp_ = null;
     @SerializedName("danger_alert_acknowledged_status") private Boolean isDangerAlertAcknowledged_ = null;
@@ -102,10 +56,10 @@ public class Alert implements DatabaseObject<Alert> {
     @SerializedName("danger_first_active_at") private Timestamp dangerFirstActiveAt_ = null;
     
     public Alert() {
-        this.id_ = -1;
+        super.id_ = -1;
     }
     
-    public Alert(Integer id, String name, Boolean isTemplate, Boolean isTemplateDerived, String description, Integer metricGroupId, Boolean isEnabled, 
+    public Alert(Integer id, String name, String description, Integer alertTemplateId, Integer variableSetId, Integer metricGroupId, Boolean isEnabled, 
             Boolean isCautionEnabled, Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, 
             Integer resendAlertEveryTimeUnit, Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
@@ -116,7 +70,7 @@ public class Alert implements DatabaseObject<Alert> {
             Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
             Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAlertAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
         
-        this(id, name, ((name == null) ? null : name.toUpperCase()), isTemplate, isTemplateDerived, description, metricGroupId, isEnabled, 
+        this(id, name, ((name == null) ? null : name.toUpperCase()), description, alertTemplateId, variableSetId, metricGroupId, isEnabled, 
              isCautionEnabled, isDangerEnabled, alertType, alertOnPositive, allowResendAlert, resendAlertEvery, 
              resendAlertEveryTimeUnit, cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination,  
              cautionCombinationCount, cautionThreshold, cautionWindowDuration, cautionWindowDurationTimeUnit, 
@@ -128,7 +82,7 @@ public class Alert implements DatabaseObject<Alert> {
              dangerAlertLastSentTimestamp, isDangerAlertAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
     }
 
-    public Alert(Integer id, String name, String uppercaseName, Boolean isTemplate, Boolean isTemplateDerived, String description, Integer metricGroupId, Boolean isEnabled,
+    public Alert(Integer id, String name, String uppercaseName, String description, Integer alertTemplateId, Integer variableSetId, Integer metricGroupId, Boolean isEnabled,
             Boolean isCautionEnabled, Boolean isDangerEnabled, Integer alertType, Boolean alertOnPositive, Boolean allowResendAlert, Long resendAlertEvery, 
             Integer resendAlertEveryTimeUnit, Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId, Integer cautionOperator, Integer cautionCombination, 
             Integer cautionCombinationCount, BigDecimal cautionThreshold, Long cautionWindowDuration, Integer cautionWindowDurationTimeUnit, 
@@ -138,34 +92,35 @@ public class Alert implements DatabaseObject<Alert> {
             Integer dangerCombinationCount, BigDecimal dangerThreshold, Long dangerWindowDuration, Integer dangerWindowDurationTimeUnit, 
             Long dangerStopTrackingAfter, Integer dangerStopTrackingAfterTimeUnit, Integer dangerMinimumSampleCount, Boolean isDangerAlertActive,  
             Timestamp dangerAlertLastSentTimestamp, Boolean isDangerAlertAcknowledged, String dangerActiveAlertsSet, Timestamp dangerFirstActiveAt) {
-        this.id_ = id;
-        this.name_ = name;
-        this.uppercaseName_ = uppercaseName;
-        this.isTemplate_ = isTemplate;
-        this.isTemplateDerived_ = isTemplateDerived;
+        super.id_ = id;
+        super.name_ = name;
+        super.uppercaseName_ = uppercaseName;
         this.description_ = description;
+
+        this.alertTemplateId_ = alertTemplateId;
+        this.variableSetId_ = variableSetId;
         this.metricGroupId_ = metricGroupId;
-        this.isEnabled_ = isEnabled;
-        this.isCautionEnabled_ = isCautionEnabled;
-        this.isDangerEnabled_ = isDangerEnabled;
-        this.alertType_ = alertType;
+        super.isEnabled_ = isEnabled;
+        super.isCautionEnabled_ = isCautionEnabled;
+        super.isDangerEnabled_ = isDangerEnabled;
+        super.alertType_ = alertType;
         
-        this.alertOnPositive_ = alertOnPositive;
-        this.allowResendAlert_ = allowResendAlert;
-        this.resendAlertEvery_ = resendAlertEvery;
-        this.resendAlertEveryTimeUnit_ = resendAlertEveryTimeUnit;
+        super.alertOnPositive_ = alertOnPositive;
+        super.allowResendAlert_ = allowResendAlert;
+        super.resendAlertEvery_ = resendAlertEvery;
+        super.resendAlertEveryTimeUnit_ = resendAlertEveryTimeUnit;
         
         this.cautionNotificationGroupId_ = cautionNotificationGroupId;
         this.cautionPositiveNotificationGroupId_ = cautionPositiveNotificationGroupId;
-        this.cautionOperator_ = cautionOperator;
-        this.cautionCombination_ = cautionCombination;
-        this.cautionCombinationCount_ = cautionCombinationCount;
-        this.cautionThreshold_ = cautionThreshold;
-        this.cautionWindowDuration_ = cautionWindowDuration;
-        this.cautionWindowDurationTimeUnit_ = cautionWindowDurationTimeUnit;
-        this.cautionStopTrackingAfter_ = cautionStopTrackingAfter;
-        this.cautionStopTrackingAfterTimeUnit_ = cautionStopTrackingAfterTimeUnit;
-        this.cautionMinimumSampleCount_ = cautionMinimumSampleCount;
+        super.cautionOperator_ = cautionOperator;
+        super.cautionCombination_ = cautionCombination;
+        super.cautionCombinationCount_ = cautionCombinationCount;
+        super.cautionThreshold_ = cautionThreshold;
+        super.cautionWindowDuration_ = cautionWindowDuration;
+        super.cautionWindowDurationTimeUnit_ = cautionWindowDurationTimeUnit;
+        super.cautionStopTrackingAfter_ = cautionStopTrackingAfter;
+        super.cautionStopTrackingAfterTimeUnit_ = cautionStopTrackingAfterTimeUnit;
+        super.cautionMinimumSampleCount_ = cautionMinimumSampleCount;
         this.isCautionAlertActive_ = isCautionAlertActive;
         if (cautionAlertLastSentTimestamp == null) this.cautionAlertLastSentTimestamp_ = null;
         else this.cautionAlertLastSentTimestamp_ = (Timestamp) cautionAlertLastSentTimestamp.clone();
@@ -175,15 +130,15 @@ public class Alert implements DatabaseObject<Alert> {
 
         this.dangerNotificationGroupId_ = dangerNotificationGroupId;
         this.dangerPositiveNotificationGroupId_ = dangerPositiveNotificationGroupId;
-        this.dangerOperator_ = dangerOperator;
-        this.dangerCombination_ = dangerCombination;
-        this.dangerCombinationCount_ = dangerCombinationCount;
-        this.dangerThreshold_ = dangerThreshold;
-        this.dangerWindowDuration_ = dangerWindowDuration;
-        this.dangerWindowDurationTimeUnit_ = dangerWindowDurationTimeUnit;
-        this.dangerStopTrackingAfter_ = dangerStopTrackingAfter;
-        this.dangerStopTrackingAfterTimeUnit_ = dangerStopTrackingAfterTimeUnit;
-        this.dangerMinimumSampleCount_ = dangerMinimumSampleCount;
+        super.dangerOperator_ = dangerOperator;
+        super.dangerCombination_ = dangerCombination;
+        super.dangerCombinationCount_ = dangerCombinationCount;
+        super.dangerThreshold_ = dangerThreshold;
+        super.dangerWindowDuration_ = dangerWindowDuration;
+        super.dangerWindowDurationTimeUnit_ = dangerWindowDurationTimeUnit;
+        super.dangerStopTrackingAfter_ = dangerStopTrackingAfter;
+        super.dangerStopTrackingAfterTimeUnit_ = dangerStopTrackingAfterTimeUnit;
+        super.dangerMinimumSampleCount_ = dangerMinimumSampleCount;
         this.isDangerAlertActive_ = isDangerAlertActive;
         if (dangerAlertLastSentTimestamp == null) this.dangerAlertLastSentTimestamp_ = null;
         else this.dangerAlertLastSentTimestamp_ = (Timestamp) dangerAlertLastSentTimestamp.clone();
@@ -202,9 +157,9 @@ public class Alert implements DatabaseObject<Alert> {
         
         alertCopy.setId(alert.getId());
         alertCopy.setName(alert.getName());
-        alertCopy.setIsTemplate(alert.isTemplate());
-        alertCopy.setIsTemplateDerived(alert.isTemplateDerived());
         alertCopy.setDescription(alert.getDescription());
+        alertCopy.setAlertTemplateId(alert.getAlertTemplateId());
+        alertCopy.setVariableSetId(alert.getVariableSetId());
         alertCopy.setMetricGroupId(alert.getMetricGroupId());
         alertCopy.setIsEnabled(alert.isEnabled());
         alertCopy.setIsCautionEnabled(alert.isCautionEnabled());
@@ -257,6 +212,10 @@ public class Alert implements DatabaseObject<Alert> {
     
     @Override
     public boolean isEqual(Alert alert) {
+        return isEqual(alert, true);
+    }
+    
+    public boolean isEqual(Alert alert, boolean includeAlertStatus) {
        
         if (alert == null) return false;
         if (alert == this) return true;
@@ -265,13 +224,31 @@ public class Alert implements DatabaseObject<Alert> {
         boolean isCautionThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(cautionThreshold_, alert.getCautionThreshold());
         boolean isDangerThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(dangerThreshold_, alert.getDangerThreshold());
         
+        boolean isCautionAlertStatusEqual = true;
+        if (includeAlertStatus) isCautionAlertStatusEqual = new EqualsBuilder()
+                .append(isCautionAlertActive_, alert.isCautionAlertActive())
+                .append(cautionAlertLastSentTimestamp_, alert.getCautionAlertLastSentTimestamp())
+                .append(isCautionAlertAcknowledged_, alert.isCautionAlertAcknowledged())
+                .append(cautionActiveAlertsSet_, alert.getCautionActiveAlertsSet())
+                .append(cautionFirstActiveAt_, alert.getCautionFirstActiveAt())
+                .isEquals();
+        
+        boolean isDangerAlertStatusEqual = true;
+        if (includeAlertStatus) isDangerAlertStatusEqual = new EqualsBuilder()
+                .append(isDangerAlertActive_, alert.isDangerAlertActive())
+                .append(dangerAlertLastSentTimestamp_, alert.getDangerAlertLastSentTimestamp())
+                .append(isDangerAlertAcknowledged_, alert.isDangerAlertAcknowledged())
+                .append(dangerActiveAlertsSet_, alert.getDangerActiveAlertsSet())
+                .append(dangerFirstActiveAt_, alert.getDangerFirstActiveAt())
+                .isEquals();
+        
         return new EqualsBuilder()
                 .append(id_, alert.getId())
                 .append(name_, alert.getName())
                 .append(uppercaseName_, alert.getUppercaseName())
-                .append(isTemplate_, alert.isTemplate())
-                .append(isTemplateDerived_, alert.isTemplateDerived())
                 .append(description_, alert.getDescription())
+                .append(alertTemplateId_, alert.getAlertTemplateId())
+                .append(variableSetId_, alert.getVariableSetId())
                 .append(metricGroupId_, alert.getMetricGroupId())
                 .append(isEnabled_, alert.isEnabled())
                 .append(isCautionEnabled_, alert.isCautionEnabled())
@@ -292,11 +269,7 @@ public class Alert implements DatabaseObject<Alert> {
                 .append(cautionStopTrackingAfter_, alert.getCautionStopTrackingAfter())
                 .append(cautionStopTrackingAfterTimeUnit_, alert.getCautionStopTrackingAfterTimeUnit())
                 .append(cautionMinimumSampleCount_, alert.getCautionMinimumSampleCount())
-                .append(isCautionAlertActive_, alert.isCautionAlertActive())
-                .append(cautionAlertLastSentTimestamp_, alert.getCautionAlertLastSentTimestamp())
-                .append(isCautionAlertAcknowledged_, alert.isCautionAlertAcknowledged())
-                .append(cautionActiveAlertsSet_, alert.getCautionActiveAlertsSet())
-                .append(cautionFirstActiveAt_, alert.getCautionFirstActiveAt())
+                .append(isCautionAlertStatusEqual, true)
                 .append(dangerNotificationGroupId_, alert.getDangerNotificationGroupId())
                 .append(dangerPositiveNotificationGroupId_, alert.getDangerPositiveNotificationGroupId())
                 .append(dangerOperator_, alert.getDangerOperator())
@@ -308,11 +281,7 @@ public class Alert implements DatabaseObject<Alert> {
                 .append(dangerStopTrackingAfter_, alert.getDangerStopTrackingAfter())
                 .append(dangerStopTrackingAfterTimeUnit_, alert.getDangerStopTrackingAfterTimeUnit())
                 .append(dangerMinimumSampleCount_, alert.getDangerMinimumSampleCount())
-                .append(isDangerAlertActive_, alert.isDangerAlertActive())
-                .append(dangerAlertLastSentTimestamp_, alert.getDangerAlertLastSentTimestamp())
-                .append(isDangerAlertAcknowledged_, alert.isDangerAlertAcknowledged())
-                .append(dangerActiveAlertsSet_, alert.getDangerActiveAlertsSet())
-                .append(dangerFirstActiveAt_, alert.getDangerFirstActiveAt())
+                .append(isDangerAlertStatusEqual, true)
                 .isEquals();
     }
     
@@ -321,17 +290,22 @@ public class Alert implements DatabaseObject<Alert> {
     Caution criteria 'core' fields are considered to be any field that would be worth resetting an alert's status if the field changed.
     For example, the triggered status of an alert is no longer valid if the danger-operator changes. This makes threshold a 'core' criteria field.
     */
-    public boolean isCautionCriteriaEqual(Alert alert) {
+    public boolean isCautionCriteriaEqual(Alert alert, boolean includeNotitificationGroups) {
        
         if (alert == null) return false;
         if (alert == this) return true;
         if (alert.getClass() != getClass()) return false;
         
+        boolean isCautionNotificationGroupIdEqual = (includeNotitificationGroups) ? Objects.equals(this.cautionNotificationGroupId_, alert.getCautionNotificationGroupId()) : true;
+        boolean isCautionPositiveNotificationGroupIdEqual = (includeNotitificationGroups) ? Objects.equals(this.cautionPositiveNotificationGroupId_, alert.getCautionPositiveNotificationGroupId()) : true;
+
         boolean isCautionThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(cautionThreshold_, alert.getCautionThreshold());
         
         return new EqualsBuilder()
                 .append(id_, alert.getId())
                 .append(metricGroupId_, alert.getMetricGroupId())
+                .append(isCautionNotificationGroupIdEqual, true)
+                .append(isCautionPositiveNotificationGroupIdEqual, true)
                 .append(isEnabled_, alert.isEnabled())
                 .append(isCautionEnabled_, alert.isCautionEnabled())
                 .append(alertType_, alert.getAlertType())
@@ -352,17 +326,22 @@ public class Alert implements DatabaseObject<Alert> {
     Danger criteria 'core' fields are considered to be any field that would be worth resetting an alert's status if the field changed.
     For example, the triggered status of an alert is no longer valid if the danger-operator changes. This makes threshold a 'core' criteria field.
     */
-    public boolean isDangerCriteriaEqual(Alert alert) {
+    public boolean isDangerCriteriaEqual(Alert alert, boolean includeNotitificationGroups) {
        
         if (alert == null) return false;
         if (alert == this) return true;
         if (alert.getClass() != getClass()) return false;
         
-        boolean isDangerThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(dangerThreshold_, alert.getDangerThreshold());
+        boolean isDangerNotificationGroupIdEqual = (includeNotitificationGroups) ? Objects.equals(this.dangerNotificationGroupId_, alert.getDangerNotificationGroupId()) : true;
+        boolean isDangerPositiveNotificationGroupIdEqual = (includeNotitificationGroups) ? Objects.equals(this.dangerPositiveNotificationGroupId_, alert.getDangerPositiveNotificationGroupId()) : true;
         
+        boolean isDangerThresholdValueEqual = MathUtilities.areBigDecimalsNumericallyEqual(dangerThreshold_, alert.getDangerThreshold());
+
         return new EqualsBuilder()
                 .append(id_, alert.getId())
                 .append(metricGroupId_, alert.getMetricGroupId())
+                .append(isDangerNotificationGroupIdEqual, true)
+                .append(isDangerPositiveNotificationGroupIdEqual, true)
                 .append(isEnabled_, alert.isEnabled())
                 .append(isDangerEnabled_, alert.isDangerEnabled())
                 .append(alertType_, alert.getAlertType())
@@ -414,26 +393,30 @@ public class Alert implements DatabaseObject<Alert> {
         return alertToModify;
     }
     
-    public Long getLongestWindowDuration() {
-        
-        if ((cautionWindowDuration_ == null) && (dangerWindowDuration_ == null)) return null;
-        if ((cautionWindowDuration_ != null) && (dangerWindowDuration_ == null)) return cautionWindowDuration_;
-        if ((cautionWindowDuration_ == null) && (dangerWindowDuration_ != null)) return dangerWindowDuration_;
- 
-        if (cautionWindowDuration_ > dangerWindowDuration_) {
-            return cautionWindowDuration_;
-        }
-        else {
-            return dangerWindowDuration_;
-        }
-        
+    public void disableAndNullifyAlertStatusFields() {
+        this.setIsCautionAlertActive(false);
+        this.setCautionFirstActiveAt(null);
+        this.setIsCautionAlertAcknowledged(null);
+        this.setCautionAlertLastSentTimestamp(null);
+        this.setCautionActiveAlertsSet(null);
+        this.setIsDangerAlertActive(false);
+        this.setDangerFirstActiveAt(null);
+        this.setIsDangerAlertAcknowledged(null);
+        this.setDangerAlertLastSentTimestamp(null);
+        this.setDangerActiveAlertsSet(null);
     }
-       
+    
     public static DatabaseObjectValidation isValid(Alert alert) {
         if (alert == null) return new DatabaseObjectValidation(false, "Invalid alert");
         
         DatabaseObjectValidation databaseObjectValidation_CoreCriteria = alert.isCoreAlertCriteriaValid();
         if (!databaseObjectValidation_CoreCriteria.isValid()) return databaseObjectValidation_CoreCriteria;
+        
+        DatabaseObjectValidation databaseObjectValidation_AlertTemplateCriteria = alert.isAlertTemplateCriteriaValid();
+        if (!databaseObjectValidation_AlertTemplateCriteria.isValid()) return databaseObjectValidation_AlertTemplateCriteria;
+        
+        DatabaseObjectValidation databaseObjectValidation_MetricGroupCriteria = alert.isMetricGroupCriteriaValid();
+        if (!databaseObjectValidation_MetricGroupCriteria.isValid()) return databaseObjectValidation_MetricGroupCriteria;
         
         DatabaseObjectValidation databaseObjectValidation_CautionCriteria = alert.isCautionAlertCriteriaValid(true);
         if (!databaseObjectValidation_CautionCriteria.isValid()) return databaseObjectValidation_CautionCriteria;
@@ -444,424 +427,17 @@ public class Alert implements DatabaseObject<Alert> {
         return new DatabaseObjectValidation(true);
     }
     
-    public DatabaseObjectValidation isCoreAlertCriteriaValid() {
-        if ((name_ == null) || name_.isEmpty()) return new DatabaseObjectValidation(false, "Invalid alert name");
+    public DatabaseObjectValidation isMetricGroupCriteriaValid() {
         if (metricGroupId_ == null) return new DatabaseObjectValidation(false, "Invalid metric group");
-        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
-        if (isEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is alert enabled?' value");
-        if (isCautionEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is caution alerting enabled?' value");
-        if (isDangerEnabled_ == null) return new DatabaseObjectValidation(false, "Invalid 'is danger alerting enabled?' value");
-        if (alertOnPositive_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert on positive?' value");
-        if (allowResendAlert_ == null) return new DatabaseObjectValidation(false, "Invalid 'resend alert?' value");
-        if (allowResendAlert_ && (resendAlertEvery_ == null)) return new DatabaseObjectValidation(false, "Invalid 'resend alert frequency?' value");
-        if (allowResendAlert_ && (resendAlertEveryTimeUnit_ == null)) return new DatabaseObjectValidation(false, "Invalid 'resend alert time unit' value");
-
         return new DatabaseObjectValidation(true);
     }
     
-    public DatabaseObjectValidation isCautionAlertCriteriaValid() {
-        return isCautionAlertCriteriaValid(false);
-    }
-    
-    public DatabaseObjectValidation isCautionAlertCriteriaValid(boolean skipCheckIfCautionNotEnabled) {
-        if (skipCheckIfCautionNotEnabled && (isCautionEnabled_ != null) && !isCautionEnabled_) return new DatabaseObjectValidation(true);
-        
-        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
-        
-        if (alertType_ == TYPE_AVAILABILITY) {
-            if (!isValid_CautionWindowDuration()) return new DatabaseObjectValidation(false, "Invalid caution 'window duration' value");
-            if (!isValid_CautionStopTrackingAfter()) return new DatabaseObjectValidation(false, "Invalid caution 'stop tracking after' value");
-        }
-        else if (alertType_ == TYPE_THRESHOLD) {
-            if (!isValid_CautionOperation()) return new DatabaseObjectValidation(false, "Invalid caution operation");
-            if (!isValid_CautionCombination()) return new DatabaseObjectValidation(false, "Invalid caution combination");
-            if (getCautionThreshold() == null) return new DatabaseObjectValidation(false, "Invalid caution threshold value");
-            if (!isValid_CautionWindowDuration()) return new DatabaseObjectValidation(false, "Invalid caution 'window duration' value");
-            if (!isValid_CautionMinimumSampleCount()) return new DatabaseObjectValidation(false, "Invalid caution 'minimum sample count' value");
-        }
-        
+    public DatabaseObjectValidation isAlertTemplateCriteriaValid() {
+        if ((alertTemplateId_ == null) && (variableSetId_ != null)) return new DatabaseObjectValidation(false, "Invalid alert template");
+        if ((alertTemplateId_ != null) && (variableSetId_ == null)) return new DatabaseObjectValidation(false, "Invalid alert template variable set");
         return new DatabaseObjectValidation(true);
     }
     
-    public DatabaseObjectValidation isDangerAlertCriteriaValid() {
-        return isDangerAlertCriteriaValid(false);
-    }
-    
-    public DatabaseObjectValidation isDangerAlertCriteriaValid(boolean skipCheckIfDangerNotEnabled) {
-        if (skipCheckIfDangerNotEnabled && (isDangerEnabled_ != null) && !isDangerEnabled_) return new DatabaseObjectValidation(true);
-        
-        if (alertType_ == null) return new DatabaseObjectValidation(false, "Invalid 'alert type'");
-        
-        if (alertType_ == TYPE_AVAILABILITY) {
-            if (!isValid_DangerWindowDuration()) return new DatabaseObjectValidation(false, "Invalid danger 'window duration' value");
-            if (!isValid_DangerStopTrackingAfter()) return new DatabaseObjectValidation(false, "Invalid danger 'stop tracking after' value");
-        }
-        else if (alertType_ == TYPE_THRESHOLD) {
-            if (!isValid_DangerOperation()) return new DatabaseObjectValidation(false, "Invalid danger operation");
-            if (!isValid_DangerCombination()) return new DatabaseObjectValidation(false, "Invalid danger combination");
-            if (getDangerThreshold() == null) return new DatabaseObjectValidation(false, "Invalid danger threshold value");
-            if (!isValid_DangerWindowDuration()) return new DatabaseObjectValidation(false, "Invalid danger 'window duration' value");
-            if (!isValid_DangerMinimumSampleCount()) return new DatabaseObjectValidation(false, "Invalid danger 'minimum sample count' value");
-        }
-        
-        return new DatabaseObjectValidation(true);
-    }
-    
-    public boolean isValid_CautionOperation() {
-        
-        if (cautionOperator_ == null) {
-            return false;
-        } 
-        
-        return (cautionOperator_ >= 1) && (cautionOperator_ <= 5);
-    }
-    
-    public boolean isValid_DangerOperation() {
-        
-        if (dangerOperator_ == null) {
-            return false;
-        } 
-        
-        return (dangerOperator_ >= 1) && (dangerOperator_ <= 5);
-    }
-    
-    public boolean isValid_CautionCombination() {
-        
-        if (cautionCombination_ == null) {
-            return false;
-        } 
-        
-        if ((cautionCombination_ >= 101) && (cautionCombination_ <= 106) && (cautionCombination_ != 104)) {
-            
-            if ((Objects.equals(cautionCombination_, COMBINATION_AT_LEAST_COUNT)) || (Objects.equals(cautionCombination_, COMBINATION_AT_MOST_COUNT))) {
-                if ((cautionCombinationCount_ == null) || (cautionCombinationCount_ < 0)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
-    
-    public boolean isValid_DangerCombination() {
-        
-        if (dangerCombination_ == null) {
-            return false;
-        } 
-        
-        if ((dangerCombination_ >= 101) && (dangerCombination_ <= 106) && (dangerCombination_ != 104)) {
-            
-            if ((Objects.equals(dangerCombination_, COMBINATION_AT_LEAST_COUNT)) || (Objects.equals(dangerCombination_, COMBINATION_AT_MOST_COUNT))) {
-                if ((dangerCombinationCount_ == null) || (dangerCombinationCount_ < 0)) {
-                    return false;
-                }
-            }
-            
-            return true;
-        }
-        
-        return false;
-    }
-    
-    public boolean isValid_CautionWindowDuration() {
-        
-        if (cautionWindowDuration_ == null) {
-            return false;
-        } 
-        
-        return cautionWindowDuration_ >= 1;
-    }
-    
-    public boolean isValid_CautionStopTrackingAfter() {
-        
-        if (cautionStopTrackingAfter_ == null) {
-            return false;
-        } 
-        
-        return cautionStopTrackingAfter_ >= 1;
-    }
-    
-    public boolean isValid_DangerWindowDuration() {
-        
-        if (dangerWindowDuration_ == null) {
-            return false;
-        } 
-        
-        return dangerWindowDuration_ >= 1;
-    }
-    
-    public boolean isValid_DangerStopTrackingAfter() {
-        
-        if (dangerStopTrackingAfter_ == null) {
-            return false;
-        } 
-        
-        return dangerStopTrackingAfter_ >= 1;
-    }
-    
-    public boolean isValid_CautionMinimumSampleCount() {
-        
-        if (cautionMinimumSampleCount_ == null) {
-            return false;
-        } 
-        
-        return cautionMinimumSampleCount_ >= 1;
-    }
-    
-    public boolean isValid_DangerMinimumSampleCount() {
-        
-        if (dangerMinimumSampleCount_ == null) {
-            return false;
-        } 
-        
-        return dangerMinimumSampleCount_ >= 1;
-    }
-    
-    public String getOperatorString(int alertLevel, boolean includeSymbol, boolean includeEnglish) {
-        
-        if ((alertLevel == Alert.CAUTION) && (cautionOperator_ == null)) return null;
-        if ((alertLevel == Alert.DANGER) && (dangerOperator_ == null)) return null;
-        
-        int operator = -1;
-        if (alertLevel == Alert.CAUTION) operator = cautionOperator_;
-        else if (alertLevel == Alert.DANGER) operator = dangerOperator_;
-        
-        if (includeSymbol && includeEnglish) {
-            if (operator == OPERATOR_GREATER) return "> (greater than)";
-            else if (operator == OPERATOR_GREATER_EQUALS) return ">= (greater than or equal to)";
-            else if (operator == OPERATOR_LESS) return "< (less than)";
-            else if (operator == OPERATOR_LESS_EQUALS) return "<= (less than or equal to)";
-            else if (operator == OPERATOR_EQUALS) return "= (equal to)";
-            else logger.warn("Unrecognized operator code");
-        }
-        else if (includeSymbol) {
-            if (operator == OPERATOR_GREATER) return ">";
-            else if (operator == OPERATOR_GREATER_EQUALS) return ">=";
-            else if (operator == OPERATOR_LESS) return "<";
-            else if (operator == OPERATOR_LESS_EQUALS) return "<=";
-            else if (operator == OPERATOR_EQUALS) return "=";
-            else logger.warn("Unrecognized operator code");
-        }
-        else if (includeEnglish) {
-            if (operator == OPERATOR_GREATER) return "greater than";
-            else if (operator == OPERATOR_GREATER_EQUALS) return "greater than or equal to";
-            else if (operator == OPERATOR_LESS) return "less than";
-            else if (operator == OPERATOR_LESS_EQUALS) return "less than or equal to";
-            else if (operator == OPERATOR_EQUALS) return "equal to";
-            else logger.warn("Unrecognized operator code");
-        }
-        
-        return null;
-    }
-    
-    public static Integer getOperatorCodeFromOperatorString(String operator) {
-        
-        if ((operator == null) || operator.isEmpty()) {
-            return null;
-        }
-                
-        if (operator.equals(">") || operator.contains("(greater than)")) return OPERATOR_GREATER;
-        else if (operator.equals(">=") || operator.contains("(greater than or equal to)")) return OPERATOR_GREATER_EQUALS;
-        else if (operator.equals("<") || operator.contains("(less than)")) return OPERATOR_LESS;
-        else if (operator.equals("<=") || operator.contains("(less than or equal to)")) return OPERATOR_LESS_EQUALS;
-        else if (operator.equals("=") || operator.contains("(equal to)")) return OPERATOR_EQUALS;
-        else logger.warn("Unrecognized operator string");
-        
-        return null;
-    }
-    
-    public String getCombinationString(int alertLevel) {
-        
-        if ((alertLevel == Alert.CAUTION) && (cautionCombination_ == null)) return null;
-        if ((alertLevel == Alert.DANGER) && (dangerCombination_ == null)) return null;
-        
-        int combination = -1;
-        if (alertLevel == Alert.CAUTION) combination = cautionCombination_;
-        else if (alertLevel == Alert.DANGER) combination = dangerCombination_;
-        
-        if (combination == COMBINATION_ANY) return "Any";
-        else if (combination == COMBINATION_ALL) return "All";
-        else if (combination == COMBINATION_AVERAGE) return "Average";
-        else if (combination == COMBINATION_AT_MOST_COUNT) return "At most";
-        else if (combination == COMBINATION_AT_LEAST_COUNT) return "At least";
-        else logger.warn("Unrecognized combination code");
-         
-        return null;
-    }
-    
-    public static Integer getCombinationCodeFromString(String combination) {
-        
-        if ((combination == null) || combination.isEmpty()) {
-            return null;
-        }
-        
-        if (combination.equalsIgnoreCase("Any")) return COMBINATION_ANY;
-        else if (combination.equalsIgnoreCase("All")) return COMBINATION_ALL;
-        else if (combination.equalsIgnoreCase("Average")) return COMBINATION_AVERAGE;
-        else if (combination.equalsIgnoreCase("At most")) return COMBINATION_AT_MOST_COUNT;
-        else if (combination.equalsIgnoreCase("At least")) return COMBINATION_AT_LEAST_COUNT;
-        else logger.warn("Unrecognized combination string");
-        
-        return null;
-    }
-    
-    public static String getMetricValueString_WithLabel(int alertLevel, Alert alert, BigDecimal metricValue) {
-        
-        if ((alert == null) || (metricValue == null) || (alert.getAlertType() == null)) {
-            return null;
-        }
-        
-        String outputString = null;
-
-        if (alert.getAlertType() == Alert.TYPE_THRESHOLD) {
-            int combination = -1;
-            if (alertLevel == Alert.CAUTION) combination = alert.getCautionCombination();
-            else if (alertLevel == Alert.DANGER) combination = alert.getDangerCombination();
-            
-            String metricValueString = metricValue.stripTrailingZeros().toPlainString();
-            
-            if (Alert.COMBINATION_ALL == combination) outputString = metricValueString + " (recent value)";
-            else if (Alert.COMBINATION_ANY == combination) outputString = metricValueString + " (recent value)";
-            else if (Alert.COMBINATION_AVERAGE == combination) outputString = metricValueString + " (avg value)";
-            else if (Alert.COMBINATION_AT_LEAST_COUNT == combination) outputString = metricValueString + " (count)";
-            else if (Alert.COMBINATION_AT_MOST_COUNT == combination) outputString = metricValueString + " (count)";
-            else logger.warn("Unrecognized combination code");
-        }
-        else if (alert.getAlertType() == Alert.TYPE_AVAILABILITY) {
-            BigDecimal metricValue_Seconds = metricValue.divide(new BigDecimal(1000));
-            String metricValueString = metricValue_Seconds.stripTrailingZeros().toPlainString();
-            outputString = metricValueString + " (seconds since last data point received)";
-        }
-        
-        return outputString;
-    }
-    
-    public String getHumanReadable_AlertCriteria_MinimumSampleCount(int alertLevel) {
-        
-        if ((alertLevel == Alert.CAUTION) && (getCautionMinimumSampleCount() == null)) return null;
-        else if ((alertLevel == Alert.DANGER) && (getDangerMinimumSampleCount() == null)) return null;
-        else if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) return null;
-        
-        if (alertLevel == Alert.CAUTION) return "A minimum of " + getCautionMinimumSampleCount() + " sample(s)";
-        else if (alertLevel == Alert.DANGER) return "A minimum of " + getDangerMinimumSampleCount() + " sample(s)";
-        else return null;
-    }
-    
-    public String getHumanReadable_AlertCriteria_AvailabilityCriteria(int alertLevel) {
-        
-        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
-            return null;
-        }
-        
-        try {
-            if (alertLevel == Alert.CAUTION) {
-                if ((getCautionWindowDuration() == null) || (getCautionWindowDurationTimeUnit() == null)) return null;
-                
-                BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getCautionWindowDuration(), getCautionWindowDurationTimeUnit());
-                String cautionWindowDurationTimeUnit = "";
-                if (getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getCautionWindowDurationTimeUnit(), true);
-                
-                StringBuilder humanReadableAvailabilityCriteria = new StringBuilder();
-                humanReadableAvailabilityCriteria.append("No new data points were received during the last ")
-                        .append(cautionWindowDuration.stripTrailingZeros().toPlainString())
-                        .append(" ").append(cautionWindowDurationTimeUnit);
-                
-                return humanReadableAvailabilityCriteria.toString();
-            }
-            else if (alertLevel == Alert.DANGER) {
-                if ((getDangerWindowDuration() == null) || (getDangerWindowDurationTimeUnit() == null)) return null;
-                
-                BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getDangerWindowDuration(), getDangerWindowDurationTimeUnit());
-                String dangerWindowDurationTimeUnit = "";
-                if (getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getDangerWindowDurationTimeUnit(), true);
-                
-                StringBuilder humanReadableAvailabilityCriteria = new StringBuilder();
-                humanReadableAvailabilityCriteria.append("No new data points were received during the last ")
-                        .append(dangerWindowDuration.stripTrailingZeros().toPlainString())
-                        .append(" ").append(dangerWindowDurationTimeUnit);
-                
-                return humanReadableAvailabilityCriteria.toString();
-            }
-            else return null;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        
-    }
-    
-    public String getHumanReadable_AlertCriteria_ThresholdCriteria(int alertLevel) {
-        
-        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
-            return null;
-        }
-        
-        try {
-            if (alertLevel == Alert.CAUTION) {
-                if ((getCautionWindowDuration() == null) || (getCautionWindowDurationTimeUnit() == null) || (getCautionThreshold() == null) || (getCautionOperator() == null)) return null;
-                
-                BigDecimal cautionWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getCautionWindowDuration(), getCautionWindowDurationTimeUnit());
-                String cautionWindowDurationTimeUnit = "";
-                if (getCautionWindowDurationTimeUnit() != null) cautionWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getCautionWindowDurationTimeUnit(), true);
-
-                StringBuilder humanReadableThresholdCriteria = new StringBuilder();
-                humanReadableThresholdCriteria.append(getHumanReadable_ThresholdCriteria_Combination(Alert.CAUTION)).append(" ").append(getOperatorString(Alert.CAUTION, false, true))
-                    .append(" ").append(getCautionThreshold().stripTrailingZeros().toPlainString())
-                    .append(" during the last ").append(cautionWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(cautionWindowDurationTimeUnit);
-
-                return humanReadableThresholdCriteria.toString();
-            }
-            else if (alertLevel == Alert.DANGER) {
-                if ((getDangerWindowDuration() == null) || (getDangerWindowDurationTimeUnit() == null) || (getDangerThreshold() == null) || (getDangerOperator() == null)) return null;
-                
-                BigDecimal dangerWindowDuration = DatabaseObjectCommon.getValueForTimeFromMilliseconds(getDangerWindowDuration(), getDangerWindowDurationTimeUnit());
-                String dangerWindowDurationTimeUnit = "";
-                if (getDangerWindowDurationTimeUnit() != null) dangerWindowDurationTimeUnit = DatabaseObjectCommon.getTimeUnitStringFromCode(getDangerWindowDurationTimeUnit(), true);
-
-                StringBuilder humanReadableThresholdCriteria = new StringBuilder();
-                humanReadableThresholdCriteria.append(getHumanReadable_ThresholdCriteria_Combination(Alert.DANGER)).append(" ").append(getOperatorString(Alert.DANGER, false, true))
-                    .append(" ").append(getDangerThreshold().stripTrailingZeros().toPlainString())
-                    .append(" during the last ").append(dangerWindowDuration.stripTrailingZeros().toPlainString()).append(" ").append(dangerWindowDurationTimeUnit);
-
-                return humanReadableThresholdCriteria.toString();
-            }
-            else return null;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        
-    }
-
-    private String getHumanReadable_ThresholdCriteria_Combination(int alertLevel) {
-        
-        if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) {
-            return null;
-        }
-
-        Integer combination = null;
-        if (alertLevel == Alert.CAUTION) combination = getCautionCombination();
-        else if (alertLevel == Alert.DANGER) combination = getDangerCombination();
-        
-        Integer combinationCount = null;
-        if (alertLevel == Alert.CAUTION) combinationCount = getCautionCombinationCount();
-        else if (alertLevel == Alert.DANGER) combinationCount = getDangerCombinationCount();
-        
-        if (combination != null) {
-            if (Objects.equals(combination, Alert.COMBINATION_ANY)) return "Any metric value was";
-            else if (Objects.equals(combination, Alert.COMBINATION_ALL)) return "All metric values were";
-            else if (Objects.equals(combination, Alert.COMBINATION_AVERAGE)) return "The average metric value was";
-            else if (Objects.equals(combination, Alert.COMBINATION_AT_MOST_COUNT) && (combinationCount != null)) return "At most " + combinationCount + " metric values were";
-            else if (Objects.equals(combination, Alert.COMBINATION_AT_LEAST_COUNT) && (combinationCount != null)) return "At least " + combinationCount + " metric values were";
-            else return null;
-        }
-        else return null;
-    }
-
     public String getHumanReadable_AmountOfTimeAlertIsTriggered(int alertLevel, Calendar currentDateAndTime) {
         
         if ((alertLevel != Alert.CAUTION) && (alertLevel != Alert.DANGER)) return null;
@@ -907,10 +483,10 @@ public class Alert implements DatabaseObject<Alert> {
     }
     
     public static JsonObject getJsonObject_ApiFriendly(Alert alert) {
-        return getJsonObject_ApiFriendly(alert, null, null, null, null, null, null, null);
+        return getJsonObject_ApiFriendly(alert, null, null, null, null, null);
     }
     
-    public static JsonObject getJsonObject_ApiFriendly(Alert alert, Boolean showAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
+    public static JsonObject getJsonObject_ApiFriendly(Alert alert, MetricGroup metricGroup,
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -933,25 +509,19 @@ public class Alert implements DatabaseObject<Alert> {
 
             if ((metricGroup != null) && (metricGroup.getId() != null) && (alert_Local.getMetricGroupId() != null) && (metricGroup.getId().intValue() == alert_Local.getMetricGroupId().intValue())) {
                 jsonObject.addProperty("metric_group_name", metricGroup.getName());
+                
+                JsonArray metricGroupTags_JsonArray = new JsonArray();
+                if ((metricGroup.getTags() != null) && !metricGroup.getTags().isEmpty()) {
+                    for (String metricGroupTag : metricGroup.getTags()) {
+                        if ((metricGroupTag == null) || metricGroupTag.isEmpty()) continue;
+                        metricGroupTags_JsonArray.add(metricGroupTag);
+                    }
+                }
+                jsonObject.add("metric_group_tags", metricGroupTags_JsonArray);
             }
             else if ((metricGroup != null) && (metricGroup.getId() != null) && (alert_Local.getMetricGroupId() != null)) {
                 logger.error("'Metric Group Id' from the 'metricGroup' object must match the Alert's 'Metric Group Id'");
             }
-            
-            if ((showAlertTemplate != null) && !showAlertTemplate) {
-                jsonObject.remove("is_template");
-            }
-            
-            JsonArray metricGroupTags_JsonArray = new JsonArray();
-            if ((metricGroupTags != null) && !metricGroupTags.isEmpty()) {
-                for (MetricGroupTag metricGroupTag : metricGroupTags) {
-                    if ((metricGroupTag.getTag() != null) && (metricGroupTag.getMetricGroupId() != null) && (alert_Local.getMetricGroupId() != null) && 
-                            (metricGroupTag.getMetricGroupId().intValue() == alert_Local.getMetricGroupId().intValue())) {
-                        metricGroupTags_JsonArray.add(metricGroupTag.getTag());
-                    }
-                }
-            }
-            jsonObject.add("metric_group_tags", metricGroupTags_JsonArray);
             
             if ((cautionNotificationGroup != null) && (cautionNotificationGroup.getId() != null) && (alert_Local.getCautionNotificationGroupId() != null) 
                     && (cautionNotificationGroup.getId().intValue() == alert_Local.getCautionNotificationGroupId().intValue())) {
@@ -1132,12 +702,12 @@ public class Alert implements DatabaseObject<Alert> {
         }
         
     }
-    
+
     public static String getJsonString_ApiFriendly(Alert alert) {
-        return getJsonString_ApiFriendly(alert, null, null, null, null, null, null, null);
+        return getJsonString_ApiFriendly(alert, null, null, null, null, null);
     }
     
-    public static String getJsonString_ApiFriendly(Alert alert, Boolean isAlertTemplate, MetricGroup metricGroup, List<MetricGroupTag> metricGroupTags,
+    public static String getJsonString_ApiFriendly(Alert alert, MetricGroup metricGroup, 
             NotificationGroup cautionNotificationGroup, NotificationGroup cautionPositiveNotificationGroup,
             NotificationGroup dangerNotificationGroup, NotificationGroup  dangerPositiveNotificationGroup) {
         
@@ -1146,7 +716,7 @@ public class Alert implements DatabaseObject<Alert> {
         }
         
         try {
-            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, isAlertTemplate, metricGroup, metricGroupTags, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
+            JsonObject jsonObject = getJsonObject_ApiFriendly(alert, metricGroup, cautionNotificationGroup, cautionPositiveNotificationGroup, dangerNotificationGroup, dangerPositiveNotificationGroup);
             if (jsonObject == null) return null;
 
             Gson gson = new GsonBuilder().setPrettyPrinting().disableHtmlEscaping().create();   
@@ -1158,42 +728,76 @@ public class Alert implements DatabaseObject<Alert> {
         }
         
     }
-    
-    public Integer getId() {
-        return id_;
-    }
-    
-    public void setId(Integer id) {
-        this.id_ = id;
-    }
-    
-    public String getName() {
-        return name_;
-    }
-    
-    public void setName(String name) {
-        this.name_ = name;
-        if (name != null) this.uppercaseName_ = name.toUpperCase();
-    }
-    
-    public String getUppercaseName() {
-        return uppercaseName_;
-    }
-    
-    public Boolean isTemplate() {
-        return isTemplate_;
-    }
 
-    public void setIsTemplate(Boolean isTemplate) {
-        this.isTemplate_ = isTemplate;
+    public static Alert createAlertFromAlertTemplate(AlertTemplate alertTemplate, 
+            Integer variableSetId, String description, Integer alertId, String alertName, Integer metricGroupId,
+            Integer cautionNotificationGroupId, Integer cautionPositiveNotificationGroupId,
+            Integer dangerNotificationGroupId, Integer dangerPositiveNotificationGroupId) {
+
+        if (alertTemplate == null) {
+            return null;
+        }
+        
+        Alert alert = new Alert();
+
+        if (alertId == null) alert.setId(-1);
+        else alert.setId(alertId);
+        alert.setVariableSetId(variableSetId);
+        alert.setMetricGroupId(metricGroupId);
+        alert.setCautionNotificationGroupId(cautionNotificationGroupId);
+        alert.setCautionPositiveNotificationGroupId(cautionPositiveNotificationGroupId);
+        alert.setDangerNotificationGroupId(dangerNotificationGroupId);
+        alert.setDangerPositiveNotificationGroupId(dangerPositiveNotificationGroupId);
+        
+        alert.setName(alertName);
+        alert.setDescription(description);
+        alert.setAlertTemplateId(alertTemplate.getId());
+
+        alert.setIsEnabled(alertTemplate.isEnabled());
+        alert.setIsCautionEnabled(alertTemplate.isCautionEnabled());
+        alert.setIsDangerEnabled(alertTemplate.isDangerEnabled());
+        alert.setAlertType(alertTemplate.getAlertType());
+
+        alert.setAlertOnPositive(alertTemplate.isAlertOnPositive());
+        alert.setAllowResendAlert(alertTemplate.isAllowResendAlert());
+        alert.setResendAlertEvery(alertTemplate.getResendAlertEvery());
+        alert.setResendAlertEveryTimeUnit(alertTemplate.getResendAlertEveryTimeUnit());
+
+        alert.setCautionOperator(alertTemplate.getCautionOperator());
+        alert.setCautionCombination(alertTemplate.getCautionCombination());
+        alert.setCautionCombinationCount(alertTemplate.getCautionCombinationCount());
+        alert.setCautionThreshold(alertTemplate.getCautionThreshold());
+        alert.setCautionWindowDuration(alertTemplate.getCautionWindowDuration());
+        alert.setCautionWindowDurationTimeUnit(alertTemplate.getCautionWindowDurationTimeUnit());
+        alert.setCautionStopTrackingAfter(alertTemplate.getCautionStopTrackingAfter());
+        alert.setCautionStopTrackingAfterTimeUnit(alertTemplate.getCautionStopTrackingAfterTimeUnit());
+        alert.setCautionMinimumSampleCount(alertTemplate.getCautionMinimumSampleCount());
+
+        alert.setDangerOperator(alertTemplate.getDangerOperator());
+        alert.setDangerCombination(alertTemplate.getDangerCombination());
+        alert.setDangerCombinationCount(alertTemplate.getDangerCombinationCount());
+        alert.setDangerThreshold(alertTemplate.getDangerThreshold());
+        alert.setDangerWindowDuration(alertTemplate.getDangerWindowDuration());
+        alert.setDangerWindowDurationTimeUnit(alertTemplate.getDangerWindowDurationTimeUnit());
+        alert.setDangerStopTrackingAfter(alertTemplate.getDangerStopTrackingAfter());
+        alert.setDangerStopTrackingAfterTimeUnit(alertTemplate.getDangerStopTrackingAfterTimeUnit());
+        alert.setDangerMinimumSampleCount(alertTemplate.getDangerMinimumSampleCount());
+
+        alert.setIsCautionAlertActive(false);
+        alert.setIsDangerAlertActive(false);
+        
+        return alert;
     }
     
-    public Boolean isTemplateDerived() {
-        return isTemplateDerived_;
-    }
+    public static boolean areAlertTemplateIdsInConflict(Alert alert1, Alert alert2) {
+        if (alert2 == null) return false;
+        if (alert1 == null) return false;
+        
+        if ((alert1.getAlertTemplateId() == null) && (alert2.getAlertTemplateId() == null)) return false;
+        if ((alert1.getAlertTemplateId() == null) && (alert2.getAlertTemplateId() != null)) return true;
+        if ((alert1.getAlertTemplateId() != null) && (alert2.getAlertTemplateId() == null)) return true;
 
-    public void setIsTemplateDerived(Boolean isTemplateDerived) {
-        this.isTemplateDerived_ = isTemplateDerived;
+        return !alert1.getAlertTemplateId().equals(alert2.getAlertTemplateId());
     }
     
     public String getDescription() {
@@ -1204,76 +808,28 @@ public class Alert implements DatabaseObject<Alert> {
         this.description_ = description;
     }
     
+    public Integer getAlertTemplateId() {
+        return alertTemplateId_;
+    }
+
+    public void setAlertTemplateId(Integer alertTemplateId) {
+        this.alertTemplateId_ = alertTemplateId;
+    }
+
+    public Integer getVariableSetId() {
+        return variableSetId_;
+    }
+
+    public void setVariableSetId(Integer variableSetId) {
+        this.variableSetId_ = variableSetId;
+    }
+    
     public Integer getMetricGroupId() {
         return metricGroupId_;
     }
     
     public void setMetricGroupId(Integer metricGroupId) {
         this.metricGroupId_ = metricGroupId;
-    }
-    
-    public Boolean isEnabled() {
-        return isEnabled_;
-    }
-    
-    public void setIsEnabled(Boolean isEnabled) {
-        this.isEnabled_ = isEnabled;
-    }
-    
-    public Boolean isCautionEnabled() {
-        return isCautionEnabled_;
-    }
-    
-    public void setIsCautionEnabled(Boolean isCautionEnabled) {
-        this.isCautionEnabled_ = isCautionEnabled;
-    }
-    
-    public Boolean isDangerEnabled() {
-        return isDangerEnabled_;
-    }
-    
-    public void setIsDangerEnabled(Boolean isDangerEnabled) {
-        this.isDangerEnabled_ = isDangerEnabled;
-    }
-    
-    public Integer getAlertType() {
-        return alertType_;
-    }
-
-    public void setAlertType(Integer alertType) {
-        this.alertType_ = alertType;
-    }
-    
-    public Boolean isAlertOnPositive() {
-        return alertOnPositive_;
-    }
-    
-    public void setAlertOnPositive(Boolean alertOnPositive) {
-        this.alertOnPositive_ = alertOnPositive;
-    }
-
-    public Boolean isAllowResendAlert() {
-        return allowResendAlert_;
-    }
-    
-    public void setAllowResendAlert(Boolean allowResendAlert) {
-        this.allowResendAlert_ = allowResendAlert;
-    }
-    
-    public Long getResendAlertEvery() {
-        return resendAlertEvery_;
-    }
-
-    public void setResendAlertEvery(Long resendAlertEvery) {
-        this.resendAlertEvery_ = resendAlertEvery;
-    }
-
-    public Integer getResendAlertEveryTimeUnit() {
-        return resendAlertEveryTimeUnit_;
-    }
-
-    public void setResendAlertEveryTimeUnit(Integer resendAlertEveryTimeUnit) {
-        this.resendAlertEveryTimeUnit_ = resendAlertEveryTimeUnit;
     }
 
     public Integer getCautionNotificationGroupId() {
@@ -1290,78 +846,6 @@ public class Alert implements DatabaseObject<Alert> {
 
     public void setCautionPositiveNotificationGroupId(Integer cautionPositiveNotificationGroupId) {
         this.cautionPositiveNotificationGroupId_ = cautionPositiveNotificationGroupId;
-    }
-    
-    public Integer getCautionOperator() {
-        return cautionOperator_;
-    }
-    
-    public void setCautionOperator(Integer cautionOperator) {
-        this.cautionOperator_ = cautionOperator;
-    }
-    
-    public Integer getCautionCombination() {
-        return cautionCombination_;
-    }
-    
-    public void setCautionCombination(Integer cautionCombination) {
-        this.cautionCombination_ = cautionCombination;
-    }
-    
-    public Integer getCautionCombinationCount() {
-        return cautionCombinationCount_;
-    }
-
-    public void setCautionCombinationCount(Integer cautionCombinationCount) {
-        this.cautionCombinationCount_ = cautionCombinationCount;
-    }
-    
-    public BigDecimal getCautionThreshold() {
-        return cautionThreshold_;
-    }
-
-    public void setCautionThreshold(BigDecimal cautionThreshold) {
-        this.cautionThreshold_ = cautionThreshold;
-    }
-    
-    public Long getCautionWindowDuration() {
-        return cautionWindowDuration_;
-    }
-    
-    public void setCautionWindowDuration(Long cautionWindowDuration) {
-        this.cautionWindowDuration_ = cautionWindowDuration;
-    }
-
-    public Integer getCautionWindowDurationTimeUnit() {
-        return cautionWindowDurationTimeUnit_;
-    }
-
-    public void setCautionWindowDurationTimeUnit(Integer cautionWindowDurationTimeUnit) {
-        this.cautionWindowDurationTimeUnit_ = cautionWindowDurationTimeUnit;
-    }
-
-    public Long getCautionStopTrackingAfter() {
-        return cautionStopTrackingAfter_;
-    }
-
-    public void setCautionStopTrackingAfter(Long cautionStopTrackingAfter) {
-        this.cautionStopTrackingAfter_ = cautionStopTrackingAfter;
-    }
-
-    public Integer getCautionStopTrackingAfterTimeUnit() {
-        return cautionStopTrackingAfterTimeUnit_;
-    }
-
-    public void setCautionStopTrackingAfterTimeUnit(Integer cautionStopTrackingAfterTimeUnit) {
-        this.cautionStopTrackingAfterTimeUnit_ = cautionStopTrackingAfterTimeUnit;
-    }
-    
-    public Integer getCautionMinimumSampleCount() {
-        return cautionMinimumSampleCount_;
-    }
-
-    public void setCautionMinimumSampleCount(Integer cautionMinimumSampleCount) {
-        this.cautionMinimumSampleCount_ = cautionMinimumSampleCount;
     }
     
     public Boolean isCautionAlertActive() {
@@ -1422,78 +906,6 @@ public class Alert implements DatabaseObject<Alert> {
 
     public void setDangerPositiveNotificationGroupId(Integer dangerPositiveNotificationGroupId) {
         this.dangerPositiveNotificationGroupId_ = dangerPositiveNotificationGroupId;
-    }
-    
-    public Integer getDangerOperator() {
-        return dangerOperator_;
-    }
-    
-    public void setDangerOperator(Integer dangerOperator) {
-        this.dangerOperator_ = dangerOperator;
-    }
-    
-    public Integer getDangerCombination() {
-        return dangerCombination_;
-    }
-    
-    public void setDangerCombination(Integer dangerCombination) {
-        this.dangerCombination_ = dangerCombination;
-    }
-    
-    public Integer getDangerCombinationCount() {
-        return dangerCombinationCount_;
-    }
-
-    public void setDangerCombinationCount(Integer dangerCombinationCount) {
-        this.dangerCombinationCount_ = dangerCombinationCount;
-    }
-    
-    public BigDecimal getDangerThreshold() {
-        return dangerThreshold_;
-    }
-
-    public void setDangerThreshold(BigDecimal dangerThreshold) {
-        this.dangerThreshold_ = dangerThreshold;
-    }
-    
-    public Long getDangerWindowDuration() {
-        return dangerWindowDuration_;
-    }
-
-    public void setDangerWindowDuration(Long dangerWindowDuration) {
-        this.dangerWindowDuration_ = dangerWindowDuration;
-    }
-
-    public Integer getDangerWindowDurationTimeUnit() {
-        return dangerWindowDurationTimeUnit_;
-    }
-
-    public void setDangerWindowDurationTimeUnit(Integer dangerWindowDurationTimeUnit) {
-        this.dangerWindowDurationTimeUnit_ = dangerWindowDurationTimeUnit;
-    }
-
-    public Long getDangerStopTrackingAfter() {
-        return dangerStopTrackingAfter_;
-    }
-
-    public void setDangerStopTrackingAfter(Long dangerStopTrackingAfter) {
-        this.dangerStopTrackingAfter_ = dangerStopTrackingAfter;
-    }
-
-    public Integer getDangerStopTrackingAfterTimeUnit() {
-        return dangerStopTrackingAfterTimeUnit_;
-    }
-
-    public void setDangerStopTrackingAfterTimeUnit(Integer dangerStopTrackingAfterTimeUnit) {
-        this.dangerStopTrackingAfterTimeUnit_ = dangerStopTrackingAfterTimeUnit;
-    }
-    
-    public Integer getDangerMinimumSampleCount() {
-        return dangerMinimumSampleCount_;
-    }
-
-    public void setDangerMinimumSampleCount(Integer dangerMinimumSampleCount) {
-        this.dangerMinimumSampleCount_ = dangerMinimumSampleCount;
     }
     
     public Boolean isDangerAlertActive() {

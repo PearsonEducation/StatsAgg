@@ -75,7 +75,7 @@ public class AlertCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = CreateAlert.parseAndAlterAlert(jsonObject, false);
+        String result = CreateAlert.parseAndAlterAlert(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

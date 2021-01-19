@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
-import com.pearson.statsagg.web_ui.CreateAlert;
+import com.pearson.statsagg.web_ui.CreateAlertTemplate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -75,7 +75,7 @@ public class AlertTemplateCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = CreateAlert.parseAndAlterAlert(jsonObject, true);
+        String result = CreateAlertTemplate.parseAndAlterAlertTemplate(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     
