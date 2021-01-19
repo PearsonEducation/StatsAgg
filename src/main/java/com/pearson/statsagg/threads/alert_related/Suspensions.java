@@ -6,8 +6,8 @@ import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.general_purpose.GeneralPurposeDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import com.pearson.statsagg.utilities.core_utils.Threads;
@@ -44,7 +44,7 @@ public class Suspensions {
     
     public Suspensions() {
         // gets all alerts from the database.
-        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
         alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
     }
     
@@ -55,7 +55,7 @@ public class Suspensions {
         } 
         else {
             // gets all alerts from the database.
-            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true, false);
+            List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
             alertsByAlertId_ = AlertThread.getAlertsByAlertId(alerts);
         }
         
