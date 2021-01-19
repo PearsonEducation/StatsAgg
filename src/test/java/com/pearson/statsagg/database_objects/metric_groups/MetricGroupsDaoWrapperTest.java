@@ -2,10 +2,6 @@ package com.pearson.statsagg.database_objects.metric_groups;
 
 import java.util.List;
 import java.util.TreeSet;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regexes.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.drivers.Driver;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
@@ -62,22 +58,23 @@ public class MetricGroupsDaoWrapperTest {
      */
     @Test
     public void testAlterRecordInDatabase() {
-        MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 1");
         TreeSet<String> matchRegexes1 = new TreeSet<>();
         matchRegexes1.add(".*junit_1_1.*");
         matchRegexes1.add(".*junit_1_2.*");
         TreeSet<String> tags1 = new TreeSet<>();
         tags1.add("tag1_1");
         tags1.add("tag1_2");
-        
-        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, null, null, null).getReturnString();
+        MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 1", null, null, null, null, tags1);
+
+        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1).getReturnString();
         assertTrue(result.contains("Fail"));
         
-        result = MetricGroupsDaoWrapper.createRecordInDatabase(null, matchRegexes1, null, tags1).getReturnString();
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(null).getReturnString();
         assertTrue(result.contains("Fail"));
         
         // create a metric group & insert it into the db
-        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, matchRegexes1, null, tags1).getReturnString();
+        metricGroup1.setMatchRegexes(matchRegexes1);
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1).getReturnString();
         assertTrue(result.contains("Success"));
 
         // check to see that the metric group is in the database & has correct values
@@ -100,7 +97,7 @@ public class MetricGroupsDaoWrapperTest {
         assertTrue(metricGroupFromDbOriginalName.getName().contains("metricgroup junit_test"));
         MetricGroup metricGroupFromDbNewName = MetricGroup.copy(metricGroupFromDbOriginalName);
         metricGroupFromDbNewName.setName("metricgroup junit_test_11");
-        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbNewName, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName()).getReturnString();
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbNewName, metricGroupFromDbOriginalName.getName()).getReturnString();
         assertTrue(result.contains("Successful"));
         MetricGroup metricGroupFromDbNewNameVerify = MetricGroupsDao.getMetricGroup(connection, false, metricGroupFromDbNewName.getName()); // pt2
         assertTrue(metricGroupFromDbNewNameVerify.getName().contains(metricGroupFromDbNewName.getName()));
@@ -110,12 +107,11 @@ public class MetricGroupsDaoWrapperTest {
         assertEquals(metricGroupFromDbOriginalName_NoResult, null);
         MetricGroup metricGroupFromDbOriginalName_Reset = MetricGroup.copy(metricGroupFromDbOriginalName); // pt4
         metricGroupFromDbOriginalName_Reset.setName(metricGroupFromDbOriginalName.getName());  
-        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, matchRegexes1, null, tags1, metricGroupFromDbOriginalName.getName()).getReturnString();
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroupFromDbOriginalName_Reset, metricGroupFromDbOriginalName.getName()).getReturnString();
         assertTrue(result.contains("Successful"));
         DatabaseUtils.cleanup(connection);
         
         // create a second metric group & insert it into the db. also check to see if inserting blacklist regexes works.
-        MetricGroup metricGroup2 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 2");
         TreeSet<String> matchRegexes2 = new TreeSet<>();
         matchRegexes2.add(".*junit_2_2.*");
         matchRegexes2.add(".*junit_2_1.*");
@@ -127,9 +123,10 @@ public class MetricGroupsDaoWrapperTest {
         tags2.add("tag2_1");
         tags2.add("tag2_2");
         tags2.add("tag2_3");
-        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2).getReturnString();
+        MetricGroup metricGroup2 = new MetricGroup(-1, "metricgroup junit_test", "this is a junit test 2", null, null,  matchRegexes2, blacklistRegexes2, tags2);
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup2).getReturnString();
         assertTrue(result.contains("Fail"));
-        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroup2, matchRegexes2, blacklistRegexes2, tags2, metricGroup2.getName()).getReturnString();
+        result = MetricGroupsDaoWrapper.alterRecordInDatabase(metricGroup2, metricGroup2.getName()).getReturnString();
         assertTrue(result.contains("Success"));
         
         // check to see that the second metric group is in the database & has correct values
@@ -174,7 +171,6 @@ public class MetricGroupsDaoWrapperTest {
     @Test
     public void testDeleteRecordInDatabase() {
         // create a metric group & insert it into the db
-        MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test_delete", "this is a junit test of delete");
         TreeSet<String> matchRegexes1 = new TreeSet<>();
         matchRegexes1.add(".*junit_delete_1_1.*");
         matchRegexes1.add(".*junit_delete_1_2.*");
@@ -184,7 +180,8 @@ public class MetricGroupsDaoWrapperTest {
         TreeSet<String> tags1 = new TreeSet<>();
         tags1.add("tag1_1");
         tags1.add("tag1_2");
-        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1, matchRegexes1, blacklistRegexes1, tags1).getReturnString();
+        MetricGroup metricGroup1 = new MetricGroup(-1, "metricgroup junit_test_delete", "this is a junit test of delete", null, null, matchRegexes1, blacklistRegexes1, tags1);
+        String result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup1).getReturnString();
         assertTrue(result.contains("Success"));
         
         // check to see that the metric group is in the database & has correct values

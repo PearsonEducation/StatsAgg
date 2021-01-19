@@ -66,16 +66,16 @@ public class AlertsDaoWrapperTest {
         result = NotificationGroupsDaoWrapper.createRecordInDatabase(notificationGroup).getReturnString();
         assertTrue(result.contains("Success"));
         notificationGroup_ = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName_);
-        
+
         // delete previous metric group, create a new metric group, and retrieve it from the db. this metric group exists solely for this unit test.
         result = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroupName_).getReturnString();
         assertTrue(result.contains("success") || result.contains("The metric group was not found"));
-        MetricGroup metricGroup = new MetricGroup(-1, metricGroupName_, metricGroupName_);   
         TreeSet<String> regexes = new TreeSet<>();
         regexes.add(metricGroupName_);
         TreeSet<String> tags = new TreeSet<>();
         regexes.add(metricGroupName_);
-        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup, regexes, null, tags).getReturnString();
+        MetricGroup metricGroup = new MetricGroup(-1, metricGroupName_, metricGroupName_, null, null, regexes, regexes, tags);   
+        result = MetricGroupsDaoWrapper.createRecordInDatabase(metricGroup).getReturnString();
         assertTrue(result.contains("Success"));
         metricGroup_ = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName_);
     }
@@ -101,7 +101,7 @@ public class AlertsDaoWrapperTest {
         assertTrue(result.contains("success") || result.contains("The alert was not found"));
         
         // create & insert an Alert, insert it into the db, retrieve it from the db, & check for correctness of the retrieved records
-        Alert alert1 = new Alert(1, "alert junit 1", false, false, "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , null, null, metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = AlertsDaoWrapper.createRecordInDatabase(alert1).getReturnString();
@@ -110,7 +110,7 @@ public class AlertsDaoWrapperTest {
         assertTrue(alert1FromDb.getName().contains("alert junit 1"));
         assertTrue(alert1FromDb.getDescription().contains("alert junit 1"));
         
-        // alter the alert description. update the record in the db, retrieve it from the db, & check for correctness of the retrieved records
+        // alter the alert description. update_Name the record in the db, retrieve it from the db, & check for correctness of the retrieved records
         alert1FromDb.setDescription("alert junit 1_2");
         result = AlertsDaoWrapper.createRecordInDatabase(alert1FromDb).getReturnString();
         assertTrue(result.contains("Failed"));
@@ -174,7 +174,7 @@ public class AlertsDaoWrapperTest {
         String result = AlertsDaoWrapper.deleteRecordInDatabase("alert junit name 1").getReturnString();
         assertTrue(result.contains("success") || result.contains("The alert was not found"));
         
-        Alert alert1 = new Alert(1, "alert junit 1", false, false, "alert junit 1" , metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "alert junit 1", "alert junit 1" , null, null, metricGroup_.getId(), false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             notificationGroup_.getId(), notificationGroup_.getId(), Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(System.currentTimeMillis()), false, null, null);
         result = AlertsDaoWrapper.createRecordInDatabase(alert1).getReturnString();

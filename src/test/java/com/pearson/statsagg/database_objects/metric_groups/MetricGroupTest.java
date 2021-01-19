@@ -1,5 +1,6 @@
 package com.pearson.statsagg.database_objects.metric_groups;
 
+import java.util.TreeSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -36,8 +37,18 @@ public class MetricGroupTest {
      */
     @Test
     public void testIsEqual() {
-        MetricGroup metricGroup1 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc");
-        MetricGroup metricGroup2 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc");
+        TreeSet<String> matchRegexes = new TreeSet<>();
+        matchRegexes.add(".*match1.*");
+        matchRegexes.add(".*match2.*");
+        TreeSet<String> blacklistRegexes = new TreeSet<>();
+        blacklistRegexes.add(".*blacklist1.*");
+        blacklistRegexes.add(".*blacklist2.*");
+        TreeSet<String> tags = new TreeSet<>();
+        tags.add("tag1");
+        tags.add("tag2");
+        
+        MetricGroup metricGroup1 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc", null, null, matchRegexes, blacklistRegexes, tags);
+        MetricGroup metricGroup2 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc", null, null, matchRegexes, blacklistRegexes, tags);
         assertTrue(metricGroup1.isEqual(metricGroup2));
         
         metricGroup1.setId(-1);
@@ -60,7 +71,16 @@ public class MetricGroupTest {
      */
     @Test
     public void testCopy() {
-        MetricGroup metricGroup1 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc");
+        TreeSet<String> matchRegexes = new TreeSet<>();
+        matchRegexes.add(".*match1.*");
+        matchRegexes.add(".*match2.*");
+        TreeSet<String> blacklistRegexes = new TreeSet<>();
+        blacklistRegexes.add(".*blacklist1.*");
+        blacklistRegexes.add(".*blacklist2.*");
+        TreeSet<String> tags = new TreeSet<>();
+        tags.add("tag1");
+        tags.add("tag2");
+        MetricGroup metricGroup1 = new MetricGroup(1, "MetricGroup JUnit1 Name", "MetricGroup JUnit1 Desc", null, null, matchRegexes, blacklistRegexes, tags);
         
         MetricGroup metricGroup2 = MetricGroup.copy(metricGroup1);
         assertTrue(metricGroup1.isEqual(metricGroup2));
@@ -79,6 +99,33 @@ public class MetricGroupTest {
         assertFalse(metricGroup1.isEqual(metricGroup2));
         assertTrue(metricGroup2.getDescription().equals("MetricGroup JUnit1 Desc"));
         metricGroup1.setDescription("MetricGroup JUnit1 Desc");
+        
+        TreeSet<String> matchRegexes_bad = new TreeSet<>();
+        matchRegexes_bad.add(".*match1.*");
+        metricGroup1.setMatchRegexes(matchRegexes_bad);
+        assertFalse(metricGroup1.isEqual(metricGroup2));
+        assertTrue(metricGroup2.getMatchRegexes().size() == 2);
+        assertTrue(metricGroup2.getMatchRegexes().contains(".*match1.*"));
+        assertTrue(metricGroup2.getMatchRegexes().contains(".*match2.*"));
+        metricGroup1.setMatchRegexes(matchRegexes);
+        
+        TreeSet<String> blacklistRegexes_bad = new TreeSet<>();
+        blacklistRegexes_bad.add(".*blacklist1.*");
+        metricGroup1.setBlacklistRegexes(blacklistRegexes_bad);
+        assertFalse(metricGroup1.isEqual(metricGroup2));
+        assertTrue(metricGroup2.getBlacklistRegexes().size() == 2);
+        assertTrue(metricGroup2.getBlacklistRegexes().contains(".*blacklist1.*"));
+        assertTrue(metricGroup2.getBlacklistRegexes().contains(".*blacklist2.*"));
+        metricGroup1.setBlacklistRegexes(blacklistRegexes);
+        
+        TreeSet<String> tags_bad = new TreeSet<>();
+        tags_bad.add("tag1");
+        metricGroup1.setTags(tags_bad);
+        assertFalse(metricGroup1.isEqual(metricGroup2));
+        assertTrue(metricGroup2.getTags().size() == 2);
+        assertTrue(metricGroup2.getTags().contains("tag1"));
+        assertTrue(metricGroup2.getTags().contains("tag2"));
+        metricGroup1.setTags(tags);
         
         assertTrue(metricGroup1.isEqual(metricGroup2));
     }

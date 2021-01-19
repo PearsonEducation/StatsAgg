@@ -43,7 +43,7 @@ public class AlertTest {
     public void testCopy() {
         long currentTimeInMs = System.currentTimeMillis();
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS,
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , 11, 12, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS,
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, null, false, null, null,
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("200"), 1000L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 2, true, new Timestamp(currentTimeInMs), false, null, null);
         
@@ -96,7 +96,7 @@ public class AlertTest {
     @Test
     public void testIsValid_CautionOperation() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null, 
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
@@ -133,7 +133,7 @@ public class AlertTest {
     @Test
     public void testIsValid_DangerOperation() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
@@ -170,7 +170,7 @@ public class AlertTest {
     @Test
     public void testIsValid_CautionCombination() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
@@ -223,7 +223,7 @@ public class AlertTest {
     @Test
     public void testIsValid_DangerCombination() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
@@ -276,7 +276,7 @@ public class AlertTest {
     @Test
     public void testIsValid_CautionWindowDuration() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
@@ -301,7 +301,7 @@ public class AlertTest {
     @Test
     public void testIsValid_DangerWindowDuration() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         
@@ -326,7 +326,7 @@ public class AlertTest {
     @Test
     public void testIsValid_CautionMinimumSampleCount() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null,
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null);
         
@@ -351,7 +351,7 @@ public class AlertTest {
     @Test
     public void testIsValid_DangerMinimumSampleCount() {
         
-        Alert alert1 = new Alert(1, "Alert JUnit1 Name", false, false, "Alert JUnit1 Desc" , 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
+        Alert alert1 = new Alert(1, "Alert JUnit1 Name", "Alert JUnit1 Desc" , null, null, 555, false, true, true, Alert.TYPE_THRESHOLD, true, true, 300000l, DatabaseObjectCommon.TIME_UNIT_SECONDS, 
             666, 667, null, null, null, null, null, null, null, null, null, null, null, false, null, null,  
             666, 667, Alert.OPERATOR_GREATER, Alert.COMBINATION_ALL, null, new BigDecimal("100"), 900L, DatabaseObjectCommon.TIME_UNIT_SECONDS, null, DatabaseObjectCommon.TIME_UNIT_SECONDS, 1, false, new Timestamp(System.currentTimeMillis()), false, null, null);
         

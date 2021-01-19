@@ -1,5 +1,6 @@
-package com.pearson.statsagg.database_objects.metric_group_regexes;
+package com.pearson.statsagg.database_objects.metric_groups;
 
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupRegex;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
