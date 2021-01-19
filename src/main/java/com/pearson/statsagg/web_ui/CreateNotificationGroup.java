@@ -174,6 +174,8 @@ public class CreateNotificationGroup extends HttpServlet {
             htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\">");
         }
         
+        
+        // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Notification Group Name</label>\n" +
@@ -183,8 +185,11 @@ public class CreateNotificationGroup extends HttpServlet {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getName(), true)).append("\"");
         }
 
+        htmlBody.append(">\n</div>\n");
+                    
+        
+        // email addresses
         htmlBody.append(
-            ">\n       </div>\n" +
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Email addresses</label>\n" +
             "         <input class=\"form-control-statsagg\" placeholder=\"A csv-delimited list of email addresses\" name=\"EmailAddresses\" id=\"EmailAddresses\" ");
@@ -192,8 +197,10 @@ public class CreateNotificationGroup extends HttpServlet {
         if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroup.getEmailAddresses(), true)).append("\"");
         }
-        htmlBody.append(">\n       </div>\n");
+        
+        htmlBody.append(">\n</div>\n");
               
+        
         // pagerduty service name field
         if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
             htmlBody.append(
@@ -208,7 +215,8 @@ public class CreateNotificationGroup extends HttpServlet {
 
             htmlBody.append(">\n</div>\n");
         }
-                    
+               
+        
         htmlBody.append(
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
@@ -229,24 +237,14 @@ public class CreateNotificationGroup extends HttpServlet {
         String returnString;
         
         NotificationGroup notificationGroup = getNotificationGroupFromNotificationGroupParameters(request);
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    NotificationGroup oldNotificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldNotificationGroup.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        boolean isValidPagerdutyServiceValue = isValidPagerdutyService(request);
+        String oldName = getOldNotificationGroupName(request);
         
         // insert/update/delete records in the database
-        if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+        if (!isValidPagerdutyServiceValue) {
+            returnString = "Failed to create or alter notification group. Reason=\"Invalid PagerDuty Service name.\"";
+        }
+        else if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
             returnString = NotificationGroupsDaoWrapper.alterRecordInDatabase(notificationGroup, oldName).getReturnString();
         }
         else {
@@ -255,6 +253,37 @@ public class CreateNotificationGroup extends HttpServlet {
         }
         
         return returnString;
+    }
+    
+    protected static String getOldNotificationGroupName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        NotificationGroup oldNotificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldNotificationGroup.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     private NotificationGroup getNotificationGroupFromNotificationGroupParameters(Object request) {
@@ -328,6 +357,46 @@ public class CreateNotificationGroup extends HttpServlet {
         }
         
         return notificationGroup;
+    }
+    
+    private static boolean isValidPagerdutyService(Object request) {
+        
+        if (!ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
+            return true;
+        }
+        
+        try {
+            String parameter = Common.getSingleParameterAsString(request, "PagerDutyServiceName");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "pagerduty_service_name");
+
+            if (parameter != null) {
+                String parameterTrimmed = parameter.trim();
+                if (!parameterTrimmed.isEmpty()) {
+                    PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, parameterTrimmed);
+                    if ((pagerdutyService == null) || (pagerdutyService.getId() == null)) return false;
+                }
+            }
+            else {
+                parameter = Common.getSingleParameterAsString(request, "PagerDutyServiceId");
+                if (parameter == null) parameter = Common.getSingleParameterAsString(request, "pagerduty_service_id");
+                
+                if (parameter != null) {
+                    String parameterTrimmed = parameter.trim();
+                    if (!parameterTrimmed.isEmpty()) {
+                        int pagerdutyServiceId = Integer.parseInt(parameterTrimmed);
+                        PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, pagerdutyServiceId);
+                        if (pagerdutyService == null) return false;
+                    }
+                }
+            }
+            
+            return true;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+
     }
 
 }
