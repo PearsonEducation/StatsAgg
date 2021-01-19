@@ -147,7 +147,7 @@ public class PagerdutyServicesDao {
         }
         
     }
-
+    
     public static PagerdutyService getPagerdutyService(Connection connection, boolean closeConnectionOnCompletion, String pagerdutyServiceName) {
         
         try {
@@ -165,6 +165,25 @@ public class PagerdutyServicesDao {
             if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
+    }
+    
+    public static PagerdutyService getPagerdutyService_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String pagerdutyServiceName) {
+        
+        try {
+            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new PagerdutyServicesResultSetHandler(), 
+                    PagerdutyServicesSql.Select_PagerdutyService_ByUppercaseName, pagerdutyServiceName.toUpperCase());
+            
+            return DatabaseUtils.getSingleResultFromList(pagerdutyServices);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
     }
     
     public static List<String> getPagerdutyServiceNames(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
