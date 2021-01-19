@@ -13,7 +13,7 @@ $(document).ready(function () {
 });
 
 $(document).ready(function () {
-    $(".iframe").colorbox({iframe: true, width: "90%", height: "90%", speed: 200});
+    $(".iframe").colorbox({iframe: true, width: "93%", height: "93%", speed: 200});
 });
 
 function confirmAction(formName, confirmString) {
@@ -62,7 +62,7 @@ $(document).ready(function () {
             "iCookieDuration": 2592000, // 30 days
             "columnDefs": [
                 {
-                    "targets": [3],
+                    "targets": [1],
                     "visible": false
                 },
                 {
@@ -70,7 +70,7 @@ $(document).ready(function () {
                     "visible": false
                 },
                 {
-                    "targets": [8],
+                    "targets": [5],
                     "visible": false
                 },
                 {
@@ -79,6 +79,10 @@ $(document).ready(function () {
                 },
                 {
                     "targets": [10],
+                    "visible": false
+                },
+                {
+                    "targets": [11],
                     "visible": false
                 }
             ]});
@@ -111,13 +115,14 @@ function yadcf_init_AlertsTable(alertsTable) {
         {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 5, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 6, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
         {column_number: 7, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
         {column_number: 8, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
         {column_number: 9, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
-        {column_number: 10, filter_reset_button_text: false, filter_type: "select", data: ['Yes', 'No', 'Caution Only', 'Danger Only', 'N/A'], sort_as: "none", filter_default_label: "Filter"},
-        {column_number: 11, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+        {column_number: 10, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 11, filter_reset_button_text: false, filter_type: "select", data: ['Yes', 'No', 'Caution Only', 'Danger Only', 'N/A'], sort_as: "none", filter_default_label: "Filter"},
+        {column_number: 12, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
     ], 'footer');
 }
         
@@ -133,14 +138,6 @@ $(document).ready(function () {
             "stateSave": true,
             "iCookieDuration": 2592000, // 30 days
             "columnDefs": [
-                {
-                    "targets": [3],
-                    "visible": true
-                },
-                {
-                    "targets": [4],
-                    "visible": true
-                }
             ]});
         
         var tableSearchParameter = getParameterByName("TableSearch");
@@ -168,11 +165,7 @@ function yadcf_init_AlertTemplatesTable(alertsTemplatesTable) {
     yadcf.init(alertsTemplatesTable, [
         {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 5, filter_reset_button_text: false, filter_type: "select", data: ["Yes", "No"], sort_as: "none", filter_default_label: "Filter"},
-        {column_number: 6, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
     ], 'footer');
 }
 
@@ -262,6 +255,48 @@ function yadcf_init_MetricGroupsTable(metricGroupsTable) {
         {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
+
+// Setup for the table found on the 'MetricGroupTemplates' page
+$(document).ready(function () {
+    var table = document.getElementById('MetricGroupTemplatesTable');
+
+    if (table !== null) {
+        var metricGroupTemplatesTable = $('#MetricGroupTemplatesTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000 // 30 days
+        });
+
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) metricGroupTemplatesTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_MetricGroupTemplatesTable(metricGroupTemplatesTable);
+
+        var colvis = new $.fn.dataTable.ColVis(metricGroupTemplatesTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#MetricGroupTemplatesTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        metricGroupTemplatesTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_MetricGroupTemplatesTable(metricGroupTemplatesTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+
+function yadcf_init_MetricGroupTemplatesTable(metricGroupTemplatesTable) {
+    yadcf.init(metricGroupTemplatesTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
     ], 'footer');
 }
 
