@@ -161,6 +161,8 @@ public class CreateVariableSet extends HttpServlet {
             htmlBody.append("<input type=\"hidden\" name=\"Old_Name\" value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\">");
         }
         
+        
+        // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Variable set name</label>\n" +
@@ -169,9 +171,12 @@ public class CreateVariableSet extends HttpServlet {
         if ((variableSet != null) && (variableSet.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\"");
         }
+        
+        htmlBody.append(">\n</div>\n");
 
+        
+        // description
         htmlBody.append(      
-            ">\n</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Description</label>\n" +
             "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\" >");
@@ -179,10 +184,12 @@ public class CreateVariableSet extends HttpServlet {
         if ((variableSet != null) && (variableSet.getDescription() != null)) {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getDescription(), true));
         }
-
+        
+        htmlBody.append("</textarea>\n" + "</div>\n");
+                    
+        
+        // variables
         htmlBody.append( //
-            "</textarea>\n" +
-            "</div>\n" +
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Variables</label>\n " +
             "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, key=value. List one variable pair per line.\" " +
@@ -191,10 +198,11 @@ public class CreateVariableSet extends HttpServlet {
         if ((variableSet != null) && (variableSet.getVariables() != null)) {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true));
         }
+        
+        htmlBody.append("</textarea>\n" + "</div>\n");
 
+        
         htmlBody.append(
-            "</textarea>\n" +
-            "</div>\n" +
             "       <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
             "       <a href=\"VariableSets\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
