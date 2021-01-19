@@ -93,7 +93,7 @@ public class CreateAlert extends HttpServlet {
             String name = request.getParameter("Name");
             if (name != null) alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name.trim());      
 
-            String htmlBodyContents = buildCreateAlertHtml(alert, false);
+            String htmlBodyContents = buildCreateAlertHtml(alert);
             List<String> additionalJavascript = new ArrayList<>();
             additionalJavascript.add("js/statsagg_create_alert.js");
             String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
@@ -133,7 +133,7 @@ public class CreateAlert extends HttpServlet {
         PrintWriter out = null;
         
         try {
-            String result = parseAndAlterAlert(request, false);
+            String result = parseAndAlterAlert(request);
 
             StringBuilder htmlBuilder = new StringBuilder();
             StatsAggHtmlFramework statsAggHtmlFramework = new StatsAggHtmlFramework();
@@ -158,22 +158,19 @@ public class CreateAlert extends HttpServlet {
     }
 
     @SuppressWarnings("StringConcatenationInsideStringBufferAppend")
-    protected static String buildCreateAlertHtml(Alert alert, boolean isAlertTemplate) {
+    protected static String buildCreateAlertHtml(Alert alert) {
         
         StringBuilder htmlBody = new StringBuilder();
-        
-        String pageName = (isAlertTemplate) ? "Create Alert Template" : PAGE_NAME;
-        
+                
         htmlBody.append(
             "<div id=\"page-content-wrapper\">\n" +
             "  <!-- Keep all page content within the page-content inset div! -->\n" +
             "  <div class=\"page-content inset statsagg_page_content_font\">\n" +
             "  <div class=\"content-header\"> \n" +
-            "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + pageName + " </h2> </div>\n" +
+            "    <div class=\"pull-left content-header-h2-min-width-statsagg\"> <h2> " + PAGE_NAME + " </h2> </div>\n" +
             "  </div>\n ");
         
-        if (!isAlertTemplate) htmlBody.append("  <form action=\"CreateAlert\" method=\"POST\">\n");
-        if (isAlertTemplate) htmlBody.append("  <form action=\"CreateAlertTemplate\" method=\"POST\">\n");
+        htmlBody.append("  <form action=\"CreateAlert\" method=\"POST\">\n");
 
         htmlBody.append(    "    <div class=\"row create-alert-form-row\">\n");
 
@@ -553,28 +550,30 @@ public class CreateAlert extends HttpServlet {
             "  <button type=\"button\" id=\"CautionOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The values of a metric-key are considered for threshold-based alerting when they are above/below/equal-to a certain threshold. This value controls the above/below/equal-to aspect of the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"CautionOperator\" id=\"CautionOperator\">\n");
 
+        String cautionOperatorString = (alert == null) ? null : alert.getOperatorString(Alert.CAUTION, true, false);
+
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((cautionOperatorString != null) && cautionOperatorString.equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((cautionOperatorString != null) && cautionOperatorString.equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((cautionOperatorString != null) && cautionOperatorString.equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((cautionOperatorString != null) && cautionOperatorString.equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.CAUTION, true, false) != null) && alert.getOperatorString(Alert.CAUTION, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((cautionOperatorString != null) && cautionOperatorString.equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
@@ -825,28 +824,30 @@ public class CreateAlert extends HttpServlet {
             "  <button type=\"button\" id=\"DangerOperator_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The values of a metric-key are considered for threshold-based alerting when they are above/below/equal-to a certain threshold. This value controls the above/below/equal-to aspect of the alert.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <select class=\"form-control-statsagg\" name=\"DangerOperator\" id=\"DangerOperator\">\n");
 
+        String dangerOperatorString = (alert == null) ? null : alert.getOperatorString(Alert.DANGER, true, false);
+
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
+        if ((dangerOperatorString != null) && dangerOperatorString.equalsIgnoreCase(">")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">&nbsp;&nbsp;(greater than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
+        if ((dangerOperatorString != null) && dangerOperatorString.equalsIgnoreCase(">=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append(">=&nbsp;&nbsp;(greater than or equal to)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
+        if ((dangerOperatorString != null) && dangerOperatorString.equalsIgnoreCase("<")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<&nbsp;&nbsp;(less than)</option>\n");
         
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
+        if ((dangerOperatorString != null) && dangerOperatorString.equalsIgnoreCase("<=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("<=&nbsp;&nbsp;(less than or equal to)</option>\n");
 
         htmlBody.append("<option");
-        if ((alert != null) && (alert.getOperatorString(Alert.DANGER, true, false) != null) && alert.getOperatorString(Alert.DANGER, true, false).equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
+        if ((dangerOperatorString != null) && dangerOperatorString.equalsIgnoreCase("=")) htmlBody.append(" selected=\"selected\">");
         else htmlBody.append(">");
         htmlBody.append("=&nbsp;&nbsp;(equal to)</option>\n");
 
@@ -936,7 +937,7 @@ public class CreateAlert extends HttpServlet {
         return htmlBody.toString();
     }
 
-    public static String parseAndAlterAlert(Object request, boolean isAlertTemplate) {
+    public static String parseAndAlterAlert(Object request) {
         
         if (request == null) {
             return null;
@@ -944,42 +945,31 @@ public class CreateAlert extends HttpServlet {
         
         String returnString;
         
-        Alert alert = getAlertFromAlertParameters(request, isAlertTemplate);
+        Alert alert = getAlertFromAlertParameters(request);
+        String oldName = getOldAlertName(request);
         
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    Alert oldAlert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldAlert.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        boolean isAlertCreatedByAlertTemplate = AlertsDao.isAlertCreatedByAlertTemplate(DatabaseConnections.getConnection(), true, alert, oldName);
         
         if (alert == null) {
-            if (isAlertTemplate) returnString = "Failed to create or alter alert template. Reason=\"One or more invalid alert fields detected\".";
-            else returnString = "Failed to create or alter alert. Reason=\"One or more invalid alert fields detected\".";
+            returnString = "Failed to create or alter alert. Reason=\"One or more invalid alert fields detected\".";
             logger.warn(returnString);
         } 
+        else if (isAlertCreatedByAlertTemplate) {
+            returnString = "Failed to create or alter alert. Reason=\"Cannot alter an alert that was created by an alert template\".";
+            logger.warn(returnString);
+        }
         else {
             DatabaseObjectValidation databaseObjectValidation = Alert.isValid(alert);
 
             if (!databaseObjectValidation.isValid()) {
-                if (isAlertTemplate) returnString = "Failed to create or alter alert template. Reason=\"" + databaseObjectValidation.getReason() + "\".";
-                else returnString = "Failed to create or alter alert. Reason=\"" + databaseObjectValidation.getReason() + "\".";
+                returnString = "Failed to create or alter alert. Reason=\"" + databaseObjectValidation.getReason() + "\".";
                 logger.warn(returnString);
             }
             else {
                 AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.alterRecordInDatabase(alert, oldName);
                 returnString = alertsDaoWrapper.getReturnString();
 
-                if (!isAlertTemplate && (GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
                     logger.info("Running alert routine due to alert create or alter operation");
                     GlobalVariables.alertInvokerThread.runAlertThread(false, true);
                 }
@@ -990,7 +980,38 @@ public class CreateAlert extends HttpServlet {
         return returnString;
     }
     
-    public static Alert getAlertFromAlertParameters(Object request, boolean isAlertTemplate) {
+    protected static String getOldAlertName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        Alert oldAlert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldAlert.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+
+    public static Alert getAlertFromAlertParameters(Object request) {
         
         if (request == null) {
             return null;
@@ -1005,10 +1026,7 @@ public class CreateAlert extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
             String trimmedName = (parameter != null) ? parameter.trim() : "";
             alert.setName(trimmedName);
-            
-            alert.setIsTemplate(isAlertTemplate);
-            alert.setIsTemplateDerived(false); // add more logic later
-            
+                        
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
             if (parameter != null) {
@@ -1366,5 +1384,5 @@ public class CreateAlert extends HttpServlet {
         
         return alert;
     }
-    
+
 }
