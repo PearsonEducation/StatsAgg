@@ -171,6 +171,25 @@ public class VariableSetListsDao {
         
     }
     
+    public static VariableSetList getVariableSetList_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String variableSetListName) {
+        
+        try {
+            List<VariableSetList> variableSetLists = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new VariableSetListsResultSetHandler(), 
+                    VariableSetListsSql.Select_VariableSetList_ByUppercaseName, variableSetListName.toUpperCase());
+            
+            return DatabaseUtils.getSingleResultFromList(variableSetLists);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static List<VariableSetList> getVariableSetListIdsAndNames(Connection connection, boolean closeConnectionOnCompletion) {
 
         try {
@@ -273,41 +292,50 @@ public class VariableSetListsDao {
     }
 
     public static Map<Integer, VariableSetList> getVariableSetLists_ById(Connection connection, boolean closeConnectionOnCompletion) {
-        
-        Map<Integer, VariableSetList> variableSetListsById = new HashMap<>();
-        
+
         try {
+            Map<Integer, VariableSetList> variableSetListsById = new HashMap<>();
+
             List<VariableSetList> variableSetLists = getVariableSetLists(connection, closeConnectionOnCompletion);
-            if (variableSetLists == null) return variableSetListsById;
+            if (variableSetLists == null) return null;
 
             for (VariableSetList variableSetList : variableSetLists) {
-                if (variableSetList.getId() != null) variableSetListsById.put(variableSetList.getId(), variableSetList);
+                if (variableSetList.getId() != null) {
+                    variableSetListsById.put(variableSetList.getId(), variableSetList);
+                }
             }
+            
+            return variableSetListsById;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
         
-        return variableSetListsById;
     }
         
     public static Map<Integer, String> getVariableSetListNames_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
-        Map<Integer, String> variableSetListNamesById = new HashMap<>();
         
         try {
+            Map<Integer, String> variableSetListNamesById = new HashMap<>();
+            
             List<VariableSetList> variableSetLists = getVariableSetListIdsAndNames(connection, closeConnectionOnCompletion);
-            if (variableSetLists == null) return variableSetListNamesById;
+            if (variableSetLists == null) return null;
 
             for (VariableSetList variableSetList : variableSetLists) {
-                if (variableSetList.getName() != null) variableSetListNamesById.put(variableSetList.getId(), variableSetList.getName());
+                if ((variableSetList.getId() != null) && (variableSetList.getName() != null)) {
+                    variableSetListNamesById.put(variableSetList.getId(), variableSetList.getName());
+                }
             }
+            
+            return variableSetListNamesById;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
         
-        return variableSetListNamesById;
     }
 
 }
