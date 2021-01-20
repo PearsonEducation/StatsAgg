@@ -317,10 +317,10 @@ public class CreateMetricGroupTemplate extends HttpServlet {
                 logger.warn(returnString);
             }
             else {
-                MetricGroupTemplatesDaoWrapper metricGroupsTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.alterRecordInDatabase(metricGroupTemplate, oldName);
-                returnString = metricGroupsTemplatesDaoWrapper.getReturnString();
+                MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.alterRecordInDatabase(metricGroupTemplate, oldName);
+                returnString = metricGroupTemplatesDaoWrapper.getReturnString();
 
-                if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsTemplatesDaoWrapper.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
                     logger.info("Running metric group template routine due to metric group template create or alter operation");
                     GlobalVariables.templateInvokerThread.runTemplateThread();
                 }
