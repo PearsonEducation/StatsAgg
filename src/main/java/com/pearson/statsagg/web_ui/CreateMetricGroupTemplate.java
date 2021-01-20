@@ -268,7 +268,7 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         htmlBody.append(
             "      <button type=\"submit\" class=\"btn btn-default btn-primary statsagg_button_no_shadow statsagg_page_content_font\">Submit</button>" +
             "&nbsp;&nbsp;&nbsp;" +
-            "      <a href=\"MetricGroups\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
+            "      <a href=\"MetricGroupTemplates\" class=\"btn btn-default statsagg_page_content_font\" role=\"button\">Cancel</a>" +
             "    </form>\n"       +          
             "  </div>" +
             "</div>\n");
