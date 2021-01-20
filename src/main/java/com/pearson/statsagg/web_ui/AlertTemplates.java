@@ -264,7 +264,7 @@ public class AlertTemplates extends HttpServlet {
 
                 String rowAlertStatusContext = "";
                 if ((alertNamesThatAlertTemplateWantsToCreate != null) && (alerts != null) && (alerts.size() != alertNamesThatAlertTemplateWantsToCreate.size())) {
-                    rowAlertStatusContext = "class=\"warning\"";
+                    rowAlertStatusContext = "class=\"danger\"";
                 }
 
                 String alertTemplateDetails = "<a class=\"iframe cboxElement\" href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertTemplate.getName()) + "</a>";
