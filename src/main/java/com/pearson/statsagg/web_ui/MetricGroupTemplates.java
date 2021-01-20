@@ -235,7 +235,7 @@ public class MetricGroupTemplates extends HttpServlet {
 
                 String rowStatusContext = "";
                 if ((metricGroupNamesThatMetricGroupTemplateWantsToCreate != null) && (metricGroups != null) && (metricGroups.size() != metricGroupNamesThatMetricGroupTemplateWantsToCreate.size())) {
-                    rowStatusContext = "class=\"warning\"";
+                    rowStatusContext = "class=\"danger\"";
                 }
 
                 String metricGroupTemplateDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName()) + "</a>";
