@@ -1,10 +1,14 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.variable_set.VariableSet;
+import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.threads.template_related.TemplateThread;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
@@ -130,7 +134,6 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
             return "<b>No metric group template specified</b>";
         }
         
-        Map<String,String> metricGroupStrings = new HashMap<>();
         StringBuilder outputString = new StringBuilder();
         
         Connection connection = null;
@@ -138,49 +141,38 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
         try {
             connection = DatabaseConnections.getConnection();
             
+            Map<String,String> metricGroupStrings = new HashMap<>();
+
             MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroupTemplateName);
             if ((metricGroupTemplate == null) || (metricGroupTemplate.getId() == null)) return "<b>Metric group template not found</b>";
 
             Map<String,MetricGroup> metricGroups_ByUppercaseName = MetricGroupsDao.getMetricGroups_ByUppercaseName(connection, false);
             if (metricGroups_ByUppercaseName == null) return "<b>Error retrieving metric groups</b>";
 
-            Set<String> metricGroupNamesThatMetricGroupTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(metricGroupTemplate.getVariableSetListId(), metricGroupTemplate.getMetricGroupNameVariable());
-            if (metricGroupNamesThatMetricGroupTemplateWantsToCreate == null) return "<b>Error retrieving desired derived metric groups</b>";
+            Map<Integer,String> metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate_ByVariableSetId(metricGroupTemplate.getVariableSetListId(), metricGroupTemplate.getMetricGroupNameVariable());
+            if (metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId == null) return "<b>Error retrieving desired derived metric groups</b>";
 
             outputString.append("<b>Metric Group Template Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName())).append("<br>");
 
-            int desiredDerivedMetricGroupCount = metricGroupNamesThatMetricGroupTemplateWantsToCreate.size();
+            int desiredDerivedMetricGroupCount = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.size();
             outputString.append("<b>Total Desired Derived Metric Groups</b> = ").append(desiredDerivedMetricGroupCount).append("<br><br>");
             if (desiredDerivedMetricGroupCount <= 0) return outputString.toString();
 
             outputString.append("<b>Desired Derived Metric Groups...</b>").append("<br>");
 
             outputString.append("<ul>");
+            
+            Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
 
-            for (String metricGroupNameThatMetricGroupTemplateWantsToCreate : metricGroupNamesThatMetricGroupTemplateWantsToCreate) {
+            for (Integer variableSetId : metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.keySet()) {
+                if (variableSetId == null) continue;
+
+                String metricGroupNameThatMetricGroupTemplateWantsToCreate = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
                 if (metricGroupNameThatMetricGroupTemplateWantsToCreate == null) continue;
 
                 MetricGroup metricGroup = metricGroups_ByUppercaseName.get(metricGroupNameThatMetricGroupTemplateWantsToCreate.toUpperCase());
 
-                String metricGroupStatus = "";
-                
-                if (metricGroup == null) {
-                    metricGroupStatus = "(metric group does not exist - issue creating metric group)";
-                }
-                else if (metricGroup.getMetricGroupTemplateId() == null) {
-                    metricGroupStatus = "(metric group name conflict with another not-templated metric group)";
-                }
-                else if (!metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
-                    MetricGroupTemplate metricGroupTemplateFromDb = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroup.getMetricGroupTemplateId());
-                    
-                    if (metricGroupTemplateFromDb == null) {
-                        metricGroupStatus = "(metric group name conflict with another templated metric group)";
-                    }
-                    else {
-                        String metricGroupTemplateUrl = "<a href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
-                        metricGroupStatus = "(metric group name conflict with another " + metricGroupTemplateUrl + " metric group)";
-                    }
-                }
+                String metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
                 
                 String metricGroupDetailsUrl = "<a href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
                         StatsAggHtmlFramework.urlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "\">" + 
@@ -210,4 +202,51 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
         return outputString.toString();
     }
 
+    private static String getMetricGroupStatus(Connection connection, MetricGroupTemplate metricGroupTemplate, MetricGroup metricGroup, 
+            Integer variableSetId, Map<String,MetricGroup> metricGroups_ByName) {
+        
+        String metricGroupStatus = "";
+        
+        try {
+            if (metricGroup == null) {
+                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetId);
+
+                if (variableSet != null) {
+                    MetricGroup metricGroupThatTemplateWantsToCreate = TemplateThread.createMetricGroupFromMetricGroupTemplate(metricGroupTemplate, variableSet, metricGroups_ByName);
+                    DatabaseObjectValidation databaseObjectValidation = MetricGroup.isValid(metricGroupThatTemplateWantsToCreate);
+
+                    if ((databaseObjectValidation != null) && !databaseObjectValidation.isValid()) {
+                        String databaseObjectValidationReason = (databaseObjectValidation.getReason() == null) ? "unknown" : databaseObjectValidation.getReason().toLowerCase();
+                        metricGroupStatus = "(metric group does not exist because: '" + databaseObjectValidationReason + "')";
+                    }
+                    else {
+                        metricGroupStatus = "(metric group does not exist - issue creating metric group)";
+                    }
+                }
+                else {
+                    metricGroupStatus = "(metric group does not exist - issue creating metric group)";
+                }
+            }
+            else if (metricGroup.getMetricGroupTemplateId() == null) {
+                metricGroupStatus = "(metric group name conflict with another not-templated metric group)";
+            }
+            else if (!metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
+                MetricGroupTemplate metricGroupTemplateFromDb = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroup.getMetricGroupTemplateId());
+
+                if (metricGroupTemplateFromDb == null) {
+                    metricGroupStatus = "(metric group name conflict with another templated metric group)";
+                }
+                else {
+                    String metricGroupTemplateUrl = "<a href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
+                    metricGroupStatus = "(metric group name conflict with another " + metricGroupTemplateUrl + " metric group)";
+                }
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return metricGroupStatus;
+    }
+    
 }

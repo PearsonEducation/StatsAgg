@@ -408,7 +408,7 @@ public class TemplateThread implements Runnable {
         
     }
     
-    protected static Alert createAlertFromAlertTemplate(AlertTemplate alertTemplate, VariableSet variableSet,
+    public static Alert createAlertFromAlertTemplate(AlertTemplate alertTemplate, VariableSet variableSet,
             Map<String, Alert> alerts_ByName,
             Map<String, MetricGroup> metricGroups_ByName,
             Map<String, NotificationGroup> notificationGroups_ByName) {
@@ -506,7 +506,7 @@ public class TemplateThread implements Runnable {
         
     }
     
-    protected static MetricGroup createMetricGroupFromMetricGroupTemplate(MetricGroupTemplate metricGroupTemplate, VariableSet variableSet, Map<String, MetricGroup> metricGroups_ByName) {
+    public static MetricGroup createMetricGroupFromMetricGroupTemplate(MetricGroupTemplate metricGroupTemplate, VariableSet variableSet, Map<String, MetricGroup> metricGroups_ByName) {
 
         if (metricGroupTemplate == null) return null;
         

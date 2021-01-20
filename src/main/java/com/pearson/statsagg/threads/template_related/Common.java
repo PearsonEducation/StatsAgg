@@ -1,7 +1,5 @@
 package com.pearson.statsagg.threads.template_related;
 
-import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
-import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
 import com.pearson.statsagg.database_objects.variable_set.VariableSet;
 import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
 import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
@@ -10,6 +8,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -128,5 +127,41 @@ public class Common {
         }
         
     }
+    
+    public static Map<Integer,String> getNamesThatTemplateWantsToCreate_ByVariableSetId(Integer variableSetListId, String nameVariable) {
+        
+        if (variableSetListId == null) {
+            return null;
+        }
+        
+        Connection connection = null;
+     
+        try {
+            connection = DatabaseConnections.getConnection();
+             
+            Map<Integer,String> derivedAlertNames_ByVariableSetId = new HashMap<>();
+            
+            List<Integer> variableSetIdsAssociatedWithAlertTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
+            if (variableSetIdsAssociatedWithAlertTemplate_List == null) return null; // if this is null, something went wrong querying the db
+            Set<Integer> variableSetIdsAssociatedWithAlertTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithAlertTemplate_List);
 
+            for (Integer variableSetIdAssociatedWithAlertTemplate : variableSetIdsAssociatedWithAlertTemplate_Set) {
+                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetIdAssociatedWithAlertTemplate);
+                String derivedAlertName = Common.getStringWithVariableSubsistution(nameVariable, variableSet);
+                if ((derivedAlertName == null) || (variableSet == null) || (variableSet.getId() == null)) continue; // invalid data condition
+                derivedAlertNames_ByVariableSetId.put(variableSet.getId(), derivedAlertName);
+            }
+            
+            return derivedAlertNames_ByVariableSetId;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }        
+        finally {
+            DatabaseUtils.cleanup(connection);  
+        }
+        
+    }
+    
 }
