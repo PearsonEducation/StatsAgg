@@ -184,10 +184,10 @@ public class MetricGroups extends HttpServlet {
         
         try {
             MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);                
-            MetricGroupsDaoWrapper netricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
-            returnString = netricGroupsDaoWrapper.getReturnString();
+            MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
+            returnString = metricGroupsDaoWrapper.getReturnString();
 
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == netricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
+            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(true, false);
             }
             
