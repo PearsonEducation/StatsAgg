@@ -6,12 +6,14 @@ import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupT
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.core_utils.Threads;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
@@ -157,7 +159,12 @@ public class MetricGroupTemplates extends HttpServlet {
 
                 clonedMetricGroupTemplate.setName(clonedMetricGroupTemplateName);
                 
-                MetricGroupTemplatesDaoWrapper.createRecordInDatabase(clonedMetricGroupTemplate);
+                MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.createRecordInDatabase(clonedMetricGroupTemplate);
+                
+                if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
+                    logger.info("Running metric group template routine due to metric group template clone operation");
+                    GlobalVariables.templateInvokerThread.runTemplateThread();
+                }
             }
         }
         catch (Exception e) {
@@ -180,7 +187,15 @@ public class MetricGroupTemplates extends HttpServlet {
         try {
             MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(DatabaseConnections.getConnection(), true, metricGroupTemplateId);
             if (metricGroupTemplate != null) metricGroupTemplate.setIsMarkedForDelete(true);
+            
             MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.alterRecordInDatabase(metricGroupTemplate);
+            
+            if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
+                logger.info("Running metric group template routine due to metric group template remove operation");
+                GlobalVariables.templateInvokerThread.runTemplateThread();
+                Threads.sleepMilliseconds(300); // sleep for 300ms to give the template thread a change to run before re-rendering the page
+            }
+            
             returnString = metricGroupTemplatesDaoWrapper.getReturnString();
         }
         catch (Exception e) {
