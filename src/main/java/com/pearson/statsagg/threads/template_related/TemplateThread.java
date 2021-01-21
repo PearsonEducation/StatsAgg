@@ -8,11 +8,14 @@ import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.alerts.AlertsDaoWrapper;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDaoWrapper;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist;
+import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.database_objects.variable_set.VariableSet;
 import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
 import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
@@ -77,10 +80,13 @@ public class TemplateThread implements Runnable {
             updateAlertNamesToMatchAlertTemplate(); // if an alert template updated the 'alert name variable', update the derived alert names
             updateMetricGroupNamesToMatchMetricGroupTemplate(); // if an metric group template updated the 'metric group name variable', update the derived metric group names
 
-            // delete objects that are no longer what the templates want to exist
+            // delete objects that the templates no longer want to exist
             deleteAlertsThatAreNoLongerPartOfTemplates();
             deleteMetricGroupsThatAreNoLongerPartOfTemplates();
             
+            // delete templates that are marked for deletion
+            deleteMetricGroupsTemplatesThatAreMarkedForDeletion();
+                    
             // create and/or alter objects based on templates
             createOrAlterMetricGroupsFromMetricGroupTemplate();
             createOrAlterAlertsFromAlertTemplate(); // 
@@ -168,6 +174,7 @@ public class TemplateThread implements Runnable {
         Map<Integer,MetricGroupTemplate> metricGroupTemplates_ById = MetricGroupTemplatesDao.getMetricGroupTemplates_ById(connection, false);
         Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
         Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getMetricGroupIdsAssociatedWithAlerts(connection, false);
+        OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(connection, false);
         DatabaseUtils.cleanup(connection);
         
         if (metricGroups_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
@@ -180,6 +187,7 @@ public class TemplateThread implements Runnable {
                 if (metricGroupTemplates_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
                 if (metricGroupIdsAssociatedWithAlerts == null) continue; // if this is null, something went wrong querying the db, best to take no action
                 if ((metricGroup.getId() != null) && metricGroupIdsAssociatedWithAlerts.contains(metricGroup.getId())) continue; // can't delete a metric group if it is associated with an alert
+                if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null) && (metricGroup.getId() != null) && outputBlacklist.getMetricGroupId().equals(metricGroup.getId())); // can't delete a metric group if it is associated with the output blacklist
                 
                 // if the metric group doesn't have a template id, but does have a variable set id, then it should be deleted (unsupported data condition)
                 if ((metricGroup.getMetricGroupTemplateId() == null) && (metricGroup.getVariableSetId() != null)) {
@@ -221,6 +229,42 @@ public class TemplateThread implements Runnable {
                     if (!metricGroupNamesThatMetricGroupTemplateWantsToCreate.contains((metricGroup.getName()))) {
                         MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
                     }
+                }
+                
+                // delete metric groups when the metric group template itself is marked for deletion
+                if ((metricGroupTemplate.isMarkedForDelete() != null) && metricGroupTemplate.isMarkedForDelete()) {
+                    MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+
+    }
+    
+    private void deleteMetricGroupsTemplatesThatAreMarkedForDeletion() {
+        
+        Connection connection = DatabaseConnections.getConnection();
+        List<MetricGroupTemplate> metricGroupTemplates = MetricGroupTemplatesDao.getMetricGroupTemplates(connection, false);
+        DatabaseUtils.cleanup(connection);
+        
+        if (metricGroupTemplates == null) { // if this is null, something went wrong querying the db, best to take no action
+            return; 
+        } 
+        
+        for (MetricGroupTemplate metricGroupTemplate : metricGroupTemplates) {
+            try {
+                if (metricGroupTemplate == null) continue; // if this is null, something went wrong. best to take no action
+                if (metricGroupTemplate.isMarkedForDelete() == null) continue; // invalid data condition
+                if (metricGroupTemplate.getId() == null) continue; // invalid data condition
+                
+                List<MetricGroup> metricGroupsAssociatedWithMetricGroupTemplate = MetricGroupsDao.getMetricGroups_FilterByMetricGroupTemplateId(DatabaseConnections.getConnection(), true, metricGroupTemplate.getId());
+                if (metricGroupsAssociatedWithMetricGroupTemplate == null) continue; // if this is null, something went wrong. best to take no action
+                
+                // if there are no metric groups associated with the template, and the template is marked for deletion, then delete the template
+                if (metricGroupTemplate.isMarkedForDelete() && (metricGroupsAssociatedWithMetricGroupTemplate.size() <= 0)) {
+                    MetricGroupTemplatesDaoWrapper.deleteRecordInDatabase(metricGroupTemplate);
                 }
             }
             catch (Exception e) {
@@ -471,6 +515,7 @@ public class TemplateThread implements Runnable {
         for (MetricGroupTemplate metricGroupTemplate : metricGroupTemplates) {
             try {
                 if (metricGroupTemplate == null) continue;
+                if ((metricGroupTemplate.isMarkedForDelete() == null) || metricGroupTemplate.isMarkedForDelete()) continue;
                 
                 List<VariableSet> variableSets = Common.getVariableSetsFromVariableSetIdList(metricGroupTemplate.getVariableSetListId());
                 if (variableSets == null) continue; // if this is null, something went wrong querying the db, best to take no action
