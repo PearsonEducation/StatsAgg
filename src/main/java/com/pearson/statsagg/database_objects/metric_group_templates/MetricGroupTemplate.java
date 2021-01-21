@@ -33,7 +33,7 @@ public class MetricGroupTemplate implements DatabaseObject<MetricGroupTemplate> 
     
     public MetricGroupTemplate(Integer id, String name, Integer variableSetListId, 
             String metricGroupNameVariable, String descriptionVariable, String matchRegexesVariable, String blacklistRegexesVariable, String tagsVariable, 
-            boolean isMarkedForDelete) {
+            Boolean isMarkedForDelete) {
         
         this(id, name, ((name == null) ? null : name.toUpperCase()), variableSetListId,  
                 metricGroupNameVariable, descriptionVariable, matchRegexesVariable, blacklistRegexesVariable, tagsVariable, isMarkedForDelete);
@@ -41,7 +41,7 @@ public class MetricGroupTemplate implements DatabaseObject<MetricGroupTemplate> 
     
     public MetricGroupTemplate(Integer id, String name, String uppercaseName, Integer variableSetListId,
             String metricGroupNameVariable, String descriptionVariable, String matchRegexesVariable, String blacklistRegexesVariable, String tagsVariable, 
-            boolean isMarkedForDelete) {
+            Boolean isMarkedForDelete) {
         
         this.id_ = id;
         this.name_ = name;
