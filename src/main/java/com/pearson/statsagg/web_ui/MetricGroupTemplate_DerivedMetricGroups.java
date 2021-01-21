@@ -174,7 +174,7 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
 
                 String metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
                 
-                String metricGroupDetailsUrl = "<a href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                String metricGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
                         StatsAggHtmlFramework.urlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "</a>";
 
@@ -208,7 +208,18 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
         String metricGroupStatus = "";
         
         try {
-            if (metricGroup == null) {
+            if ((metricGroupTemplate != null) && (metricGroupTemplate.isMarkedForDelete() != null) && (metricGroupTemplate.isMarkedForDelete())) {
+                if (metricGroup == null) {
+                    metricGroupStatus = "(metric group doesn't exist because metric group template is marked for deletion)";
+                }
+                else if ((metricGroupTemplate.getId() != null) && !metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
+                    metricGroupStatus = "(metric group exists, but won't be deleted, because it is not associated with this metric group template)";
+                }
+                else {
+                    metricGroupStatus = "(metric group is marked for deletion by metric group template)";
+                }
+            }
+            else if (metricGroup == null) {
                 VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetId);
 
                 if (variableSet != null) {
@@ -237,7 +248,7 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
                     metricGroupStatus = "(metric group name conflict with another templated metric group)";
                 }
                 else {
-                    String metricGroupTemplateUrl = "<a href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
+                    String metricGroupTemplateUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
                     metricGroupStatus = "(metric group name conflict with another " + metricGroupTemplateUrl + " metric group)";
                 }
             }
