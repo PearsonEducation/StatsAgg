@@ -177,7 +177,7 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
 
                 Alert alert = alerts_ByUppercaseName.get(alertNameThatAlertTemplateWantsToCreate.toUpperCase());
 
-                String alertDetailsUrl = "<a href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
+                String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
                         StatsAggHtmlFramework.urlEncode(alertNameThatAlertTemplateWantsToCreate) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(alertNameThatAlertTemplateWantsToCreate) + "</a>";
 
@@ -242,7 +242,7 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
                     alertStatus = "(alert name conflict with another templated alert)";
                 }
                 else {
-                    String alertTemplateUrl = "<a href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
+                    String alertTemplateUrl = "<a class=\"iframe cboxElement\" href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
                     alertStatus = "(alert name conflict with another " + alertTemplateUrl + " alert)";
                 }
             }
