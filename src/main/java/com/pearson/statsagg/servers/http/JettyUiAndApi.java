@@ -2,6 +2,7 @@ package com.pearson.statsagg.servers.http;
 
 import com.pearson.statsagg.servers.JettyServer;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.file_utils.FileIo;
 import com.pearson.statsagg.web_ui.AlertAssociations;
 import com.pearson.statsagg.web_ui.AlertDetails;
 import com.pearson.statsagg.web_ui.AlertPreview;
@@ -52,6 +53,7 @@ import com.pearson.statsagg.web_ui.VariableSetDetails;
 import com.pearson.statsagg.web_ui.VariableSetListDetails;
 import com.pearson.statsagg.web_ui.VariableSetLists;
 import com.pearson.statsagg.web_ui.VariableSets;
+import java.io.File;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.handler.gzip.GzipHandler;
 import org.eclipse.jetty.servlet.DefaultServlet;
@@ -99,7 +101,10 @@ public class JettyUiAndApi implements JettyServer {
             servletContextHandler.setContextPath(contextPath_);
             DefaultServlet defaultServlet = new DefaultServlet();
             ServletHolder servletHolder = new ServletHolder("default", defaultServlet);
-            servletHolder.setInitParameter("resourceBase", "./src/webapp/");
+            
+            boolean doesSrcWebappExist = FileIo.doesFileExist(new File("./src/webapp"));
+            if (doesSrcWebappExist) servletHolder.setInitParameter("resourceBase", "./src/webapp/");
+            else servletHolder.setInitParameter("resourceBase", "./webapp/");
             servletContextHandler.addServlet(servletHolder, "/*");
 
             // ui servlets
