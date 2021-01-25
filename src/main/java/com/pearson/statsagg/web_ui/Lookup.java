@@ -5,6 +5,7 @@ import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
 import javax.servlet.http.HttpServlet;
@@ -84,6 +85,7 @@ public class Lookup extends HttpServlet {
                 else if (type.equals("MetricGroupName")) results = createMetricGroupNamesJson(query);
                 else if (type.equals("NotificationGroupName")) results = createNotificationGroupNamesJson(query);
                 else if (type.equals("PagerDutyServiceName")) results = createPagerdutyServiceNamesJson(query);
+                else if (type.equals("VariableSetListName")) results = createVariableSetListNamesJson(query);
             }
             
             out = response.getWriter();
@@ -211,6 +213,36 @@ public class Lookup extends HttpServlet {
             json.append("}");
             
             if (i < pagerdutyServiceNames.size()) json.append(",");
+            i++;
+        }
+        
+        json.append("]");
+    
+        return json.toString();
+    }
+    
+    protected String createVariableSetListNamesJson(String variableSetListNamesQuery) {
+        
+        if (variableSetListNamesQuery == null) {
+            return "";
+        }
+        
+        List<String> variableSetListNames = VariableSetListsDao.getVariableSetListNames(DatabaseConnections.getConnection(), true, variableSetListNamesQuery, 10);
+        
+        StringBuilder json = new StringBuilder();
+        
+        json.append("[");
+        
+        int i = 1;
+        for (String name : variableSetListNames) {
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
+            if (i < variableSetListNames.size()) json.append(",");
             i++;
         }
         

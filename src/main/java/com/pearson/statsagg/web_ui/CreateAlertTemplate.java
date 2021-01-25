@@ -200,10 +200,10 @@ public class CreateAlertTemplate extends HttpServlet {
         
         // variable set list name
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group\" id=\"VariableSetListName_Lookup\">\n" +
             "  <label class=\"label_small_margin\">Variable Set List</label>\n" +
             "  <button type=\"button\" id=\"VariableSetListName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the variable set list to associate with this alert template.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
-            "  <input class=\"form-control-statsagg\" name=\"VariableSetListName\" id=\"VariableSetListName\" ");
+            "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"VariableSetListName\" id=\"VariableSetListName\" ");
 
         if ((alertTemplate != null) && (alertTemplate.getVariableSetListId() != null)) {
             VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, alertTemplate.getVariableSetListId());

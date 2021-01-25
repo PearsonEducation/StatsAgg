@@ -14,6 +14,8 @@ import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsD
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
+import java.util.ArrayList;
+import java.util.List;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -88,7 +90,9 @@ public class CreateMetricGroupTemplate extends HttpServlet {
             if (parameter != null) metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(DatabaseConnections.getConnection(), true, parameter.trim());     
             
             String htmlBodyContents = buildCreateMetricGroupTemplateHtml(metricGroupTemplate);
-            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents);
+            List<String> additionalJavascript = new ArrayList<>();
+            additionalJavascript.add("js/statsagg_create_metric_group_template.js");
+            String htmlBody = statsAggHtmlFramework.createHtmlBody(htmlBodyContents, additionalJavascript, false);
             htmlBuilder.append("<!DOCTYPE html>\n<html>\n").append(htmlHeader).append(htmlBody).append("</html>");
             
             Document htmlDocument = Jsoup.parse(htmlBuilder.toString());
@@ -182,10 +186,10 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         
         // variable set list name
         htmlBody.append(
-            "<div class=\"form-group\">\n" +
+            "<div class=\"form-group\" id=\"VariableSetListName_Lookup\">\n" +
             "  <label class=\"label_small_margin\">Variable Set List</label>\n" +
             "  <button type=\"button\" id=\"VariableSetListName_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the variable set list to associate with this metric group template.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
-            "  <input class=\"form-control-statsagg\" name=\"VariableSetListName\" id=\"VariableSetListName\" ");
+            "  <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" name=\"VariableSetListName\" id=\"VariableSetListName\" ");
 
         if ((metricGroupTemplate != null) && (metricGroupTemplate.getVariableSetListId() != null)) {
             VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, metricGroupTemplate.getVariableSetListId());
