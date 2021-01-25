@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectStatus;
 import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDao;
@@ -181,10 +182,11 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
                         StatsAggHtmlFramework.urlEncode(alertNameThatAlertTemplateWantsToCreate) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(alertNameThatAlertTemplateWantsToCreate) + "</a>";
 
-                String alertStatus = getAlertStatus(connection, alertTemplate, alert, variableSetId, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
+                DatabaseObjectStatus alertStatus = getAlertStatus(connection, alertTemplate, alert, variableSetId, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
 
-                if (alertStatus.isEmpty()) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li>" + alertDetailsUrl + "</li>");
-                else alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp" + alertStatus + "</b></li>");
+                if (alertStatus == null) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(unknown error)</b></li>");
+                else if (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li>" + alertDetailsUrl + "</li>");
+                else alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(" + alertStatus.getReason() + ")</b></li>");
             }
             
             List<String> sortedAlertStrings = new ArrayList<>(alertStrings.keySet());
@@ -207,10 +209,10 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
         return outputString.toString();
     }
 
-    private String getAlertStatus(Connection connection, AlertTemplate alertTemplate, Alert alert, Integer variableSetId, 
+    protected static DatabaseObjectStatus getAlertStatus(Connection connection, AlertTemplate alertTemplate, Alert alert, Integer variableSetId, 
             Map<String,Alert> alerts_ByName, Map<String,MetricGroup> metricGroups_ByName, Map<String,NotificationGroup> notificationGroups_ByName) {
         
-        String alertStatus = "";
+        DatabaseObjectStatus databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_GOOD, "");
 
         try {
             if (alert == null) {
@@ -222,56 +224,56 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
 
                     if ((databaseObjectValidation != null) && !databaseObjectValidation.isValid()) {
                         String databaseObjectValidationReason = (databaseObjectValidation.getReason() == null) ? "unknown" : databaseObjectValidation.getReason().toLowerCase();
-                        alertStatus = "(alert does not exist because: '" + databaseObjectValidationReason + "')";
+                        databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert does not exist because: '" + databaseObjectValidationReason + "'");
                     }
                     else {
-                        alertStatus = "(alert does not exist - issue creating alert)";
+                        databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert does not exist - issue creating alert");
                     }
                 }
                 else {
-                    alertStatus = "(alert does not exist - issue creating alert)";
+                    databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert does not exist - issue creating alert");
                 }
             }
             else if (alert.getAlertTemplateId() == null) {
-                alertStatus = "(alert name conflict with another not-templated alert)";
+                databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert name conflict with another not-templated alert");
             }
             else if (!alertTemplate.getId().equals(alert.getAlertTemplateId())) {
                 AlertTemplate alertTemplateFromDb = AlertTemplatesDao.getAlertTemplate(connection, false, alert.getAlertTemplateId());
 
                 if (alertTemplateFromDb == null) {
-                    alertStatus = "(alert name conflict with another templated alert)";
+                    databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert name conflict with another templated alert");
                 }
                 else {
                     String alertTemplateUrl = "<a class=\"iframe cboxElement\" href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
-                    alertStatus = "(alert name conflict with another " + alertTemplateUrl + " alert)";
+                    databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "alert name conflict with another " + alertTemplateUrl + " alert");
                 }
             }
             else if ((alertTemplate.getCautionNotificationGroupNameVariable() != null) && 
                     !alertTemplate.getCautionNotificationGroupNameVariable().trim().isEmpty() && 
                     alert.getCautionNotificationGroupId() == null) {
-                alertStatus = "(caution notification group not found)";
+                databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_WARNING, "caution notification group not found");
             }
             else if ((alertTemplate.getCautionPositiveNotificationGroupNameVariable()!= null) && 
                     !alertTemplate.getCautionPositiveNotificationGroupNameVariable().trim().isEmpty() && 
                     alert.getCautionPositiveNotificationGroupId() == null) {
-                alertStatus = "(caution positive notification group not found)";
+                databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_WARNING, "caution positive notification group not found");
             }
             else if ((alertTemplate.getDangerNotificationGroupNameVariable()!= null) && 
                     !alertTemplate.getDangerNotificationGroupNameVariable().trim().isEmpty() && 
                     alert.getDangerNotificationGroupId() == null) {
-                alertStatus = "(danger notification group not found)";
+                databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_WARNING, "danger notification group not found");
             }
             else if ((alertTemplate.getDangerPositiveNotificationGroupNameVariable()!= null) && 
                     !alertTemplate.getDangerPositiveNotificationGroupNameVariable().trim().isEmpty() && 
                     alert.getDangerPositiveNotificationGroupId() == null) {
-                alertStatus = "(danger positive notification group not found)";
+                databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_WARNING, "danger positive notification group not found");
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }   
         
-        return alertStatus;
+        return databaseObjectStatus;
     }
     
 }

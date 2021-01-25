@@ -1,10 +1,15 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectStatus;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDao;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDaoWrapper;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
@@ -17,6 +22,7 @@ import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -252,6 +258,9 @@ public class AlertTemplates extends HttpServlet {
 
         try {
             connection = DatabaseConnections.getConnection();
+            Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
+            Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
+            Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
             List<AlertTemplate> alertTemplates = AlertTemplatesDao.getAlertTemplates(connection, false);
             if (alertTemplates == null) alertTemplates = new ArrayList<>();
             
@@ -262,10 +271,19 @@ public class AlertTemplates extends HttpServlet {
                 Set<String> alertNamesThatAlertTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(alertTemplate.getVariableSetListId(), alertTemplate.getAlertNameVariable());
                 String numberOfDerivedAlerts = (alerts == null) ? "0" : (alerts.size() + "");
 
-                String rowAlertStatusContext = "";
-                if ((alertNamesThatAlertTemplateWantsToCreate != null) && (alerts != null) && (alerts.size() != alertNamesThatAlertTemplateWantsToCreate.size())) {
-                    rowAlertStatusContext = "class=\"danger\"";
+                boolean isAlertStatusWarning = false, isAlertStatusDanger = false;
+                if (alerts != null) {
+                    for (Alert alert : alerts) {
+                        DatabaseObjectStatus alertStatus = AlertTemplate_DerivedAlerts.getAlertStatus(connection, alertTemplate, alert, null, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
+                        if ((alertStatus != null) && (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_WARNING)) isAlertStatusWarning = true;
+                        if ((alertStatus != null) && (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_DANGER)) isAlertStatusDanger = true;
+                    }
                 }
+
+                String rowAlertStatusContext = "";
+                if ((alertNamesThatAlertTemplateWantsToCreate != null) && (alerts != null) && (alerts.size() != alertNamesThatAlertTemplateWantsToCreate.size())) rowAlertStatusContext = "class=\"danger\"";
+                else if (isAlertStatusDanger) rowAlertStatusContext = "class=\"danger\"";
+                else if (isAlertStatusWarning) rowAlertStatusContext = "class=\"warning\"";
 
                 String alertTemplateDetails = "<a class=\"iframe cboxElement\" href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertTemplate.getName()) + "</a>";
 
