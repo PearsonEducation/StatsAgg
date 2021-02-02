@@ -271,6 +271,7 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            databaseObjectStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "unknown error");
         }   
         
         return databaseObjectStatus;
