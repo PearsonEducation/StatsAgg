@@ -5,6 +5,8 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -239,28 +241,28 @@ public class PagerdutyServicesDao {
         }
         
     }
-    
-   public static PagerdutyService getPagerdutyService_SingleRow(Connection connection, boolean closeConnectionOnCompletion) {
+
+    public static Map<Integer, PagerdutyService> getPagerdutyServices_ById(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
-            List<PagerdutyService> pagerdutyServices = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
-                    new PagerdutyServicesResultSetHandler(), 
-                    PagerdutyServicesSql.Select_AllPagerdutyServices);
-            
+            Map<Integer, PagerdutyService> pagerdutyServicesById = new HashMap<>();
+
+            List<PagerdutyService> pagerdutyServices = getPagerdutyServices(connection, closeConnectionOnCompletion);
             if (pagerdutyServices == null) return null;
-            if (pagerdutyServices.size() > 1) logger.warn("There should not be more than one output blacklist row in the database.");
-        
-            if (!pagerdutyServices.isEmpty()) return pagerdutyServices.get(0);
-            else return null;
+
+            for (PagerdutyService pagerdutyService : pagerdutyServices) {
+                if (pagerdutyService.getId() != null) {
+                    pagerdutyServicesById.put(pagerdutyService.getId(), pagerdutyService);
+                }
+            }
+            
+            return pagerdutyServicesById;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
-        finally {
-            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
-        }
-        
-    }
 
+    }
+    
 }
