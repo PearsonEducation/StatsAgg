@@ -1,5 +1,6 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectStatus;
 import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
@@ -19,7 +20,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -172,14 +172,15 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
 
                 MetricGroup metricGroup = metricGroups_ByUppercaseName.get(metricGroupNameThatMetricGroupTemplateWantsToCreate.toUpperCase());
 
-                String metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
+                DatabaseObjectStatus metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
                 
                 String metricGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
                         StatsAggHtmlFramework.urlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "</a>";
 
-                if (metricGroupStatus.isEmpty()) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li>" + metricGroupDetailsUrl + "</li>");
-                else metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp" + metricGroupStatus + "</b></li>");
+                if (metricGroupStatus == null) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(unknown error)</b></li>");
+                else if (metricGroupStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li>" + metricGroupDetailsUrl + "</li>");
+                else metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(" + metricGroupStatus.getReason() + ")</b></li>");
             }
             
             List<String> sortedMetricGroupStrings = new ArrayList<>(metricGroupStrings.keySet());
@@ -202,21 +203,21 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
         return outputString.toString();
     }
 
-    private static String getMetricGroupStatus(Connection connection, MetricGroupTemplate metricGroupTemplate, MetricGroup metricGroup, 
+    private static DatabaseObjectStatus getMetricGroupStatus(Connection connection, MetricGroupTemplate metricGroupTemplate, MetricGroup metricGroup, 
             Integer variableSetId, Map<String,MetricGroup> metricGroups_ByName) {
         
-        String metricGroupStatus = "";
+        DatabaseObjectStatus metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_GOOD, "");
         
         try {
             if ((metricGroupTemplate != null) && (metricGroupTemplate.isMarkedForDelete() != null) && (metricGroupTemplate.isMarkedForDelete())) {
                 if (metricGroup == null) {
-                    metricGroupStatus = "(metric group doesn't exist because metric group template is marked for deletion)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group doesn't exist because metric group template is marked for deletion");
                 }
                 else if ((metricGroupTemplate.getId() != null) && !metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
-                    metricGroupStatus = "(metric group exists, but won't be deleted, because it is not associated with this metric group template)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group exists, but won't be deleted, because it is not associated with this metric group template");
                 }
                 else {
-                    metricGroupStatus = "(metric group is marked for deletion by metric group template)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group is marked for deletion by metric group template");
                 }
             }
             else if (metricGroup == null) {
@@ -228,33 +229,37 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
 
                     if ((databaseObjectValidation != null) && !databaseObjectValidation.isValid()) {
                         String databaseObjectValidationReason = (databaseObjectValidation.getReason() == null) ? "unknown" : databaseObjectValidation.getReason().toLowerCase();
-                        metricGroupStatus = "(metric group does not exist because: '" + databaseObjectValidationReason + "')";
+                        metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group does not exist because: '" + databaseObjectValidationReason + "')");
                     }
                     else {
-                        metricGroupStatus = "(metric group does not exist - issue creating metric group)";
+                        metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group does not exist - issue creating metric group");
                     }
                 }
                 else {
-                    metricGroupStatus = "(metric group does not exist - issue creating metric group)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group does not exist - issue creating metric group");
                 }
             }
             else if (metricGroup.getMetricGroupTemplateId() == null) {
-                metricGroupStatus = "(metric group name conflict with another not-templated metric group)";
+                metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group name conflict with another not-templated metric group");
             }
-            else if (!metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
+            else if ((metricGroupTemplate != null) && (metricGroupTemplate.getId() != null) && !metricGroupTemplate.getId().equals(metricGroup.getMetricGroupTemplateId())) {
                 MetricGroupTemplate metricGroupTemplateFromDb = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroup.getMetricGroupTemplateId());
 
                 if (metricGroupTemplateFromDb == null) {
-                    metricGroupStatus = "(metric group name conflict with another templated metric group)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group name conflict with another templated metric group");
                 }
                 else {
                     String metricGroupTemplateUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplateFromDb.getName()) + "\">" + "templated" + "</a>";
-                    metricGroupStatus = "(metric group name conflict with another " + metricGroupTemplateUrl + " metric group)";
+                    metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "metric group name conflict with another " + metricGroupTemplateUrl + " metric group");
                 }
+            }
+            else if ((metricGroupTemplate == null) || (metricGroupTemplate.getId() == null)) {
+                metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "unknown error reading metric group template");
             }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            metricGroupStatus = new DatabaseObjectStatus(DatabaseObjectStatus.STATUS_DANGER, "unknown error");
         }
         
         return metricGroupStatus;
