@@ -62,7 +62,23 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
                 .isEquals();
 
     }
-
+    
+    public static NotificationGroup copy(NotificationGroup notificationGroup) {
+        
+        if (notificationGroup == null) {
+            return null;
+        }
+        
+        NotificationGroup notificationGroupCopy = new NotificationGroup();
+        
+        notificationGroupCopy.setId(notificationGroup.getId());
+        notificationGroupCopy.setName(notificationGroup.getName());
+        notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
+        notificationGroupCopy.setPagerdutyServiceId(notificationGroup.getPagerdutyServiceId());
+        
+        return notificationGroupCopy;
+    }
+    
     public String getEmailAddressesCsv() {
         
         if (emailAddresses_ == null) {
@@ -107,23 +123,7 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         
         return emailAddresses;
     }
-    
-    public static NotificationGroup copy(NotificationGroup notificationGroup) {
-        
-        if (notificationGroup == null) {
-            return null;
-        }
-        
-        NotificationGroup notificationGroupCopy = new NotificationGroup();
-        
-        notificationGroupCopy.setId(notificationGroup.getId());
-        notificationGroupCopy.setName(notificationGroup.getName());
-        notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
-        notificationGroupCopy.setPagerdutyServiceId(notificationGroup.getPagerdutyServiceId());
-        
-        return notificationGroupCopy;
-    }
-    
+
     public static JsonObject getJsonObject_ApiFriendly(NotificationGroup notificationGroup) {
         
         if (notificationGroup == null) {
