@@ -20,8 +20,6 @@ import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.threads.alert_related.NotificationThread;
