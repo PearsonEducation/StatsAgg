@@ -4,16 +4,11 @@ import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupT
 import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
 import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
-import java.util.List;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTagsDao;
 import com.pearson.statsagg.database_objects.variable_set.VariableSet;
 import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
