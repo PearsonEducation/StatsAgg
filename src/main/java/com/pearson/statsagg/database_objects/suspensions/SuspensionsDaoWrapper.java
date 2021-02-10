@@ -56,7 +56,10 @@ public class SuspensionsDaoWrapper extends AbstractDaoWrapper {
 
                     if (isUpsertSuccess) {
                         Suspension suspensionFromDb_AfterUpsert = SuspensionsDao.getSuspension(connection, false, suspension_.getName());
-                        GlobalVariables.suspensionChanges.put(suspensionFromDb_AfterUpsert.getId(), GlobalVariables.NEW);
+                        
+                        if (isNewDatabaseObject_) GlobalVariables.suspensionChanges.put(suspensionFromDb_AfterUpsert.getId(), GlobalVariables.NEW);
+                        else GlobalVariables.suspensionChanges.put(suspensionFromDb_AfterUpsert.getId(), GlobalVariables.ALTER);
+                        
                         getReturnString_AlterSuccess(suspension_.getName());
                     }
                     else getReturnString_AlterFail(suspension_.getName());
