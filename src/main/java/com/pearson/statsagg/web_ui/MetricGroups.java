@@ -179,8 +179,11 @@ public class MetricGroups extends HttpServlet {
     
     public String removeMetricGroup(Integer metricGroupId) {
         
-        String returnString = "Metric Group ID field can't be null.";
-        if (metricGroupId == null) return returnString;
+        if (metricGroupId == null) {
+            return "Metric Group ID field can't be null";
+        }
+        
+        String returnString;
         
         try {
             MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);                
@@ -190,14 +193,13 @@ public class MetricGroups extends HttpServlet {
             if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
                 GlobalVariables.alertInvokerThread.runAlertThread(true, false);
             }
-            
-            return returnString;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             returnString = "Error removing metric group";
-            return returnString;
         }
+        
+        return returnString;
     }
     
     private String buildMetricGroupsHtml() {
@@ -245,7 +247,7 @@ public class MetricGroups extends HttpServlet {
             if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) metricGroupIdsWithAssociations.add(outputBlacklist.getMetricGroupId());
 
             for (MetricGroup metricGroup : metricGroups) {
-                if ((metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
+                if ((metricGroup == null) || (metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
 
                 String metricGroupDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";

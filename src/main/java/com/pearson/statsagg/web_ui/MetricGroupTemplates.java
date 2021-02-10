@@ -162,7 +162,7 @@ public class MetricGroupTemplates extends HttpServlet {
                 MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.createRecordInDatabase(clonedMetricGroupTemplate);
                 
                 if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
-                    logger.info("Running metric group template routine due to metric group template clone operation");
+                    logger.info("Running template routine due to metric group template clone operation");
                     GlobalVariables.templateInvokerThread.runTemplateThread();
                 }
             }
@@ -177,12 +177,12 @@ public class MetricGroupTemplates extends HttpServlet {
     }
     
     public static String removeMetricGroupTemplate(Integer metricGroupTemplateId) {
-        
+
         if (metricGroupTemplateId == null) {
-            return null;
+            return "Metric Group Template ID field can't be null";
         }
         
-        String returnString = null;
+        String returnString;
         
         try {
             MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(DatabaseConnections.getConnection(), true, metricGroupTemplateId);
@@ -191,7 +191,7 @@ public class MetricGroupTemplates extends HttpServlet {
             MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.alterRecordInDatabase(metricGroupTemplate);
             
             if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
-                logger.info("Running metric group template routine due to metric group template remove operation");
+                logger.info("Running template routine due to metric group template remove operation");
                 GlobalVariables.templateInvokerThread.runTemplateThread();
                 Threads.sleepMilliseconds(300); // sleep for 300ms to give the template thread a change to run before re-rendering the page
             }
@@ -200,6 +200,7 @@ public class MetricGroupTemplates extends HttpServlet {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            returnString = "Error removing metric group template";
         }
         
         return returnString;
@@ -242,7 +243,7 @@ public class MetricGroupTemplates extends HttpServlet {
             DatabaseUtils.cleanup(connection);
 
             for (MetricGroupTemplate metricGroupTemplate : metricGroupTemplates) {
-                if (metricGroupTemplate == null) continue;
+                if ((metricGroupTemplate == null) || (metricGroupTemplate.getId() == null) || (metricGroupTemplate.getName() == null)) continue;
 
                 List<MetricGroup> metricGroups = MetricGroupsDao.getMetricGroups_FilterByMetricGroupTemplateId(DatabaseConnections.getConnection(), true, metricGroupTemplate.getId());
                 Set<String> metricGroupNamesThatMetricGroupTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(metricGroupTemplate.getVariableSetListId(), metricGroupTemplate.getMetricGroupNameVariable());
