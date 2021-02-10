@@ -132,6 +132,7 @@ public class VariableSets extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
         StatsAggHtmlFramework.redirectAndGet(response, 303, "VariableSets");
     }
     
@@ -168,20 +169,22 @@ public class VariableSets extends HttpServlet {
     
     public String removeVariableSet(Integer variableSetId) {
         
-        String returnString = "Variable Set ID field can't be null.";
-        if (variableSetId == null) return returnString;
+        if (variableSetId == null) {
+            return "Variable Set ID field can't be null";
+        }
+        
+        String returnString;
         
         try {
             VariableSet variableSet = VariableSetsDao.getVariableSet(DatabaseConnections.getConnection(), true, variableSetId);   
             returnString = VariableSetsDaoWrapper.deleteRecordInDatabase(variableSet).getReturnString();
-            return returnString;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             returnString = "Error removing variable set";
-            return returnString;
         }
-
+            
+        return returnString;
     }
     
     private String buildVariableSetsHtml() {
@@ -211,61 +214,74 @@ public class VariableSets extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        Connection connection = DatabaseConnections.getConnection();
-        Set<Integer> variableSetIdsAssociatedWithVariableSetLists = VariableSetListEntriesDao.getAllDistinctVariableSetIds(connection, false);
-        List<VariableSet> variableSets = VariableSetsDao.getVariableSets(connection, false);
-        DatabaseUtils.cleanup(connection);
+        Connection connection = null;
         
-        for (VariableSet variableSet : variableSets) {     
-            if (variableSet == null) continue;
-            
-            String variableSetDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSet.getName()) + "</a>";
-            
-            String alter = "<a href=\"CreateVariableSet?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">alter</a>";
+        try {
+            connection = DatabaseConnections.getConnection();
+            Set<Integer> variableSetIdsAssociatedWithVariableSetLists = VariableSetListEntriesDao.getAllDistinctVariableSetIds(connection, false);
+            if (variableSetIdsAssociatedWithVariableSetLists == null) variableSetIdsAssociatedWithVariableSetLists = new HashSet<>();
+            List<VariableSet> variableSets = VariableSetsDao.getVariableSets(connection, false);
+            if (variableSets == null) variableSets = new ArrayList<>();
+            DatabaseUtils.cleanup(connection);
 
-            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
-            cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSet.getName(), "VariableSets", "clone", cloneKeysAndValues);
-            
-            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
-            removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSet.getName(), "VariableSets", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this variable set?");       
-            
-            htmlBodyStringBuilder.append("<tr>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(variableSetDetails).append("</td>\n")
-                .append("<td>").append(alter).append(", ").append(clone);
-            
-            if (variableSetIdsAssociatedWithVariableSetLists == null) htmlBodyStringBuilder.append(", ").append(remove);
-            else if (!variableSetIdsAssociatedWithVariableSetLists.contains(variableSet.getId())) htmlBodyStringBuilder.append(", ").append(remove);
- 
-            htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            for (VariableSet variableSet : variableSets) {     
+                if ((variableSet == null) || (variableSet.getId() == null) || (variableSet.getName() == null)) continue;
+
+                String variableSetDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSet.getName()) + "</a>";
+
+                String alter = "<a href=\"CreateVariableSet?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSet.getName()) + "\">alter</a>";
+
+                List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
+                cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
+                cloneKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
+                String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSet.getName(), "VariableSets", "clone", cloneKeysAndValues);
+
+                List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
+                removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
+                removeKeysAndValues.add(new KeyValue("Id", variableSet.getId().toString()));
+                String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSet.getName(), "VariableSets", "remove", 
+                        removeKeysAndValues, true, "Are you sure you want to remove this variable set?");       
+
+                htmlBodyStringBuilder.append("<tr>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(variableSetDetails).append("</td>\n")
+                    .append("<td>").append(alter).append(", ").append(clone);
+
+                if (!variableSetIdsAssociatedWithVariableSetLists.contains(variableSet.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+
+                htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            }
+
+            htmlBodyStringBuilder.append(""
+                    + "</tbody>\n"
+                    + "<tfoot> \n"
+                    + "  <tr>\n" 
+                    + "    <th></th>\n"
+                    + "    <th></th>\n" 
+                    + "  </tr>\n" 
+                    + "</tfoot>" 
+                    + "</table>\n"
+                    + "</div>\n"
+                    + "</div>\n");
+
+            String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
+
+            html.append(""
+                    + "<!DOCTYPE html>\n"
+                    + "<html>\n")
+                    .append(htmlHeader)
+                    .append(htmlBody)
+                    .append("</html>");
+
+            return html.toString();
         }
-
-        htmlBodyStringBuilder.append(""
-                + "</tbody>\n"
-                + "<tfoot> \n"
-                + "  <tr>\n" 
-                + "    <th></th>\n"
-                + "    <th></th>\n" 
-                + "  </tr>\n" 
-                + "</tfoot>" 
-                + "</table>\n"
-                + "</div>\n"
-                + "</div>\n");
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return "Fatal error encountered";
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
         
-        String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
-
-        html.append(""
-                + "<!DOCTYPE html>\n"
-                + "<html>\n")
-                .append(htmlHeader)
-                .append(htmlBody)
-                .append("</html>");
-        
-        return html.toString();
     }
     
 }
