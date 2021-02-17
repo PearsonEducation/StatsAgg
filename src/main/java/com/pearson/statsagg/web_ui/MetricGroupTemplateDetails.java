@@ -127,63 +127,70 @@ public class MetricGroupTemplateDetails extends HttpServlet {
         if (metricGroupTemplate == null) {
             return "<b>Metric group template not found</b>";
         }
-        else {
-            StringBuilder outputString = new StringBuilder();
+        
+        StringBuilder outputString = new StringBuilder();
 
-            VariableSetList variableSetList = null;
-            if (metricGroupTemplate.getVariableSetListId() != null) variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, metricGroupTemplate.getVariableSetListId());
+        VariableSetList variableSetList = null;
+        if (metricGroupTemplate.getVariableSetListId() != null) variableSetList = VariableSetListsDao.getVariableSetList(DatabaseConnections.getConnection(), true, metricGroupTemplate.getVariableSetListId());
 
-            outputString.append("<b>Name</b> = ");
-            if (metricGroupTemplate.getName() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName())).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>ID</b> = ");
-            if (metricGroupTemplate.getName() != null) outputString.append(metricGroupTemplate.getId()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            outputString.append("<b>Variable set list</b> = ");
-            if (variableSetList != null) {
-                String variableSetListDetailsPopup = "<a class=\"iframe cboxElement\" href=\"VariableSetListDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetList.getName()) + "</a>";
-                outputString.append(variableSetListDetailsPopup).append("<br>");
-            }
-            else outputString.append("<br>");
+        outputString.append("<b>Name:</b> ");
+        if (metricGroupTemplate.getName() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName())).append("<br>");
+        else outputString.append("N/A <br>");
 
-            outputString.append("<b>Metric group name variable</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getMetricGroupNameVariable())).append("<br>");
+        outputString.append("<b>ID:</b> ");
+        if (metricGroupTemplate.getName() != null) outputString.append(metricGroupTemplate.getId()).append("<br>");
+        else outputString.append("N/A <br>");
 
-            outputString.append("<b>Description variable</b> = ");
-            if (metricGroupTemplate.getDescriptionVariable() != null) {
-                String encodedMetricGroupDescriptionVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getDescriptionVariable());
-                outputString.append(encodedMetricGroupDescriptionVariable.replaceAll("\n", "<br>")).append("<br><br>");
-            }
-            else outputString.append("<br><br>");
-            
-            outputString.append("<b>Match Regexes Variable</b> = ");
-            if (metricGroupTemplate.getMatchRegexesVariable() != null) {
-                String encodedMatchRegexesVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getMatchRegexesVariable());
-                outputString.append(encodedMatchRegexesVariable.replaceAll("\n", "<br>")).append("<br><br>");
-            }
-            else outputString.append("<br><br>");
-            
-            outputString.append("<b>Blacklist Regexes Variable</b> = ");
-            if (metricGroupTemplate.getBlacklistRegexesVariable() != null) {
-                String encodedBlacklistRegexesVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getBlacklistRegexesVariable());
-                outputString.append(encodedBlacklistRegexesVariable.replaceAll("\n", "<br>")).append("<br><br>");
-            }
-            else outputString.append("<br><br>");
-            
-            outputString.append("<b>Tags Variable</b> = ");
-            if (metricGroupTemplate.getTagsVariable() != null) {
-                String encodedTagsVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getTagsVariable());
-                outputString.append(encodedTagsVariable.replaceAll("\n", "<br>")).append("<br><br>");
-            }
-            else outputString.append("<br><br>");
-
-            outputString.append("<b>Is marked for delete?</b> = ");
-            if (metricGroupTemplate.isMarkedForDelete() != null) outputString.append(metricGroupTemplate.isMarkedForDelete()).append("<br>");
-            else outputString.append("N/A <br>");
-            
-            return outputString.toString();
+        outputString.append("<b>Variable Set List:</b> ");
+        if (variableSetList != null) {
+            String variableSetListDetailsPopup = "<a class=\"iframe cboxElement\" href=\"VariableSetListDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetList.getName()) + "</a>";
+            outputString.append(variableSetListDetailsPopup).append("<br>");
         }
+        else outputString.append("<br>");
+
+        outputString.append("<br>");
+
+        outputString.append("<b>Metric Group Name Variable:</b> ").append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getMetricGroupNameVariable())).append("<br>");
+
+        outputString.append("<br>");
+
+        outputString.append("<b>Description Variable:</b>");
+        if ((metricGroupTemplate.getDescriptionVariable() != null) && !metricGroupTemplate.getDescriptionVariable().isBlank()) {
+            outputString.append("<br>");
+            String encodedMetricGroupDescriptionVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getDescriptionVariable());
+            outputString.append(encodedMetricGroupDescriptionVariable.replaceAll("\n", "<br>")).append("<br><br>");
+        }
+        else outputString.append("<br><br>");
+
+        outputString.append("<b>Match Regexes Variable:</b>");
+        if ((metricGroupTemplate.getMatchRegexesVariable() != null) && !metricGroupTemplate.getMatchRegexesVariable().isBlank()) {
+            outputString.append("<br>");
+            String encodedMatchRegexesVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getMatchRegexesVariable());
+            outputString.append(encodedMatchRegexesVariable.replaceAll("\n", "<br>")).append("<br><br>");
+        }
+        else outputString.append("<br><br>");
+
+        outputString.append("<b>Blacklist Regexes Variable:</b>");
+        if ((metricGroupTemplate.getBlacklistRegexesVariable() != null) && !metricGroupTemplate.getBlacklistRegexesVariable().isBlank()) {
+            outputString.append("<br>");
+            String encodedBlacklistRegexesVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getBlacklistRegexesVariable());
+            outputString.append(encodedBlacklistRegexesVariable.replaceAll("\n", "<br>")).append("<br><br>");
+        }
+        else outputString.append("<br><br>");
+
+        outputString.append("<b>Tags Variable:</b>");
+        if ((metricGroupTemplate.getTagsVariable() != null) && !metricGroupTemplate.getTagsVariable().isBlank()) {
+            outputString.append("<br>");
+            String encodedTagsVariable = StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getTagsVariable());
+            outputString.append(encodedTagsVariable.replaceAll("\n", "<br>")).append("<br><br>");
+        }
+        else outputString.append("<br><br>");
+
+        outputString.append("<b>Is marked for delete? : </b>");
+        if (metricGroupTemplate.isMarkedForDelete() != null) outputString.append(metricGroupTemplate.isMarkedForDelete()).append("<br>");
+        else outputString.append("N/A <br>");
+
+        return outputString.toString();
     }
 
 }
