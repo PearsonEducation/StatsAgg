@@ -956,22 +956,7 @@ public class CreateAlertTemplate extends HttpServlet {
         String returnString;
         
         AlertTemplate alertTemplate = getAlertTemplateFromAlertTemplateParameters(request);
-        
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    AlertTemplate oldAlertTemplate = AlertTemplatesDao.getAlertTemplate(DatabaseConnections.getConnection(), true, id_Integer);
-                    oldName = oldAlertTemplate.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        String oldName = getOldAlertTemplateName(request);
         
         if (alertTemplate == null) {
             returnString = "Failed to create or alter alert template. Reason=\"One or more invalid alert template fields detected\".";
@@ -997,6 +982,37 @@ public class CreateAlertTemplate extends HttpServlet {
         }
         
         return returnString;
+    }
+    
+    protected static String getOldAlertTemplateName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        AlertTemplate oldAlertTemplate = AlertTemplatesDao.getAlertTemplate(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldAlertTemplate.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
     }
     
     private static AlertTemplate getAlertTemplateFromAlertTemplateParameters(Object request) {
