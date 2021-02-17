@@ -191,7 +191,7 @@ public class CreateNotificationGroup extends HttpServlet {
         // email addresses
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">Email addresses</label>\n" +
+            "         <label class=\"label_small_margin\">Email Addresses</label>\n" +
             "         <input class=\"form-control-statsagg\" placeholder=\"A csv-delimited list of email addresses\" name=\"EmailAddresses\" id=\"EmailAddresses\" ");
 
         if ((notificationGroup != null) && (notificationGroup.getEmailAddresses() != null)) {
@@ -205,8 +205,8 @@ public class CreateNotificationGroup extends HttpServlet {
         if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) {
             htmlBody.append(
                 "       <div class=\"form-group\" id=\"PagerDutyServiceName_Lookup\">\n" +
-                "         <label class=\"label_small_margin\">PagerDuty service name</label>\n" +
-                "         <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" placeholder=\"The exact PagerDuty service name to send alerts to.\" name=\"PagerDutyServiceName\" id=\"PagerDutyServiceName\" ");
+                "         <label class=\"label_small_margin\">PagerDuty Service Name</label>\n" +
+                "         <input class=\"typeahead form-control-statsagg\" autocomplete=\"off\" placeholder=\"The exact PagerDuty Service name to send alerts to.\" name=\"PagerDutyServiceName\" id=\"PagerDutyServiceName\" ");
 
             if ((notificationGroup != null) && (notificationGroup.getPagerdutyServiceId() != null)) {
                 PagerdutyService pagerdutyService = PagerdutyServicesDao.getPagerdutyService(DatabaseConnections.getConnection(), true, notificationGroup.getPagerdutyServiceId());
