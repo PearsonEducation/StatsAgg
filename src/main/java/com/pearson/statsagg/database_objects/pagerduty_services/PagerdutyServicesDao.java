@@ -265,4 +265,27 @@ public class PagerdutyServicesDao {
 
     }
     
+    public static Map<String,PagerdutyService> getPagerdutyServices_ByName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<String,PagerdutyService> pagerdutyServicesByName = new HashMap<>();
+
+            List<PagerdutyService> pagerdutyServices = getPagerdutyServices(connection, closeConnectionOnCompletion);
+            if (pagerdutyServices == null) return null;
+
+            for (PagerdutyService pagerdutyService : pagerdutyServices) {
+                if (pagerdutyService.getName() != null) {
+                    pagerdutyServicesByName.put(pagerdutyService.getName(), pagerdutyService);
+                }
+            }
+            
+            return pagerdutyServicesByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
+    }
+    
 }
