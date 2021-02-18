@@ -73,9 +73,6 @@ public class AlertsSql {
     protected final static String Select_AlertNames = 
                     "SELECT NAME FROM ALERTS";
     
-    protected final static String Select_AlertMetricGroupIds = 
-                    "SELECT METRIC_GROUP_ID FROM ALERTS";
-    
     protected final static String Select_AlertNamesAssociatedWithMetricGroupId = 
                     "SELECT NAME FROM ALERTS WHERE METRIC_GROUP_ID = ?";
     

@@ -446,7 +446,7 @@ public class AlertsDao {
                     new AlertsResultSetHandler(), 
                     AlertsSql.Select_DistinctMetricGroupIds);
             
-            if (alerts == null) return metricGroupIds;
+            if (alerts == null) return null;
             
             for (Alert alert : alerts) {
                 if ((alert != null) && (alert.getMetricGroupId() != null)) {
@@ -519,33 +519,5 @@ public class AlertsDao {
         
         return false;
     }
-    
-    public static Set<Integer> getMetricGroupIdsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
-        
-        try {
-            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
-                    new AlertsResultSetHandler(), 
-                    AlertsSql.Select_AlertMetricGroupIds);
-            
-            if (alerts == null) return null;
-            
-            Set<Integer> metricGroupIds = new HashSet<>();
-            
-            for (Alert alert : alerts) {
-                if ((alert == null) || (alert.getMetricGroupId() == null)) continue;
-                metricGroupIds.add(alert.getMetricGroupId());
-            }
-            
-            return metricGroupIds;
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return null;
-        }
-        finally {
-            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
-        }
-        
-    }
-    
+
 }
