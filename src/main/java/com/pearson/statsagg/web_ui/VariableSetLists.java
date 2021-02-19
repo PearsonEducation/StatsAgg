@@ -1,5 +1,11 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
+import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDao;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplate;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplatesDao;
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetList;
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDaoWrapper;
@@ -141,8 +147,11 @@ public class VariableSetLists extends HttpServlet {
             return;
         }
         
+        Connection connection = null;
+        
         try {
-            Connection connection = DatabaseConnections.getConnection();
+            connection = DatabaseConnections.getConnection();
+            
             VariableSetList variableSetList = VariableSetListsDao.getVariableSetList(connection, false, variableSetListId);
             Set<String> allVariableSetListNames = VariableSetListsDao.getVariableSetListNames(connection, false);
             List<Integer> variableSetIds = VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
@@ -160,6 +169,10 @@ public class VariableSetLists extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
     public String removeVariableSetList(Integer variableSetListId) {
@@ -207,59 +220,98 @@ public class VariableSetLists extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        Set<Integer> variableSetListIdsAssociatedWithTemplates = new HashSet<>();
-        List<VariableSetList> variableSetLists = VariableSetListsDao.getVariableSetLists(DatabaseConnections.getConnection(), true);
+        Connection connection = null;
 
-        for (VariableSetList variableSetList : variableSetLists) {     
-            if (variableSetList == null) continue;
-            
-            String variableSetListDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetListDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetList.getName()) + "</a>";
-            
-            String alter = "<a href=\"CreateVariableSetList?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">alter</a>";
+        try {
+            connection = DatabaseConnections.getConnection();
+            List<AlertTemplate> alertTemplates = AlertTemplatesDao.getAlertTemplates(connection, false);
+            if (alertTemplates == null) alertTemplates = new ArrayList<>();
+            List<MetricGroupTemplate> metricGroupTemplates = MetricGroupTemplatesDao.getMetricGroupTemplates(connection, false);
+            if (metricGroupTemplates == null) metricGroupTemplates = new ArrayList<>();
+            List<NotificationGroupTemplate> notificationGroupTemplates = NotificationGroupTemplatesDao.getNotificationGroupTemplates(connection, false);
+            if (notificationGroupTemplates == null) notificationGroupTemplates = new ArrayList<>();
+            List<VariableSetList> variableSetLists = VariableSetListsDao.getVariableSetLists(connection, false);
+            if (variableSetLists == null) variableSetLists = new ArrayList<>();
+            DatabaseUtils.cleanup(connection);
 
-            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
-            cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSetList.getName(), "VariableSetLists", "clone", cloneKeysAndValues);
+            Set<Integer> variableSetListIdsAssociatedWithTemplates = new HashSet<>();
             
-            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
-            removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSetList.getName(), "VariableSetLists", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this variable set list?");       
+            for (AlertTemplate alertTemplate : alertTemplates) {
+                if ((alertTemplate != null) && (alertTemplate.getVariableSetListId() != null)) {
+                    variableSetListIdsAssociatedWithTemplates.add(alertTemplate.getVariableSetListId());
+                }
+            }
             
-            htmlBodyStringBuilder.append("<tr>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(variableSetListDetails).append("</td>\n")
-                .append("<td>").append(alter).append(", ").append(clone);
+            for (MetricGroupTemplate metricGroupTemplate : metricGroupTemplates) {
+                if ((metricGroupTemplate != null) && (metricGroupTemplate.getVariableSetListId() != null)) {
+                    variableSetListIdsAssociatedWithTemplates.add(metricGroupTemplate.getVariableSetListId());
+                }
+            }
             
-            if (variableSetListIdsAssociatedWithTemplates == null) htmlBodyStringBuilder.append(", ").append(remove);
-            else if (!variableSetListIdsAssociatedWithTemplates.contains(variableSetList.getId())) htmlBodyStringBuilder.append(", ").append(remove);
- 
-            htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            for (NotificationGroupTemplate notificationGroupTemplate : notificationGroupTemplates) {
+                if ((notificationGroupTemplate != null) && (notificationGroupTemplate.getVariableSetListId() != null)) {
+                    variableSetListIdsAssociatedWithTemplates.add(notificationGroupTemplate.getVariableSetListId());
+                }
+            }
+            
+            for (VariableSetList variableSetList : variableSetLists) {     
+                if ((variableSetList == null) || (variableSetList.getId() == null) || (variableSetList.getName() == null)) continue;
+
+                String variableSetListDetails = "<a class=\"iframe cboxElement\" href=\"VariableSetListDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetList.getName()) + "</a>";
+
+                String alter = "<a href=\"CreateVariableSetList?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetList.getName()) + "\">alter</a>";
+
+                List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
+                cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
+                cloneKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
+                String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + variableSetList.getName(), "VariableSetLists", "clone", cloneKeysAndValues);
+
+                List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
+                removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
+                removeKeysAndValues.add(new KeyValue("Id", variableSetList.getId().toString()));
+                String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + variableSetList.getName(), "VariableSetLists", "remove", 
+                        removeKeysAndValues, true, "Are you sure you want to remove this variable set list?");       
+
+                htmlBodyStringBuilder.append("<tr>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(variableSetListDetails).append("</td>\n")
+                    .append("<td>").append(alter).append(", ").append(clone);
+
+                if (!variableSetListIdsAssociatedWithTemplates.contains(variableSetList.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+
+                htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            }
+
+            htmlBodyStringBuilder.append(""
+                    + "</tbody>\n"
+                    + "<tfoot> \n"
+                    + "  <tr>\n" 
+                    + "    <th></th>\n"
+                    + "    <th></th>\n" 
+                    + "  </tr>\n" 
+                    + "</tfoot>" 
+                    + "</table>\n"
+                    + "</div>\n"
+                    + "</div>\n");
+
+            String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
+
+            html.append(""
+                    + "<!DOCTYPE html>\n"
+                    + "<html>\n")
+                    .append(htmlHeader)
+                    .append(htmlBody)
+                    .append("</html>");
+
+            return html.toString();
         }
-
-        htmlBodyStringBuilder.append(""
-                + "</tbody>\n"
-                + "<tfoot> \n"
-                + "  <tr>\n" 
-                + "    <th></th>\n"
-                + "    <th></th>\n" 
-                + "  </tr>\n" 
-                + "</tfoot>" 
-                + "</table>\n"
-                + "</div>\n"
-                + "</div>\n");
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return "Fatal error encountered";
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
         
-        String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
-
-        html.append(""
-                + "<!DOCTYPE html>\n"
-                + "<html>\n")
-                .append(htmlHeader)
-                .append(htmlBody)
-                .append("</html>");
-        
-        return html.toString();
     }
     
 }
