@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
@@ -183,20 +185,36 @@ public class MetricGroups extends HttpServlet {
             return "Metric Group ID field can't be null";
         }
         
-        String returnString;
+        String returnString = null;
+        
+        Connection connection = null;
         
         try {
-            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);                
-            MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
-            returnString = metricGroupsDaoWrapper.getReturnString();
+            connection = DatabaseConnections.getConnection(); 
+           
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);   
+            boolean isMetricGroupCreatedByMetricGroupTemplate = MetricGroupsDao.isMetricGroupCreatedByMetricGroupTemplate(connection, false, metricGroup, null);
+            
+            if (!isMetricGroupCreatedByMetricGroupTemplate) {
+                MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
+                returnString = metricGroupsDaoWrapper.getReturnString();
 
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
-                GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
+                    GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+                }
+            }
+            else {
+                String metricGroupName = (metricGroup == null) ? "Unknown" : metricGroup.getName();
+                returnString = "Can't remove a metric group that was created by a metric group template. MetricGroupName=\"" + metricGroupName + "\".";
+                logger.warn(returnString);
             }
         }
         catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             returnString = "Error removing metric group";
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
         }
         
         return returnString;
@@ -224,6 +242,7 @@ public class MetricGroups extends HttpServlet {
             "    <thead>\n" +
             "      <tr>\n" +
             "        <th>Metric Group Name</th>\n" +
+            "        <th>Template</th>\n" +
             "        <th># Regexes</th>\n" +
             "        <th>Tags</th>\n" +
             "        <th># Metric Associations</th>\n" +
@@ -240,7 +259,6 @@ public class MetricGroups extends HttpServlet {
             if (metricGroups == null) metricGroups = new ArrayList<>();
             Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctMetricGroupIdsAssociatedWithAlerts(connection, false);
             com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(connection, false);
-            DatabaseUtils.cleanup(connection);
 
             Set<Integer> metricGroupIdsWithAssociations = new HashSet<>();
             if (metricGroupIdsAssociatedWithAlerts != null) metricGroupIdsWithAssociations.addAll(metricGroupIdsAssociatedWithAlerts);
@@ -252,6 +270,11 @@ public class MetricGroups extends HttpServlet {
                 String metricGroupDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
                         StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
 
+                String metricGroupTemplateNameAndLink;
+                MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroup.getMetricGroupTemplateId());
+                if ((metricGroupTemplate == null) || (metricGroupTemplate.getName() == null)) metricGroupTemplateNameAndLink = "N/A";
+                else metricGroupTemplateNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName()) + "</a>";     
+                
                 int regexCount = 0;
                 if (metricGroup.getMatchRegexes() != null) regexCount += metricGroup.getMatchRegexes().size();
                 if (metricGroup.getBlacklistRegexes() != null) regexCount += metricGroup.getBlacklistRegexes().size();
@@ -288,12 +311,14 @@ public class MetricGroups extends HttpServlet {
                 htmlBodyStringBuilder
                     .append("<tr>\n")
                     .append("<td class=\"statsagg_force_word_break\">").append(metricGroupDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTemplateNameAndLink).append("</td>\n")
                     .append("<td>").append(regexCount).append("</td>\n")
                     .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTagsCsv.toString()).append("</td>\n")
                     .append("<td>").append(metricAssociationsLink).append("</td>\n")    
-                    .append("<td>").append(alter).append(", ").append(clone);
+                    .append("<td>");
 
-                if (!metricGroupIdsWithAssociations.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+                if (metricGroup.getMetricGroupTemplateId() == null) htmlBodyStringBuilder.append(alter).append(", ").append(clone);
+                if ((metricGroup.getMetricGroupTemplateId() == null) && !metricGroupIdsWithAssociations.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
 
                 htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
             }
