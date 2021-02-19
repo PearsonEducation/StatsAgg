@@ -126,27 +126,27 @@ public class PagerDutyServiceDetails extends HttpServlet {
         if (pagerdutyService == null) {
             return "<b>PagerDuty Service not found</b>";
         }
-        else {     
-            StringBuilder outputString = new StringBuilder();
-            
-            outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName())).append("<br>");
-            
-            outputString.append("<b>ID</b> = ").append(pagerdutyService.getId()).append("<br><br>");
-            
-            outputString.append("<b>Description</b> = ");
-            if (pagerdutyService.getDescription() != null) {
-                String encodedDescription = StatsAggHtmlFramework.htmlEncode(pagerdutyService.getDescription());
-                outputString.append(encodedDescription.replaceAll("\n", "<br>")).append("<br><br>");
-            }
-            else outputString.append("<br><br>");
-            
-            outputString.append("<b>Routing Key</b> = ");
-            
-            if (pagerdutyService.getRoutingKey() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getRoutingKey())).append("<br>");
-            else outputString.append("N/A <br>");
+ 
+        StringBuilder outputString = new StringBuilder();
 
-            return outputString.toString();
+        outputString.append("<b>Name:</b> ").append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getName())).append("<br>");
+
+        outputString.append("<b>ID:</b> ").append(pagerdutyService.getId()).append("<br><br>");
+
+        outputString.append("<b>Description:</b> ");
+        if ((pagerdutyService.getDescription() != null) && !pagerdutyService.getDescription().isBlank()) {
+            outputString.append("<br>");
+            String encodedDescription = StatsAggHtmlFramework.htmlEncode(pagerdutyService.getDescription());
+            outputString.append(encodedDescription.replaceAll("\n", "<br>")).append("<br><br>");
         }
+        else outputString.append("<br><br>");
+
+        outputString.append("<b>Routing Key:</b> ");
+
+        if (pagerdutyService.getRoutingKey() != null) outputString.append(StatsAggHtmlFramework.htmlEncode(pagerdutyService.getRoutingKey())).append("<br>");
+        else outputString.append("N/A <br>");
+
+        return outputString.toString();
     }
 
 }
