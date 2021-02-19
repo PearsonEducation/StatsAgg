@@ -165,7 +165,7 @@ public class CreatePagerDutyService extends HttpServlet {
         // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">PagerDuty service name</label>\n" +
+            "         <label class=\"label_small_margin\">PagerDuty Service Name</label>\n" +
             "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this PagerDuty service.\" name=\"Name\" id=\"Name\" ");
 
         if ((pagerdutyService != null) && (pagerdutyService.getName() != null)) {
