@@ -326,7 +326,7 @@ public class Alerts extends HttpServlet {
             "     <thead>\n" +
             "       <tr>\n" +
             "         <th>Alert Name</th>\n" +
-            "         <th>Alert Template</th>\n" +
+            "         <th>Template</th>\n" +
             "         <th>Metric Group Association</th>\n" +
             "         <th>Metric Group Tags</th>\n" +
             "         <th>Caution Notification Group</th>\n" +
