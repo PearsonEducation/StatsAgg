@@ -287,9 +287,14 @@ public class Alerts extends HttpServlet {
                     GlobalVariables.alertInvokerThread.runAlertThread(false, true);
                 }
             }
-            else logger.warn("Can't remove an alert that was created by an alert template. AlertName=\"" + alert.getName() + "\".");
+            else {
+                String alertName = (alert == null) ? "Unknown" : alert.getName();
+                returnString = "Can't remove an alert that was created by an alert template. AlertName=\"" + alertName + "\".";
+                logger.warn(returnString);
+            }
         }
         catch (Exception e) {
+            returnString = "Error removing alert";
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
@@ -345,7 +350,9 @@ public class Alerts extends HttpServlet {
             List<Alert> alerts = AlertsDao.getAlerts(connection, false);
             if (alerts == null) alerts = new ArrayList<>();
             Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
+            if (notificationGroupNames_ById == null) notificationGroupNames_ById = new HashMap<>();
             Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = SuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId(connection, false);
+            if (suspensions_SuspendByAlertId_ByAlertId == null) suspensions_SuspendByAlertId_ByAlertId = new HashMap<>();
             
             for (Alert alert : alerts) {
                 if (alert == null) continue;
@@ -397,8 +404,7 @@ public class Alerts extends HttpServlet {
                 }
 
                 String cautionNotificationGroupNameAndLink;
-                if ((notificationGroupNames_ById == null) || (alert.getCautionNotificationGroupId() == null) || ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) || 
-                        !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
+                if ((alert.getCautionNotificationGroupId() == null) || ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) || !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
                     cautionNotificationGroupNameAndLink = "N/A";
                 }
                 else {
@@ -408,8 +414,7 @@ public class Alerts extends HttpServlet {
                 }
 
                 String dangerNotificationGroupNameAndLink;
-                if ((notificationGroupNames_ById == null) || (alert.getDangerNotificationGroupId() == null) || ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) || 
-                        !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
+                if ((alert.getDangerNotificationGroupId() == null) || ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) || !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
                     dangerNotificationGroupNameAndLink = "N/A";
                 }
                 else {
@@ -508,7 +513,7 @@ public class Alerts extends HttpServlet {
                         .append("<td>");
 
                 if (alert.getAlertTemplateId() == null) htmlBodyStringBuilder.append(enable).append(", ").append(alter).append(", ").append(clone);
-                if ((alert.getAlertTemplateId() == null) && ((suspensions_SuspendByAlertId_ByAlertId == null) || !suspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId()))) htmlBodyStringBuilder.append(", ").append(remove);
+                if ((alert.getAlertTemplateId() == null) && !suspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) htmlBodyStringBuilder.append(", ").append(remove);
                 if ((alert.getAlertTemplateId() == null) && !acknowledge.isEmpty()) htmlBodyStringBuilder.append(", ").append(acknowledge);
                 else if ((alert.getAlertTemplateId() != null) && !acknowledge.isEmpty()) htmlBodyStringBuilder.append(acknowledge);
 
