@@ -148,21 +148,28 @@ public class VariableSetListDetails extends HttpServlet {
         else {     
             StringBuilder outputString = new StringBuilder();
             
-            outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName())).append("<br>");
+            outputString.append("<b>Name:</b> ").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName())).append("<br>");
             
-            outputString.append("<b>ID</b> = ").append(variableSetList.getId()).append("<br><br>");
+            outputString.append("<b>ID:</b> ").append(variableSetList.getId()).append("<br><br>");
             
-            outputString.append("<b>Description</b> = ");
+            outputString.append("<b>Description:</b> ");
             if (variableSetList.getDescription() != null) {
+                outputString.append("<br>");
                 String encodedMetricGroupDescription = StatsAggHtmlFramework.htmlEncode(variableSetList.getDescription());
                 outputString.append(encodedMetricGroupDescription.replaceAll("\n", "<br>")).append("<br><br>");
             }
             else outputString.append("<br><br>");
             
-            outputString.append("<b>Variable Sets</b> = ");
-            for (String variableSetName : variableSetNames) {
-                String variableSetPopupLink = "<a class=\"iframe cboxElement\" href=\"VariableSetDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetName) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetName) + "</a>";
-                outputString.append("<br>&nbsp;&nbsp;&nbsp;").append(variableSetPopupLink);
+            outputString.append("<b>Variable Sets:</b> ");
+            if (!variableSetNames.isEmpty()) {
+                outputString.append("<ul>");
+                for (String variableSetName : variableSetNames) {
+                    outputString.append("<li>");
+                    String variableSetPopupLink = "<a class=\"iframe cboxElement\" href=\"VariableSetDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(variableSetName) + "\">" + StatsAggHtmlFramework.htmlEncode(variableSetName) + "</a>";
+                    outputString.append(variableSetPopupLink);
+                    outputString.append("</li>");
+                }
+                outputString.append("</ul>");
             }
                 
             return outputString.toString();

@@ -130,18 +130,19 @@ public class VariableSetDetails extends HttpServlet {
         else {     
             StringBuilder outputString = new StringBuilder();
             
-            outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName())).append("<br>");
+            outputString.append("<b>Name:</b> ").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName())).append("<br>");
             
-            outputString.append("<b>ID</b> = ").append(variableSet.getId()).append("<br>");
-            
-            outputString.append("<b>Description</b> = ");
+            outputString.append("<b>ID:</b> ").append(variableSet.getId()).append("<br><br>");
+                        
+            outputString.append("<b>Description:</b>");
             if (variableSet.getDescription() != null) {
+                outputString.append("<br>");
                 String encodedMetricGroupDescription = StatsAggHtmlFramework.htmlEncode(variableSet.getDescription());
                 outputString.append(encodedMetricGroupDescription.replaceAll("\n", "<br>")).append("<br><br>");
             }
             else outputString.append("<br><br>");
             
-            outputString.append("<b>Variables</b> = ");
+            outputString.append("<b>Variables:</b> ");
             if ((variableSet.getVariables() != null) && !variableSet.getVariables().isEmpty()) {
                 String metricSuspensionRegexesFormatted = StringUtils.replace(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables()), "\n", "<br>&nbsp;&nbsp;&nbsp;");
                 outputString.append("<br>&nbsp;&nbsp;&nbsp;").append(metricSuspensionRegexesFormatted).append("<br>");
