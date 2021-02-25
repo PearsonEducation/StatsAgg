@@ -174,12 +174,12 @@ public class CreateNotificationGroupTemplate extends HttpServlet {
         }
         
         
-        // name
+        // notification group template name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
             "         <label class=\"label_small_margin\">Notification Group Template Name</label>\n" +
             "         <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A unique name for this notification group template.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this notification group template.\" name=\"Name\" id=\"Name\" ");
+            "         <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
 
         if ((notificationGroupTemplate != null) && (notificationGroupTemplate.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(notificationGroupTemplate.getName(), true)).append("\"");

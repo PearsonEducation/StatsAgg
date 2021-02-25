@@ -171,8 +171,9 @@ public class CreateVariableSetList extends HttpServlet {
         // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">Variable set list name</label>\n" +
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this variable set list.\" name=\"Name\" id=\"Name\" ");
+            "         <label class=\"label_small_margin\">Variable Set List Name</label>\n" +
+            "         <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A unique name for this variable set list.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "         <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
 
         if ((variableSetList != null) && (variableSetList.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSetList.getName(), true)).append("\"");
@@ -198,7 +199,8 @@ public class CreateVariableSetList extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Variable Sets</label>\n " +
-            "    <textarea class=\"form-control-statsagg\" placeholder=\"List one variable set per line.\" " +
+            "    <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"List one variable set name per line.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <textarea class=\"form-control-statsagg\" placeholder=\"List one variable set name per line.\" " +
             "              rows=\"15\" name=\"VariableSets\" id=\"VariableSets\" >");
 
         Connection connection = DatabaseConnections.getConnection();

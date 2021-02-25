@@ -165,8 +165,9 @@ public class CreateVariableSet extends HttpServlet {
         // name
         htmlBody.append(
             "       <div class=\"form-group\">\n" +
-            "         <label class=\"label_small_margin\">Variable set name</label>\n" +
-            "         <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this variable set.\" name=\"Name\" id=\"Name\" ");
+            "         <label class=\"label_small_margin\">Variable Set Name</label>\n" +
+            "         <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A unique name for this variable set.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "         <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
 
         if ((variableSet != null) && (variableSet.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(variableSet.getName(), true)).append("\"");
@@ -192,8 +193,8 @@ public class CreateVariableSet extends HttpServlet {
         htmlBody.append( //
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Variables</label>\n " +
-            "    <textarea class=\"form-control-statsagg\" placeholder=\"Variables, key=value. List one variable pair per line.\" " +
-            "              rows=\"15\" name=\"Variables\" id=\"Variables\" >");
+            "    <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"Variables in key=value format. Ex: pet=cat. List one variable pair per line.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <textarea class=\"form-control-statsagg\" rows=\"15\" name=\"Variables\" id=\"Variables\" >");
 
         if ((variableSet != null) && (variableSet.getVariables() != null)) {
             htmlBody.append(StatsAggHtmlFramework.htmlEncode(variableSet.getVariables(), true));

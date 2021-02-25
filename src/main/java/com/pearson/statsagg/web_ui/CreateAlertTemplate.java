@@ -686,7 +686,7 @@ public class CreateAlertTemplate extends HttpServlet {
             "<div id=\"DangerNotificationGroupNameVariable_Div\">\n" +
             "  <div class=\"form-group\">\n" +
             "    <label class=\"label_small_margin\">Notification group name variable</label>\n" +
-            "    <button type=\"button\" id=\"DangerNotificationGroupNameVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <button type=\"button\" id=\"DangerNotificationGroupNameVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated notification group name. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "    <input class=\"form-control-statsagg\" name=\"DangerNotificationGroupNameVariable\" id=\"DangerNotificationGroupNameVariable\" ");
 
         if ((alertTemplate != null) && (alertTemplate.getDangerNotificationGroupNameVariable() != null)) {
@@ -701,7 +701,7 @@ public class CreateAlertTemplate extends HttpServlet {
             "<div id=\"DangerPositiveNotificationGroupNameVariable_Div\">\n" +
             "  <div class=\"form-group\">\n" +
             "    <label class=\"label_small_margin\">Positive notification group name variable</label>\n" +
-            "    <button type=\"button\" id=\"DangerPositiveNotificationGroupNameVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"The exact name of the notification group to send positive alerts to.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "    <button type=\"button\" id=\"DangerPositiveNotificationGroupNameVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated notification group name. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "    <input class=\"form-control-statsagg\" name=\"DangerPositiveNotificationGroupNameVariable\" id=\"DangerPositiveNotificationGroupNameVariable\" ");
 
         if ((alertTemplate != null) && (alertTemplate.getDangerPositiveNotificationGroupNameVariable() != null)) {

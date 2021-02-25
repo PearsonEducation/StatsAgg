@@ -171,11 +171,12 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         }
         
         
-        // metric group name
+        // metric group template name
         htmlBody.append(
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Metric Group Template Name</label>\n" +
-            "  <input class=\"form-control-statsagg\" placeholder=\"Enter a unique name for this metric group template.\" name=\"Name\" id=\"Name\" ");
+            "  <button type=\"button\" id=\"Name_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A unique name for this metric group template.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <input class=\"form-control-statsagg\" name=\"Name\" id=\"Name\" ");
 
         if ((metricGroupTemplate != null) && (metricGroupTemplate.getName() != null)) {
             htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName(), true)).append("\"");
@@ -232,7 +233,7 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         // match regex variable
         htmlBody.append("<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Regular Expressions Variable</label>\n" +
-            "  <button type=\"button\" id=\"MatchRegexesVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of regular expressions. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"MatchRegexesVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of regular expressions. Variable values are substituted using ```key```. Only put one regex per line.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"MatchRegexesVariable\" id=\"MatchRegexesVariable\" >");
 
         if ((metricGroupTemplate != null) && (metricGroupTemplate.getMatchRegexesVariable() != null)) {
@@ -246,7 +247,7 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         htmlBody.append(
             "<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Blacklist Regular Expressions Variable</label>\n" +
-            "  <button type=\"button\" id=\"BlacklistRegexesVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of blacklist regular expressions. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"BlacklistRegexesVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of blacklist regular expressions. Variable values are substituted using ```key```. Only put one regex per line.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One regex per line.\" rows=\"3\" name=\"BlacklistRegexesVariable\" id=\"BlacklistRegexesVariable\" >");
 
         if ((metricGroupTemplate != null) && (metricGroupTemplate.getBlacklistRegexesVariable() != null)) {
@@ -259,7 +260,7 @@ public class CreateMetricGroupTemplate extends HttpServlet {
         // tags variable
         htmlBody.append("<div class=\"form-group\">\n" +
             "  <label class=\"label_small_margin\">Tags Variable</label>\n" +
-            "  <button type=\"button\" id=\"TagsVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of tags. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
+            "  <button type=\"button\" id=\"TagsVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated set of tags. Variable values are substituted using ```key```. Only put one tag per line.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
             "  <textarea class=\"form-control-statsagg\" placeholder=\"One tag per line.\" rows=\"4\" name=\"TagsVariable\" id=\"TagsVariable\" >");
 
         if ((metricGroupTemplate != null) && (metricGroupTemplate.getTagsVariable() != null)) {
