@@ -332,6 +332,7 @@ public class MetricGroups extends HttpServlet {
                     + "    <th></th>\n" 
                     + "    <th></th>\n" 
                     + "    <th></th>\n" 
+                    + "    <th></th>\n" 
                     + "  </tr>\n" 
                     + "</tfoot>" 
                     + "</table>\n"
