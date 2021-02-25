@@ -298,7 +298,7 @@ public class AlertDetails extends HttpServlet {
         else outputString.append("N/A <br>");
 
         if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-            outputString.append("<b>Caution Stop Tracking After...:</b> ");
+            outputString.append("<b>Caution Stop Tracking After... :</b> ");
             if (alert.getCautionStopTrackingAfter() != null) {
                 BigDecimal cautionStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit());
                 if (cautionStopTrackingAfter != null) outputString.append(cautionStopTrackingAfter.stripTrailingZeros().toPlainString());
@@ -404,7 +404,7 @@ public class AlertDetails extends HttpServlet {
         else outputString.append("N/A <br>");
 
         if ((alert.getAlertType() != null) && (alert.getAlertType() == Alert.TYPE_AVAILABILITY)) {
-            outputString.append("<b>Danger Stop Tracking After...:</b> ");
+            outputString.append("<b>Danger Stop Tracking After... :</b> ");
             if (alert.getDangerStopTrackingAfter() != null) {
                 BigDecimal dangerStopTrackingAfter = DatabaseObjectCommon.getValueForTimeFromMilliseconds(alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit());
                 if (dangerStopTrackingAfter != null) outputString.append(dangerStopTrackingAfter.stripTrailingZeros().toPlainString());
