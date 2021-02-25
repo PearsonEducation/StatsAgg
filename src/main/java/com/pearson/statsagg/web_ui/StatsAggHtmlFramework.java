@@ -108,28 +108,39 @@ public class StatsAggHtmlFramework {
                 body.append("          <li><a href=\"PagerDutyServices\"><i class=\"fas fa-pager\"></i>&nbsp;&nbsp;PagerDuty Services </a></li>\n");
             }
             
-            body.append("        </ul> \n" +
-                    "      </li>\n" +
+            body.append("</ul> \n" + "</li>\n");
 
+            
+            // templates dropdown
+            body.append("<li class=\"dropdown\"> <a class=\"dropdown-toggle\" href=\"#\"> Templating&nbsp;<i class=\"fa fa-caret-down\"></i> </a> <ul class=\"dropdown-menu dropdown-menu-right\">\n");
+            body.append("<li><a href=\"AlertTemplates\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Alert Templates</a></li>\n");
+            body.append("<li><a href=\"MetricGroupTemplates\"><i class=\"fa fa-align-justify\"></i>&nbsp;&nbsp;Metric Group Templates</a></li>\n");
+            body.append("<li><a href=\"NotificationGroupTemplates\"><i class=\"fa fa-envelope\"></i>&nbsp;&nbsp;Notification Group Templates</a></li>\n");
+            body.append("<li><a href=\"VariableSetLists\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Variable Set Lists</a></li>\n");
+            body.append("<li><a href=\"VariableSets\"><i class=\"fa fa-dot-circle-o\"></i>&nbsp;&nbsp;Variable Sets</a></li>\n");
+            body.append("</ul> \n" + "</li>\n");
+            
+            
+            // actions dropdown
+            body.append(
                     "      <li class=\"dropdown\">\n" +
                     "        <a class=\"dropdown-toggle\" href=\"#\"> Actions&nbsp;<i class=\"fa fa-caret-down\"></i> </a>\n" +
                     "        <ul class=\"dropdown-menu dropdown-menu-right\">\n");
 
             body.append("<li><a href=\"RegexTester\"><i class=\"fa fa-check-circle\"></i>&nbsp;&nbsp;Regex Tester</a></li>\n");
             body.append("<li><a href=\"MetricAlertAssociations\"><i class=\"fa fa-exclamation-triangle\"></i>&nbsp;&nbsp;Metric Alert Associations</a></li>\n");
-            body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s) </a></li>\n");
-            body.append("<li><a href=\"OutputBlacklist\"><i class=\"fa fa-thumbs-down\"></i>&nbsp;&nbsp;Output Blacklist </a></li>\n");
-            body.append("<li><a href=\"Benchmark\"><i class=\"fa fa-wheelchair-alt\"></i>&nbsp;&nbsp;Metric Benchmark </a></li>\n");
-            body.append("<li><a href=\"AlertsReport\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Alerts Report </a></li>\n");
+            body.append("<li><a href=\"ForgetMetrics\"><i class=\"fa fa-eraser\"></i>&nbsp;&nbsp;Forget Metric(s)</a></li>\n");
+            body.append("<li><a href=\"OutputBlacklist\"><i class=\"fa fa-thumbs-down\"></i>&nbsp;&nbsp;Output Blacklist</a></li>\n");
+            body.append("<li><a href=\"Benchmark\"><i class=\"fa fa-wheelchair-alt\"></i>&nbsp;&nbsp;Metric Benchmark</a></li>\n");
+            body.append("<li><a href=\"AlertsReport\"><i class=\"fa fa-list-ul\"></i>&nbsp;&nbsp;Alerts Report</a></li>\n");
       
             for (HttpLink httpLink : ApplicationConfiguration.getCustomActionUrls()) {
                 if ((httpLink.getUrl() == null) || httpLink.getLinkText().isEmpty() || (httpLink.getUrl() == null) || httpLink.getUrl().isEmpty()) continue;
                 body.append("<li><a href=\"").append(httpLink.getUrl()).append("\"><i class=\"fa fa-external-link\"></i>&nbsp;&nbsp;").append(httpLink.getLinkText()).append("</a></li>\n");
             }
+            
+            body.append("</ul> \n" + "</li>\n");
 
-            body.append(
-                    "        </ul> \n" +
-                    "      </li>");
 
             body.append("      <li><a href=\"./docs/Manual.htm\"><i class=\"fa fa-question-circle\"></i></a></li>\n");
 
