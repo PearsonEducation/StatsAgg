@@ -219,7 +219,7 @@ public class CreateSuspension extends HttpServlet {
         // is enabled?
         htmlBody.append("" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Is enabled?&nbsp;&nbsp;</label>\n" +
+            "  <label class=\"label_small_margin\">Is Enabled?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"Enabled\" id=\"Enabled\" type=\"checkbox\" ");
 
         if (((suspension != null) && (suspension.isEnabled() != null) && suspension.isEnabled()) || 
@@ -233,7 +233,7 @@ public class CreateSuspension extends HttpServlet {
         // suspend notification only?
         htmlBody.append("" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Suspend notification only?&nbsp;&nbsp;</label>\n" +
+            "  <label class=\"label_small_margin\">Suspend Notification Only?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"SuspendNotificationOnly\" id=\"SuspendNotificationOnly\" type=\"checkbox\" ");
 
         if ((suspension != null) && (suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly() ||
@@ -252,7 +252,7 @@ public class CreateSuspension extends HttpServlet {
         htmlBody.append("" +
             "<div class=\"col-md-4 statsagg_three_panel_second_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
-            "    <div class=\"panel-heading\"><b>Suspend by...</b>" +
+            "    <div class=\"panel-heading\"><b>Suspend By...</b>" +
             "         <a id=\"SuspensionAssociationsPreview\" name=\"SuspensionAssociationsPreview\" class=\"iframe cboxElement statsagg_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateSuspensionAssociationsPreviewLink();\">Preview Suspension Associations</a>" + 
             "    </div>" + 
             "    <div class=\"panel-body\"> \n");
