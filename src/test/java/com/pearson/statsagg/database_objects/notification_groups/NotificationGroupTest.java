@@ -36,8 +36,8 @@ public class NotificationGroupTest {
      */
     @Test
     public void testIsEqual() {
-        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
-        NotificationGroup notificationGroup2 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
+        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", null, null, "NotificationGroup JUnit1 Email", 100);
+        NotificationGroup notificationGroup2 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", null, null, "NotificationGroup JUnit1 Email", 100);
         
         assertTrue(notificationGroup1.isEqual(notificationGroup2));
         
@@ -65,7 +65,7 @@ public class NotificationGroupTest {
      */
     @Test
     public void testCopy() {
-        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", "NotificationGroup JUnit1 Email", 100);
+        NotificationGroup notificationGroup1 = new NotificationGroup(1, "NotificationGroup JUnit1 Name", null, null, "NotificationGroup JUnit1 Email", 100);
         
         NotificationGroup notificationGroup2 = NotificationGroup.copy(notificationGroup1);
         assertTrue(notificationGroup1.isEqual(notificationGroup2));

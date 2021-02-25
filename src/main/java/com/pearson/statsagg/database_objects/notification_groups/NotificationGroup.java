@@ -6,8 +6,10 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.SerializedName;
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.database_objects.JsonOutputFieldNamingStrategy;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplate;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -21,12 +23,14 @@ import org.slf4j.LoggerFactory;
  * @author Jeffrey Schmidt
  */
 public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroup.class.getName());
 
     @SerializedName("id") private Integer id_;
     @SerializedName("name") private String name_ = null;
     private transient String uppercaseName_ = null;
+    @SerializedName("notification_group_template_id") private Integer notificationGroupTemplateId_ = null;
+    @SerializedName("variable_set_id") private Integer variableSetId_ = null;
     @SerializedName("email_addresses") private String emailAddresses_ = null;
     @SerializedName("pagerduty_service_id") private Integer pagerdutyServiceId_ = null;
 
@@ -34,14 +38,18 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         this.id_ = -1;
     }
     
-    public NotificationGroup(Integer id, String name, String emailAddresses, Integer pagerdutyServiceId) {
-        this(id, name, ((name == null) ? null : name.toUpperCase()), emailAddresses, pagerdutyServiceId);
+    public NotificationGroup(Integer id, String name, Integer notificationGroupTemplateId, Integer variableSetId, 
+            String emailAddresses, Integer pagerdutyServiceId) {
+        this(id, name, ((name == null) ? null : name.toUpperCase()), notificationGroupTemplateId, variableSetId, emailAddresses, pagerdutyServiceId);
     } 
     
-    public NotificationGroup(Integer id, String name, String uppercaseName, String emailAddresses, Integer pagerdutyServiceId) {
+    public NotificationGroup(Integer id, String name, String uppercaseName, Integer notificationGroupTemplateId, Integer variableSetId, 
+            String emailAddresses, Integer pagerdutyServiceId) {
         this.id_ = id;
         this.name_ = name;
         this.uppercaseName_ = uppercaseName;
+        this.notificationGroupTemplateId_ = notificationGroupTemplateId;
+        this.variableSetId_ = variableSetId;
         this.emailAddresses_ = emailAddresses;
         this.pagerdutyServiceId_ = pagerdutyServiceId;
     }
@@ -57,6 +65,8 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
                 .append(id_, notificationGroup.getId())
                 .append(name_, notificationGroup.getName())
                 .append(uppercaseName_, notificationGroup.getUppercaseName())
+                .append(notificationGroupTemplateId_, notificationGroup.getNotificationGroupTemplateId())
+                .append(variableSetId_, notificationGroup.getVariableSetId())
                 .append(emailAddresses_, notificationGroup.getEmailAddresses())
                 .append(pagerdutyServiceId_, notificationGroup.getPagerdutyServiceId())
                 .isEquals();
@@ -73,10 +83,19 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         
         notificationGroupCopy.setId(notificationGroup.getId());
         notificationGroupCopy.setName(notificationGroup.getName());
+        notificationGroupCopy.setVariableSetId(notificationGroup.getVariableSetId());
+        notificationGroupCopy.setNotificationGroupTemplateId(notificationGroup.getNotificationGroupTemplateId());
         notificationGroupCopy.setEmailAddresses(notificationGroup.getEmailAddresses());
         notificationGroupCopy.setPagerdutyServiceId(notificationGroup.getPagerdutyServiceId());
         
         return notificationGroupCopy;
+    }
+    
+    public static DatabaseObjectValidation isValid(NotificationGroup notificationGroup) {
+        if (notificationGroup == null) return new DatabaseObjectValidation(false, "Invalid notification group");
+        if ((notificationGroup.getName() == null) || notificationGroup.getName().isEmpty()) return new DatabaseObjectValidation(false, "Invalid name");
+
+        return new DatabaseObjectValidation(true);
     }
     
     public String getEmailAddressesCsv() {
@@ -177,6 +196,40 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         
     }
     
+    public static NotificationGroup createNotificationGroupFromNotificationGroupTemplate(NotificationGroupTemplate notificationGroupTemplate, 
+            Integer variableSetId, Integer notificationGroupId, String notificationGroupName, 
+            String emailAddresses, Integer pagerdutyServiceId) {
+
+        if (notificationGroupTemplate == null) {
+            return null;
+        }
+        
+        NotificationGroup notificationGroup = new NotificationGroup();
+
+        if (notificationGroupId == null) notificationGroup.setId(-1);
+        else notificationGroup.setId(notificationGroupId);
+        
+        notificationGroup.setNotificationGroupTemplateId(notificationGroupTemplate.getId());
+        notificationGroup.setVariableSetId(variableSetId);
+
+        notificationGroup.setName(notificationGroupName);
+        notificationGroup.setEmailAddresses(emailAddresses);
+        notificationGroup.setPagerdutyServiceId(pagerdutyServiceId);
+
+        return notificationGroup;
+    }
+    
+    public static boolean areNotificationGroupTemplateIdsInConflict(NotificationGroup notificationGroup1, NotificationGroup notificationGroup2) {
+        if (notificationGroup2 == null) return false;
+        if (notificationGroup1 == null) return false;
+        
+        if ((notificationGroup1.getNotificationGroupTemplateId() == null) && (notificationGroup2.getNotificationGroupTemplateId() == null)) return false;
+        if ((notificationGroup1.getNotificationGroupTemplateId() == null) && (notificationGroup2.getNotificationGroupTemplateId() != null)) return true;
+        if ((notificationGroup1.getNotificationGroupTemplateId() != null) && (notificationGroup2.getNotificationGroupTemplateId() == null)) return true;
+
+        return !notificationGroup1.getNotificationGroupTemplateId().equals(notificationGroup2.getNotificationGroupTemplateId());
+    }
+    
     public Integer getId() {
         return id_;
     }
@@ -197,7 +250,23 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
     public String getUppercaseName() {
         return uppercaseName_;
     }
+    
+    public Integer getNotificationGroupTemplateId() {
+        return notificationGroupTemplateId_;
+    }
 
+    public void setNotificationGroupTemplateId(Integer notificationGroupTemplateId) {
+        this.notificationGroupTemplateId_ = notificationGroupTemplateId;
+    }
+
+    public Integer getVariableSetId() {
+        return variableSetId_;
+    }
+
+    public void setVariableSetId(Integer variableSetId) {
+        this.variableSetId_ = variableSetId;
+    }
+    
     public String getEmailAddresses() {
         return emailAddresses_;
     }

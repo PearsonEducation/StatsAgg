@@ -58,7 +58,7 @@ public class NotificationGroupsDaoWrapperTest {
         assertTrue(result.contains("success") || result.contains("notification group was not found"));
         
         // create & insert a NotificationGroup, insert it into the db, retrieve it from the db, & compare the original & retrieved records
-        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1", null);   
+        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", null, null, "notification junit email 1", null);   
         result = NotificationGroupsDaoWrapper.createRecordInDatabase(notification1).getReturnString();
         assertTrue(result.contains("Success"));
         NotificationGroup notification1FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");
@@ -113,7 +113,7 @@ public class NotificationGroupsDaoWrapperTest {
         String result = NotificationGroupsDaoWrapper.deleteRecordInDatabase("notification junit name 1").getReturnString();
         assertTrue(result.contains("success") || result.contains("notification group was not found"));
         
-        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", "notification junit email 1", null);   
+        NotificationGroup notification1 = new NotificationGroup(-1, "notification junit name 1", null, null, "notification junit email 1", null);   
         result = NotificationGroupsDaoWrapper.createRecordInDatabase(notification1).getReturnString();
         assertTrue(result.contains("Success"));
         NotificationGroup notification1FromDb = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, "notification junit name 1");

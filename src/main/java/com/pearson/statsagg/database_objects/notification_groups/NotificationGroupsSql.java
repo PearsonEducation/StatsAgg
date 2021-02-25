@@ -12,12 +12,12 @@ public class NotificationGroupsSql {
     
     protected final static String Insert_NotificationGroup =
                     "INSERT INTO NOTIFICATION_GROUPS " +
-                    "(NAME, UPPERCASE_NAME, EMAIL_ADDRESSES, PAGERDUTY_SERVICE_ID) " +
-                    "VALUES(?,?,?,?)";
+                    "(NAME, UPPERCASE_NAME, NOTIFICATION_GROUP_TEMPLATE_ID, VARIABLE_SET_ID, EMAIL_ADDRESSES, PAGERDUTY_SERVICE_ID) " +
+                    "VALUES(?,?,?,?,?,?)";
     
     protected final static String Update_NotificationGroup_ByPrimaryKey =
                     "UPDATE NOTIFICATION_GROUPS " +
-                    "SET NAME = ?, UPPERCASE_NAME = ?, EMAIL_ADDRESSES = ?, PAGERDUTY_SERVICE_ID = ? " +
+                    "SET NAME = ?, UPPERCASE_NAME = ?, NOTIFICATION_GROUP_TEMPLATE_ID = ?, VARIABLE_SET_ID = ?, EMAIL_ADDRESSES = ?, PAGERDUTY_SERVICE_ID = ? " +
                     "WHERE ID = ?";
     
     protected final static String Update_NotificationGroup_Name =
@@ -54,5 +54,9 @@ public class NotificationGroupsSql {
 
     protected final static String Select_DistinctPagerdutyServiceIds = 
                     "SELECT DISTINCT(PAGERDUTY_SERVICE_ID) FROM NOTIFICATION_GROUPS";
+    
+    protected final static String Select_NotificationGroup_ByNotificationGroupTemplateId = 
+                    "SELECT * FROM NOTIFICATION_GROUPS " +
+                    "WHERE NOTIFICATION_GROUP_TEMPLATE_ID = ?";
     
 }

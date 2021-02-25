@@ -23,6 +23,8 @@ import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.configuration.ApplicationConfiguration;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplate;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplatesDao;
 import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
 import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
@@ -153,6 +155,7 @@ public class NotificationGroups extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        
         StatsAggHtmlFramework.redirectAndGet(response, 303, "NotificationGroups");
     }
     
@@ -162,13 +165,18 @@ public class NotificationGroups extends HttpServlet {
             return;
         }
         
+        Connection connection = null;
+        
         try {
-            Connection connection = DatabaseConnections.getConnection();
-            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroupId);
-            List<NotificationGroup> allNotificationGroups = NotificationGroupsDao.getNotificationGroups(connection, false);
-            DatabaseUtils.cleanup(connection);
+            connection = DatabaseConnections.getConnection();
 
-            if ((notificationGroup != null) && (notificationGroup.getName() != null)) {
+            NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(connection, false, notificationGroupId);
+            boolean isNotificationGroupCreatedByNotificationGroupTemplate = NotificationGroupsDao.isNotificationGroupCreatedByNotificationGroupTemplate(connection, false, notificationGroup, null);
+            if (isNotificationGroupCreatedByNotificationGroupTemplate) logger.warn("Can't clone an notification group that was created by an notification group template. NotificationGroupName=\"" + notificationGroup.getName() + "\".");
+            
+            if ((notificationGroup != null) && (notificationGroup.getName() != null) && !isNotificationGroupCreatedByNotificationGroupTemplate) {
+                List<NotificationGroup> allNotificationGroups = NotificationGroupsDao.getNotificationGroups(connection, true);
+                
                 Set<String> allNotificationGroupNames = new HashSet<>();
                 for (NotificationGroup currentNotificationGroup : allNotificationGroups) {
                     if (currentNotificationGroup.getName() != null) allNotificationGroupNames.add(currentNotificationGroup.getName());
@@ -185,24 +193,47 @@ public class NotificationGroups extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
     public String removeNotificationGroup(Integer notificationGroupId) {
         
-        String returnString = "Notification Group ID field can't be null.";
-        if (notificationGroupId == null) return returnString;
+        if (notificationGroupId == null) {
+            return "Notification Group ID field can't be null";
+        }
+        
+        String returnString = null;
+        
+        Connection connection = null;
         
         try {
+            connection = DatabaseConnections.getConnection(); 
+           
             NotificationGroup notificationGroup = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupId);   
-            returnString = NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup).getReturnString();
-            return returnString;
+            boolean isNotificationGroupCreatedByNotificationGroupTemplate = NotificationGroupsDao.isNotificationGroupCreatedByNotificationGroupTemplate(connection, false, notificationGroup, null);
+            
+            if (!isNotificationGroupCreatedByNotificationGroupTemplate) {
+                NotificationGroupsDaoWrapper notificationGroupsDaoWrapper = NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                returnString = notificationGroupsDaoWrapper.getReturnString();
+            }
+            else {
+                String notificationGroupName = (notificationGroup == null) ? "Unknown" : notificationGroup.getName();
+                returnString = "Can't remove a notification group that was created by a notification group template. NotificationGroupName=\"" + notificationGroupName + "\".";
+                logger.warn(returnString);
+            }
         }
         catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             returnString = "Error removing notification group";
-            return returnString;
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
-
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
+        return returnString;
     }
     
     private String buildNotificationGroupsHtml() {
@@ -226,7 +257,8 @@ public class NotificationGroups extends HttpServlet {
             "  <table id=\"NotificationGroupsTable\" style=\"display:none\" class=\"table table-bordered table-hover \">\n" +
             "    <thead>\n" +
             "      <tr>\n" +
-            "        <th>Notification Group Name</th>\n");
+            "        <th>Notification Group Name</th>\n" +
+            "        <th>Template</th>\n");
         
         htmlBodyStringBuilder.append("<th>Email addresses");
         if (ApplicationConfiguration.isPagerdutyIntegrationEnabled()) htmlBodyStringBuilder.append(" & PagerDuty services");
@@ -243,17 +275,22 @@ public class NotificationGroups extends HttpServlet {
         try {
             connection = DatabaseConnections.getConnection();
             Set<Integer> notificationGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctNotificationGroupIdsAssociatedWithAlerts(connection, false);
+            if (notificationGroupIdsAssociatedWithAlerts == null) notificationGroupIdsAssociatedWithAlerts = new HashSet<>();
             List<NotificationGroup> notificationGroups = NotificationGroupsDao.getNotificationGroups(connection, false);
             if (notificationGroups == null) notificationGroups = new ArrayList<>();
             Map<Integer,PagerdutyService> pagerdutyServices_ById = PagerdutyServicesDao.getPagerdutyServices_ById(connection, false);
             if (pagerdutyServices_ById == null) pagerdutyServices_ById = new HashMap<>();
-            DatabaseUtils.cleanup(connection);
             
             for (NotificationGroup notificationGroup : notificationGroups) {     
                 if ((notificationGroup == null) || (notificationGroup.getId() == null) || (notificationGroup.getName() == null)) continue;
 
                 String notificationGroupDetails = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
 
+                String notificationGroupTemplateNameAndLink;
+                NotificationGroupTemplate notificationGroupTemplate = NotificationGroupTemplatesDao.getNotificationGroupTemplate(connection, false, notificationGroup.getNotificationGroupTemplateId());
+                if ((notificationGroupTemplate == null) || (notificationGroupTemplate.getName() == null)) notificationGroupTemplateNameAndLink = "N/A";
+                else notificationGroupTemplateNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroupTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroupTemplate.getName()) + "</a>";
+                
                 String emailAddressesAndServicesCsv = notificationGroup.getEmailAddressesCsv();
                 if (emailAddressesAndServicesCsv == null) emailAddressesAndServicesCsv = "";
 
@@ -291,11 +328,13 @@ public class NotificationGroups extends HttpServlet {
 
                 htmlBodyStringBuilder.append("<tr>\n")
                     .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(notificationGroupTemplateNameAndLink).append("</td>\n")
                     .append("<td class=\"statsagg_force_word_break\">").append(StatsAggHtmlFramework.htmlEncode(emailAddressesAndServicesCsv)).append("</td>\n")
-                    .append("<td>").append(alter).append(", ").append(clone).append(", ").append(test);
+                    .append("<td>");
 
-                if (notificationGroupIdsAssociatedWithAlerts == null) htmlBodyStringBuilder.append(", ").append(remove);
-                else if (!notificationGroupIdsAssociatedWithAlerts.contains(notificationGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+                if (notificationGroup.getNotificationGroupTemplateId() == null) htmlBodyStringBuilder.append(alter).append(", ").append(clone).append(", ").append(test);
+                else htmlBodyStringBuilder.append(test);
+                if ((notificationGroup.getNotificationGroupTemplateId() == null) && !notificationGroupIdsAssociatedWithAlerts.contains(notificationGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
 
                 htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
             }
@@ -305,6 +344,7 @@ public class NotificationGroups extends HttpServlet {
                     + "<tfoot> \n"
                     + "  <tr>\n" 
                     + "    <th></th>\n"
+                    + "    <th></th>\n" 
                     + "    <th></th>\n" 
                     + "    <th></th>\n" 
                     + "  </tr>\n" 

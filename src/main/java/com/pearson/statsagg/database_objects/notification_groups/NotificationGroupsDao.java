@@ -25,6 +25,7 @@ public class NotificationGroupsDao {
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     NotificationGroupsSql.Insert_NotificationGroup, 
                     notificationGroup.getName(), notificationGroup.getUppercaseName(), 
+                    notificationGroup.getNotificationGroupTemplateId(), notificationGroup.getVariableSetId(),
                     notificationGroup.getEmailAddresses(), notificationGroup.getPagerdutyServiceId());
             
             return (result >= 0);
@@ -45,6 +46,7 @@ public class NotificationGroupsDao {
             long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
                     NotificationGroupsSql.Update_NotificationGroup_ByPrimaryKey, 
                     notificationGroup.getName(), notificationGroup.getUppercaseName(), 
+                    notificationGroup.getNotificationGroupTemplateId(), notificationGroup.getVariableSetId(),
                     notificationGroup.getEmailAddresses(), notificationGroup.getPagerdutyServiceId(), 
                     notificationGroup.getId());
             
@@ -385,6 +387,76 @@ public class NotificationGroupsDao {
             if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
+    }
+    
+    public static Map<String,NotificationGroup> getNotificationGroups_ByUppercaseName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<NotificationGroup> notificationGroups = getNotificationGroups(connection, false);
+            if (notificationGroups == null) return null;
+            
+            Map<String,NotificationGroup> notificationGroups_ByUppercaseName = new HashMap<>();
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup == null) || (notificationGroup.getName() == null)) continue;
+                notificationGroups_ByUppercaseName.put(notificationGroup.getName().toUpperCase(), notificationGroup);
+            }
+
+            return notificationGroups_ByUppercaseName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<NotificationGroup> getNotificationGroups_FilterByNotificationGroupTemplateId(Connection connection, boolean closeConnectionOnCompletion, Integer notificationGroupId) {
+        
+        try {
+            List<NotificationGroup> notificationGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new NotificationGroupsResultSetHandler(), 
+                    NotificationGroupsSql.Select_NotificationGroup_ByNotificationGroupTemplateId, 
+                    notificationGroupId);
+            
+            return notificationGroups;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean isNotificationGroupCreatedByNotificationGroupTemplate(Connection connection, boolean closeConnectionOnCompletion, NotificationGroup notificationGroup, String oldNotificationGroupName) {
+        
+        try {
+            NotificationGroup notificationGroupFromDb;
+            
+            if (oldNotificationGroupName != null) {
+                notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, closeConnectionOnCompletion, oldNotificationGroupName);
+            }
+            else {
+                if ((notificationGroup == null) || (notificationGroup.getName() == null)) return false;
+                notificationGroupFromDb = NotificationGroupsDao.getNotificationGroup(connection, closeConnectionOnCompletion, notificationGroup.getName());
+            }
+
+            if ((notificationGroupFromDb != null) && (notificationGroupFromDb.getNotificationGroupTemplateId() != null)) return true;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }    
+        
+        return false;
     }
     
 }

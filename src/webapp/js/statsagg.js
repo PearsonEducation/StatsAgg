@@ -224,8 +224,13 @@ $(document).ready(function () {
             "order": [[0, "asc"]],
             "autoWidth": false,
             "stateSave": true,
-            "iCookieDuration": 2592000 // 30 days
-        });
+            "iCookieDuration": 2592000, // 30 days
+            "columnDefs": [
+                {
+                    "targets": [1],
+                    "visible": false
+                }
+            ]});
 
         var tableSearchParameter = getParameterByName("TableSearch");
         if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) metricGroupsTable.search(tableSearchParameter.trim()).draw();
@@ -254,7 +259,8 @@ function yadcf_init_MetricGroupsTable(metricGroupsTable) {
         {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
-        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+        {column_number: 4, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 5, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
     ], 'footer');
 }
 
@@ -310,9 +316,14 @@ $(document).ready(function () {
             "order": [[0, "asc"]],
             "autoWidth": false,
             "stateSave": true,
-            "iCookieDuration": 2592000 // 30 days
-        });
-       
+            "iCookieDuration": 2592000, // 30 days
+            "columnDefs": [
+                {
+                    "targets": [1],
+                    "visible": false
+                }
+            ]});
+                  
         var tableSearchParameter = getParameterByName("TableSearch");
         if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) notificationGroupsTable.search(tableSearchParameter.trim()).draw();
         
@@ -336,6 +347,49 @@ $(document).ready(function () {
 
 function yadcf_init_NotificationGroupsTable(notificationGroupsTable) {
     yadcf.init(notificationGroupsTable, [
+        {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
+        {column_number: 3, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}
+    ], 'footer');
+}
+
+// Setup for the table found on the 'NotificationGroupTemplates' page
+$(document).ready(function () {
+    var table = document.getElementById('NotificationGroupTemplatesTable');
+
+    if (table !== null) {
+        var notificationGroupTemplatesTable = $('#NotificationGroupTemplatesTable').DataTable({
+            "lengthMenu": [[15, 30, 50, -1], [15, 30, 50, "All"]],
+            "order": [[0, "asc"]],
+            "autoWidth": false,
+            "stateSave": true,
+            "iCookieDuration": 2592000 // 30 days
+        });
+       
+        var tableSearchParameter = getParameterByName("TableSearch");
+        if ((tableSearchParameter !== null) && (tableSearchParameter.trim() !== "")) notificationGroupTemplatesTable.search(tableSearchParameter.trim()).draw();
+        
+        yadcf_init_NotificationGroupTemplatesTable(notificationGroupTemplatesTable);
+
+        var colvis = new $.fn.dataTable.ColVis(notificationGroupTemplatesTable, {"align": "right", "iOverlayFade": 200});
+        $(colvis.button()).prependTo('#NotificationGroupTemplatesTable_filter');
+
+        // re-initialize yadcf when a column is unhidden
+        notificationGroupTemplatesTable.on('column-visibility.dt', function (e, settings, column, state) {
+            console.log('Column ' + column + ' has changed to ' + (state ? 'visible' : 'hidden'));
+            
+            if (state === true) {
+                yadcf_init_NotificationGroupTemplatesTable(notificationGroupTemplatesTable);
+            }
+        });
+        
+        table.style.display = null;
+    }
+});
+
+function yadcf_init_NotificationGroupTemplatesTable(notificationGroupTemplatesTable) {
+    yadcf.init(notificationGroupTemplatesTable, [
         {column_number: 0, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 1, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"},
         {column_number: 2, filter_reset_button_text: false, filter_type: "text", filter_default_label: "Filter"}

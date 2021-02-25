@@ -12,10 +12,16 @@ import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupT
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplate;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplatesDao;
+import com.pearson.statsagg.database_objects.notification_group_templates.NotificationGroupTemplatesDaoWrapper;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroup;
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDaoWrapper;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
 import com.pearson.statsagg.database_objects.variable_set.VariableSet;
 import com.pearson.statsagg.database_objects.variable_set.VariableSetsDao;
 import com.pearson.statsagg.database_objects.variable_set_list_entry.VariableSetListEntriesDao;
@@ -79,15 +85,19 @@ public class TemplateThread implements Runnable {
             // update names
             updateAlertNamesToMatchAlertTemplate(); // if an alert template updated the 'alert name variable', update the derived alert names
             updateMetricGroupNamesToMatchMetricGroupTemplate(); // if an metric group template updated the 'metric group name variable', update the derived metric group names
-
+            updateNotificationGroupNamesToMatchNotificationGroupTemplate(); // if an notification group template updated the 'notification group name variable', update the derived notification group names
+            
             // delete objects that the templates no longer want to exist
             deleteAlertsThatAreNoLongerPartOfTemplates();
             deleteMetricGroupsThatAreNoLongerPartOfTemplates();
+            deleteNotificationGroupsThatAreNoLongerPartOfTemplates();
             
             // delete templates that are marked for deletion
             deleteMetricGroupsTemplatesThatAreMarkedForDeletion();
-                    
+            deleteNotificationGroupsTemplatesThatAreMarkedForDeletion();
+            
             // create and/or alter objects based on templates
+            createOrAlterNotificationGroupsFromNotificationGroupTemplate();
             createOrAlterMetricGroupsFromMetricGroupTemplate();
             createOrAlterAlertsFromAlertTemplate(); // 
             
@@ -105,6 +115,67 @@ public class TemplateThread implements Runnable {
         }
         
         isThreadCurrentlyRunning_.set(false);
+    }
+    
+    private void updateAlertNamesToMatchAlertTemplate() {
+        
+        Connection connection = DatabaseConnections.getConnection();
+        Map<Integer,AlertTemplate> alertTemplates_ById = AlertTemplatesDao.getAlertTemplates_ById(connection, false);
+        Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
+        Map<Integer,VariableSet> variableSets_ById = VariableSetsDao.getVariableSets_ById(connection, false);
+        DatabaseUtils.cleanup(connection);
+        
+        if (alerts_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
+            return; 
+        } 
+        
+        Set<String> uppercaseChangedAlertNames = new HashSet<>();
+        
+        for (Alert alert : alerts_ByName.values()) {
+            try {
+                if (alert == null) continue;
+                if (alert.getName() == null) continue; // invalid data condition
+                if (alertTemplates_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if (variableSets_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if ((alert.getAlertTemplateId() == null) && (alert.getVariableSetId() == null)) continue; // not dervied from an alert template
+                if ((alert.getAlertTemplateId() != null) && (alert.getVariableSetId() == null)) continue; // invalid data condition
+                if ((alert.getAlertTemplateId() == null) && (alert.getVariableSetId() != null)) continue; // invalid data condition
+
+                AlertTemplate alertTemplate = alertTemplates_ById.get(alert.getAlertTemplateId());
+                if (alertTemplate == null) continue; // alert template doesn't exist, alert is not template-based, so there's nothing to rename
+                
+                List<Integer> variableSetIdsAssociatedWithAlertTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(DatabaseConnections.getConnection(), true, alertTemplate.getVariableSetListId());
+                if (variableSetIdsAssociatedWithAlertTemplate_List == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                Set<Integer> variableSetIdsAssociatedWithAlertTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithAlertTemplate_List);
+                
+                if (variableSetIdsAssociatedWithAlertTemplate_Set.contains(alert.getVariableSetId()) && variableSets_ById.containsKey(alert.getVariableSetId())) {
+                    VariableSet variableSet = variableSets_ById.get(alert.getVariableSetId());
+                    if (variableSet == null) continue; // invalid data condition
+                    
+                    String alertName_New = Common.getStringWithVariableSubsistution(alertTemplate.getAlertNameVariable(), variableSet);
+                    if (alertName_New == null) continue; // invalid data condition
+                    if (alertName_New.equals(alert.getName())) continue; // alert names match, nothing to do
+                    boolean isOnlyCaseChange = alertName_New.equalsIgnoreCase(alert.getName());
+                    
+                    Set<String> uppercaseAlertNames = Common.getUppercaseStringSet(alerts_ByName.keySet());
+                    if (uppercaseAlertNames == null) continue; // invalid data condition
+                    uppercaseAlertNames.addAll(uppercaseChangedAlertNames);
+                    if (!isOnlyCaseChange && uppercaseAlertNames.contains(alertName_New.toUpperCase())) continue; // can't update alert name because another alert with the same name already exists
+  
+                    // update the alert name to match what is desired by the alert template
+                    boolean wasAlertNameUpdateSuccess = AlertsDao.update_Name(DatabaseConnections.getConnection(), true, true, alert.getId(), alertName_New);
+                    if (wasAlertNameUpdateSuccess) {
+                        logger.info("Changed AlertName=\"" + alert.getName() + "\" to \"" + alertName_New + "\"");
+                        uppercaseChangedAlertNames.add(alertName_New.toUpperCase());
+                    }
+                    else logger.warn("Failed to change AlertName=\"" + alert.getName() + "\" to \"" + alertName_New + "\"");
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
     }
     
     private void updateMetricGroupNamesToMatchMetricGroupTemplate() {
@@ -144,7 +215,7 @@ public class TemplateThread implements Runnable {
                     
                     String metricGroupName_New = Common.getStringWithVariableSubsistution(metricGroupTemplate.getMetricGroupNameVariable(), variableSet);
                     if (metricGroupName_New == null) continue; // invalid data condition
-                    if (metricGroupName_New.equals(metricGroup.getName())) continue; // metricGroup names match, nothing to do
+                    if (metricGroupName_New.equals(metricGroup.getName())) continue; // metric group names match, nothing to do
                     boolean isOnlyCaseChange = metricGroupName_New.equalsIgnoreCase(metricGroup.getName());
                     
                     Set<String> uppercaseMetricGroupNames = Common.getUppercaseStringSet(metricGroups_ByName.keySet());
@@ -152,7 +223,7 @@ public class TemplateThread implements Runnable {
                     uppercaseMetricGroupNames.addAll(uppercaseChangedMetricGroupNames);
                     if (!isOnlyCaseChange && uppercaseMetricGroupNames.contains(metricGroupName_New.toUpperCase())) continue; // can't update metric group name because another metric group with the same name already exists
   
-                    // update the metricGroup name to match what is desired by the metric group template
+                    // update the metric group name to match what is desired by the metric group template
                     boolean wasMetricGroupNameUpdateSuccess = MetricGroupsDao.update_Name(DatabaseConnections.getConnection(), true, true, metricGroup.getId(), metricGroupName_New);
                     if (wasMetricGroupNameUpdateSuccess) {
                         logger.info("Changed MetricGroupName=\"" + metricGroup.getName() + "\" to \"" + metricGroupName_New + "\"");
@@ -168,12 +239,73 @@ public class TemplateThread implements Runnable {
         
     }
     
+    private void updateNotificationGroupNamesToMatchNotificationGroupTemplate() {
+        
+        Connection connection = DatabaseConnections.getConnection();
+        Map<Integer,NotificationGroupTemplate> notificationGroupTemplates_ById = NotificationGroupTemplatesDao.getNotificationGroupTemplates_ById(connection, false);
+        Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
+        Map<Integer,VariableSet> variableSets_ById = VariableSetsDao.getVariableSets_ById(connection, false);
+        DatabaseUtils.cleanup(connection);
+        
+        if (notificationGroups_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
+            return; 
+        } 
+        
+        Set<String> uppercaseChangedNotificationGroupNames = new HashSet<>();
+        
+        for (NotificationGroup notificationGroup : notificationGroups_ByName.values()) {
+            try {
+                if (notificationGroup == null) continue;
+                if (notificationGroup.getName() == null) continue; // invalid data condition
+                if (notificationGroupTemplates_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if (variableSets_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if ((notificationGroup.getNotificationGroupTemplateId() == null) && (notificationGroup.getVariableSetId() == null)) continue; // not dervied from an notification group template
+                if ((notificationGroup.getNotificationGroupTemplateId() != null) && (notificationGroup.getVariableSetId() == null)) continue; // invalid data condition
+                if ((notificationGroup.getNotificationGroupTemplateId() == null) && (notificationGroup.getVariableSetId() != null)) continue; // invalid data condition
+
+                NotificationGroupTemplate notificationGroupTemplate = notificationGroupTemplates_ById.get(notificationGroup.getNotificationGroupTemplateId());
+                if (notificationGroupTemplate == null) continue; // notification group template doesn't exist, notification group is not template-based, so there's nothing to rename
+                
+                List<Integer> variableSetIdsAssociatedWithNotificationGroupTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(DatabaseConnections.getConnection(), true, notificationGroupTemplate.getVariableSetListId());
+                if (variableSetIdsAssociatedWithNotificationGroupTemplate_List == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                Set<Integer> variableSetIdsAssociatedWithNotificationGroupTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithNotificationGroupTemplate_List);
+                
+                if (variableSetIdsAssociatedWithNotificationGroupTemplate_Set.contains(notificationGroup.getVariableSetId()) && variableSets_ById.containsKey(notificationGroup.getVariableSetId())) {
+                    VariableSet variableSet = variableSets_ById.get(notificationGroup.getVariableSetId());
+                    if (variableSet == null) continue; // invalid data condition
+                    
+                    String notificationGroupName_New = Common.getStringWithVariableSubsistution(notificationGroupTemplate.getNotificationGroupNameVariable(), variableSet);
+                    if (notificationGroupName_New == null) continue; // invalid data condition
+                    if (notificationGroupName_New.equals(notificationGroup.getName())) continue; // notification group names match, nothing to do
+                    boolean isOnlyCaseChange = notificationGroupName_New.equalsIgnoreCase(notificationGroup.getName());
+                    
+                    Set<String> uppercaseNotificationGroupNames = Common.getUppercaseStringSet(notificationGroups_ByName.keySet());
+                    if (uppercaseNotificationGroupNames == null) continue; // invalid data condition
+                    uppercaseNotificationGroupNames.addAll(uppercaseChangedNotificationGroupNames);
+                    if (!isOnlyCaseChange && uppercaseNotificationGroupNames.contains(notificationGroupName_New.toUpperCase())) continue; // can't update notification group name because another notification group with the same name already exists
+  
+                    // update the notification group name to match what is desired by the notification group template
+                    boolean wasNotificationGroupNameUpdateSuccess = NotificationGroupsDao.update_Name(DatabaseConnections.getConnection(), true, true, notificationGroup.getId(), notificationGroupName_New);
+                    if (wasNotificationGroupNameUpdateSuccess) {
+                        logger.info("Changed NotificationGroupName=\"" + notificationGroup.getName() + "\" to \"" + notificationGroupName_New + "\"");
+                        uppercaseChangedNotificationGroupNames.add(notificationGroupName_New.toUpperCase());
+                    }
+                    else logger.warn("Failed to change NotificationGroupName=\"" + notificationGroup.getName() + "\" to \"" + notificationGroupName_New + "\"");
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+        
+    }
+    
     private void deleteMetricGroupsThatAreNoLongerPartOfTemplates() {
         
         Connection connection = DatabaseConnections.getConnection();
         Map<Integer,MetricGroupTemplate> metricGroupTemplates_ById = MetricGroupTemplatesDao.getMetricGroupTemplates_ById(connection, false);
         Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
-        Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getMetricGroupIdsAssociatedWithAlerts(connection, false);
+        Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctMetricGroupIdsAssociatedWithAlerts(connection, false);
         OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(connection, false);
         DatabaseUtils.cleanup(connection);
         
@@ -242,6 +374,79 @@ public class TemplateThread implements Runnable {
         }
 
     }
+
+    private void deleteNotificationGroupsThatAreNoLongerPartOfTemplates() {
+        
+        Connection connection = DatabaseConnections.getConnection();
+        Map<Integer,NotificationGroupTemplate> notificationGroupTemplates_ById = NotificationGroupTemplatesDao.getNotificationGroupTemplates_ById(connection, false);
+        Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
+        Set<Integer> notificationGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctNotificationGroupIdsAssociatedWithAlerts(connection, false);
+        DatabaseUtils.cleanup(connection);
+        
+        if (notificationGroups_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
+            return; 
+        } 
+        
+        for (NotificationGroup notificationGroup : notificationGroups_ByName.values()) {
+            try {
+                if (notificationGroup == null) continue;
+                if (notificationGroupTemplates_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if (notificationGroupIdsAssociatedWithAlerts == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                if ((notificationGroup.getId() != null) && notificationGroupIdsAssociatedWithAlerts.contains(notificationGroup.getId())) continue; // can't delete a notification group if it is associated with an alert
+                
+                // if the notification group doesn't have a template id, but does have a variable set id, then it should be deleted (unsupported data condition)
+                if ((notificationGroup.getNotificationGroupTemplateId() == null) && (notificationGroup.getVariableSetId() != null)) {
+                    NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                    continue;
+                }
+                else if (notificationGroup.getNotificationGroupTemplateId() == null) continue;
+
+                // if the notification group has a template id, but does not have a variable set id, then it should be deleted (unsupported data condition)
+                if ((notificationGroup.getNotificationGroupTemplateId() != null) && (notificationGroup.getVariableSetId() == null)) {
+                    NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                    continue;
+                }
+                
+                // delete the notification group if the notification group template that created it no longer exists
+                NotificationGroupTemplate notificationGroupTemplate = notificationGroupTemplates_ById.get(notificationGroup.getNotificationGroupTemplateId());
+                if (notificationGroupTemplate == null) {
+                    NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                    continue;
+                }
+
+                // delete the notification group if there is no longer a corresponding variable set list entry
+                if (notificationGroup.getVariableSetId() != null) {
+                    List<Integer> variableSetIdsAssociatedWithNotificationGroupTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(DatabaseConnections.getConnection(), true, notificationGroupTemplate.getVariableSetListId());
+                    if (variableSetIdsAssociatedWithNotificationGroupTemplate_List == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                    Set<Integer> variableSetIdsAssociatedWithNotificationGroupTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithNotificationGroupTemplate_List);
+                    
+                    if (!variableSetIdsAssociatedWithNotificationGroupTemplate_Set.contains(notificationGroup.getVariableSetId())) {
+                        NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                        continue;
+                    }
+                }
+                
+                // delete notification groups that have notification group names that don't align with what the notification group template wants the notification group names to be
+                if (notificationGroupTemplate.getVariableSetListId() != null) {
+                    Set<String> notificationGroupNamesThatNotificationGroupTemplateWantsToCreate = Common.getNamesThatTemplateWantsToCreate(notificationGroupTemplate.getVariableSetListId(), notificationGroupTemplate.getNotificationGroupNameVariable());
+                    if (notificationGroupNamesThatNotificationGroupTemplateWantsToCreate == null) continue; // if this is null, something went wrong querying the db, best to take no action
+
+                    if (!notificationGroupNamesThatNotificationGroupTemplateWantsToCreate.contains((notificationGroup.getName()))) {
+                        NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                    }
+                }
+                
+                // delete notification groups when the notification group template itself is marked for deletion
+                if ((notificationGroupTemplate.isMarkedForDelete() != null) && notificationGroupTemplate.isMarkedForDelete()) {
+                    NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroup);
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+        }
+
+    }
     
     private void deleteMetricGroupsTemplatesThatAreMarkedForDeletion() {
         
@@ -274,65 +479,35 @@ public class TemplateThread implements Runnable {
 
     }
     
-    private void updateAlertNamesToMatchAlertTemplate() {
+    private void deleteNotificationGroupsTemplatesThatAreMarkedForDeletion() {
         
         Connection connection = DatabaseConnections.getConnection();
-        Map<Integer,AlertTemplate> alertTemplates_ById = AlertTemplatesDao.getAlertTemplates_ById(connection, false);
-        Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
-        Map<Integer,VariableSet> variableSets_ById = VariableSetsDao.getVariableSets_ById(connection, false);
+        List<NotificationGroupTemplate> notificationGroupTemplates = NotificationGroupTemplatesDao.getNotificationGroupTemplates(connection, false);
         DatabaseUtils.cleanup(connection);
         
-        if (alerts_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
+        if (notificationGroupTemplates == null) { // if this is null, something went wrong querying the db, best to take no action
             return; 
         } 
         
-        Set<String> uppercaseChangedAlertNames = new HashSet<>();
-        
-        for (Alert alert : alerts_ByName.values()) {
+        for (NotificationGroupTemplate notificationGroupTemplate : notificationGroupTemplates) {
             try {
-                if (alert == null) continue;
-                if (alert.getName() == null) continue; // invalid data condition
-                if (alertTemplates_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
-                if (variableSets_ById == null) continue; // if this is null, something went wrong querying the db, best to take no action
-                if ((alert.getAlertTemplateId() == null) && (alert.getVariableSetId() == null)) continue; // not dervied from an alert template
-                if ((alert.getAlertTemplateId() != null) && (alert.getVariableSetId() == null)) continue; // invalid data condition
-                if ((alert.getAlertTemplateId() == null) && (alert.getVariableSetId() != null)) continue; // invalid data condition
-
-                AlertTemplate alertTemplate = alertTemplates_ById.get(alert.getAlertTemplateId());
-                if (alertTemplate == null) continue; // alert template doesn't exist, alert is not template-based, so there's nothing to rename
+                if (notificationGroupTemplate == null) continue; // if this is null, something went wrong. best to take no action
+                if (notificationGroupTemplate.isMarkedForDelete() == null) continue; // invalid data condition
+                if (notificationGroupTemplate.getId() == null) continue; // invalid data condition
                 
-                List<Integer> variableSetIdsAssociatedWithAlertTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(DatabaseConnections.getConnection(), true, alertTemplate.getVariableSetListId());
-                if (variableSetIdsAssociatedWithAlertTemplate_List == null) continue; // if this is null, something went wrong querying the db, best to take no action
-                Set<Integer> variableSetIdsAssociatedWithAlertTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithAlertTemplate_List);
+                List<NotificationGroup> notificationGroupsAssociatedWithNotificationGroupTemplate = NotificationGroupsDao.getNotificationGroups_FilterByNotificationGroupTemplateId(DatabaseConnections.getConnection(), true, notificationGroupTemplate.getId());
+                if (notificationGroupsAssociatedWithNotificationGroupTemplate == null) continue; // if this is null, something went wrong. best to take no action
                 
-                if (variableSetIdsAssociatedWithAlertTemplate_Set.contains(alert.getVariableSetId()) && variableSets_ById.containsKey(alert.getVariableSetId())) {
-                    VariableSet variableSet = variableSets_ById.get(alert.getVariableSetId());
-                    if (variableSet == null) continue; // invalid data condition
-                    
-                    String alertName_New = Common.getStringWithVariableSubsistution(alertTemplate.getAlertNameVariable(), variableSet);
-                    if (alertName_New == null) continue; // invalid data condition
-                    if (alertName_New.equals(alert.getName())) continue; // alert names match, nothing to do
-                    boolean isOnlyCaseChange = alertName_New.equalsIgnoreCase(alert.getName());
-                    
-                    Set<String> uppercaseAlertNames = Common.getUppercaseStringSet(alerts_ByName.keySet());
-                    if (uppercaseAlertNames == null) continue; // invalid data condition
-                    uppercaseAlertNames.addAll(uppercaseChangedAlertNames);
-                    if (!isOnlyCaseChange && uppercaseAlertNames.contains(alertName_New.toUpperCase())) continue; // can't update alert name because another alert with the same name already exists
-  
-                    // update the alert name to match what is desired by the alert template
-                    boolean wasAlertNameUpdateSuccess = AlertsDao.update_Name(DatabaseConnections.getConnection(), true, true, alert.getId(), alertName_New);
-                    if (wasAlertNameUpdateSuccess) {
-                        logger.info("Changed AlertName=\"" + alert.getName() + "\" to \"" + alertName_New + "\"");
-                        uppercaseChangedAlertNames.add(alertName_New.toUpperCase());
-                    }
-                    else logger.warn("Failed to change AlertName=\"" + alert.getName() + "\" to \"" + alertName_New + "\"");
+                // if there are no notification groups associated with the template, and the template is marked for deletion, then delete the template
+                if (notificationGroupTemplate.isMarkedForDelete() && (notificationGroupsAssociatedWithNotificationGroupTemplate.size() <= 0)) {
+                    NotificationGroupTemplatesDaoWrapper.deleteRecordInDatabase(notificationGroupTemplate);
                 }
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
         }
-        
+
     }
     
     private void deleteAlertsThatAreNoLongerPartOfTemplates() {
@@ -583,6 +758,88 @@ public class TemplateThread implements Runnable {
                     description, matchRegexesSortedSet, blacklistRegexesSortedSet, tagsSortedSet);
             
             return metricGroup;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    private void createOrAlterNotificationGroupsFromNotificationGroupTemplate() {
+        
+        Connection connection = DatabaseConnections.getConnection();
+        List<NotificationGroupTemplate> notificationGroupTemplates = NotificationGroupTemplatesDao.getNotificationGroupTemplates(connection, false);
+        Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
+        Map<String,PagerdutyService> pagerdutyServices_ByName = PagerdutyServicesDao.getPagerdutyServices_ByName(connection, false);
+        DatabaseUtils.cleanup(connection);
+        
+        // if any of these are null, something went wrong querying the db, best to take no action
+        if ((notificationGroupTemplates == null) || (notificationGroups_ByName == null)) { 
+            return;
+        }
+        
+        for (NotificationGroupTemplate notificationGroupTemplate : notificationGroupTemplates) {
+            try {
+                if (notificationGroupTemplate == null) continue;
+                if ((notificationGroupTemplate.isMarkedForDelete() == null) || notificationGroupTemplate.isMarkedForDelete()) continue;
+                
+                List<VariableSet> variableSets = Common.getVariableSetsFromVariableSetIdList(notificationGroupTemplate.getVariableSetListId());
+                if (variableSets == null) continue; // if this is null, something went wrong querying the db, best to take no action
+                
+                for (VariableSet variableSet : variableSets) {
+                    if (variableSet == null) continue;
+
+                    NotificationGroup notificationGroup = createNotificationGroupFromNotificationGroupTemplate(notificationGroupTemplate, variableSet, notificationGroups_ByName, pagerdutyServices_ByName);
+                    if (notificationGroup == null) continue;
+                    
+                    String notificationGroupName = Common.getStringWithVariableSubsistution(notificationGroupTemplate.getNotificationGroupNameVariable(), variableSet);
+                    NotificationGroup notificationGroupFromDb = notificationGroups_ByName.get(notificationGroupName);
+                    boolean isNotificationGroupEqualToNotificationGroupInDatabase = notificationGroup.isEqual(notificationGroupFromDb);
+
+                    if (!isNotificationGroupEqualToNotificationGroupInDatabase) {
+                        DatabaseObjectValidation databaseObjectValidation = NotificationGroup.isValid(notificationGroup);
+                        boolean isNotificationGroupTemplateIdConflict = NotificationGroup.areNotificationGroupTemplateIdsInConflict(notificationGroup, notificationGroupFromDb);
+                        
+                        if (!isNotificationGroupTemplateIdConflict && databaseObjectValidation.isValid()) {
+                            if (notificationGroupFromDb != null) NotificationGroupsDaoWrapper.alterRecordInDatabase(notificationGroup, notificationGroupFromDb.getName());
+                            else NotificationGroupsDaoWrapper.alterRecordInDatabase(notificationGroup);
+                        }
+                    }
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            finally {
+                DatabaseUtils.cleanup(connection);
+            }
+        }
+        
+    }
+    
+    public static NotificationGroup createNotificationGroupFromNotificationGroupTemplate(NotificationGroupTemplate notificationGroupTemplate, VariableSet variableSet, 
+            Map<String, NotificationGroup> notificationGroups_ByName, Map<String, PagerdutyService> pagerdutyServices_ByName) {
+
+        if (notificationGroupTemplate == null) return null;
+        
+        try {
+            Integer variableSetId = (variableSet != null) ? variableSet.getId() : null;
+
+            String notificationGroupName = Common.getStringWithVariableSubsistution(notificationGroupTemplate.getNotificationGroupNameVariable(), variableSet);
+            NotificationGroup notificationGroupFromDb = (notificationGroups_ByName != null) ? notificationGroups_ByName.get(notificationGroupName) : null;
+            Integer notificationGroupId = (notificationGroupFromDb != null) ? notificationGroupFromDb.getId() : null;
+
+            String emailAddresses = Common.getStringWithVariableSubsistution(notificationGroupTemplate.getEmailAddressesVariable(), variableSet);  
+
+            String pagerdutyServiceName = Common.getStringWithVariableSubsistution(notificationGroupTemplate.getPagerdutyServiceNameVariable(), variableSet);
+            PagerdutyService pagerdutyServiceFromDb = (pagerdutyServices_ByName != null) ? pagerdutyServices_ByName.get(pagerdutyServiceName) : null;
+            Integer pagerdutyServiceId = (pagerdutyServiceFromDb != null) ? pagerdutyServiceFromDb.getId() : null;
+            
+            NotificationGroup notificationGroup = NotificationGroup.createNotificationGroupFromNotificationGroupTemplate(notificationGroupTemplate, 
+                    variableSetId, notificationGroupId, notificationGroupName, emailAddresses, pagerdutyServiceId);
+            
+            return notificationGroup;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
