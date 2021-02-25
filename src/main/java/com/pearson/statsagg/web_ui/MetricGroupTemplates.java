@@ -130,6 +130,11 @@ public class MetricGroupTemplates extends HttpServlet {
                 Integer metricGroupTemplateId = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
                 MetricGroupTemplates.removeMetricGroupTemplate(metricGroupTemplateId);
             }
+            
+            if ((operation != null) && operation.equals("Undelete")) {
+                Integer id = Integer.parseInt(Common.getSingleParameterAsString(request, "Id"));
+                undeleteMetricGroupTemplate(id);
+            }
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -206,6 +211,36 @@ public class MetricGroupTemplates extends HttpServlet {
         return returnString;
     }
     
+    public static String undeleteMetricGroupTemplate(Integer metricGroupTemplateId) {
+
+        if (metricGroupTemplateId == null) {
+            return "Metric Group Template ID field can't be null";
+        }
+        
+        String returnString;
+        
+        try {
+            MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(DatabaseConnections.getConnection(), true, metricGroupTemplateId);
+            if (metricGroupTemplate != null) metricGroupTemplate.setIsMarkedForDelete(false);
+            
+            MetricGroupTemplatesDaoWrapper metricGroupTemplatesDaoWrapper = MetricGroupTemplatesDaoWrapper.alterRecordInDatabase(metricGroupTemplate);
+            
+            if ((GlobalVariables.templateInvokerThread != null) && (MetricGroupTemplatesDaoWrapper.STATUS_CODE_SUCCESS == metricGroupTemplatesDaoWrapper.getLastAlterRecordStatus())) {
+                logger.info("Running template routine due to metric group template undelete operation");
+                GlobalVariables.templateInvokerThread.runTemplateThread();
+                Threads.sleepMilliseconds(300); // sleep for 300ms to give the template thread a change to run before re-rendering the page
+            }
+            
+            returnString = metricGroupTemplatesDaoWrapper.getReturnString();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            returnString = "Error undeleting metric group template";
+        }
+        
+        return returnString;
+    }
+    
     public static String buildMetricGroupTemplatesHtml() {
         
         StringBuilder html = new StringBuilder();
@@ -271,12 +306,20 @@ public class MetricGroupTemplates extends HttpServlet {
                 String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroupTemplate.getName(), "MetricGroupTemplates", "remove", 
                         removeKeysAndValues, true, "Are you sure you want to remove this metric group template?");
 
+                List<KeyValue<String,String>> undeleteKeysAndValues = new ArrayList<>();
+                undeleteKeysAndValues.add(new KeyValue("Operation", "Undelete"));
+                undeleteKeysAndValues.add(new KeyValue("Id", metricGroupTemplate.getId().toString()));
+                String undelete = StatsAggHtmlFramework.buildJavaScriptPostLink("Undelete_" + metricGroupTemplate.getName(), "MetricGroupTemplates", "undelete", undeleteKeysAndValues);       
+                
                 htmlBodyStringBuilder
                         .append("<tr ").append(rowStatusContext).append(">\n")
                         .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTemplateDetails).append("</td>\n")
                         .append("<td class=\"statsagg_force_word_break\">").append(derivedMetricGroupDetails).append("</td>\n")
-                        .append("<td>").append(alter).append(", ").append(clone).append(", ").append(remove);
+                        .append("<td>").append(alter).append(", ").append(clone).append(", ");
 
+                if ((metricGroupTemplate.isMarkedForDelete() != null) && !metricGroupTemplate.isMarkedForDelete()) htmlBodyStringBuilder.append(remove);
+                else htmlBodyStringBuilder.append(undelete);
+                
                 htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
             }
 
