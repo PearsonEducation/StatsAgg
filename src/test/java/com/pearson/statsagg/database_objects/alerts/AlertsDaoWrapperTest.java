@@ -62,7 +62,7 @@ public class AlertsDaoWrapperTest {
         // delete previous notification group, create a new notification group, and retrieve it from the db. this notification group exists solely for this unit test.
         result = NotificationGroupsDaoWrapper.deleteRecordInDatabase(notificationGroupName_).getReturnString();
         assertTrue(result.contains("success") || result.contains("The notification group was not found"));
-        NotificationGroup notificationGroup = new NotificationGroup(-1, notificationGroupName_, notificationGroupName_, null);   
+        NotificationGroup notificationGroup = new NotificationGroup(-1, notificationGroupName_, null, null, notificationGroupName_, null);   
         result = NotificationGroupsDaoWrapper.createRecordInDatabase(notificationGroup).getReturnString();
         assertTrue(result.contains("Success"));
         notificationGroup_ = NotificationGroupsDao.getNotificationGroup(DatabaseConnections.getConnection(), true, notificationGroupName_);
