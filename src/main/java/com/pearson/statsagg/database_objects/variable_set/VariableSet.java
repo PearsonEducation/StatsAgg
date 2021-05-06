@@ -99,8 +99,8 @@ public class VariableSet implements DatabaseObject<VariableSet>  {
                 
                 if (variableKeyAndValue_Seperated != null) {
                     if (variableKeyAndValue_Seperated.length == 0) continue;
-                    if (variableKeyAndValue_Seperated.length == 1) continue;
                     if (variableKeyAndValue_Seperated.length > 2) continue;
+                    if (variableKeyAndValue_Seperated.length == 1) variablesMap.put(variableKeyAndValue_Seperated[0], "");
                     if (variableKeyAndValue_Seperated.length == 2) variablesMap.put(variableKeyAndValue_Seperated[0], variableKeyAndValue_Seperated[1]);
                 }
             }
