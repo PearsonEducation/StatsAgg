@@ -216,15 +216,15 @@ public class CreateAlertTemplate extends HttpServlet {
         htmlBody.append(">\n</div>\n");
         
         
-        // description
+        // description variable
         htmlBody.append(
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Description</label>\n" +
+            "  <label class=\"label_small_margin\">Description Variable</label>\n" +
             "  <button type=\"button\" id=\"DescriptionVariable_Help\" class=\"btn btn-xs btn-circle btn-info pull-right\" data-toggle=\"popover\" data-placement=\"left\" data-content=\"A templated description. Variable values are substituted using ```key```.\" style=\"margin-bottom: 1.5px;\">?</button> " + 
-            "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"Description\" id=\"Description\">");
+            "  <textarea class=\"form-control-statsagg\" rows=\"3\" name=\"DescriptionVariable\" id=\"DescriptionVariable\">");
 
         if ((alertTemplate != null) && (alertTemplate.getDescriptionVariable() != null)) {
-            htmlBody.append(StatsAggHtmlFramework.htmlEncode(alertTemplate.getDescriptionVariable(), true));
+            htmlBody.append(StatsAggHtmlFramework.htmlEncode(alertTemplate.getDescriptionVariable().trim(), true));
         }
 
         htmlBody.append("</textarea>\n");
@@ -1031,16 +1031,10 @@ public class CreateAlertTemplate extends HttpServlet {
             String trimmedName = (parameter != null) ? parameter.trim() : "";
             alertTemplate.setName(trimmedName);
 
-            parameter = Common.getSingleParameterAsString(request, "Description");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                alertTemplate.setDescriptionVariable(description);
-            }
-            else alertTemplate.setDescriptionVariable("");
+            parameter = Common.getSingleParameterAsString(request, "DescriptionVariable");
+            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description_variable");
+            if (parameter == null) alertTemplate.setDescriptionVariable("");
+            else alertTemplate.setDescriptionVariable(Common.getTextAreaValue(parameter, 100000, true));
             
             parameter = Common.getSingleParameterAsString(request, "VariableSetListName");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "variable_set_list_name");
