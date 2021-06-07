@@ -3,7 +3,11 @@ function generateAlertPreviewLink(warningLevel) {
     var warningLevelParameter = "WarningLevel=" + encodeURIComponent(warningLevel);
 
     var nameParameter = "Name=" + encodeURIComponent(document.getElementById("AlertNameVariable").value.substring(0, 500));
-    var descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("Description").value.substring(0, 500));
+    
+    var descriptionParameter = "";
+    var doesDescriptionElementExist = document.getElementById("Description");
+    if (doesDescriptionElementExist === null) descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("DescriptionVariable").value.substring(0, 500));
+    else descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("DescriptionVariable").value.substring(0, 500));
 
     var cautionEnabledParameter = "CautionEnabled=" + encodeURIComponent(document.getElementById("CautionEnabled").value);
     var dangerEnabledParameter = "DangerEnabled=" + encodeURIComponent(document.getElementById("DangerEnabled").value);
