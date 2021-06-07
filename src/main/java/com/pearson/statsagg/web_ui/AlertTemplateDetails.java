@@ -150,7 +150,7 @@ public class AlertTemplateDetails extends HttpServlet {
             
             outputString.append("<br>");
 
-            outputString.append("<b>Description:</b> ");
+            outputString.append("<b>Description Variable:</b> ");
             if ((alertTemplate.getDescriptionVariable() != null) && !alertTemplate.getDescriptionVariable().isBlank()) {
                 outputString.append("<br>");
                 String encodedAlertDescription = StatsAggHtmlFramework.htmlEncode(alertTemplate.getDescriptionVariable());
