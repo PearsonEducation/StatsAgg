@@ -16,6 +16,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.TreeSet;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -380,47 +381,48 @@ public class CreateMetricGroupTemplate extends HttpServlet {
             
             parameter = Common.getSingleParameterAsString(request, "DescriptionVariable");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description_variable");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String descriptionVariable;
-                if (trimmedParameter.length() > 100000) descriptionVariable = trimmedParameter.substring(0, 99999);
-                else descriptionVariable = trimmedParameter;
-                metricGroupTemplate.setDescriptionVariable(descriptionVariable);
-            }
-            else metricGroupTemplate.setDescriptionVariable("");
+            if (parameter == null) metricGroupTemplate.setDescriptionVariable("");
+            else metricGroupTemplate.setDescriptionVariable(Common.getTextAreaValue(parameter, 100000, true));
             
-            parameter = Common.getSingleParameterAsString(request, "MatchRegexesVariable");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "match_regexes_variable");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String matchRegexesVariable;
-                if (trimmedParameter.length() > 100000) matchRegexesVariable = trimmedParameter.substring(0, 99999);
-                else matchRegexesVariable = trimmedParameter;
-                metricGroupTemplate.setMatchRegexesVariable(matchRegexesVariable);
+            String matchRegexVariablesString = "";
+            TreeSet<String> matchRegexVariables;
+            TreeSet<String> matchRegexVariables_Ui = Common.getMultilineParameterValues(request, "MatchRegexesVariable");
+            TreeSet<String> matchRegexVariables_Api_1 = Common.getMultilineParameterValues(request, "match_regexes_variable");
+            TreeSet<String> matchRegexVariables_Api_2 = Common.getMultilineParameterValues(request, "match-regexes-variable");
+            if ((matchRegexVariables_Ui != null) || (matchRegexVariables_Api_1 != null) || (matchRegexVariables_Api_2 != null)) {
+                matchRegexVariables = new TreeSet<>();
+                if (matchRegexVariables_Ui != null) matchRegexVariables.addAll(matchRegexVariables_Ui);
+                if (matchRegexVariables_Api_1 != null) matchRegexVariables.addAll(matchRegexVariables_Api_1);
+                if (matchRegexVariables_Api_2 != null) matchRegexVariables.addAll(matchRegexVariables_Api_2);
+                for (String matchRegex : matchRegexVariables) matchRegexVariablesString += matchRegex + "\n";
             }
-            else metricGroupTemplate.setMatchRegexesVariable("");
+            metricGroupTemplate.setMatchRegexesVariable(matchRegexVariablesString.trim());
             
-            parameter = Common.getSingleParameterAsString(request, "BlacklistRegexesVariable");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "blacklist_regexes_variable");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String blacklistRegexesVariable;
-                if (trimmedParameter.length() > 100000) blacklistRegexesVariable = trimmedParameter.substring(0, 99999);
-                else blacklistRegexesVariable = trimmedParameter;
-                metricGroupTemplate.setBlacklistRegexsVariable(blacklistRegexesVariable);
+            String blacklistRegexVariablesString = "";
+            TreeSet<String> blacklistRegexVariables;
+            TreeSet<String> blacklistRegexVariables_Ui = Common.getMultilineParameterValues(request, "BlacklistRegexesVariable");
+            TreeSet<String> blacklistRegexVariables_Api_1 = Common.getMultilineParameterValues(request, "blacklist_regexes-variable");
+            TreeSet<String> blacklistRegexVariables_Api_2 = Common.getMultilineParameterValues(request, "blacklist-regexes-variable");
+            if ((blacklistRegexVariables_Ui != null) || (blacklistRegexVariables_Api_1 != null) || (blacklistRegexVariables_Api_2 != null)) {
+                blacklistRegexVariables = new TreeSet<>();
+                if (blacklistRegexVariables_Ui != null) blacklistRegexVariables.addAll(blacklistRegexVariables_Ui);
+                if (blacklistRegexVariables_Api_1 != null) blacklistRegexVariables.addAll(blacklistRegexVariables_Api_1);
+                if (blacklistRegexVariables_Api_2 != null) blacklistRegexVariables.addAll(blacklistRegexVariables_Api_2);
+                for (String blacklistRegex : blacklistRegexVariables) blacklistRegexVariablesString += blacklistRegex + "\n";
             }
-            else metricGroupTemplate.setBlacklistRegexsVariable("");
-            
-            parameter = Common.getSingleParameterAsString(request, "TagsVariable");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "tags_variable");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String tagsVariable;
-                if (trimmedParameter.length() > 100000) tagsVariable = trimmedParameter.substring(0, 99999);
-                else tagsVariable = trimmedParameter;
-                metricGroupTemplate.setTagsVariable(tagsVariable);
+            metricGroupTemplate.setBlacklistRegexesVariable(blacklistRegexVariablesString.trim());
+                      
+            String tagVariablesString = "";
+            TreeSet<String> tagVariables;
+            TreeSet<String> tagVariables_Ui = Common.getMultilineParameterValues(request, "TagsVariable");
+            TreeSet<String> tagVariables_Api = Common.getMultilineParameterValues(request, "tags-variable");
+            if ((tagVariables_Ui != null) || (tagVariables_Api != null)) {
+                tagVariables = new TreeSet<>();
+                if (tagVariables_Ui != null) tagVariables.addAll(tagVariables_Ui);
+                if (tagVariables_Api != null) tagVariables.addAll(tagVariables_Api);
+                for (String tag : tagVariables) tagVariablesString += tag + "\n";
             }
-            else metricGroupTemplate.setTagsVariable("");
+            metricGroupTemplate.setTagsVariable(tagVariablesString.trim());
         }
         catch (Exception e) {
             didEncounterError = true;

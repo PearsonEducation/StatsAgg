@@ -313,14 +313,8 @@ public class CreateVariableSetList extends HttpServlet {
 
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                variableSetList.setDescription(description);
-            }
-            else variableSetList.setDescription("");
+            if (parameter == null) variableSetList.setDescription("");
+            else variableSetList.setDescription(Common.getTextAreaValue(parameter, 100000, true));
         }
         catch (Exception e) {
             didEncounterError = true;

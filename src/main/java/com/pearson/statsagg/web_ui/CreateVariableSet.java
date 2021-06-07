@@ -9,6 +9,9 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.TreeSet;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -281,16 +284,26 @@ public class CreateVariableSet extends HttpServlet {
             }
             else variableSet.setDescription("");
             
-            parameter = Common.getSingleParameterAsString(request, "Variables");
-            if (parameter == null) parameter = Common.getSingleParameterAsString(request, "variables");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String variables;
-                if (trimmedParameter.length() > 100000) variables = trimmedParameter.substring(0, 99999);
-                else variables = trimmedParameter;
-                variableSet.setVariables(variables);
+            String variablesString = "";
+            TreeSet<String> variables;
+            TreeSet<String> variables_Ui = Common.getMultilineParameterValues(request, "Variables", false);
+            TreeSet<String> variables_Api = Common.getMultilineParameterValues(request, "variables", false);
+            if ((variables_Ui != null) || (variables_Api != null)) {
+                variables = new TreeSet<>();
+                if (variables_Ui != null) variables.addAll(variables_Ui);
+                if (variables_Api != null) variables.addAll(variables_Api);
+                
+                List<String> variablesArray = new ArrayList<>(variables);
+                List<String> variablesNotBlankArray = new ArrayList<>();
+                for (String variable : variablesArray) if ((variable != null) && !variable.isBlank()) variablesNotBlankArray.add(variable);
+                
+                for (int i = 0; i < variablesNotBlankArray.size(); i++) {
+                    String variable = variablesNotBlankArray.get(i);
+                    if (i+1 >= variablesNotBlankArray.size()) variablesString += variable;
+                    else variablesString += variable + "\n";
+                }
             }
-            else variableSet.setVariables("");
+            variableSet.setVariables(variablesString);
         }
         catch (Exception e) {
             didEncounterError = true;

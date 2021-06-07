@@ -352,14 +352,8 @@ public class CreateMetricGroup extends HttpServlet {
 
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                metricGroup.setDescription(description);
-            }
-            else metricGroup.setDescription("");
+            if (parameter == null) metricGroup.setDescription("");
+            else metricGroup.setDescription(Common.getTextAreaValue(parameter, 100000, true));
             
             TreeSet<String> matchRegexes = null;
             TreeSet<String> matchRegexes_Ui = Common.getMultilineParameterValues(request, "MatchRegexes");

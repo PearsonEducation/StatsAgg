@@ -615,15 +615,9 @@ public class CreateSuspension extends HttpServlet {
             
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                suspension.setDescription(description);
-            }
-            else suspension.setDescription("");
-            
+            if (parameter == null) suspension.setDescription("");
+            else suspension.setDescription(Common.getTextAreaValue(parameter, 100000, true));
+
             parameter = Common.getSingleParameterAsString(request, "Enabled");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "enabled");
             if ((parameter != null) && (parameter.contains("on") || parameter.contains("true"))) suspension.setIsEnabled(true);

@@ -1029,14 +1029,8 @@ public class CreateAlert extends HttpServlet {
                         
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                alert.setDescription(description);
-            }
-            else alert.setDescription("");
+            if (parameter == null) alert.setDescription("");
+            else alert.setDescription(Common.getTextAreaValue(parameter, 100000, true));
             
             parameter = Common.getSingleParameterAsString(request, "MetricGroupName");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "metric_group_name");
