@@ -7,6 +7,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.Scanner;
 import java.util.TreeSet;
 import javax.servlet.http.HttpServletRequest;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -45,6 +46,10 @@ public class Common {
     }
     
     protected static TreeSet<String> getMultilineParameterValues(Object request, String parameterName) {
+        return getMultilineParameterValues(request, parameterName, true);
+    }
+    
+    protected static TreeSet<String> getMultilineParameterValues(Object request, String parameterName, boolean trimEachLine) {
         
         if ((request == null) || (parameterName == null)) {
             return null;
@@ -61,14 +66,27 @@ public class Common {
                     Scanner scanner = new Scanner(parameter);
 
                     while (scanner.hasNext()) {
-                        parameterValues.add(scanner.nextLine().trim());
+                        String value = scanner.nextLine();
+                        if ((value == null) || value.isEmpty()) continue;
+                        
+                        String trimmedValue = value.trim();
+                        if (trimEachLine && !trimmedValue.isEmpty()) parameterValues.add(trimmedValue);
+                        else parameterValues.add(value);
                     }
                 }
             }
             else if (request instanceof JsonObject) {
                 JsonObject jsonObject = (JsonObject) request;
                 JsonArray jsonArray = jsonObject.getAsJsonArray(parameterName);
-                if (jsonArray != null) for (JsonElement jsonElement : jsonArray) parameterValues.add(jsonElement.getAsString());
+                
+                if (jsonArray != null) {
+                    for (JsonElement jsonElement : jsonArray) {
+                        if (jsonElement == null) continue;
+                        
+                        if (trimEachLine) parameterValues.add(jsonElement.getAsString().trim());
+                        else parameterValues.add(jsonElement.getAsString());
+                    }
+                }
             }
         }
         catch (Exception e) {
@@ -79,6 +97,19 @@ public class Common {
         if (didEncounterError) parameterValues = null;
         
         return parameterValues;
+    }
+    
+    public static String getTextAreaValue(String parameter, int maxCharacters, boolean trimValue) {
+        
+        if (parameter == null) return null;
+        
+        String finalParameterValue;
+
+        String tempParameterValue = (trimValue) ? parameter.trim() : parameter;
+        if (tempParameterValue.length() > maxCharacters) finalParameterValue = tempParameterValue.substring(0, (maxCharacters - 1));
+        else finalParameterValue = tempParameterValue;
+
+        return finalParameterValue;
     }
     
 }
