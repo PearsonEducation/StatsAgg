@@ -1,6 +1,7 @@
 package com.pearson.statsagg.database_objects.metric_group_templates;
 
 import com.google.gson.annotations.SerializedName;
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -90,7 +91,7 @@ public class MetricGroupTemplate implements DatabaseObject<MetricGroupTemplate> 
         metricGroupTemplateCopy.setMetricGroupNameVariable(metricGroupTemplate.getMetricGroupNameVariable());
         metricGroupTemplateCopy.setDescriptionVariable(metricGroupTemplate.getDescriptionVariable());
         metricGroupTemplateCopy.setMatchRegexesVariable(metricGroupTemplate.getMatchRegexesVariable());
-        metricGroupTemplateCopy.setBlacklistRegexsVariable(metricGroupTemplate.getBlacklistRegexesVariable());
+        metricGroupTemplateCopy.setBlacklistRegexesVariable(metricGroupTemplate.getBlacklistRegexesVariable());
         metricGroupTemplateCopy.setTagsVariable(metricGroupTemplate.getTagsVariable());
         metricGroupTemplateCopy.setIsMarkedForDelete(metricGroupTemplate.isMarkedForDelete());
 
@@ -114,7 +115,7 @@ public class MetricGroupTemplate implements DatabaseObject<MetricGroupTemplate> 
 
         return new DatabaseObjectValidation(true);
     }
-    
+
     public Integer getId() {
         return id_;
     }
@@ -172,7 +173,7 @@ public class MetricGroupTemplate implements DatabaseObject<MetricGroupTemplate> 
         return blacklistRegexesVariable_;
     }
 
-    public void setBlacklistRegexsVariable(String blacklistRegexesVariable) {
+    public void setBlacklistRegexesVariable(String blacklistRegexesVariable) {
         this.blacklistRegexesVariable_ = blacklistRegexesVariable;
     }
 
