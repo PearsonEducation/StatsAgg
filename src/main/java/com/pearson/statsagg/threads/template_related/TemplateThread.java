@@ -1,5 +1,6 @@
 package com.pearson.statsagg.threads.template_related;
 
+import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
 import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDao;
@@ -741,12 +742,18 @@ public class TemplateThread implements Runnable {
 
             List<String> matchRegexesList = null;
             String matchRegexes = Common.getStringWithVariableSubsistution(metricGroupTemplate.getMatchRegexesVariable(), variableSet);  
-            if (matchRegexes != null) matchRegexesList = StringUtilities.getListOfStringsFromDelimitedString(matchRegexes.trim(), '\n');
+            if (matchRegexes != null) {
+                String matchRegexesTrimmed = DatabaseObjectCommon.trimNewLineDelimitedString(matchRegexes);
+                matchRegexesList = StringUtilities.getListOfStringsFromDelimitedString(matchRegexesTrimmed.trim(), '\n');
+            }
             TreeSet<String> matchRegexesSortedSet = (matchRegexesList == null) ? null : new TreeSet<>(matchRegexesList);
 
             List<String> blacklistRegexesList = null;
             String blacklistRegexes = Common.getStringWithVariableSubsistution(metricGroupTemplate.getBlacklistRegexesVariable(), variableSet);  
-            if (blacklistRegexes != null) blacklistRegexesList = StringUtilities.getListOfStringsFromDelimitedString(blacklistRegexes.trim(), '\n');
+            if (blacklistRegexes != null) {
+                String blacklistRegexesTrimmed = DatabaseObjectCommon.trimNewLineDelimitedString(blacklistRegexes);
+                blacklistRegexesList = StringUtilities.getListOfStringsFromDelimitedString(blacklistRegexesTrimmed.trim(), '\n');
+            }
             TreeSet<String> blacklistRegexesSortedSet = (blacklistRegexesList == null) ? null : new TreeSet<>(blacklistRegexesList);
 
             List<String> tagsList = null;
