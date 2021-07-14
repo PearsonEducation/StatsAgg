@@ -267,21 +267,31 @@ public class AlertTemplates extends HttpServlet {
             for (AlertTemplate alertTemplate : alertTemplates) {
                 if (alertTemplate == null) continue;
 
-                List<Alert> alerts = AlertsDao.getAlerts_FilterByAlertTemplateId(connection, false, alertTemplate.getId());
+                List<Alert> derivedAlerts = AlertsDao.getAlerts_FilterByAlertTemplateId(connection, false, alertTemplate.getId());
+                Map<String,Alert> derivedAlerts_ByName = Alert.getAlerts_ByName(derivedAlerts);
                 Set<String> alertNamesThatAlertTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(alertTemplate.getVariableSetListId(), alertTemplate.getAlertNameVariable());
-                String numberOfDerivedAlerts = (alerts == null) ? "0" : (alerts.size() + "");
+                String numberOfDerivedAlerts = (derivedAlerts_ByName == null) ? "0" : (derivedAlerts_ByName.size() + "");
 
+                boolean doAllDesiredAlertsExist = true;
+                if ((alertNamesThatAlertTemplateWantsToCreate != null) && (derivedAlerts_ByName != null)) {
+                    for (String alertNameThatAlertTemplateWantsToCreate : alertNamesThatAlertTemplateWantsToCreate) {
+                        if (!derivedAlerts_ByName.containsKey(alertNameThatAlertTemplateWantsToCreate)) doAllDesiredAlertsExist = false;
+                    }
+                }
+                
                 boolean isAlertStatusWarning = false, isAlertStatusDanger = false;
-                if (alerts != null) {
-                    for (Alert alert : alerts) {
-                        DatabaseObjectStatus alertStatus = AlertTemplate_DerivedAlerts.getAlertStatus(connection, alertTemplate, alert, null, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
+                if (derivedAlerts != null) {
+                    for (Alert derivedAlert : derivedAlerts) {
+                        DatabaseObjectStatus alertStatus = AlertTemplate_DerivedAlerts.getAlertStatus(connection, alertTemplate, derivedAlert, null, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
                         if ((alertStatus != null) && (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_WARNING)) isAlertStatusWarning = true;
                         if ((alertStatus != null) && (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_DANGER)) isAlertStatusDanger = true;
                     }
                 }
 
                 String rowAlertStatusContext = "";
-                if ((alertNamesThatAlertTemplateWantsToCreate != null) && (alerts != null) && (alerts.size() != alertNamesThatAlertTemplateWantsToCreate.size())) rowAlertStatusContext = "class=\"danger\"";
+                if ((alertNamesThatAlertTemplateWantsToCreate != null) && (derivedAlerts != null) && (!doAllDesiredAlertsExist || (derivedAlerts.size() != alertNamesThatAlertTemplateWantsToCreate.size()))) {
+                    rowAlertStatusContext = "class=\"danger\"";
+                }
                 else if (isAlertStatusDanger) rowAlertStatusContext = "class=\"danger\"";
                 else if (isAlertStatusWarning) rowAlertStatusContext = "class=\"warning\"";
 

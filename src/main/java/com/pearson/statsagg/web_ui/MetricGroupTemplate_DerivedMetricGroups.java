@@ -141,57 +141,32 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
         try {
             connection = DatabaseConnections.getConnection();
             
-            Map<String,String> metricGroupStrings = new HashMap<>();
-
             MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroupTemplateName);
             if ((metricGroupTemplate == null) || (metricGroupTemplate.getId() == null)) return "<b>Metric group template not found</b>";
-
-            Map<String,MetricGroup> metricGroups_ByUppercaseName = MetricGroupsDao.getMetricGroups_ByUppercaseName(connection, false);
-            if (metricGroups_ByUppercaseName == null) return "<b>Error retrieving metric groups</b>";
-
+            
+            List<MetricGroup> derivedMetricGroups = MetricGroupsDao.getMetricGroups_FilterByMetricGroupTemplateId(connection, false, metricGroupTemplate.getId());
+            Map<String,MetricGroup> derivedMetricGroups_ByName = MetricGroup.getMetricGroups_ByName(derivedMetricGroups);
+            if (derivedMetricGroups_ByName == null) return "<b>Error retrieving derived metric groups</b>";
+            
+            Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
+            if (metricGroups_ByName == null) return "<b>Error retrieving metric groups</b>";
+            
             Map<Integer,String> metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate_ByVariableSetId(metricGroupTemplate.getVariableSetListId(), metricGroupTemplate.getMetricGroupNameVariable());
             if (metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId == null) return "<b>Error retrieving desired derived metric groups</b>";
-
+            
             outputString.append("<b>Metric Group Template Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName())).append("<br>");
-
+            
             int desiredDerivedMetricGroupCount = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.size();
             outputString.append("<b>Total Desired Derived Metric Groups</b> = ").append(desiredDerivedMetricGroupCount).append("<br><br>");
             if (desiredDerivedMetricGroupCount <= 0) return outputString.toString();
-
-            outputString.append("<b>Desired Derived Metric Groups...</b>").append("<br>");
-
-            outputString.append("<ul>");
             
-            Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
-
-            for (Integer variableSetId : metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.keySet()) {
-                if (variableSetId == null) continue;
-
-                String metricGroupNameThatMetricGroupTemplateWantsToCreate = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
-                if (metricGroupNameThatMetricGroupTemplateWantsToCreate == null) continue;
-
-                MetricGroup metricGroup = metricGroups_ByUppercaseName.get(metricGroupNameThatMetricGroupTemplateWantsToCreate.toUpperCase());
-
-                DatabaseObjectStatus metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
-                
-                String metricGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
-                        StatsAggHtmlFramework.urlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "</a>";
-
-                if (metricGroupStatus == null) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(unknown error)</b></li>");
-                else if (metricGroupStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li>" + metricGroupDetailsUrl + "</li>");
-                else metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(" + metricGroupStatus.getReason() + ")</b></li>");
-            }
+            String desiredDerivedMetricGroupsHtml = getDesiredDerivedMetricGroupsHtml(connection, metricGroups_ByName, metricGroupTemplate, metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(desiredDerivedMetricGroupsHtml);
             
-            List<String> sortedMetricGroupStrings = new ArrayList<>(metricGroupStrings.keySet());
-            Collections.sort(sortedMetricGroupStrings);
-
-            for (String metricGroupString : sortedMetricGroupStrings) {
-                String metricGroupOutputString = metricGroupStrings.get(metricGroupString);
-                outputString.append(metricGroupOutputString);
-            }
-
-            outputString.append("</ul>");
+            if ((desiredDerivedMetricGroupsHtml != null) && !desiredDerivedMetricGroupsHtml.isBlank()) outputString.append("<br>");
+            
+            String undesiredDerivedMetricGroupsHtml = getUndesiredDerivedMetricGroupsHtml(derivedMetricGroups_ByName, metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(undesiredDerivedMetricGroupsHtml);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -202,7 +177,98 @@ public class MetricGroupTemplate_DerivedMetricGroups extends HttpServlet {
 
         return outputString.toString();
     }
+    
+    private static String getDesiredDerivedMetricGroupsHtml(Connection connection, Map<String,MetricGroup> metricGroups_ByName, 
+            MetricGroupTemplate metricGroupTemplate, Map<Integer,String> metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyDesiredMetricGroups = false;
+            
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> metricGroupStrings = new HashMap<>();
 
+        Map<String,MetricGroup> metricGroups_ByUppercaseName = MetricGroup.getMetricGroups_ByUppercaseName(metricGroups_ByName.values());
+
+        for (Integer variableSetId : metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.keySet()) {
+            if (variableSetId == null) continue;
+
+            String metricGroupNameThatMetricGroupTemplateWantsToCreate = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
+            if (metricGroupNameThatMetricGroupTemplateWantsToCreate == null) continue;
+
+            MetricGroup metricGroup = metricGroups_ByUppercaseName.get(metricGroupNameThatMetricGroupTemplateWantsToCreate.toUpperCase());
+
+            DatabaseObjectStatus metricGroupStatus = getMetricGroupStatus(connection, metricGroupTemplate, metricGroup, variableSetId, metricGroups_ByName);
+
+            String metricGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(metricGroupNameThatMetricGroupTemplateWantsToCreate) + "</a>";
+
+            if (metricGroupStatus == null) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(unknown error)</b></li>");
+            else if (metricGroupStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li>" + metricGroupDetailsUrl + "</li>");
+            else metricGroupStrings.put(metricGroupNameThatMetricGroupTemplateWantsToCreate, "<li><b>" + metricGroupDetailsUrl + "&nbsp(" + metricGroupStatus.getReason() + ")</b></li>");
+
+            areThereAnyDesiredMetricGroups = true;
+        }
+        
+        if (areThereAnyDesiredMetricGroups) {
+            outputString.append("<b>Desired Derived Metric Groups...</b>").append("<br>");
+
+            outputString.append("<ul>");
+
+            List<String> sortedMetricGroupStrings = new ArrayList<>(metricGroupStrings.keySet());
+            Collections.sort(sortedMetricGroupStrings);
+
+            for (String metricGroupString : sortedMetricGroupStrings) {
+                String metricGroupOutputString = metricGroupStrings.get(metricGroupString);
+                outputString.append(metricGroupOutputString);
+            }
+
+            outputString.append("</ul>");
+        }
+        
+        return outputString.toString();
+    }
+    
+    private static String getUndesiredDerivedMetricGroupsHtml(Map<String,MetricGroup> derivedMetricGroups_ByName, Map<Integer,String> metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyUndesiredMetricGroups = false;
+        
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> metricGroupStrings = new HashMap<>();
+        
+        for (MetricGroup derivedMetricGroup : derivedMetricGroups_ByName.values()) {
+            if (derivedMetricGroup == null) continue;
+
+            String metricGroupNameThatMetricGroupTemplateWantsToCreate = metricGroupNamesThatMetricGroupTemplateWantsToCreate_ByVariableSetId.get(derivedMetricGroup.getVariableSetId());
+            
+            if ((metricGroupNameThatMetricGroupTemplateWantsToCreate != null) && derivedMetricGroup.getName().equals(metricGroupNameThatMetricGroupTemplateWantsToCreate)) continue;
+
+            String metricGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(derivedMetricGroup.getName()) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(derivedMetricGroup.getName()) + "</a>";
+
+            metricGroupStrings.put(derivedMetricGroup.getName(), "<li><b>" + metricGroupDetailsUrl + "</b></li>");
+            areThereAnyUndesiredMetricGroups = true;
+        }
+
+        if (areThereAnyUndesiredMetricGroups) {
+            outputString.append("<b>Undesired Derived Metric Groups... (should not exist, deletion is being prevented)</b>").append("<br>");
+
+            outputString.append("<ul>");
+
+            List<String> sortedMetricGroupStrings = new ArrayList<>(metricGroupStrings.keySet());
+            Collections.sort(sortedMetricGroupStrings);
+
+            for (String metricGroupString : sortedMetricGroupStrings) {
+                String metricGroupOutputString = metricGroupStrings.get(metricGroupString);
+                outputString.append(metricGroupOutputString);
+            }
+
+            outputString.append("</ul>");   
+        }
+        
+        return outputString.toString();
+    }
+    
     private static DatabaseObjectStatus getMetricGroupStatus(Connection connection, MetricGroupTemplate metricGroupTemplate, MetricGroup metricGroup, 
             Integer variableSetId, Map<String,MetricGroup> metricGroups_ByName) {
         

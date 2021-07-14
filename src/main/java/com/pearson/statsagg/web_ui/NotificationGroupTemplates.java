@@ -20,6 +20,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.core_utils.Threads;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
+import java.util.Map;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -286,12 +287,21 @@ public class NotificationGroupTemplates extends HttpServlet {
             for (NotificationGroupTemplate notificationGroupTemplate : notificationGroupTemplates) {     
                 if ((notificationGroupTemplate == null) || (notificationGroupTemplate.getId() == null) || (notificationGroupTemplate.getName() == null)) continue;
 
-                List<NotificationGroup> notificationGroups = NotificationGroupsDao.getNotificationGroups_FilterByNotificationGroupTemplateId(DatabaseConnections.getConnection(), true, notificationGroupTemplate.getId());
+                List<NotificationGroup> derivedNotificationGroups = NotificationGroupsDao.getNotificationGroups_FilterByNotificationGroupTemplateId(DatabaseConnections.getConnection(), true, notificationGroupTemplate.getId());
+                Map<String,NotificationGroup> derivedNotificationGroups_ByName = NotificationGroup.getNotificationGroups_ByName(derivedNotificationGroups);
                 Set<String> notificationGroupNamesThatNotificationGroupTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(notificationGroupTemplate.getVariableSetListId(), notificationGroupTemplate.getNotificationGroupNameVariable());
-                String numberOfDerivedNotificationGroups = (notificationGroups == null) ? "0" : (notificationGroups.size() + "");
+                String numberOfDerivedNotificationGroups = (derivedNotificationGroups_ByName == null) ? "0" : (derivedNotificationGroups_ByName.size() + "");
+                
+                boolean doAllDesiredNotificationGroupsExist = true;
+                if ((notificationGroupNamesThatNotificationGroupTemplateWantsToCreate != null) && (derivedNotificationGroups_ByName != null)) {
+                    for (String notificationGroupNameThatNotificationGroupTemplateWantsToCreate : notificationGroupNamesThatNotificationGroupTemplateWantsToCreate) {
+                        if (!derivedNotificationGroups_ByName.containsKey(notificationGroupNameThatNotificationGroupTemplateWantsToCreate)) doAllDesiredNotificationGroupsExist = false;
+                    }
+                }
                 
                 String rowStatusContext = "";
-                if ((notificationGroupNamesThatNotificationGroupTemplateWantsToCreate != null) && (notificationGroups != null) && (notificationGroups.size() != notificationGroupNamesThatNotificationGroupTemplateWantsToCreate.size())) {
+                if ((notificationGroupNamesThatNotificationGroupTemplateWantsToCreate != null) && (derivedNotificationGroups_ByName != null) && 
+                        (!doAllDesiredNotificationGroupsExist || (derivedNotificationGroups_ByName.size() != notificationGroupNamesThatNotificationGroupTemplateWantsToCreate.size()))) {
                     rowStatusContext = "class=\"danger\"";
                 }
                 

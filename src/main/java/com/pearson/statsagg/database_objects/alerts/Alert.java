@@ -19,6 +19,9 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.json_utils.JsonBigDecimal;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.TimeUnit;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -798,6 +801,48 @@ public class Alert extends AbstractAlert implements DatabaseObject<Alert> {
         if ((alert1.getAlertTemplateId() != null) && (alert2.getAlertTemplateId() == null)) return true;
 
         return !alert1.getAlertTemplateId().equals(alert2.getAlertTemplateId());
+    }
+    
+    public static Map<String,Alert> getAlerts_ByName(Collection<Alert> alerts) {
+        
+        if (alerts == null) return null;
+        
+        try {
+            Map<String,Alert> alerts_ByName = new HashMap<>();
+
+            for (Alert alert : alerts) {
+                if ((alert == null) || (alert.getName() == null)) continue;
+                alerts_ByName.put(alert.getName(), alert);
+            }
+
+            return alerts_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
+    }
+    
+    public static Map<String,Alert> getAlerts_ByUppercaseName(Collection<Alert> alerts) {
+        
+        if (alerts == null) return null;
+        
+        try {
+            Map<String,Alert> alerts_ByUppercaseName = new HashMap<>();
+
+            for (Alert alert : alerts) {
+                if ((alert == null) || (alert.getName() == null)) continue;
+                alerts_ByUppercaseName.put(alert.getName().toUpperCase(), alert);
+            }
+
+            return alerts_ByUppercaseName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
     }
     
     public String getDescription() {

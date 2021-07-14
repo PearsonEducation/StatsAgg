@@ -13,7 +13,10 @@ import com.pearson.statsagg.database_objects.notification_group_templates.Notifi
 import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -228,6 +231,48 @@ public class NotificationGroup implements DatabaseObject<NotificationGroup>  {
         if ((notificationGroup1.getNotificationGroupTemplateId() != null) && (notificationGroup2.getNotificationGroupTemplateId() == null)) return true;
 
         return !notificationGroup1.getNotificationGroupTemplateId().equals(notificationGroup2.getNotificationGroupTemplateId());
+    }
+    
+    public static Map<String,NotificationGroup> getNotificationGroups_ByName(Collection<NotificationGroup> notificationGroups) {
+        
+        if (notificationGroups == null) return null;
+        
+        try {
+            Map<String,NotificationGroup> notificationGroups_ByName = new HashMap<>();
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup == null) || (notificationGroup.getName() == null)) continue;
+                notificationGroups_ByName.put(notificationGroup.getName(), notificationGroup);
+            }
+
+            return notificationGroups_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
+    }
+    
+    public static Map<String,NotificationGroup> getNotificationGroups_ByUppercaseName(Collection<NotificationGroup> notificationGroups) {
+        
+        if (notificationGroups == null) return null;
+        
+        try {
+            Map<String,NotificationGroup> notificationGroups_ByUppercaseName = new HashMap<>();
+
+            for (NotificationGroup notificationGroup : notificationGroups) {
+                if ((notificationGroup == null) || (notificationGroup.getName() == null)) continue;
+                notificationGroups_ByUppercaseName.put(notificationGroup.getName().toUpperCase(), notificationGroup);
+            }
+
+            return notificationGroups_ByUppercaseName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
     }
     
     public Integer getId() {

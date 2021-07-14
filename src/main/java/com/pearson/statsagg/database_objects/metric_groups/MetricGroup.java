@@ -14,8 +14,11 @@ import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupT
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.collection_utils.CollectionUtilities;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -244,6 +247,48 @@ public class MetricGroup implements DatabaseObject<MetricGroup>  {
         if ((metricGroup1.getMetricGroupTemplateId() != null) && (metricGroup2.getMetricGroupTemplateId() == null)) return true;
 
         return !metricGroup1.getMetricGroupTemplateId().equals(metricGroup2.getMetricGroupTemplateId());
+    }
+    
+    public static Map<String,MetricGroup> getMetricGroups_ByName(Collection<MetricGroup> metricGroups) {
+        
+        if (metricGroups == null) return null;
+        
+        try {
+            Map<String,MetricGroup> metricGroups_ByName = new HashMap<>();
+
+            for (MetricGroup metricGroup : metricGroups) {
+                if ((metricGroup == null) || (metricGroup.getName() == null)) continue;
+                metricGroups_ByName.put(metricGroup.getName(), metricGroup);
+            }
+
+            return metricGroups_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
+    }
+    
+    public static Map<String,MetricGroup> getMetricGroups_ByUppercaseName(Collection<MetricGroup> metricGroups) {
+        
+        if (metricGroups == null) return null;
+        
+        try {
+            Map<String,MetricGroup> metricGroups_ByUppercaseName = new HashMap<>();
+
+            for (MetricGroup metricGroup : metricGroups) {
+                if ((metricGroup == null) || (metricGroup.getName() == null)) continue;
+                metricGroups_ByUppercaseName.put(metricGroup.getName().toUpperCase(), metricGroup);
+            }
+
+            return metricGroups_ByUppercaseName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+
     }
     
     public Integer getId() {

@@ -142,15 +142,17 @@ public class NotificationGroupTemplate_DerivedNotificationGroups extends HttpSer
         
         try {
             connection = DatabaseConnections.getConnection();
-            
-            Map<String,String> notificationGroupStrings = new HashMap<>();
-
+                        
             NotificationGroupTemplate notificationGroupTemplate = NotificationGroupTemplatesDao.getNotificationGroupTemplate(connection, false, notificationGroupTemplateName);
             if ((notificationGroupTemplate == null) || (notificationGroupTemplate.getId() == null)) return "<b>Notification group template not found</b>";
-
-            Map<String,NotificationGroup> notificationGroups_ByUppercaseName = NotificationGroupsDao.getNotificationGroups_ByUppercaseName(connection, false);
-            if (notificationGroups_ByUppercaseName == null) return "<b>Error retrieving notification groups</b>";
-
+ 
+            List<NotificationGroup> derivedNotificationGroups = NotificationGroupsDao.getNotificationGroups_FilterByNotificationGroupTemplateId(connection, false, notificationGroupTemplate.getId());
+            Map<String,NotificationGroup> derivedNotificationGroups_ByName = NotificationGroup.getNotificationGroups_ByName(derivedNotificationGroups);
+            if (derivedNotificationGroups_ByName == null) return "<b>Error retrieving derived notification groups</b>";
+            
+            Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
+            if (notificationGroups_ByName == null) return "<b>Error retrieving notification groups</b>";
+            
             Map<Integer,String> notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate_ByVariableSetId(notificationGroupTemplate.getVariableSetListId(), notificationGroupTemplate.getNotificationGroupNameVariable());
             if (notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId == null) return "<b>Error retrieving desired derived notification groups</b>";
 
@@ -160,32 +162,61 @@ public class NotificationGroupTemplate_DerivedNotificationGroups extends HttpSer
             outputString.append("<b>Total Desired Derived Notification Groups</b> = ").append(desiredDerivedNotificationGroupCount).append("<br><br>");
             if (desiredDerivedNotificationGroupCount <= 0) return outputString.toString();
 
+            String desiredDerivedNotificationGroupsHtml = getDesiredDerivedNotificationGroupsHtml(connection, notificationGroups_ByName, notificationGroupTemplate, notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(desiredDerivedNotificationGroupsHtml);
+            
+            if ((desiredDerivedNotificationGroupsHtml != null) && !desiredDerivedNotificationGroupsHtml.isBlank()) outputString.append("<br>");
+            
+            String undesiredDerivedNotificationGroupsHtml = getUndesiredDerivedNotificationGroupsHtml(derivedNotificationGroups_ByName, notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(undesiredDerivedNotificationGroupsHtml);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+
+        return outputString.toString();
+    }
+    
+    private static String getDesiredDerivedNotificationGroupsHtml(Connection connection, Map<String,NotificationGroup> notificationGroups_ByName, 
+            NotificationGroupTemplate notificationGroupTemplate, Map<Integer,String> notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyDesiredNotificationGroups = false;
+            
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> notificationGroupStrings = new HashMap<>();
+
+        Map<String,NotificationGroup> notificationGroups_ByUppercaseName = NotificationGroup.getNotificationGroups_ByUppercaseName(notificationGroups_ByName.values());
+        Map<String,PagerdutyService> pagerdutyServices_ByName = PagerdutyServicesDao.getPagerdutyServices_ByName(connection, false);
+
+        for (Integer variableSetId : notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId.keySet()) {
+            if (variableSetId == null) continue;
+
+            String notificationGroupNameThatNotificationGroupTemplateWantsToCreate = notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
+            if (notificationGroupNameThatNotificationGroupTemplateWantsToCreate == null) continue;
+
+            NotificationGroup notificationGroup = notificationGroups_ByUppercaseName.get(notificationGroupNameThatNotificationGroupTemplateWantsToCreate.toUpperCase());
+
+            DatabaseObjectStatus notificationGroupStatus = getNotificationGroupStatus(connection, notificationGroupTemplate, notificationGroup, variableSetId, notificationGroups_ByName, pagerdutyServices_ByName);
+
+            String notificationGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(notificationGroupNameThatNotificationGroupTemplateWantsToCreate) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(notificationGroupNameThatNotificationGroupTemplateWantsToCreate) + "</a>";
+
+            if (notificationGroupStatus == null) notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li><b>" + notificationGroupDetailsUrl + "&nbsp(unknown error)</b></li>");
+            else if (notificationGroupStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li>" + notificationGroupDetailsUrl + "</li>");
+            else notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li><b>" + notificationGroupDetailsUrl + "&nbsp(" + notificationGroupStatus.getReason() + ")</b></li>");
+
+            areThereAnyDesiredNotificationGroups = true;
+        }
+        
+        if (areThereAnyDesiredNotificationGroups) {
             outputString.append("<b>Desired Derived Notification Groups...</b>").append("<br>");
 
             outputString.append("<ul>");
-            
-            Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
-            Map<String,PagerdutyService> pagerdutyServices_ByName = PagerdutyServicesDao.getPagerdutyServices_ByName(connection, false);
-                    
-            for (Integer variableSetId : notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId.keySet()) {
-                if (variableSetId == null) continue;
 
-                String notificationGroupNameThatNotificationGroupTemplateWantsToCreate = notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
-                if (notificationGroupNameThatNotificationGroupTemplateWantsToCreate == null) continue;
-
-                NotificationGroup notificationGroup = notificationGroups_ByUppercaseName.get(notificationGroupNameThatNotificationGroupTemplateWantsToCreate.toUpperCase());
-
-                DatabaseObjectStatus notificationGroupStatus = getNotificationGroupStatus(connection, notificationGroupTemplate, notificationGroup, variableSetId, notificationGroups_ByName, pagerdutyServices_ByName);
-                
-                String notificationGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
-                        StatsAggHtmlFramework.urlEncode(notificationGroupNameThatNotificationGroupTemplateWantsToCreate) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(notificationGroupNameThatNotificationGroupTemplateWantsToCreate) + "</a>";
-
-                if (notificationGroupStatus == null) notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li><b>" + notificationGroupDetailsUrl + "&nbsp(unknown error)</b></li>");
-                else if (notificationGroupStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li>" + notificationGroupDetailsUrl + "</li>");
-                else notificationGroupStrings.put(notificationGroupNameThatNotificationGroupTemplateWantsToCreate, "<li><b>" + notificationGroupDetailsUrl + "&nbsp(" + notificationGroupStatus.getReason() + ")</b></li>");
-            }
-            
             List<String> sortedNotificationGroupStrings = new ArrayList<>(notificationGroupStrings.keySet());
             Collections.sort(sortedNotificationGroupStrings);
 
@@ -196,13 +227,48 @@ public class NotificationGroupTemplate_DerivedNotificationGroups extends HttpSer
 
             outputString.append("</ul>");
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        finally {
-            DatabaseUtils.cleanup(connection);
+        
+        return outputString.toString();
+    }
+    
+    private static String getUndesiredDerivedNotificationGroupsHtml(Map<String,NotificationGroup> derivedNotificationGroups_ByName, Map<Integer,String> notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyUndesiredNotificationGroups = false;
+        
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> notificationGroupStrings = new HashMap<>();
+        
+        for (NotificationGroup derivedNotificationGroup : derivedNotificationGroups_ByName.values()) {
+            if (derivedNotificationGroup == null) continue;
+
+            String notificationGroupNameThatNotificationGroupTemplateWantsToCreate = notificationGroupNamesThatNotificationGroupTemplateWantsToCreate_ByVariableSetId.get(derivedNotificationGroup.getVariableSetId());
+            
+            if ((notificationGroupNameThatNotificationGroupTemplateWantsToCreate != null) && derivedNotificationGroup.getName().equals(notificationGroupNameThatNotificationGroupTemplateWantsToCreate)) continue;
+
+            String notificationGroupDetailsUrl = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(derivedNotificationGroup.getName()) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(derivedNotificationGroup.getName()) + "</a>";
+
+            notificationGroupStrings.put(derivedNotificationGroup.getName(), "<li><b>" + notificationGroupDetailsUrl + "</b></li>");
+            areThereAnyUndesiredNotificationGroups = true;
         }
 
+        if (areThereAnyUndesiredNotificationGroups) {
+            outputString.append("<b>Undesired Derived Notification Groups... (should not exist, deletion is being prevented)</b>").append("<br>");
+
+            outputString.append("<ul>");
+
+            List<String> sortedNotificationGroupStrings = new ArrayList<>(notificationGroupStrings.keySet());
+            Collections.sort(sortedNotificationGroupStrings);
+
+            for (String notificationGroupString : sortedNotificationGroupStrings) {
+                String notificationGroupOutputString = notificationGroupStrings.get(notificationGroupString);
+                outputString.append(notificationGroupOutputString);
+            }
+
+            outputString.append("</ul>");   
+        }
+        
         return outputString.toString();
     }
 

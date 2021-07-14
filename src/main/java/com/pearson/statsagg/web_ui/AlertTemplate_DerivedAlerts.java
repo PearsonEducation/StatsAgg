@@ -131,7 +131,6 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
         }
         
     }
-
     private String getAlertTemplate_DerivedAlerts(String alertTemplateName, boolean excludeNavbar) {
         
         if (alertTemplateName == null) {
@@ -145,50 +144,81 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
         try {
             connection = DatabaseConnections.getConnection();
             
-            Map<String,String> alertStrings = new HashMap<>();
-
             AlertTemplate alertTemplate = AlertTemplatesDao.getAlertTemplate(connection, false, alertTemplateName);
             if ((alertTemplate == null) || (alertTemplate.getId() == null)) return "<b>Alert template not found</b>";
-
-            Map<String,Alert> alerts_ByUppercaseName = AlertsDao.getAlerts_ByUppercaseName(connection, false);
-            if (alerts_ByUppercaseName == null) return "<b>Error retrieving alerts</b>";
-
+            
+            List<Alert> derivedAlerts = AlertsDao.getAlerts_FilterByAlertTemplateId(connection, false, alertTemplate.getId());
+            Map<String,Alert> derivedAlerts_ByName = Alert.getAlerts_ByName(derivedAlerts);
+            if (derivedAlerts_ByName == null) return "<b>Error retrieving derived alerts</b>";
+            
+            Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
+            if (alerts_ByName == null) return "<b>Error retrieving alerts</b>";
+            
             Map<Integer,String> alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate_ByVariableSetId(alertTemplate.getVariableSetListId(), alertTemplate.getAlertNameVariable());
             if (alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId == null) return "<b>Error retrieving desired derived alerts</b>";
-
+            
             outputString.append("<b>Alert Template Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(alertTemplate.getName())).append("<br>");
-
+            
             int desiredDerivedAlertCount = alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.size();
             outputString.append("<b>Total Desired Derived Alerts</b> = ").append(desiredDerivedAlertCount).append("<br><br>");
             if (desiredDerivedAlertCount <= 0) return outputString.toString();
+            
+            String desiredDerivedAlertsHtml = getDesiredDerivedAlertsHtml(connection, alerts_ByName, alertTemplate, alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(desiredDerivedAlertsHtml);
+            
+            if ((desiredDerivedAlertsHtml != null) && !desiredDerivedAlertsHtml.isBlank()) outputString.append("<br>");
+            
+            String undesiredDerivedAlertsHtml = getUndesiredDerivedAlertsHtml(derivedAlerts_ByName, alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId);
+            outputString.append(undesiredDerivedAlertsHtml);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
 
+        return outputString.toString();
+    }
+    
+    private static String getDesiredDerivedAlertsHtml(Connection connection, Map<String,Alert> alerts_ByName, 
+            AlertTemplate alertTemplate, Map<Integer,String> alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyDesiredAlerts = false;
+            
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> alertStrings = new HashMap<>();
+
+        Map<String,Alert> alerts_ByUppercaseName = Alert.getAlerts_ByUppercaseName(alerts_ByName.values());
+        Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
+        Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
+        
+        for (Integer variableSetId : alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.keySet()) {
+            if (variableSetId == null) continue;
+
+            String alertNameThatAlertTemplateWantsToCreate = alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
+            if (alertNameThatAlertTemplateWantsToCreate == null) continue;
+
+            Alert alert = alerts_ByUppercaseName.get(alertNameThatAlertTemplateWantsToCreate.toUpperCase());
+
+            DatabaseObjectStatus alertStatus = getAlertStatus(connection, alertTemplate, alert, variableSetId, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
+
+            String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(alertNameThatAlertTemplateWantsToCreate) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(alertNameThatAlertTemplateWantsToCreate) + "</a>";
+
+            if (alertStatus == null) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(unknown error)</b></li>");
+            else if (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li>" + alertDetailsUrl + "</li>");
+            else alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(" + alertStatus.getReason() + ")</b></li>");
+
+            areThereAnyDesiredAlerts = true;
+        }
+        
+        if (areThereAnyDesiredAlerts) {
             outputString.append("<b>Desired Derived Alerts...</b>").append("<br>");
 
             outputString.append("<ul>");
 
-            Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
-            Map<String,MetricGroup> metricGroups_ByName = MetricGroupsDao.getMetricGroups_ByName(connection, false);
-            Map<String,NotificationGroup> notificationGroups_ByName = NotificationGroupsDao.getNotificationGroups_ByName(connection, false);
-                
-            for (Integer variableSetId : alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.keySet()) {
-                if (variableSetId == null) continue;
-                
-                String alertNameThatAlertTemplateWantsToCreate = alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.get(variableSetId);
-                if (alertNameThatAlertTemplateWantsToCreate == null) continue;
-
-                Alert alert = alerts_ByUppercaseName.get(alertNameThatAlertTemplateWantsToCreate.toUpperCase());
-
-                String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
-                        StatsAggHtmlFramework.urlEncode(alertNameThatAlertTemplateWantsToCreate) + "\">" + 
-                        StatsAggHtmlFramework.htmlEncode(alertNameThatAlertTemplateWantsToCreate) + "</a>";
-
-                DatabaseObjectStatus alertStatus = getAlertStatus(connection, alertTemplate, alert, variableSetId, alerts_ByName, metricGroups_ByName, notificationGroups_ByName);
-
-                if (alertStatus == null) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(unknown error)</b></li>");
-                else if (alertStatus.getStatus() == DatabaseObjectStatus.STATUS_GOOD) alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li>" + alertDetailsUrl + "</li>");
-                else alertStrings.put(alertNameThatAlertTemplateWantsToCreate, "<li><b>" + alertDetailsUrl + "&nbsp(" + alertStatus.getReason() + ")</b></li>");
-            }
-            
             List<String> sortedAlertStrings = new ArrayList<>(alertStrings.keySet());
             Collections.sort(sortedAlertStrings);
 
@@ -199,13 +229,48 @@ public class AlertTemplate_DerivedAlerts extends HttpServlet {
 
             outputString.append("</ul>");
         }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-        }
-        finally {
-            DatabaseUtils.cleanup(connection);
+        
+        return outputString.toString();
+    }
+    
+    private static String getUndesiredDerivedAlertsHtml(Map<String,Alert> derivedAlerts_ByName, Map<Integer,String> alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId) {
+        
+        boolean areThereAnyUndesiredAlerts = false;
+        
+        StringBuilder outputString = new StringBuilder();
+        Map<String,String> alertStrings = new HashMap<>();
+        
+        for (Alert derivedAlert : derivedAlerts_ByName.values()) {
+            if (derivedAlert == null) continue;
+
+            String alertNameThatAlertTemplateWantsToCreate = alertNamesThatAlertTemplateWantsToCreate_ByVariableSetId.get(derivedAlert.getVariableSetId());
+            
+            if ((alertNameThatAlertTemplateWantsToCreate != null) && derivedAlert.getName().equals(alertNameThatAlertTemplateWantsToCreate)) continue;
+
+            String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + 
+                    StatsAggHtmlFramework.urlEncode(derivedAlert.getName()) + "\">" + 
+                    StatsAggHtmlFramework.htmlEncode(derivedAlert.getName()) + "</a>";
+
+            alertStrings.put(derivedAlert.getName(), "<li><b>" + alertDetailsUrl + "</b></li>");
+            areThereAnyUndesiredAlerts = true;
         }
 
+        if (areThereAnyUndesiredAlerts) {
+            outputString.append("<b>Undesired Derived Alerts... (should not exist, deletion is being prevented)</b>").append("<br>");
+
+            outputString.append("<ul>");
+
+            List<String> sortedAlertStrings = new ArrayList<>(alertStrings.keySet());
+            Collections.sort(sortedAlertStrings);
+
+            for (String alertString : sortedAlertStrings) {
+                String alertOutputString = alertStrings.get(alertString);
+                outputString.append(alertOutputString);
+            }
+
+            outputString.append("</ul>");   
+        }
+        
         return outputString.toString();
     }
 

@@ -18,6 +18,7 @@ import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -280,12 +281,21 @@ public class MetricGroupTemplates extends HttpServlet {
             for (MetricGroupTemplate metricGroupTemplate : metricGroupTemplates) {
                 if ((metricGroupTemplate == null) || (metricGroupTemplate.getId() == null) || (metricGroupTemplate.getName() == null)) continue;
 
-                List<MetricGroup> metricGroups = MetricGroupsDao.getMetricGroups_FilterByMetricGroupTemplateId(DatabaseConnections.getConnection(), true, metricGroupTemplate.getId());
+                List<MetricGroup> derivedMetricGroups = MetricGroupsDao.getMetricGroups_FilterByMetricGroupTemplateId(DatabaseConnections.getConnection(), true, metricGroupTemplate.getId());
+                Map<String,MetricGroup> derivedMetricGroups_ByName = MetricGroup.getMetricGroups_ByName(derivedMetricGroups);
                 Set<String> metricGroupNamesThatMetricGroupTemplateWantsToCreate = com.pearson.statsagg.threads.template_related.Common.getNamesThatTemplateWantsToCreate(metricGroupTemplate.getVariableSetListId(), metricGroupTemplate.getMetricGroupNameVariable());
-                String numberOfDerivedMetricGroups = (metricGroups == null) ? "0" : (metricGroups.size() + "");
+                String numberOfDerivedMetricGroups = (derivedMetricGroups_ByName == null) ? "0" : (derivedMetricGroups_ByName.size() + "");
 
+                boolean doAllDesiredMetricGroupsExist = true;
+                if ((metricGroupNamesThatMetricGroupTemplateWantsToCreate != null) && (derivedMetricGroups_ByName != null)) {
+                    for (String metricGroupNameThatMetricGroupTemplateWantsToCreate : metricGroupNamesThatMetricGroupTemplateWantsToCreate) {
+                        if (!derivedMetricGroups_ByName.containsKey(metricGroupNameThatMetricGroupTemplateWantsToCreate)) doAllDesiredMetricGroupsExist = false;
+                    }
+                }
+                
                 String rowStatusContext = "";
-                if ((metricGroupNamesThatMetricGroupTemplateWantsToCreate != null) && (metricGroups != null) && (metricGroups.size() != metricGroupNamesThatMetricGroupTemplateWantsToCreate.size())) {
+                if ((metricGroupNamesThatMetricGroupTemplateWantsToCreate != null) && (derivedMetricGroups_ByName != null) && 
+                        (!doAllDesiredMetricGroupsExist || (derivedMetricGroups_ByName.size() != metricGroupNamesThatMetricGroupTemplateWantsToCreate.size()))) {
                     rowStatusContext = "class=\"danger\"";
                 }
 
