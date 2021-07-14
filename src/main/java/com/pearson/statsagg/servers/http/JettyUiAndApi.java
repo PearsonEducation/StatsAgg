@@ -38,6 +38,7 @@ import com.pearson.statsagg.web_ui.MetricGroupTemplate_DerivedMetricGroups;
 import com.pearson.statsagg.web_ui.MetricGroupTemplates;
 import com.pearson.statsagg.web_ui.MetricGroups;
 import com.pearson.statsagg.web_ui.MetricRecentValues;
+import com.pearson.statsagg.web_ui.NotificationGroupAlertAssociations;
 import com.pearson.statsagg.web_ui.NotificationGroupDetails;
 import com.pearson.statsagg.web_ui.NotificationGroupTemplateDetails;
 import com.pearson.statsagg.web_ui.NotificationGroupTemplate_DerivedNotificationGroups;
@@ -168,6 +169,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(MetricGroupTemplateDetails.class, "/MetricGroupTemplateDetails");
         servletContextHandler.addServlet(MetricGroupTemplate_DerivedMetricGroups.class, "/MetricGroupTemplate-DerivedMetricGroups");
         servletContextHandler.addServlet(MetricRecentValues.class, "/MetricRecentValues");
+        servletContextHandler.addServlet(NotificationGroupAlertAssociations.class, "/NotificationGroupAlertAssociations");
         servletContextHandler.addServlet(NotificationGroupDetails.class, "/NotificationGroupDetails");
         servletContextHandler.addServlet(NotificationGroupTemplateDetails.class, "/NotificationGroupTemplateDetails");
         servletContextHandler.addServlet(NotificationGroupTemplate_DerivedNotificationGroups.class, "/NotificationGroupTemplate-DerivedNotificationGroups");

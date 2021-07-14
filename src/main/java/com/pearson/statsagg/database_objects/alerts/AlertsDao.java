@@ -437,6 +437,36 @@ public class AlertsDao {
         
     }
     
+    public static List<String> getAlertNamesAssociatedWithNotificationGroupId(Connection connection, boolean closeConnectionOnCompletion, Integer notificationGroupId) {
+        
+        try {            
+            List<String> alertNames = new ArrayList<>();
+            
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_AlertNamesAssociatedWithNotificationGroupId,
+                    notificationGroupId, notificationGroupId, notificationGroupId, notificationGroupId);
+            
+            if (alerts == null) return null;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) {
+                    alertNames.add(alert.getName());
+                }
+            }
+            
+            return alertNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static Set<Integer> getDistinctMetricGroupIdsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {

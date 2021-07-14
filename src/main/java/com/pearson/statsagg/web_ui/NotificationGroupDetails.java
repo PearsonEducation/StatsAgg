@@ -187,14 +187,21 @@ public class NotificationGroupDetails extends HttpServlet {
 
         outputString.append("<br>");
 
+        boolean didOutputEmailValidation = false;
         List<String> emailAddresses = notificationGroup.getEmailAddressesList();
         for (String emailAddress : emailAddresses) {
             String trimmedEmailAddress = emailAddress.trim();
             boolean isValidEmailAddress = EmailUtils.isValidEmailAddress(trimmedEmailAddress);
             outputString.append("<b>Is \"").append(StatsAggHtmlFramework.htmlEncode(trimmedEmailAddress)).
                     append("\" a valid email address? :</b> ").append(isValidEmailAddress).append("<br>");
+            didOutputEmailValidation = true;
         }
-
+        
+        if (didOutputEmailValidation) outputString.append("<br>");
+        outputString.append("<b>Alert Associations:</b> ");            
+        String notificationGroup_AlertAssociations_Link = "<a class=\"iframe cboxElement\" href=\"NotificationGroupAlertAssociations?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(notificationGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(notificationGroup.getName()) + "</a>";
+        outputString.append(notificationGroup_AlertAssociations_Link);  
+        
         return outputString.toString();
     }
 
