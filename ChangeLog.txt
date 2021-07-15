@@ -1,6 +1,8 @@
 StatsAgg 1.6  - released xxxx-yy-zz
+ * New feature: Alert/MetricGroup/NotificationGroup templating. This feature makes it easy to create & manage hundreds-to-thousands of Alerts/MetricGroups/NotificationGroups using variable substitutions into templates.
  * New feature: Integration with PagerDuty. StatsAgg can now send alerts directly to the PagerDuty "events" api. StatsAgg can also acknowledge & auto-resolve the alerts through the PagerDuty "events" api.
  * New feature: Improved feedback to users when creating alerts/suspensions/etc with invalid criteria.
+ * New feature: Notification group alert associations UI -- so you can see what alerts are tied to a notification group 
  * StatsAgg now requires Java 11 (or newer) for it's runtime
  * Converted the StatsAgg project from using a middleware app (Tomcat) to being a standalone project that uses an embedded HTTP server (Jetty). As a result, the installation/upgrade/setup steps will be significantly different.
  * Switched StatsAgg to use HikariCP for it's JDBC connection pool. Note that some connection pool variables in the database.properties file have changed.
