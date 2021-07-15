@@ -100,7 +100,7 @@ public class TemplateThread implements Runnable {
             // create and/or alter objects based on templates
             createOrAlterNotificationGroupsFromNotificationGroupTemplate();
             createOrAlterMetricGroupsFromMetricGroupTemplate();
-            createOrAlterAlertsFromAlertTemplate(); // 
+            createOrAlterAlertsFromAlertTemplate();
             
             long templateRoutineTimeElapsed = System.currentTimeMillis() - templateRoutineStartTime;
 
@@ -516,6 +516,7 @@ public class TemplateThread implements Runnable {
         Connection connection = DatabaseConnections.getConnection();
         Map<Integer,AlertTemplate> alertTemplates_ById = AlertTemplatesDao.getAlertTemplates_ById(connection, false);
         Map<String,Alert> alerts_ByName = AlertsDao.getAlerts_ByName(connection, false);
+        Map<Integer,String> metricGroupNames_ById = MetricGroupsDao.getMetricGroupNames_ById(connection, false);
         DatabaseUtils.cleanup(connection);
         
         if (alerts_ByName == null) { // if this is null, something went wrong querying the db, best to take no action
@@ -565,6 +566,16 @@ public class TemplateThread implements Runnable {
                     if (alertNamesThatAlertTemplateWantsToCreate == null) continue; // if this is null, something went wrong querying the db, best to take no action
 
                     if (!alertNamesThatAlertTemplateWantsToCreate.contains((alert.getName()))) {
+                        AlertsDaoWrapper.deleteRecordInDatabase(alert);
+                    }
+                }
+                
+                // delete alerts that have metric group names that don't align with what the alert template wants the metric group names to be
+                if ((alertTemplate.getVariableSetListId() != null) && (metricGroupNames_ById != null)) {
+                    Set<String> metricGroupNamesThatAlertTemplateWantsToUse = Common.getNamesThatTemplateWantsToCreate(alertTemplate.getVariableSetListId(), alertTemplate.getMetricGroupNameVariable());
+                    if (metricGroupNamesThatAlertTemplateWantsToUse == null) continue; // if this is null, something went wrong querying the db, best to take no action
+
+                    if (!metricGroupNamesThatAlertTemplateWantsToUse.contains((metricGroupNames_ById.get(alert.getMetricGroupId())))) {
                         AlertsDaoWrapper.deleteRecordInDatabase(alert);
                     }
                 }

@@ -103,20 +103,20 @@ public class Common {
         try {
             connection = DatabaseConnections.getConnection();
              
-            Set<String> derivedAlertNames = new HashSet<>();
+            Set<String> derivedNames = new HashSet<>();
             
-            List<Integer> variableSetIdsAssociatedWithAlertTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
-            if (variableSetIdsAssociatedWithAlertTemplate_List == null) return null; // if this is null, something went wrong querying the db
-            Set<Integer> variableSetIdsAssociatedWithAlertTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithAlertTemplate_List);
+            List<Integer> variableSetIdsAssociatedWithTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
+            if (variableSetIdsAssociatedWithTemplate_List == null) return null; // if this is null, something went wrong querying the db
+            Set<Integer> variableSetIdsAssociatedWithTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithTemplate_List);
 
-            for (Integer variableSetIdAssociatedWithAlertTemplate : variableSetIdsAssociatedWithAlertTemplate_Set) {
-                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetIdAssociatedWithAlertTemplate);
-                String derivedAlertName = Common.getStringWithVariableSubsistution(nameVariable, variableSet);
-                if (derivedAlertName == null) continue; // invalid data condition
-                derivedAlertNames.add(derivedAlertName);
+            for (Integer variableSetIdAssociatedWithTemplate : variableSetIdsAssociatedWithTemplate_Set) {
+                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetIdAssociatedWithTemplate);
+                String derivedName = Common.getStringWithVariableSubsistution(nameVariable, variableSet);
+                if (derivedName == null) continue; // invalid data condition
+                derivedNames.add(derivedName);
             }
             
-            return derivedAlertNames;
+            return derivedNames;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -139,20 +139,20 @@ public class Common {
         try {
             connection = DatabaseConnections.getConnection();
              
-            Map<Integer,String> derivedAlertNames_ByVariableSetId = new HashMap<>();
+            Map<Integer,String> derivedNames_ByVariableSetId = new HashMap<>();
             
-            List<Integer> variableSetIdsAssociatedWithAlertTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
-            if (variableSetIdsAssociatedWithAlertTemplate_List == null) return null; // if this is null, something went wrong querying the db
-            Set<Integer> variableSetIdsAssociatedWithAlertTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithAlertTemplate_List);
+            List<Integer> variableSetIdsAssociatedWithTemplate_List =  VariableSetListEntriesDao.getVariableSetIds_ForVariableSetListId(connection, false, variableSetListId);
+            if (variableSetIdsAssociatedWithTemplate_List == null) return null; // if this is null, something went wrong querying the db
+            Set<Integer> variableSetIdsAssociatedWithTemplate_Set = new HashSet<>(variableSetIdsAssociatedWithTemplate_List);
 
-            for (Integer variableSetIdAssociatedWithAlertTemplate : variableSetIdsAssociatedWithAlertTemplate_Set) {
-                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetIdAssociatedWithAlertTemplate);
-                String derivedAlertName = Common.getStringWithVariableSubsistution(nameVariable, variableSet);
-                if ((derivedAlertName == null) || (variableSet == null) || (variableSet.getId() == null)) continue; // invalid data condition
-                derivedAlertNames_ByVariableSetId.put(variableSet.getId(), derivedAlertName);
+            for (Integer variableSetIdAssociatedWithTemplate : variableSetIdsAssociatedWithTemplate_Set) {
+                VariableSet variableSet = VariableSetsDao.getVariableSet(connection, false, variableSetIdAssociatedWithTemplate);
+                String derivedName = Common.getStringWithVariableSubsistution(nameVariable, variableSet);
+                if ((derivedName == null) || (variableSet == null) || (variableSet.getId() == null)) continue; // invalid data condition
+                derivedNames_ByVariableSetId.put(variableSet.getId(), derivedName);
             }
             
-            return derivedAlertNames_ByVariableSetId;
+            return derivedNames_ByVariableSetId;
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));

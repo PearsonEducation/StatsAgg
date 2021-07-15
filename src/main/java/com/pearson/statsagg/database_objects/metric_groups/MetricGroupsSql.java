@@ -52,6 +52,9 @@ public class MetricGroupsSql {
     protected final static String Select_MetricGroupNames = 
                     "SELECT NAME FROM METRIC_GROUPS";
     
+    protected final static String Select_MetricGroupIdsAndNames = 
+                    "SELECT ID, NAME FROM METRIC_GROUPS";
+    
     protected final static String Select_DistinctMetricGroupIds = 
                     "SELECT DISTINCT ID FROM METRIC_GROUPS";
     

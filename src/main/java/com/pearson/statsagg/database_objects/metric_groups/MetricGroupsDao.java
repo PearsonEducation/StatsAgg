@@ -384,6 +384,34 @@ public class MetricGroupsDao {
         
     }
     
+    public static Map<Integer,String> getMetricGroupNames_ById(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<Integer,String> metricGroupNames_ById = new HashMap<>();
+
+            List<MetricGroup> metricGroups = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new MetricGroupsResultSetHandler(), 
+                    MetricGroupsSql.Select_MetricGroupIdsAndNames);
+            
+            if ((metricGroups == null) || metricGroups.isEmpty()) return metricGroupNames_ById;
+            
+            for (MetricGroup metricGroup : metricGroups) {
+                if ((metricGroup == null) || (metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
+                metricGroupNames_ById.put(metricGroup.getId(), metricGroup.getName());
+            }
+
+            return metricGroupNames_ById;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
     public static Map<String,MetricGroup> getMetricGroups_ByUppercaseName(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
