@@ -5,7 +5,7 @@ function generateAlertPreviewLink(warningLevel) {
     var nameParameter = "Name=" + encodeURIComponent(document.getElementById("AlertNameVariable").value.substring(0, 500));
     
     var descriptionParameter = "";
-    var doesDescriptionElementExist = document.getElementById("Description");
+    var doesDescriptionElementExist = document.getElementById("DescriptionVariable");
     if (doesDescriptionElementExist === null) descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("DescriptionVariable").value.substring(0, 500));
     else descriptionParameter = "Description=" + encodeURIComponent(document.getElementById("DescriptionVariable").value.substring(0, 500));
 
