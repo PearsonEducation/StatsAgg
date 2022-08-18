@@ -26,6 +26,9 @@ public class ApplicationConfiguration {
     
     private static long flushTimeAgg_ = VALUE_NOT_SET_CODE;
     private static boolean debugModeEnabled_ = false;
+    private static boolean logMetricFormatErrors_ = false;
+    private static boolean dedupMetrics_ = false;
+    private static boolean keepMostRecentMetric_ = false;
     
     private static boolean uiAndApiHttpEnabled_ = false;
     private static int uiAndApiHttpPort_ = VALUE_NOT_SET_CODE;
@@ -144,6 +147,9 @@ public class ApplicationConfiguration {
             // core configuration
             flushTimeAgg_ = applicationConfiguration_.safeGetLong("flush_time_agg", 10000);
             debugModeEnabled_ = applicationConfiguration_.safeGetBoolean("debug_mode_enabled", false);
+            logMetricFormatErrors_ = applicationConfiguration_.safeGetBoolean("log_metric_format_errors", false);
+            dedupMetrics_ = applicationConfiguration_.safeGetBoolean("dedup_metrics", false);
+            keepMostRecentMetric_ = applicationConfiguration_.safeGetBoolean("keep_most_recent_metric", false);
             
             // ui & api http interface configuration
             uiAndApiHttpEnabled_ = applicationConfiguration_.safeGetBoolean("ui_and_api_http_enabled", true);
@@ -497,6 +503,18 @@ public class ApplicationConfiguration {
     
     public static boolean isDebugModeEnabled() {
         return debugModeEnabled_;
+    }
+
+    public static boolean isLogMetricFormatErrors() {
+        return logMetricFormatErrors_;
+    }
+    
+    public static boolean isDedupMetrics() {
+        return dedupMetrics_;
+    }
+
+    public static boolean isKeepMostRecentMetric() {
+        return keepMostRecentMetric_;
     }
 
     public static boolean isUiAndApiHttpEnabled() {

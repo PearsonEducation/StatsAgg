@@ -30,6 +30,10 @@ import com.pearson.statsagg.configuration.DatabaseConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
+import com.pearson.statsagg.metric_formats.graphite.GraphiteMetric;
+import com.pearson.statsagg.metric_formats.influxdb.InfluxdbMetric_v1;
+import com.pearson.statsagg.metric_formats.opentsdb.OpenTsdbMetric;
+import com.pearson.statsagg.metric_formats.statsd.StatsdMetric;
 import com.pearson.statsagg.metric_formats.statsd.StatsdMetricAggregated;
 import com.pearson.statsagg.servers.JettyServer;
 import com.pearson.statsagg.servers.NettyServer;
@@ -117,6 +121,9 @@ public class Driver {
         // read app config settings
         boolean isApplicationConfigSuccess = initializeApplication_ApplicationConfiguration();
 
+        // set metric format error logging based on application configuration
+        setMetricFormatErrorLogging();
+        
         // read db config settings
         boolean isDatabaseConfigSuccess = initializeApplication_DatabaseConfiguration(false);
         
@@ -318,6 +325,13 @@ public class Driver {
         }
         
         return isApplicationConfigSuccess;
+    }
+    
+    public static void setMetricFormatErrorLogging() {
+        GraphiteMetric.setLogMetricFormatErrors(ApplicationConfiguration.isLogMetricFormatErrors());
+        InfluxdbMetric_v1.setLogMetricFormatErrors(ApplicationConfiguration.isLogMetricFormatErrors());
+        OpenTsdbMetric.setLogMetricFormatErrors(ApplicationConfiguration.isLogMetricFormatErrors());
+        StatsdMetric.setLogMetricFormatErrors(ApplicationConfiguration.isLogMetricFormatErrors());
     }
     
     public static boolean initializeApplication_DatabaseConfiguration(boolean useInMemoryDatabase) {

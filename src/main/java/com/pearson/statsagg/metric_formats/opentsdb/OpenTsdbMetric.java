@@ -27,7 +27,9 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     
     private static final Logger logger = LoggerFactory.getLogger(OpenTsdbMetric.class.getName());
     
-    private static char[] EXPONENT_CHARS = {'e','E'};
+    private static final char[] EXPONENT_CHARS = {'e','E'};
+    
+    private static boolean logMetricFormatErrors_ = true;
     
     private long hashKey_ = -1;
     
@@ -360,7 +362,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                     (metricTimestampString == null) || (metricTimestamp == -1) || 
                     (openTsdbTags == null) || (openTsdbTags.isEmpty()) || 
                     (isTimestampInMilliseconds == null) || ((metricTimestampString.length() != 10) && (metricTimestampString.length() != 13))) {
-                logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
+                if (logMetricFormatErrors_) logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
@@ -372,11 +374,11 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             }
         }
         catch (NumberFormatException e) {
-            logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator());  
+            if (logMetricFormatErrors_) logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator());  
             return null;
         }
         catch (Exception e) {
-            logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
+            if (logMetricFormatErrors_) logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
     }
@@ -402,7 +404,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     }
     
     public static List<OpenTsdbMetric> parseOpenTsdbJson(String inputJson, String metricPrefix, long metricsReceivedTimestampInMilliseconds) {
-        return parseOpenTsdbJson(inputJson, metricPrefix, metricsReceivedTimestampInMilliseconds, new ArrayList<Integer>());
+        return parseOpenTsdbJson(inputJson, metricPrefix, metricsReceivedTimestampInMilliseconds, new ArrayList<>());
     }
     
     /* successCountAndFailCount is modified by this method. index-0 will have the successfully parsed metric count, and index-1 will have the metrics with errors count */
@@ -430,7 +432,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             }
         }
         catch (Exception e) {
-            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
         if (jsonArray == null) return openTsdbMetrics;
@@ -453,7 +455,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 if (metricValue == null) continue;
                 
                 List<OpenTsdbTag> openTsdbTags = parseOpenTsdbJson_ValidateAndReturn_Tags(jsonObject_TopLevel);
-                if ((openTsdbTags == null) || openTsdbTags.isEmpty())  continue;
+                if ((openTsdbTags == null) || openTsdbTags.isEmpty()) continue;
                 
                 OpenTsdbMetric openTsdbMetric = new OpenTsdbMetric(metric, openTsdbTimestamp.getTimestampLong(), metricValue, openTsdbTags, 
                         openTsdbTimestamp.isMilliseconds(), metricsReceivedTimestampInMilliseconds); 
@@ -461,16 +463,18 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 if ((openTsdbMetric.getMetricKey() != null) && (openTsdbMetric.getMetricTimestampInMilliseconds() > -1)) openTsdbMetrics.add(openTsdbMetric);
             }
             catch (Exception e) {
-                if (jsonElementOfArray != null) {
-                    try {
-                        logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                if (logMetricFormatErrors_) {
+                    if (jsonElementOfArray != null) {
+                        try {
+                            logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                        }
+                        catch (Exception e2) {
+                            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                        }
                     }
-                    catch (Exception e2) {
+                    else {
                         logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                     }
-                }
-                else {
-                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
         }
@@ -491,7 +495,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             String metric = jsonObject.getAsJsonPrimitive("metric").getAsString();
             
             if ((metric == null) || metric.isEmpty()) {
-                logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
                 return null;
             }
             
@@ -499,10 +503,10 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         }
         catch (Exception e) {               
             try {
-                logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric name/path: \"" + jsonObject.toString());
             }
             catch (Exception e2) {
-                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             
             return null;
@@ -516,7 +520,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             long metricTimestamp = jsonObject.getAsJsonPrimitive("timestamp").getAsLong();
             
             if (metricTimestamp < 0) {
-                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
                 return null;
             }
             
@@ -529,16 +533,16 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                 return new OpenTsdbTimestamp(metricTimestamp, true);
             }
             else {
-                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
                 return null;
             }
         }
         catch (Exception e) {               
             try {
-                logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric timestamp: \"" + jsonObject.toString());
             }
             catch (Exception e2) {
-                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             
             return null;
@@ -559,10 +563,10 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         }
         catch (Exception e) {    
             try {
-                logger.warn("Metric parse error. Invalid metric value: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric value: \"" + jsonObject.toString());
             }
             catch (Exception e2) {
-                logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             
             return null;
@@ -575,7 +579,8 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
         if ((metricValueString == null) || metricValueString.isEmpty()) return false;
         
         if (metricValueString.length() > 100) {
-            logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long. " +
+            if (logMetricFormatErrors_) logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + 
+                    metricValueString.length() + "\" characters long. " +
                     "MetricString=\"" + metricValueString + "\"");
             return false;
         }
@@ -590,11 +595,11 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                     boolean isNegativeExponent = exponentValue.startsWith("-");
                     
                     if (!isNegativeExponent) {
-                        logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
+                        if (logMetricFormatErrors_) logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
                         return false;
                     }
                     else if (exponentValue.length() > 3) {
-                        logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
+                        if (logMetricFormatErrors_) logger.debug("Metric parse error. Exponent is too large. " + "MetricString=\"" + metricValueString + "\"");
                         return false;
                     }
                     else {
@@ -610,7 +615,7 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             }
         }
         catch (Exception e) {   
-            logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            if (logMetricFormatErrors_) logger.debug(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
         
@@ -633,20 +638,20 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
                         openTsdbTags.add(openTsdbTag);
                     }
                     else {
-                        logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
+                        if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
                     }
                 }
             }
             catch (Exception e) {   
-                logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
+                if (logMetricFormatErrors_) logger.warn("Metric parse error. Invalid metric tag: \"" + jsonObject.toString());
             }
         }
         catch (Exception e) {               
-            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         
         if (openTsdbTags.isEmpty()) {
-            logger.warn("Metric parse error. At least 1 valid tag required: \"" + jsonObject.toString());
+            if (logMetricFormatErrors_) logger.warn("Metric parse error. At least 1 valid tag required: \"" + jsonObject.toString());
         }
             
         return openTsdbTags;
@@ -764,5 +769,13 @@ public class OpenTsdbMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
     public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
     }
+    
+    public static boolean isLogMetricFormatErrors() {
+        return logMetricFormatErrors_;
+    }
 
+    public static void setLogMetricFormatErrors(boolean isLogMetricFormatErrors) {
+        logMetricFormatErrors_ = isLogMetricFormatErrors;
+    }
+    
 }

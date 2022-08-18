@@ -21,7 +21,9 @@ import org.slf4j.LoggerFactory;
 public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat, InfluxdbMetricFormat_v1 {
     
     private static final Logger logger = LoggerFactory.getLogger(GraphiteMetric.class.getName());
-    
+
+    private static boolean logMetricFormatErrors_ = true;
+
     private long hashKey_ = -1;
     
     private final String metricPath_;
@@ -278,8 +280,8 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             if (metricValueIndexRange > 0) {
                 String metricValueString = unparsedMetric.substring(metricPathIndexRange + 1, metricValueIndexRange);
                 
-                if (metricValueString.length() > 100) {
-                    logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
+                if ((metricValueString.length() > 100) && logMetricFormatErrors_) {
+                    logger.warn("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
                 }
                 else {
                     metricValueBigDecimal = new BigDecimal(metricValueString);
@@ -292,7 +294,7 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             if ((metricPath == null) || metricPath.isEmpty() || (metricValueBigDecimal == null) ||
                     (metricTimestampString == null) || metricTimestampString.isEmpty() || 
                     (metricTimestampString.length() != 10) || (metricTimestamp < 0)) {
-                logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
+                if (logMetricFormatErrors_) logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
@@ -301,11 +303,11 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
             }
         }
         catch (NumberFormatException e) {
-            logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator());  
+            if (logMetricFormatErrors_) logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator());  
             return null;
         }
         catch (Exception e) {
-            logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
+            if (logMetricFormatErrors_) logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
     }
@@ -420,6 +422,14 @@ public class GraphiteMetric implements GraphiteMetricFormat, OpenTsdbMetricForma
 
     public boolean isMetricTimestampInSeconds() {
         return isMetricTimestampInSeconds_;
+    }
+    
+    public static boolean isLogMetricFormatErrors() {
+        return logMetricFormatErrors_;
+    }
+
+    public static void setLogMetricFormatErrors(boolean isLogMetricFormatErrors) {
+        logMetricFormatErrors_ = isLogMetricFormatErrors;
     }
     
 }
