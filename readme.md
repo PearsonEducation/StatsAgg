@@ -1,9 +1,9 @@
 # StatsAgg
 
 ## Overview
-StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, InfluxDB-formatted metrics (0.6x-0.8x format), and StatsD-formatted metrics.
+StatsAgg is a metric aggregation and alerting platform. It currently accepts Graphite-formatted metrics, OpenTSDB-formatted metrics, and StatsD-formatted metrics.
 
-StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite & StatsD), and providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows an example deployment & use-case pattern for StatsAgg.
+StatsAgg works by receiving Graphite, StatsD, and OpenTSDB metrics, (optionally) aggregating them, alerting on them, and outputting them to a metric storage platform. In essence, StatsAgg is a middle-man that sits between the metric sender & the metric storage applications. The 'value add' is metric aggregation (Graphite & StatsD), and providing a common alerting platform for all supported metric types. The diagram (see below diagram) shows an example deployment & use-case pattern for StatsAgg.
 
 [StatsAgg component diagram](./docs/component-diagram.png)
 
@@ -24,7 +24,6 @@ StatsAgg works by receiving Graphite, StatsD, InfluxDB, and OpenTSDB metrics, (o
 	* Supports GZIP compression on HTTP interface 
 * Outputs metrics to metric storage platforms
     * Graphite (and Graphite compatible services)
-    * InfluxDB (versions 0.6x, 0.7x, 0.8x  -- support for 0.9x will come in a future release)
     * OpenTSDB (via telnet & HTTP)
     * Outputting to a storage engine is completely optional; you can send metrics into StatsAgg without having them forwarded to a metric storage solution. This also means that if you're having issues with your metric storage solution, StatsAgg will still be available & capable of alerting off the metrics that it receives.
 * A robust alerting mechanism 
@@ -108,8 +107,8 @@ Detailed information about StatsAgg's metric format support, including examples,
 <br>
 
 ## Technology
-* StatsAgg is a Java 11 based standalone app. A valid JRE (version 11 or newer) is the only requirement to run StatsAgg.
-* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby or MySQL 5.6+.
+* StatsAgg is a Java 11 based standalone app. A valid JRE (version 17 or newer) is the only requirement to run StatsAgg.
+* StatsAgg uses a database for storing things like 'StatsD gauge values', alert definitions & statuses, metric group definitions, etc. The database technology can be Apache Derby or MySQL 5.7+.
 * StatsAgg can run on almost any modern OS. Windows, Linux, etc.
 
 <br>
@@ -130,8 +129,8 @@ Detailed information about StatsAgg's metric format support, including examples,
 <br>
 
 ## Thanks to...
-* StatsD : etsy @ https://github.com/etsy/statsd/
-* Graphite : Orbitz @ http://graphite.wikidot.com/
+* StatsD : https://github.com/statsd/statsd
+* Graphite : https://graphiteapp.org/
 * OpenTSDB : http://opentsdb.net/
-* InfluxDB : http://influxdb.com/
-* Pearson Assessments, a division of Pearson Education: http://www.pearsonassessments.com/
+* InfluxDB : https://www.influxdata.com/
+* Pearson : https://www.pearson.com/
