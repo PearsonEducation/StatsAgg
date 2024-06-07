@@ -7,7 +7,7 @@ import com.google.gson.JsonParser;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.io.BufferedReader;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -7,9 +7,9 @@ import com.pearson.statsagg.database_objects.notification_groups.NotificationGro
 import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import java.io.PrintWriter;
 import java.util.Set;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;

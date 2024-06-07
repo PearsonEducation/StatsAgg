@@ -1,9 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;

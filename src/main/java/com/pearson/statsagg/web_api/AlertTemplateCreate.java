@@ -2,9 +2,9 @@ package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.web_ui.CreateAlertTemplate;
 import org.slf4j.Logger;

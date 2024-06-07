@@ -202,6 +202,7 @@ public class JettyUiAndApi implements JettyServer {
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.AlertTemplateCreate.class, "/api/alert-template-create");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.AlertTemplateDetails.class, "/api/alert-template-details");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.AlertsList.class, "/api/alerts-list");
+		servletContextHandler.addServlet(com.pearson.statsagg.web_api.HealthCheck.class, "/api/health-check");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.MetricGroupCreate.class, "/api/metric-group-create");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.MetricGroupDetails.class, "/api/metric-group-details");
         servletContextHandler.addServlet(com.pearson.statsagg.web_api.MetricGroupRemove.class, "/api/metric-group-remove");

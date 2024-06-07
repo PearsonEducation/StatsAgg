@@ -10,9 +10,9 @@ import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsD
 import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.util.ArrayList;

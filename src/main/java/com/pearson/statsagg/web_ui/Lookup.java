@@ -8,9 +8,9 @@ import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyService
 import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;

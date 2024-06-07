@@ -2,9 +2,9 @@ package com.pearson.statsagg.web_ui;
 
 import com.pearson.statsagg.threads.alert_related.MetricAssociation;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;

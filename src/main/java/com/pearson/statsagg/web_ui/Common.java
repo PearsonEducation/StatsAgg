@@ -6,7 +6,7 @@ import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.Scanner;
 import java.util.TreeSet;
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

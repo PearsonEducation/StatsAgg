@@ -9,7 +9,7 @@ import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.io.PrintWriter;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletResponse;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringEscapeUtils;
 import org.slf4j.Logger;
