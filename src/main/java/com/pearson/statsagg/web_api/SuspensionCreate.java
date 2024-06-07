@@ -4,10 +4,9 @@ import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.IOException;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,7 +14,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (Prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Suspension_Create", urlPatterns = {"/api/suspension-create"})
 public class SuspensionCreate extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(SuspensionCreate.class.getName());
@@ -70,8 +68,8 @@ public class SuspensionCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         com.pearson.statsagg.web_ui.CreateSuspension createSuspension = new com.pearson.statsagg.web_ui.CreateSuspension();
-        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createSuspension.parseAndAlterSuspension(suspensionJsonObject);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createSuspension.parseAndAlterSuspension(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

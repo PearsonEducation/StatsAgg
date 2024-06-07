@@ -1,17 +1,19 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -19,7 +21,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar (prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="API_Suspension_Details", urlPatterns={"/api/suspension-details"})
 public class SuspensionDetails extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(SuspensionDetails.class.getName());
@@ -98,8 +99,8 @@ public class SuspensionDetails extends HttpServlet {
         if (request == null) {
             return Helper.ERROR_UNKNOWN_JSON;
         }
-        
-        SuspensionsDao suspensionsDao = null;
+                
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
             Integer suspensionId = null;
@@ -115,18 +116,15 @@ public class SuspensionDetails extends HttpServlet {
             }
 
             Suspension suspension = null;
-            suspensionsDao = new SuspensionsDao(false);
-            if (suspensionId != null) suspension = suspensionsDao.getSuspension(suspensionId);
-            else if (suspensionName != null) suspension = suspensionsDao.getSuspensionByName(suspensionName);
+            if (suspensionId != null) suspension = SuspensionsDao.getSuspension(connection, false, suspensionId);
+            else if (suspensionName != null) suspension = SuspensionsDao.getSuspension(connection, false, suspensionName);
             
             Alert alert = null;
             if ((suspension != null) && (suspension.getAlertId() != null)) {
-                AlertsDao alertsDao = new AlertsDao(suspensionsDao.getDatabaseInterface());
-                alert = alertsDao.getAlert(suspension.getAlertId());
+                alert = AlertsDao.getAlert(connection, false, suspension.getAlertId());
             }
             
-            suspensionsDao.close();
-            suspensionsDao = null;
+            DatabaseUtils.cleanup(connection);
             
             if (suspension != null) return Suspension.getJsonString_ApiFriendly(suspension, alert);
             else return Helper.ERROR_NOTFOUND_JSON;
@@ -135,12 +133,7 @@ public class SuspensionDetails extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));        
         }
         finally {  
-            try {
-                if (suspensionsDao != null) suspensionsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
         
         return Helper.ERROR_UNKNOWN_JSON;

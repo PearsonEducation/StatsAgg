@@ -3,10 +3,9 @@ package com.pearson.statsagg.web_api;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +13,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar(prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_NotificationGroup_Create", urlPatterns = {"/api/notification-group-create"})
 public class NotificationGroupCreate extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(NotificationGroupCreate.class.getName());
@@ -76,8 +74,8 @@ public class NotificationGroupCreate extends HttpServlet {
      */
     protected String processPostRequest(HttpServletRequest request) {
         com.pearson.statsagg.web_ui.CreateNotificationGroup createNotificationGroup = new com.pearson.statsagg.web_ui.CreateNotificationGroup();
-        JsonObject suspensionJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createNotificationGroup.parseAndAlterNotificationGroup(suspensionJsonObject);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = createNotificationGroup.parseAndAlterNotificationGroup(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

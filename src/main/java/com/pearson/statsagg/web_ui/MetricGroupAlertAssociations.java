@@ -1,13 +1,13 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Collections;
@@ -20,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroupAlertAssociations", urlPatterns = {"/MetricGroupAlertAssociations"})
 public class MetricGroupAlertAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupAlertAssociations.class.getName());
@@ -124,16 +123,14 @@ public class MetricGroupAlertAssociations extends HttpServlet {
             return "<b>No metric group specified</b>";
         }
  
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         if (metricGroup == null) return "<b>Metric Group not found</b>";
         
         StringBuilder outputString = new StringBuilder();
         
         outputString.append("<b>Metric Group Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");
 
-        AlertsDao alertsDao = new AlertsDao();
-        List<String> alertNames = alertsDao.getAlertsAssociatedWithMetricGroupId(metricGroup.getId());
+        List<String> alertNames = AlertsDao.getAlertNamesAssociatedWithMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
         if (alertNames != null) Collections.sort(alertNames);
         
         if ((alertNames == null) || alertNames.isEmpty()) {
@@ -150,7 +147,7 @@ public class MetricGroupAlertAssociations extends HttpServlet {
         outputString.append("<ul>");
         
         for (String alertName : alertNames) {
-            String alertDetailsUrl = "<a href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
+            String alertDetailsUrl = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=" + excludeNavbar + "&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertName) + "\">" + StatsAggHtmlFramework.htmlEncode(alertName) + "</a>";
             outputString.append("<li>").append(alertDetailsUrl).append("</li>");
         }
 

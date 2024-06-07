@@ -1,7 +1,7 @@
 package com.pearson.statsagg.database_objects.output_blacklist;
 
 import com.google.gson.annotations.SerializedName;
-import com.pearson.statsagg.database_engine.DatabaseObject;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -9,12 +9,14 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class OutputBlacklist extends DatabaseObject<OutputBlacklist> {
+public class OutputBlacklist implements DatabaseObject<OutputBlacklist> {
     
     private static final Logger logger = LoggerFactory.getLogger(OutputBlacklist.class.getName());
    
     @SerializedName("id") private Integer id_;
     @SerializedName("metric_group_id") private Integer metricGroupId_;
+    
+    public OutputBlacklist() {}
     
     public OutputBlacklist(Integer id, Integer metricGroupId) {
         this.id_ = id;

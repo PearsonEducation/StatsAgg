@@ -1,142 +1,161 @@
 package com.pearson.statsagg.database_objects.output_blacklist;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.sql.ResultSet;
-import java.util.ArrayList;
 import java.util.List;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class OutputBlacklistDao extends DatabaseObjectDao<OutputBlacklist> {
+public class OutputBlacklistDao {
     
     private static final Logger logger = LoggerFactory.getLogger(OutputBlacklistDao.class.getName());
     
-    private final String tableName_ = "OUTPUT_BLACKLIST";
-    
-    public OutputBlacklistDao(){}
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, OutputBlacklist outputBlacklist) {
+        
+        try {                   
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    OutputBlacklistSql.Insert_OutputBlacklist, 
+                    outputBlacklist.getMetricGroupId());
             
-    public OutputBlacklistDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public OutputBlacklistDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(OutputBlacklistSql.DropTable_OutputBlacklist);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(OutputBlacklistSql.CreateTable_OutputBlacklist_MySQL);
+            return (result >= 0);
         }
-        else {
-            databaseCreationSqlStatements.add(OutputBlacklistSql.CreateTable_OutputBlacklist_Derby);
-            databaseCreationSqlStatements.add(OutputBlacklistSql.CreateIndex_OutputBlacklist_PrimaryKey);
-        }
-        
-        databaseCreationSqlStatements.add(OutputBlacklistSql.CreateIndex_OutputBlacklist_ForeignKey_MetricGroupId);
-
-        return createTable(databaseCreationSqlStatements);
-    }
-    
-    @Override
-    public OutputBlacklist getDatabaseObject(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(OutputBlacklistSql.Select_OutputBlacklist_ByPrimaryKey, outputBlacklist.getId()); 
-    }
-    
-    @Override
-    public boolean insert(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) {
-            databaseInterface_.cleanupAutomatic();
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
-        
-        return insert(OutputBlacklistSql.Insert_OutputBlacklist, outputBlacklist.getMetricGroupId());
-    }
-    
-    @Override
-    public boolean update(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        return update(OutputBlacklistSql.Update_OutputBlacklist_ByPrimaryKey, outputBlacklist.getMetricGroupId(), outputBlacklist.getId());
-    }
-
-    @Override
-    public boolean delete(OutputBlacklist outputBlacklist) {
-        if (outputBlacklist == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return delete(OutputBlacklistSql.Delete_OutputBlacklist_ByPrimaryKey, outputBlacklist.getId()); 
     }
     
-    @Override
-    public OutputBlacklist processSingleResultAllColumns(ResultSet resultSet) {
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, OutputBlacklist outputBlacklist) {
         
-        try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
-            }
-
-            Integer id = resultSet.getInt("ID");
-            if (resultSet.wasNull()) id = null;
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    OutputBlacklistSql.Update_OutputBlacklist_ByPrimaryKey, 
+                    outputBlacklist.getMetricGroupId(), outputBlacklist.getId());
             
-            Integer mgId = resultSet.getInt("METRIC_GROUP_ID");
-            if (resultSet.wasNull()) mgId = null;
-
-            OutputBlacklist outputBlacklist = new OutputBlacklist(id, mgId);
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, OutputBlacklist outputBlacklist) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
             
-            return outputBlacklist;
+            OutputBlacklist outputBlacklistFromDb = OutputBlacklistDao.getOutputBlacklist(connection, false, outputBlacklist.getId());
+
+            boolean upsertSuccess = true;
+            if (outputBlacklistFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, outputBlacklist);
+            else if (!outputBlacklistFromDb.isEqual(outputBlacklist)) upsertSuccess = update(connection, false, commitOnCompletion, outputBlacklist);
+
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
+    }
+
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, OutputBlacklist outputBlacklist) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    OutputBlacklistSql.Delete_OutputBlacklist_ByPrimaryKey, 
+                    outputBlacklist.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static OutputBlacklist getOutputBlacklist(Connection connection, boolean closeConnectionOnCompletion, Integer id) {
+        
+        try {
+            List<OutputBlacklist> outputBlacklists = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new OutputBlacklistResultSetHandler(), 
+                    OutputBlacklistSql.Select_OutputBlacklist_ByPrimaryKey, id);
+            
+            return DatabaseUtils.getSingleResultFromList(outputBlacklists);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
-    }
-    
-    @Override
-    public String getTableName() {
-        return tableName_;
-    }
-    
-    public static OutputBlacklist getSingleOutputBlacklistRow() {
-        
-        OutputBlacklist outputBlacklist = null;
-        
-        OutputBlacklistDao outputBlacklistDao = new OutputBlacklistDao();
-        List<OutputBlacklist> outputBlacklists = outputBlacklistDao.getAllDatabaseObjectsInTable();
-        
-        if ((outputBlacklists != null) && outputBlacklists.size() > 1) {
-            logger.warn("There should not be more than one output blacklist row in the database.");
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        if ((outputBlacklists != null) && !outputBlacklists.isEmpty()) {
-            for (OutputBlacklist outputBlacklistFromDb : outputBlacklists) {
-                outputBlacklist = outputBlacklistFromDb;
-                break;
-            }
+    }
+
+    public static List<OutputBlacklist> getOutputBlacklists(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<OutputBlacklist> outputBlacklists = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new OutputBlacklistResultSetHandler(), 
+                    OutputBlacklistSql.Select_AllOutputBlacklist);
+            
+            return outputBlacklists;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        return outputBlacklist;
+    }
+    
+   public static OutputBlacklist getOutputBlacklist_SingleRow(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<OutputBlacklist> outputBlacklists = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new OutputBlacklistResultSetHandler(), 
+                    OutputBlacklistSql.Select_AllOutputBlacklist);
+            
+            if (outputBlacklists == null) return null;
+            if (outputBlacklists.size() > 1) logger.warn("There should not be more than one output blacklist row in the database.");
+        
+            if (!outputBlacklists.isEmpty()) return outputBlacklists.get(0);
+            else return null;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
     }
 
 }

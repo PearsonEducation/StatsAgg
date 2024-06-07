@@ -1,12 +1,11 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.ArrayList;
@@ -17,12 +16,10 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import static com.pearson.statsagg.web_ui.CreateMetricGroup.getMetricGroupParameterValues;
 
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MergedRegexMetricsPreview", urlPatterns = {"/MergedRegexMetricsPreview"})
 public class MergedRegexMetricsPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MergedRegexMetricsPreview.class.getName());
@@ -78,8 +75,8 @@ public class MergedRegexMetricsPreview extends HttpServlet {
         
         PrintWriter out = null;
         
-        TreeSet<String> matchRegexes = getMetricGroupParameterValues(request, "MatchRegexes");
-        TreeSet<String> blacklistRegexes = getMetricGroupParameterValues(request, "BlacklistRegexes");
+        TreeSet<String> matchRegexes = Common.getMultilineParameterValues(request, "MatchRegexes");
+        TreeSet<String> blacklistRegexes = Common.getMultilineParameterValues(request, "BlacklistRegexes");
         
         List matchRegexes_List = null, blacklistRegexes_List = null;
         if ((matchRegexes != null) && !matchRegexes.isEmpty()) matchRegexes_List = new ArrayList<>(matchRegexes);

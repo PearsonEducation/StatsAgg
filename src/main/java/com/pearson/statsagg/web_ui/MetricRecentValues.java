@@ -4,10 +4,9 @@ import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricKeyLastSeen;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
@@ -21,7 +20,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricRecentValues", urlPatterns = {"/MetricRecentValues"})
 public class MetricRecentValues extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricRecentValues.class.getName());

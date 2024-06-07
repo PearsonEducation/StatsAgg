@@ -5,9 +5,11 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.math.BigDecimal;
 import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -140,6 +142,26 @@ public class DatabaseObjectCommon {
         }
         
         return jsonObject;
+    }
+    
+    public static String trimNewLineDelimitedString(String newLineDelimitedString) {
+        
+        if ((newLineDelimitedString == null) || newLineDelimitedString.isEmpty()) {
+            return newLineDelimitedString;
+        }
+        
+        StringBuilder stringBuilder = new StringBuilder();
+
+        List<String> strings = StringUtilities.getListOfStringsFromDelimitedString(newLineDelimitedString, '\n');
+        
+        if ((strings != null) && !strings.isEmpty()) {
+            for (String string : strings) {
+                String trimmedString = string.trim();
+                if (!trimmedString.isEmpty()) stringBuilder.append(trimmedString).append("\n");
+            }
+        }
+        
+        return stringBuilder.toString().trim();
     }
     
 }

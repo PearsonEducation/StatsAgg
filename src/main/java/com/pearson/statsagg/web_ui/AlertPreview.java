@@ -5,17 +5,17 @@ import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.alerts.EmailThread;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import com.pearson.statsagg.threads.alert_related.NotificationThread;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTag;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupTagsDao;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "AlertPreview", urlPatterns = {"/AlertPreview"})
 public class AlertPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertPreview.class.getName());
@@ -148,16 +147,10 @@ public class AlertPreview extends HttpServlet {
         alert.setCautionFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
         alert.setDangerFirstActiveAt(new Timestamp(currentCalendar.getTimeInMillis()));
 
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         List<MetricGroupTag> metricGroupTags = new ArrayList<>();
-        if (metricGroup != null) {
-            MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-            metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
-        }
-        else {
-            metricGroup = new MetricGroup(88888, metricGroupName, metricGroupName.toUpperCase(), "");
-        }
+        if (metricGroup != null) metricGroupTags = MetricGroupTagsDao.getMetricGroupTagsByMetricGroupId(DatabaseConnections.getConnection(), true, metricGroup.getId());
+        else metricGroup = new MetricGroup(88888, metricGroupName, metricGroupName.toUpperCase(), "", null, null, null, null, null);
 
         List<String> metricKeys = new ArrayList<>();
         metricKeys.add("preview.metric1");
@@ -167,13 +160,13 @@ public class AlertPreview extends HttpServlet {
         Map<String,BigDecimal> alertMetricValues = generateFakeMetricValues(warningLevel, alert);
         
         if (warningLevel.equalsIgnoreCase("caution")) {
-            boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
+            boolean isAlertValidAndEnabled = alert.isCautionAlertCriteriaValid().isValid() && (alert.isCautionEnabled() != null) && alert.isCautionEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+                NotificationThread notificationThread = new NotificationThread(alert, Alert.CAUTION, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
-                emailThread.buildAlertEmail(2, metricGroup, metricGroupTags);
-                return emailThread.getBody();
+                notificationThread.buildAlertEmail(2, metricGroup, metricGroupTags);
+                return notificationThread.getEmailBody();
             }
             else {
                 return "This alert's caution criteria is not valid";
@@ -181,13 +174,13 @@ public class AlertPreview extends HttpServlet {
         }
         
         if (warningLevel.equalsIgnoreCase("danger")) {
-            boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
+            boolean isAlertValidAndEnabled = alert.isDangerAlertCriteriaValid().isValid() && (alert.isDangerEnabled() != null) && alert.isDangerEnabled();
             
             if (isAlertValidAndEnabled) {
-                EmailThread emailThread = new EmailThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
+                NotificationThread emailThread = new NotificationThread(alert, Alert.DANGER, metricKeys, alertMetricValues, new ConcurrentHashMap<>(),
                         false, true, ApplicationConfiguration.getAlertStatsAggLocation());
                 emailThread.buildAlertEmail(2, metricGroup, metricGroupTags);
-                return emailThread.getBody();
+                return emailThread.getEmailBody();
             }
             else {
                 return "This alert's danger criteria is not valid";

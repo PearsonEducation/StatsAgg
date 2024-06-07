@@ -1,13 +1,13 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.metric_aggregation.MetricTimestampAndValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroupMetricKeyAssociations", urlPatterns = {"/MetricGroupMetricKeyAssociations"})
 public class MetricGroupMetricKeyAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroupMetricKeyAssociations.class.getName());
@@ -132,8 +131,7 @@ public class MetricGroupMetricKeyAssociations extends HttpServlet {
         
         StringBuilder outputString = new StringBuilder();
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        MetricGroup metricGroup = metricGroupsDao.getMetricGroupByName(metricGroupName);
+        MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupName);
         
         if ((metricGroup != null) && (metricGroup.getId() != null) && (metricGroup.getName() != null)) {
             outputString.append("<b>Name</b> = ").append(StatsAggHtmlFramework.htmlEncode(metricGroup.getName())).append("<br>");

@@ -4,6 +4,7 @@ import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.google.common.collect.Lists;
 import java.io.BufferedReader;
 import java.math.BigDecimal;
+import java.net.URL;
 import java.sql.BatchUpdateException;
 import java.sql.Blob;
 import java.sql.Clob;
@@ -13,14 +14,18 @@ import java.sql.NClob;
 import java.sql.PreparedStatement;
 import java.sql.Ref;
 import java.sql.ResultSet;
+import java.sql.ResultSetMetaData;
 import java.sql.RowId;
 import java.sql.SQLXML;
 import java.sql.Statement;
 import java.sql.Time;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.sql.DataSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,19 +41,27 @@ public class DatabaseUtils {
     public static final byte CLOSE_AND_ROLLBACK = 3;
     
     public static void cleanup(Connection connection) {
-        cleanup(null, null, null, null, CLOSE);
+        cleanup(connection, null, null, null, CLOSE);
     }
     
-    public static void cleanup(ResultSet results) {
-        cleanup(null, null, null, results, CLOSE);
+    public static void cleanup(ResultSet resultSet) {
+        cleanup(null, null, null, resultSet, CLOSE);
+    }
+    
+    public static void cleanup(Connection connection, ResultSet resultSet) {
+        cleanup(connection, null, null, resultSet, CLOSE);
     }
     
     public static void cleanup(Statement statement) {
         cleanup(null, null, statement, null, CLOSE);
     }
     
-    public static void cleanup(Statement statement, ResultSet results) {
-        cleanup(null, null, statement, results, CLOSE);
+    public static void cleanup(Statement statement, ResultSet resultSet) {
+        cleanup(null, null, statement, resultSet, CLOSE);
+    }
+    
+    public static void cleanup(StatementAndResultSet statementAndResultSet) {
+        if (statementAndResultSet != null) cleanup(null, null, statementAndResultSet.getStatement(), statementAndResultSet.getResultSet(), CLOSE);
     }
     
     public static void cleanup(Connection connection, Statement statement) {
@@ -59,20 +72,29 @@ public class DatabaseUtils {
         cleanup(connection, null, statement, null, closeMode);
     }
 
-    public static void cleanup(Connection connection, Statement statement, ResultSet results) {
-        cleanup(connection, null, statement, results, CLOSE);
+    public static void cleanup(Connection connection, Statement statement, ResultSet resultSet) {
+        cleanup(connection, null, statement, resultSet, CLOSE);
     }
     
-    public static void cleanup(Connection connection, Statement statement, ResultSet results, byte closeMode) {
-        cleanup(connection, null, statement, results, closeMode);
+    public static void cleanup(Connection connection, StatementAndResultSet statementAndResultSet) {
+        if (statementAndResultSet != null) cleanup(connection, null, statementAndResultSet.getStatement(), statementAndResultSet.getResultSet(), CLOSE);
+        else cleanup(connection, null, null, null, CLOSE);
+    }
+    
+    public static void cleanup(Connection connection, Statement statement, ResultSet resultSet, byte closeMode) {
+        cleanup(connection, null, statement, resultSet, closeMode);
     }
 
     public static void cleanup(PreparedStatement preparedStatement) {
         cleanup(null, preparedStatement, null, null, CLOSE);
     }
     
-    public static void cleanup(PreparedStatement preparedStatement, ResultSet results) {
-        cleanup(null, preparedStatement, null, results, CLOSE);
+    public static void cleanup(PreparedStatement preparedStatement, ResultSet resultSet) {
+        cleanup(null, preparedStatement, null, resultSet, CLOSE);
+    }
+    
+    public static void cleanup(PreparedStatementAndResultSet preparedStatementAndResultSet) {
+        if (preparedStatementAndResultSet != null) cleanup(null, preparedStatementAndResultSet.getPreparedStatement(), null, preparedStatementAndResultSet.getResultSet(), CLOSE);
     }
     
     public static void cleanup(Connection connection, PreparedStatement preparedStatement) {
@@ -83,25 +105,30 @@ public class DatabaseUtils {
         cleanup(connection, preparedStatement, null, null, closeMode);
     }
     
-    public static void cleanup(Connection connection, PreparedStatement preparedStatement, ResultSet results) {
-        cleanup(connection, preparedStatement, null, results, CLOSE);
+    public static void cleanup(Connection connection, PreparedStatement preparedStatement, ResultSet resultSet) {
+        cleanup(connection, preparedStatement, null, resultSet, CLOSE);
     }
     
-    public static void cleanup(Connection connection, PreparedStatement preparedStatement, ResultSet results, byte closeMode) {
-        cleanup(connection, preparedStatement, null, results, closeMode);
+    public static void cleanup(Connection connection, PreparedStatementAndResultSet preparedStatementAndResultSet) {
+        if (preparedStatementAndResultSet != null) cleanup(connection, preparedStatementAndResultSet.getPreparedStatement(), null, preparedStatementAndResultSet.getResultSet(), CLOSE);
+        else cleanup(connection, null, null, null, CLOSE);
+    }
+    
+    public static void cleanup(Connection connection, PreparedStatement preparedStatement, ResultSet resultSet, byte closeMode) {
+        cleanup(connection, preparedStatement, null, resultSet, closeMode);
     }
 
-    public static void cleanup(Connection connection, PreparedStatement preparedStatement, Statement statement, ResultSet results, byte closeMode) {
+    public static void cleanup(Connection connection, PreparedStatement preparedStatement, Statement statement, ResultSet resultSet, byte closeMode) {
         
-        if (results != null) {
+        if (resultSet != null) {
             try {
-                results.close();
+                resultSet.close();
             }
             catch (Exception e) {
                 logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             }
             finally {
-                results = null;
+                resultSet = null;
             }
         }
         
@@ -174,6 +201,27 @@ public class DatabaseUtils {
         }
         
         return connection;
+    }
+    
+    public static Connection getConnection(DataSource dataSource) {
+        
+        if (dataSource == null) {
+            return null;
+        }
+        
+        Connection connection;
+        
+        try {           
+            connection = dataSource.getConnection();
+            return connection;
+        }
+        catch (Exception e) {
+            connection = null;
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
+            
+            return connection;
+        }
+        
     }
     
     public static boolean disconnect(Connection connection) {
@@ -260,6 +308,22 @@ public class DatabaseUtils {
         
     }
     
+    public static Boolean getAutoCommit(Connection connection) {
+        
+        if (connection == null) {
+            return null;
+        }
+        
+        try {
+            return connection.getAutoCommit();
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
     public static void setAutoCommit(Connection connection, boolean enabled) {
         
         if (connection == null) {
@@ -275,100 +339,355 @@ public class DatabaseUtils {
         
     }
     
+    public static Set<String> getResultSetColumnNames(ResultSet resultSet) {
+        Set<String> columnNames = new HashSet<>();
+        
+        try {
+            ResultSetMetaData metadata = resultSet.getMetaData();
+            int columnCount = metadata.getColumnCount();
+            
+            for (int i = 1; i <= columnCount; i++) {
+                columnNames.add(metadata.getColumnName(i));
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return columnNames;
+    }
+    
+    public static Set<String> getResultSetColumnNames_Lowercase(ResultSet resultSet) {
+        Set<String> columnNamesLowercase = new HashSet<>();
+        
+        try {
+            ResultSetMetaData metadata = resultSet.getMetaData();
+            int columnCount = metadata.getColumnCount();
+            
+            for (int i = 1; i <= columnCount; i++) {
+                columnNamesLowercase.add(metadata.getColumnName(i).toLowerCase());
+            }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        
+        return columnNamesLowercase;
+    }
+    
+    public static <T> T getResultSetValue(ResultSet resultSet, String columnName, Class<T> desiredObjectType) {
+        
+        try {
+            T result = resultSet.getObject(columnName, desiredObjectType);
+            if (resultSet.wasNull()) result = null;
+            return result;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public static <T> T getResultSetValue(ResultSet resultSet, Set<String> lowercaseColumnNames, String columnName, Class<T> desiredObjectType) {
+        
+        try {
+            if ((lowercaseColumnNames == null) || columnName == null) {
+                return null;
+            }
+            
+            if (lowercaseColumnNames.contains(columnName) || lowercaseColumnNames.contains(columnName.toLowerCase())) {
+                T result = resultSet.getObject(columnName, desiredObjectType);
+                if (resultSet.wasNull()) result = null;
+                return result;
+            }
+            
+            return null;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        
+    }
+    
+    public static <T> T getSingleResultFromList(List<T> results) {
+        if ((results == null) || (results.size() <= 0)) return null;
+        else return results.get(0);
+    }
+ 
+    public static Statement createStatement(Connection connection) {
+        try {
+            Statement statement = connection.createStatement();
+            return statement;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }   
+    }
+    
+    public static Statement createStatement(Connection connection, Integer fetchSize) {
+        try {
+            Statement statement = connection.createStatement();
+            statement.setFetchSize(fetchSize);
+            return statement;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }   
+    }
+    
+    public static PreparedStatement createPreparedStatement(Connection connection, String sql) {
+        return createPreparedStatement(connection, sql, 1000);
+    }
+    
+    public static PreparedStatement createPreparedStatement(Connection connection, String sql, Integer fetchSize) {
+        return createPreparedStatement(connection, sql, fetchSize, new ArrayList<>());
+    }
+    
+    public static PreparedStatement createPreparedStatement(Connection connection, String sql, Object... preparedStatementParameters) {
+        return createPreparedStatement(connection, sql, 1000, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static PreparedStatement createPreparedStatement(Connection connection, String sql, Integer fetchSize, Object... preparedStatementParameters) {
+        return createPreparedStatement(connection, sql, fetchSize, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static PreparedStatement createPreparedStatement(Connection connection, String sql, Integer fetchSize, List<Object> preparedStatementParameters) {
+        try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (fetchSize < 1) {
+                logger.error("fetchSize cannot be less than 1");
+                return null;
+            }
+            
+            PreparedStatement preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setFetchSize(fetchSize);
+            if ((preparedStatementParameters != null) && !preparedStatementParameters.isEmpty()) setPreparedStatementParameters(preparedStatement, preparedStatementParameters);
+            return preparedStatement;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }   
+    }
+    
     public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_Statement(Connection connection, T t, String sql) {
-        return query_Statement(connection, t, 1000, sql);
+        return query_Statement(connection, true, t, 1000, sql);
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_Statement(Connection connection, boolean closeConnectionOnCompletion, T t, String sql) {
+        return query_Statement(connection, closeConnectionOnCompletion, t, 1000, sql);
     }
     
     // returns null if there was a fatal error. otherwise returns a list of results.
-    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_Statement(Connection connection, T t, int fetchSize, String sql) {
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_Statement(Connection connection, boolean closeConnectionOnCompletion, T t, int fetchSize, String sql) {
         
         if (connection == null) {
             logger.error("Connection object cannot be null");
             return null;
         }
-        
-        if ((sql == null) || sql.isEmpty()) {
-            logger.error("Sql cannot be null or empty");
-            return null;
-        }
-        
-        if (fetchSize < 1) {
-            logger.error("fetchSize cannot be less than 1");
-            return null;
-        }
 
-        List<S> resultsList = new ArrayList<>();
         Statement statement = null;
         ResultSet resultSet = null;
 
         try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (fetchSize < 1) {
+                logger.error("fetchSize cannot be less than 1");
+                return null;
+            }
+
             statement = connection.createStatement();
             statement.setFetchSize(fetchSize);
-            resultSet = statement.executeQuery(sql);           
-            resultsList = t.handleResultSet(resultSet);
-            return resultsList;
+            resultSet = statement.executeQuery(sql);   
+            
+            boolean isResultSetValid = isResultSetValid(resultSet);
+            if (!isResultSetValid) return null;
+            
+            return t.handleResultSet(resultSet);
         }
         catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));   
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e)); 
+            return null;
         }      
         finally {
-            cleanup(connection, statement, resultSet);
+            if (closeConnectionOnCompletion) cleanup(connection, statement, resultSet);
+            else cleanup(statement, resultSet);
         }
-        
-        return resultsList;
     }
     
-    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, T t, String sql, List<Object> preparedStatementParameters) {
-        return query_PreparedStatement(connection, t, 1000, sql, preparedStatementParameters);
-    }
-    
-    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, T t, String sql, Object... preparedStatementParameters) {
-        return query_PreparedStatement(connection, t, 1000, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    public static ResultSet query_Statement(Connection connection, String sql) {
+        return query_Statement(connection, 1000, sql);
     }
     
     // returns null if there was a fatal error. otherwise returns a list of results.
-    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, T t, int fetchSize, String sql, List<Object> preparedStatementParameters) {
+    public static ResultSet query_Statement(Connection connection, int fetchSize, String sql) {
         
         if (connection == null) {
             logger.error("Connection object cannot be null");
             return null;
         }
-        
-        if ((sql == null) || sql.isEmpty()) {
-            logger.error("Sql cannot be null or empty");
-            return null;
-        }
-        
-        if (t == null) {
-            logger.error("DatabaseResultSetHandler cannot be null");
-            return null;
-        }
-        
-        if (fetchSize < 1) {
-            logger.error("fetchSize cannot be less than 1");
-            return null;
-        }
-        
-        List<S> resultsList = new ArrayList<>();
-        PreparedStatement preparedStatement = null;
-        ResultSet resultSet = null;
+
+        Statement statement = null;
+        ResultSet resultSet;
 
         try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (fetchSize < 1) {
+                logger.error("fetchSize cannot be less than 1");
+                return null;
+            }
+
+            statement = connection.createStatement();
+            statement.setFetchSize(fetchSize);
+            resultSet = statement.executeQuery(sql);   
+            
+            boolean isResultSetValid = isResultSetValid(resultSet);
+            if (!isResultSetValid) return null;
+            
+            return resultSet;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e)); 
+            return null;
+        }      
+        finally {
+            cleanup(statement);
+        }
+        
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, T t, String sql, List<Object> preparedStatementParameters) {
+        return DatabaseUtils.query_PreparedStatement(connection, true, t, 1000, sql, preparedStatementParameters);
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, T t, String sql, List<Object> preparedStatementParameters) {
+        return DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, t, 1000, sql, preparedStatementParameters);
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, T t, String sql, Object... preparedStatementParameters) {
+        return DatabaseUtils.query_PreparedStatement(connection, true, t, 1000, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, T t, String sql, Object... preparedStatementParameters) {
+        return DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, t, 1000, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, T t, int fetchSize, String sql, Object... preparedStatementParameters) {
+        return DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, t, fetchSize, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    // returns null if there was a fatal error. otherwise returns a list of results.
+    public static <T extends DatabaseResultSetHandler, S extends DatabaseObject> List<S> query_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, T t, int fetchSize, String sql, List<Object> preparedStatementParameters) {
+        
+        if (connection == null) {
+            logger.error("Connection object cannot be null");
+            return null;
+        }
+
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+            
+        try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (t == null) {
+                logger.error("DatabaseResultSetHandler cannot be null");
+                return null;
+            }
+
+            if (fetchSize < 1) {
+                logger.error("fetchSize cannot be less than 1");
+                return null;
+            }
+
             preparedStatement = connection.prepareStatement(sql);
             preparedStatement.setFetchSize(fetchSize);
             setPreparedStatementParameters(preparedStatement, preparedStatementParameters);
             resultSet = preparedStatement.executeQuery();
-            resultsList = t.handleResultSet(resultSet);
-            return resultsList;
+            
+            boolean isResultSetValid = isResultSetValid(resultSet);
+            if (!isResultSetValid) return null;
+            
+            return t.handleResultSet(resultSet);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));   
+            return null;
+        }      
+        finally {
+            if (closeConnectionOnCompletion) cleanup(connection, preparedStatement, resultSet);
+            else cleanup(preparedStatement, resultSet);
+        }
+        
+    }
+    
+    public static PreparedStatementAndResultSet query_PreparedStatement(Connection connection, String sql, List<Object> preparedStatementParameters) {
+        return query_PreparedStatement(connection, 1000, sql, preparedStatementParameters);
+    }
+    
+    public static PreparedStatementAndResultSet query_PreparedStatement(Connection connection, String sql, Object... preparedStatementParameters) {
+        return query_PreparedStatement(connection, 1000, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static PreparedStatementAndResultSet query_PreparedStatement(Connection connection, int fetchSize, String sql, Object... preparedStatementParameters) {
+        return query_PreparedStatement(connection, fetchSize, sql, getParametersAsListOfObjects(preparedStatementParameters));
+    }
+    
+    public static PreparedStatementAndResultSet query_PreparedStatement(Connection connection, int fetchSize, String sql, List<Object> preparedStatementParameters) {
+        
+        if (connection == null) {
+            logger.error("Connection object cannot be null");
+            return null;
+        }
+
+        PreparedStatement preparedStatement = null;
+        ResultSet resultSet = null;
+            
+        try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (fetchSize < 1) {
+                logger.error("fetchSize cannot be less than 1");
+                return null;
+            }
+
+            preparedStatement = connection.prepareStatement(sql);
+            preparedStatement.setFetchSize(fetchSize);
+            setPreparedStatementParameters(preparedStatement, preparedStatementParameters);
+            resultSet = preparedStatement.executeQuery();
+            
+            boolean isResultSetValid = isResultSetValid(resultSet);
+            if (!isResultSetValid) resultSet = null;
+            
+            return new PreparedStatementAndResultSet(preparedStatement, resultSet);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));   
         }      
-        finally {
-            cleanup(connection, preparedStatement, resultSet);
-        }
         
-        return resultsList;
+        return null;
     }
     
     public static int dml_PreparedStatement(Connection connection, String sql, List<Object> parameters) {
@@ -379,31 +698,32 @@ public class DatabaseUtils {
         return genericDmlStatement_SingleStatement(connection, true, true, sql, getParametersAsListOfObjects(parameters));
     }
     
-    public static int dml_PreparedStatement(Connection connection, boolean cleanupOnCompletion, boolean commitOnCompletion, String sql, List<Object> parameters) {
-        return genericDmlStatement_SingleStatement(connection, cleanupOnCompletion, commitOnCompletion, sql, parameters);
+    public static int dml_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, String sql, List<Object> parameters) {
+        return genericDmlStatement_SingleStatement(connection, closeConnectionOnCompletion, commitOnCompletion, sql, parameters);
     }
     
-    public static int dml_PreparedStatement(Connection connection, boolean cleanupOnCompletion, boolean commitOnCompletion, String sql, Object... parameters) {
-        return genericDmlStatement_SingleStatement(connection, cleanupOnCompletion, commitOnCompletion, sql, getParametersAsListOfObjects(parameters));
+    public static int dml_PreparedStatement(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, String sql, Object... parameters) {
+        return genericDmlStatement_SingleStatement(connection, closeConnectionOnCompletion, commitOnCompletion, sql, getParametersAsListOfObjects(parameters));
     }
 
     // returns affected row count if successful
     // returns -1 if there was an error. no rollback is performed.
-    private static int genericDmlStatement_SingleStatement(Connection connection, boolean cleanupOnCompletion, boolean commitOnCompletion, String sql, List<Object> parameters) {
+    private static int genericDmlStatement_SingleStatement(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, String sql, List<Object> parameters) {
 
         if (connection == null) {
             logger.error("Connection object cannot be null");
             return -1;
         }
         
-        if ((sql == null) || sql.isEmpty()) {
-            logger.error("Sql cannot be null or empty");
-            return -1;
-        }
-        
         PreparedStatement preparedStatement = null;
         
         try {
+            
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return -1;
+            }
+        
             preparedStatement = connection.prepareStatement(sql);
             setPreparedStatementParameters(preparedStatement, parameters);
             int affectedRowCounts = preparedStatement.executeUpdate();
@@ -421,7 +741,7 @@ public class DatabaseUtils {
         }      
         finally {
             cleanup(preparedStatement);
-            if (cleanupOnCompletion) cleanup(connection, preparedStatement);
+            if (closeConnectionOnCompletion) cleanup(connection, preparedStatement);
         }
         
     }
@@ -434,14 +754,14 @@ public class DatabaseUtils {
         return genericDmlStatement_Batch(connection, true, true, batchSize, true, sql, listOfParameters);
     }
     
-    public static List<Integer> dml_PreparedStatement_Batch(Connection connection, boolean cleanupOnCompletion, boolean commitOnCompletion,
+    public static List<Integer> dml_PreparedStatement_Batch(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion,
             int batchSize, boolean commitOnEveryBatch, String sql, List<List<Object>> listOfParameters) {
-        return genericDmlStatement_Batch(connection, cleanupOnCompletion, commitOnCompletion, batchSize, commitOnEveryBatch, sql, listOfParameters);
+        return genericDmlStatement_Batch(connection, closeConnectionOnCompletion, commitOnCompletion, batchSize, commitOnEveryBatch, sql, listOfParameters);
     }
     
     // returns a list of affected row counts if successful
     // returns null if there was a fatal error
-    private static List<Integer> genericDmlStatement_Batch(Connection connection, boolean cleanupOnCompletion, boolean commitOnCompletion,
+    private static List<Integer> genericDmlStatement_Batch(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion,
             int batchSize, boolean commitOnEveryBatch, String sql, List<List<Object>> listOfParameters) {
 
         if (connection == null) {
@@ -449,22 +769,22 @@ public class DatabaseUtils {
             return null;
         }
         
-        if ((sql == null) || sql.isEmpty()) {
-            logger.error("Sql cannot be null or empty");
-            return null;
-        }
-        
-        if (listOfParameters == null){
-            logger.error("List of parameters cannot be null");
-            return null;
-        }
-        
         PreparedStatement preparedStatement = null;
-        Boolean isAutocommit = null;
+        Boolean initialAutoCommitValue = null;
         
         try {
+            if ((sql == null) || sql.isEmpty()) {
+                logger.error("Sql cannot be null or empty");
+                return null;
+            }
+
+            if (listOfParameters == null){
+                logger.error("List of parameters cannot be null");
+                return null;
+            }
+
             preparedStatement = connection.prepareStatement(sql);
-            isAutocommit = connection.getAutoCommit();
+            initialAutoCommitValue = connection.getAutoCommit();
             connection.setAutoCommit(false);
             
             List<Integer> affectedRowCounts_List = new ArrayList<>();
@@ -558,32 +878,54 @@ public class DatabaseUtils {
             return null;
         }      
         finally {
-            // if the connection is not being closed, set autocommit back to whatever it was before this method started
-            if (!cleanupOnCompletion) {
-                try {
-                    if (isAutocommit != null) {
-                        connection.setAutoCommit(isAutocommit);
-                    }
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e)); 
-                }
+            if (!closeConnectionOnCompletion && (initialAutoCommitValue != null) && initialAutoCommitValue) {
+                setAutoCommit(connection, true);
             }
             
             cleanup(preparedStatement);
-            if (cleanupOnCompletion) cleanup(connection, preparedStatement);
+            if (closeConnectionOnCompletion) cleanup(connection, preparedStatement);
         }
         
     }
+    
+    public static boolean genericDDL(Connection connection, boolean closeConnectionOnCompletion, List<String> ddlStatements) {
+        boolean isAllSuccess = true;
+        
+        try {
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
 
-    public static boolean commit(Connection connection, boolean checkAutocommit) {
+            try {
+                for (String ddlStatement : ddlStatements) {
+                    DatabaseUtils.createStatement(connection).execute(ddlStatement);
+                }
+            }
+            catch (Exception e) {
+                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            }
+            
+            if (isAllSuccess) DatabaseUtils.commit(connection);
+            else DatabaseUtils.rollback(connection);
+            
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+        return isAllSuccess;
+    }
+    
+    public static boolean commit(Connection connection, boolean checkAutoCommit) {
         
         if (connection == null) {
             return false;
         }
         
         try {
-            if (!checkAutocommit) connection.commit(); 
+            if (!checkAutoCommit) connection.commit(); 
             else if (!connection.getAutoCommit()) connection.commit(); 
             return true;
         }
@@ -598,14 +940,14 @@ public class DatabaseUtils {
         return commit(connection, true);
     }
     
-    public static boolean rollback(Connection connection, boolean checkAutocommit) {
+    public static boolean rollback(Connection connection, boolean checkAutoCommit) {
         
         if (connection == null) {
             return false;
         }
         
         try {
-            if (!checkAutocommit) connection.rollback(); 
+            if (!checkAutoCommit) connection.rollback(); 
             else if (!connection.getAutoCommit()) connection.rollback(); 
             return true;
         }
@@ -704,6 +1046,9 @@ public class DatabaseUtils {
             }
             else if (object instanceof SQLXML) {
                 preparedStatement.setSQLXML(index.getAndIncrement(), (SQLXML) object);
+            }
+            else if (object instanceof URL) {
+                preparedStatement.setURL(index.getAndIncrement(), (URL) object);
             }
             else if (object instanceof Short) {
                 preparedStatement.setShort(index.getAndIncrement(), (Short) object);

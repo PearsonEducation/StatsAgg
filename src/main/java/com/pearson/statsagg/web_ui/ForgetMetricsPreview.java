@@ -1,12 +1,11 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
 import com.pearson.statsagg.globals.GlobalVariables;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.Set;
 import org.jsoup.Jsoup;
@@ -17,7 +16,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "ForgetMetricsPreview", urlPatterns = {"/ForgetMetricsPreview"})
 public class ForgetMetricsPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ForgetMetricsPreview.class.getName());

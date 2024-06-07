@@ -1,27 +1,33 @@
 package com.pearson.statsagg.web_ui;
 
+import com.google.gson.JsonObject;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
+import com.pearson.statsagg.database_objects.alert_templates.AlertTemplate;
+import com.pearson.statsagg.database_objects.alert_templates.AlertTemplatesDao;
+import com.pearson.statsagg.database_objects.alerts.AlertsDaoWrapper;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
 import com.pearson.statsagg.globals.GlobalVariables;
+import com.pearson.statsagg.threads.alert_related.NotificationThread;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.util.HashMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -30,7 +36,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Alerts", urlPatterns = {"/Alerts"})
 public class Alerts extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Alerts.class.getName());
@@ -147,7 +152,8 @@ public class Alerts extends HttpServlet {
 
                 try {
                     Boolean isAcknowledged_Boolean = Boolean.parseBoolean(isAcknowledged_String);
-                    AlertsLogic.changeAlertAcknowledge(alertId, isAcknowledged_Boolean);
+                    AlertsDaoWrapper.changeAlertAcknowledge(alertId, isAcknowledged_Boolean);
+                    sendPagerDutyAcknowledgeRequest(alertId);
                 }
                 catch (Exception e) {
                     logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -161,7 +167,7 @@ public class Alerts extends HttpServlet {
         StatsAggHtmlFramework.redirectAndGet(response, 303, "Alerts");
     }
 
-    public String changeAlertEnabled(Integer alertId, Boolean isEnabled) {
+    public static String changeAlertEnabled(Integer alertId, Boolean isEnabled) {
 
         if ((alertId == null) || (isEnabled == null)) {
             return "Invalid input!";
@@ -169,32 +175,36 @@ public class Alerts extends HttpServlet {
         
         boolean isSuccess = false;
         
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlert(alertId);
+        Connection connection = null;
         
-        if (alert != null) {
-            alert.setIsEnabled(isEnabled);
-
-            if (!isEnabled) {
-                alert.setIsCautionAlertActive(false);
-                alert.setCautionFirstActiveAt(null);
-                alert.setIsCautionAlertAcknowledged(null);
-                alert.setCautionAlertLastSentTimestamp(null);
-                alert.setCautionActiveAlertsSet(null);
-                alert.setIsDangerAlertActive(false);
-                alert.setDangerFirstActiveAt(null);
-                alert.setIsDangerAlertAcknowledged(null);
-                alert.setDangerAlertLastSentTimestamp(null);
-                alert.setDangerActiveAlertsSet(null);
-            }
-
-            AlertsLogic alertsLogic = new AlertsLogic();
-            alertsLogic.alterRecordInDatabase(alert, alert.getName(), false);
+        try {
+            connection = DatabaseConnections.getConnection(); 
             
-            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
-                isSuccess = true;
-                GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            Alert alert = AlertsDao.getAlert(connection, false, alertId);
+
+            if (alert != null) {
+                alert.setIsEnabled(isEnabled);
+
+                if (!isEnabled) alert.disableAndNullifyAlertStatusFields();
+
+                boolean isAlertCreatedByAlertTemplate = AlertsDao.isAlertCreatedByAlertTemplate(connection, true, alert, null);
+
+                if (!isAlertCreatedByAlertTemplate) {
+                    AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.alterRecordInDatabase(alert, alert.getName());
+
+                    if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
+                        isSuccess = true;
+                        GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+                    }
+                }
+                else logger.warn("Can't enabled/disable an alert that was created by an alert template. AlertName=\"" + alert.getName() + "\".");
             }
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
         }
         
         if (isSuccess && isEnabled) return "Successfully enabled alert";
@@ -202,48 +212,29 @@ public class Alerts extends HttpServlet {
         else return "Error -- could not alter alert";
     }
     
-    private void cloneAlert(Integer alertId) {
+    protected static void cloneAlert(Integer alertId) {
         
         if (alertId == null) {
             return;
         }
         
-        try {
-            Alert alert = null;
-            List<Alert> allAlerts = null;
-            AlertsDao alertsDao = null;
-
-            try {
-                alertsDao = new AlertsDao(false);
-                alert = alertsDao.getAlert(alertId);
-                allAlerts = alertsDao.getAllDatabaseObjectsInTable();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
-            finally {
-                try {
-                    if (alertsDao != null) alertsDao.close();
-                }
-                catch (Exception e) {
-                    logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-                }
-            }
+        Connection connection = null;
         
-            if ((alert != null) && (alert.getName() != null)) {
-                Set<String> allAlertNames = new HashSet<>();
-                for (Alert currentAlert : allAlerts) {
-                    if (currentAlert.getName() != null) {
-                        allAlertNames.add(currentAlert.getName());
-                    }
-                }
-                
+        try {
+            connection = DatabaseConnections.getConnection(); 
+            
+            Alert alert = AlertsDao.getAlert(connection, false, alertId);
+            boolean isAlertCreatedByAlertTemplate = AlertsDao.isAlertCreatedByAlertTemplate(connection, false, alert, null);
+            if (isAlertCreatedByAlertTemplate) logger.warn("Can't clone an alert that was created by an alert template. AlertName=\"" + alert.getName() + "\".");
+
+            if ((alert != null) && (alert.getName() != null) && !isAlertCreatedByAlertTemplate) {
+                Set<String> allAlertNames = AlertsDao.getAlertNames(connection, true);
+
                 Alert clonedAlert = Alert.copy(alert);
                 clonedAlert.setId(-1);
                 String clonedAlertName = StatsAggHtmlFramework.createCloneName(alert.getName(), allAlertNames);
 
                 clonedAlert.setName(clonedAlertName);
-                clonedAlert.setUppercaseName(clonedAlertName.toUpperCase());
                 clonedAlert.setIsEnabled(false);
                 clonedAlert.setIsCautionAlertActive(false);
                 clonedAlert.setCautionFirstActiveAt(null);
@@ -256,10 +247,9 @@ public class Alerts extends HttpServlet {
                 clonedAlert.setDangerActiveAlertsSet(null);
                 clonedAlert.setDangerFirstActiveAt(null);
                 
-                AlertsLogic alertsLogic = new AlertsLogic();
-                alertsLogic.alterRecordInDatabase(clonedAlert);
+                AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.createRecordInDatabase(clonedAlert);
                 
-                if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(false, true);
                 }
             }
@@ -267,9 +257,13 @@ public class Alerts extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
-    public String removeAlert(Integer alertId) {
+    public static String removeAlert(Integer alertId) {
         
         if (alertId == null) {
             return null;
@@ -277,25 +271,40 @@ public class Alerts extends HttpServlet {
         
         String returnString = null;
         
+        Connection connection = null;
+        
         try {
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(alertId);
-            String alertName = alert.getName();
-
-            AlertsLogic alertsLogic = new AlertsLogic();
-            returnString = alertsLogic.deleteRecordInDatabase(alertName);
-
-            if ((GlobalVariables.alertInvokerThread != null) && (AlertsLogic.STATUS_CODE_SUCCESS == alertsLogic.getLastDeleteRecordStatus())) {
-                GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+            connection = DatabaseConnections.getConnection(); 
+            
+            Alert alert = AlertsDao.getAlert(connection, false, alertId);
+            boolean isAlertCreatedByAlertTemplate = AlertsDao.isAlertCreatedByAlertTemplate(connection, true, alert, null);
+            
+            if (!isAlertCreatedByAlertTemplate) {
+                AlertsDaoWrapper alertsDaoWrapper = AlertsDaoWrapper.deleteRecordInDatabase(alert);
+                returnString = alertsDaoWrapper.getReturnString();
+                
+                if ((GlobalVariables.alertInvokerThread != null) && (AlertsDaoWrapper.STATUS_CODE_SUCCESS == alertsDaoWrapper.getLastDeleteRecordStatus())) {
+                    GlobalVariables.alertInvokerThread.runAlertThread(false, true);
+                }
+            }
+            else {
+                String alertName = (alert == null) ? "Unknown" : alert.getName();
+                returnString = "Can't remove an alert that was created by an alert template. AlertName=\"" + alertName + "\".";
+                logger.warn(returnString);
             }
         }
         catch (Exception e) {
+            returnString = "Error removing alert";
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
         return returnString;
     }
     
-    private String buildAlertsHtml() {
+    public static String buildAlertsHtml() {
         
         StringBuilder html = new StringBuilder();
 
@@ -316,7 +325,8 @@ public class Alerts extends HttpServlet {
             "  <table id=\"AlertsTable\" style=\"display:none\" class=\"table table-bordered table-hover compact\">\n" +
             "     <thead>\n" +
             "       <tr>\n" +
-            "         <th>Alert name</th>\n" +
+            "         <th>Alert Name</th>\n" +
+            "         <th>Template</th>\n" +
             "         <th>Metric Group Association</th>\n" +
             "         <th>Metric Group Tags</th>\n" +
             "         <th>Caution Notification Group</th>\n" +
@@ -332,218 +342,226 @@ public class Alerts extends HttpServlet {
             "     </thead>\n" +
             "     <tbody>\n");
 
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+
+        Connection connection = null;
         
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
-        
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        Map<Integer, String> notificationGroupNames_ById = notificationGroupsDao.getNotificationGroupNames_ById();
-        
-        SuspensionsDao suspensionsDao = new SuspensionsDao();
-        Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = suspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId();
-        
-        for (Alert alert : alerts) {
-            if (alert == null) continue;
+        try {
+            connection = DatabaseConnections.getConnection();
+            List<Alert> alerts = AlertsDao.getAlerts(connection, false);
+            if (alerts == null) alerts = new ArrayList<>();
+            Map<Integer, String> notificationGroupNames_ById = NotificationGroupsDao.getNotificationGroupNames_ById(connection, false);
+            if (notificationGroupNames_ById == null) notificationGroupNames_ById = new HashMap<>();
+            Map<Integer,List<Suspension>> suspensions_SuspendByAlertId_ByAlertId = SuspensionsDao.getSuspensions_SuspendByAlertId_ByAlertId(connection, false);
+            if (suspensions_SuspendByAlertId_ByAlertId == null) suspensions_SuspendByAlertId_ByAlertId = new HashMap<>();
             
-            String rowAlertStatusContext = "";
-            boolean isRowStatusInfo = false;
-            
-            synchronized(GlobalVariables.pendingCautionAlertsByAlertId) {
-                if (GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
-                    rowAlertStatusContext = "class=\"info\"";
-                    isRowStatusInfo = true;
-                }
-            }
-            synchronized(GlobalVariables.pendingDangerAlertsByAlertId) {
-                if (GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
-                    rowAlertStatusContext = "class=\"info\"";
-                    isRowStatusInfo = true;
-                }
-            }
-            synchronized(GlobalVariables.suspensionStatusByAlertId) {
-                if (GlobalVariables.suspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) {
-                    rowAlertStatusContext = "class=\"info\"";
-                    isRowStatusInfo = true;
-                }
-            }
-            
-            if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
-            else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
-            
-            String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
-            
-            String metricGroupNameAndLink;
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(alert.getMetricGroupId());
-            if ((metricGroup == null) || (metricGroup.getName() == null)) metricGroupNameAndLink = "N/A";
-            else metricGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
-            
-            StringBuilder tagsCsv = new StringBuilder();
-            if ((metricGroup != null) && (metricGroup.getId() != null) && (tagsByMetricGroupId != null)) {
-                List<MetricGroupTag> metricGroupTags = tagsByMetricGroupId.get(metricGroup.getId());
-                
-                if (metricGroupTags != null) {
-                    for (int i = 0; i < metricGroupTags.size(); i++) {
-                        MetricGroupTag metricGroupTag = metricGroupTags.get(i);
-                        tagsCsv = tagsCsv.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTag.getTag())).append("</u>");
-                        if ((i + 1) < metricGroupTags.size()) tagsCsv.append(" &nbsp;");
+            for (Alert alert : alerts) {
+                if (alert == null) continue;
+
+                String rowAlertStatusContext = "";
+                boolean isRowStatusInfo = false;
+
+                synchronized(GlobalVariables.pendingCautionAlertsByAlertId) {
+                    if (GlobalVariables.pendingCautionAlertsByAlertId.containsKey(alert.getId())) {
+                        rowAlertStatusContext = "class=\"info\"";
+                        isRowStatusInfo = true;
                     }
                 }
-            }
-            
-            String cautionNotificationGroupNameAndLink;
-            if ((notificationGroupNames_ById == null) || (alert.getCautionNotificationGroupId() == null) || ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) || 
-                    !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
-                cautionNotificationGroupNameAndLink = "N/A";
-            }
-            else {
-                cautionNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
-                    StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "</a>";
-            }
-
-            String dangerNotificationGroupNameAndLink;
-            if ((notificationGroupNames_ById == null) || (alert.getDangerNotificationGroupId() == null) || ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) || 
-                    !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
-                dangerNotificationGroupNameAndLink = "N/A";
-            }
-            else {
-                dangerNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
-                    StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "</a>";
-            }
-            
-            String isAlertEnabled = "No";
-            if ((alert.isEnabled() != null) && alert.isEnabled()) isAlertEnabled = "Yes";
-    
-            String isSuspended = "No";
-            synchronized(GlobalVariables.suspensionStatusByAlertId) {
-                if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId()) != null) {
-                    if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+                synchronized(GlobalVariables.pendingDangerAlertsByAlertId) {
+                    if (GlobalVariables.pendingDangerAlertsByAlertId.containsKey(alert.getId())) {
+                        rowAlertStatusContext = "class=\"info\"";
+                        isRowStatusInfo = true;
+                    }
                 }
-            }
-            String isSuspendedLink = "<a class=\"iframe cboxElement\" href=\"Alert-SuspensionAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
-            
-            String triggeredLink = "No", cautionLink = "No", dangerLink = "No";
-            if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) cautionLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
-            if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) dangerLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
-            if (cautionLink.endsWith("Yes</a>") || dangerLink.endsWith("Yes</a>")) triggeredLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">Yes</a>";
-            
-            String enable; 
-            if (alert.isEnabled()) {
-                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
-                keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-                keysAndValues.add(new KeyValue("Enabled", "false"));
-                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "disable", keysAndValues);
-            }
-            else {
-                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
-                keysAndValues.add(new KeyValue("Operation", "Enable"));
-                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-                keysAndValues.add(new KeyValue("Enabled", "true"));
-                enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
+                synchronized(GlobalVariables.suspensionStatusByAlertId) {
+                    if (GlobalVariables.suspensionStatusByAlertId.containsKey(alert.getId()) && GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) {
+                        rowAlertStatusContext = "class=\"info\"";
+                        isRowStatusInfo = true;
+                    }
+                }
+
+                if (!isRowStatusInfo && (alert.isCautionAlertActive() && !alert.isDangerAlertActive())) rowAlertStatusContext = "class=\"warning\"";
+                else if (!isRowStatusInfo && alert.isDangerAlertActive()) rowAlertStatusContext = "class=\"danger\"";
+
+                String alertDetails = "<a class=\"iframe cboxElement\" href=\"AlertDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alert.getName()) + "</a>";
+
+                String alertTemplateNameAndLink;
+                AlertTemplate alertTemplate = AlertTemplatesDao.getAlertTemplate(connection, false, alert.getAlertTemplateId());
+                if ((alertTemplate == null) || (alertTemplate.getName() == null)) alertTemplateNameAndLink = "N/A";
+                else alertTemplateNameAndLink = "<a class=\"iframe cboxElement\" href=\"AlertTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alertTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(alertTemplate.getName()) + "</a>";
+
+                String metricGroupNameAndLink;
+                MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(connection, false, alert.getMetricGroupId());
+                if ((metricGroup == null) || (metricGroup.getName() == null)) metricGroupNameAndLink = "N/A";
+                else metricGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+
+                StringBuilder metricGroupTagsCsv = new StringBuilder();
+                if ((metricGroup != null) && (metricGroup.getTags() != null)) {
+                    List<String> metricGroupTagsList = new ArrayList<>(metricGroup.getTags());
+                    for (int i = 0; i < metricGroupTagsList.size(); i++) {
+                        metricGroupTagsCsv = metricGroupTagsCsv.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTagsList.get(i).trim())).append("</u>");
+                        if ((i + 1) < metricGroupTagsList.size()) metricGroupTagsCsv.append(" &nbsp;");
+                    }
+                }
+
+                String cautionNotificationGroupNameAndLink;
+                if ((alert.getCautionNotificationGroupId() == null) || ((alert.isCautionEnabled() != null) && !alert.isCautionEnabled()) || !notificationGroupNames_ById.containsKey(alert.getCautionNotificationGroupId())) {
+                    cautionNotificationGroupNameAndLink = "N/A";
+                }
+                else {
+                    cautionNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                        StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getCautionNotificationGroupId())) + "</a>";
+                }
+
+                String dangerNotificationGroupNameAndLink;
+                if ((alert.getDangerNotificationGroupId() == null) || ((alert.isDangerEnabled() != null) && !alert.isDangerEnabled()) || !notificationGroupNames_ById.containsKey(alert.getDangerNotificationGroupId())) {
+                    dangerNotificationGroupNameAndLink = "N/A";
+                }
+                else {
+                    dangerNotificationGroupNameAndLink = "<a class=\"iframe cboxElement\" href=\"NotificationGroupDetails?ExcludeNavbar=true&amp;Name=" + 
+                        StatsAggHtmlFramework.urlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(notificationGroupNames_ById.get(alert.getDangerNotificationGroupId())) + "</a>";
+                }
+
+                String isAlertEnabled = "No";
+                if ((alert.isEnabled() != null) && alert.isEnabled()) isAlertEnabled = "Yes";
+
+                String isSuspended = "No";
+                synchronized(GlobalVariables.suspensionStatusByAlertId) {
+                    if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId()) != null) {
+                        if (GlobalVariables.suspensionStatusByAlertId.get(alert.getId())) isSuspended = "Yes";
+                    }
+                }
+                String isSuspendedLink = "<a class=\"iframe cboxElement\" href=\"Alert-SuspensionAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">" + isSuspended + "</a>";
+
+                String triggeredLink = "No", cautionLink = "No", dangerLink = "No";
+                if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive()) cautionLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Caution" + "\">Yes</a>";
+                if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive()) dangerLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Danger" + "\">Yes</a>";
+                if (cautionLink.endsWith("Yes</a>") || dangerLink.endsWith("Yes</a>")) triggeredLink = "<a class=\"iframe cboxElement\" href=\"AlertAssociations?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "&Level=" + "Triggered" + "\">Yes</a>";
+
+                String enable; 
+                if (alert.isEnabled()) {
+                    List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
+                    keysAndValues.add(new KeyValue("Operation", "Enable"));
+                    keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                    keysAndValues.add(new KeyValue("Enabled", "false"));
+                    enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "disable", keysAndValues);
+                }
+                else {
+                    List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
+                    keysAndValues.add(new KeyValue("Operation", "Enable"));
+                    keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                    keysAndValues.add(new KeyValue("Enabled", "true"));
+                    enable = StatsAggHtmlFramework.buildJavaScriptPostLink("Enable_" + alert.getName(), "Alerts", "enable", keysAndValues);
+                }
+
+                // decide whether the 'acknowledge' and/or 'unacknowledge' operations are presented 
+                String acknowledge = "";
+                if (                // caution & danger both acknowledged
+                    ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
+                    (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) 
+                    ||              // danger acknowledged, caution not active (therefore not acknowledged)
+                    (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()))
+                    ||              // caution acknowledged, danger not active (therefore not acknowledged)
+                    (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()))
+                   )              
+                {
+                    List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
+                    keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
+                    keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                    keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
+                    acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "unacknowledge", keysAndValues);
+                }
+                else if ((alert.isCautionAlertActive() && ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()))) || 
+                        (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
+                    List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
+                    keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
+                    keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                    keysAndValues.add(new KeyValue("IsAcknowledged", "true"));
+                    acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "acknowledge", keysAndValues);
+                }
+
+                String isAcknowledged = getIsAcknowledgedTableValue(alert);
+
+                String alter = "<a href=\"CreateAlert?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">alter</a>";
+
+                List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
+                cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
+                cloneKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alert.getName(), "Alerts", "clone", cloneKeysAndValues);
+
+                List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
+                removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
+                removeKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
+                String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alert.getName(), "Alerts", "remove", 
+                        removeKeysAndValues, true, "Are you sure you want to remove this alert?");
+
+                htmlBodyStringBuilder
+                        .append("<tr ").append(rowAlertStatusContext).append(">\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(alertDetails).append("</td>\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(alertTemplateNameAndLink).append("</td>\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(metricGroupNameAndLink).append("</td>\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTagsCsv.toString()).append("</td>\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(cautionNotificationGroupNameAndLink).append("</td>\n")
+                        .append("<td class=\"statsagg_force_word_break\">").append(dangerNotificationGroupNameAndLink).append("</td>\n")
+                        .append("<td>").append(isAlertEnabled).append("</td>\n")
+                        .append("<td>").append(isSuspendedLink).append("</td>\n")
+                        .append("<td>").append(triggeredLink).append("</td>\n")
+                        .append("<td>").append(cautionLink).append("</td>\n")
+                        .append("<td>").append(dangerLink).append("</td>\n")
+                        .append("<td>").append(isAcknowledged).append("</td>\n")
+                        .append("<td>");
+
+                if (alert.getAlertTemplateId() == null) htmlBodyStringBuilder.append(enable).append(", ").append(alter).append(", ").append(clone);
+                if ((alert.getAlertTemplateId() == null) && !suspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+                if ((alert.getAlertTemplateId() == null) && !acknowledge.isEmpty()) htmlBodyStringBuilder.append(", ").append(acknowledge);
+                else if ((alert.getAlertTemplateId() != null) && !acknowledge.isEmpty()) htmlBodyStringBuilder.append(acknowledge);
+
+                htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
             }
 
-            // decide whether the 'acknowledge' and/or 'unacknowledge' operations are presented 
-            String acknowledge = "";
-            if (                // caution & danger both acknowledged
-                ((alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()) &&
-                (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged())) 
-                ||              // danger acknowledged, caution not active (therefore not acknowledged)
-                (!alert.isCautionAlertActive() && (alert.isDangerAlertActive() && (alert.isDangerAlertAcknowledged() != null) && alert.isDangerAlertAcknowledged()))
-                ||              // caution acknowledged, danger not active (therefore not acknowledged)
-                (!alert.isDangerAlertActive() && (alert.isCautionAlertActive() && (alert.isCautionAlertAcknowledged() != null) && alert.isCautionAlertAcknowledged()))
-               )              
-            {
-                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
-                keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
-                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-                keysAndValues.add(new KeyValue("IsAcknowledged", "false"));
-                acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "unacknowledge", keysAndValues);
-            }
-            else if ((alert.isCautionAlertActive() && ((alert.isCautionAlertAcknowledged() == null) || ((alert.isCautionAlertAcknowledged() != null) && !alert.isCautionAlertAcknowledged()))) || 
-                    (alert.isDangerAlertActive() && ((alert.isDangerAlertAcknowledged() == null) || ((alert.isDangerAlertAcknowledged() != null) && !alert.isDangerAlertAcknowledged())))) {
-                List<KeyValue<String,String>> keysAndValues = new ArrayList<>();
-                keysAndValues.add(new KeyValue("Operation", "Acknowledge"));
-                keysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-                keysAndValues.add(new KeyValue("IsAcknowledged", "true"));
-                acknowledge = StatsAggHtmlFramework.buildJavaScriptPostLink("Acknowledge_" + alert.getName(), "Alerts", "acknowledge", keysAndValues);
-            }
-            
-            String isAcknowledged = getIsAcknowledgedTableValue(alert);
-            
-            String alter = "<a href=\"CreateAlert?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(alert.getName()) + "\">alter</a>";
-            
-            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
-            cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + alert.getName(), "Alerts", "clone", cloneKeysAndValues);
-                    
-            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
-            removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Id", alert.getId().toString()));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + alert.getName(), "Alerts", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this alert?");
+            htmlBodyStringBuilder.append(""
+                    + "</tbody>\n"
+                    + "<tfoot> \n"
+                    + "  <tr>\n" 
+                    + "    <th></th>\n"
+                    + "    <th></th>\n"
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "  </tr>\n" 
+                    + "</tfoot>" 
+                    + "</table>\n"
+                    + "</div>\n"
+                    + "</div>\n");
 
-            htmlBodyStringBuilder
-                    .append("<tr ").append(rowAlertStatusContext).append(">\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(alertDetails).append("</td>\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupNameAndLink).append("</td>\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(tagsCsv.toString()).append("</td>\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(cautionNotificationGroupNameAndLink).append("</td>\n")
-                    .append("<td class=\"statsagg_force_word_break\">").append(dangerNotificationGroupNameAndLink).append("</td>\n")
-                    .append("<td>").append(isAlertEnabled).append("</td>\n")
-                    .append("<td>").append(isSuspendedLink).append("</td>\n")
-                    .append("<td>").append(triggeredLink).append("</td>\n")
-                    .append("<td>").append(cautionLink).append("</td>\n")
-                    .append("<td>").append(dangerLink).append("</td>\n")
-                    .append("<td>").append(isAcknowledged).append("</td>\n")
-                    .append("<td>").append(enable).append(", ").append(alter).append(", ").append(clone);
-            
-            if ((suspensions_SuspendByAlertId_ByAlertId == null) || !suspensions_SuspendByAlertId_ByAlertId.containsKey(alert.getId())) { 
-                htmlBodyStringBuilder.append(", ").append(remove);
-            }
-            
-            if (!acknowledge.isEmpty()) htmlBodyStringBuilder.append(", ").append(acknowledge);
-                    
-            htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
+
+            html.append(""
+                    + "<!DOCTYPE html>\n"
+                    + "<html>\n")
+                    .append(htmlHeader)
+                    .append(htmlBody)
+                    .append("</html>");
+
+            return html.toString();
         }
-
-        htmlBodyStringBuilder.append(""
-                + "</tbody>\n"
-                + "<tfoot> \n"
-                + "  <tr>\n" 
-                + "    <th></th>\n"
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "  </tr>\n" 
-                + "</tfoot>" 
-                + "</table>\n"
-                + "</div>\n"
-                + "</div>\n");
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return "Fatal error encountered";
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
         
-        String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
-
-        html.append(""
-                + "<!DOCTYPE html>\n"
-                + "<html>\n")
-                .append(htmlHeader)
-                .append(htmlBody)
-                .append("</html>");
-        
-        return html.toString();
     }
 
     // Gets value for Alerts 'Acknowledged?' column 
@@ -601,6 +619,35 @@ public class Alerts extends HttpServlet {
         }
         
         return isAcknowledged;
+    }
+    
+    protected static void sendPagerDutyAcknowledgeRequest(Integer alertId) {
+
+        if (!ApplicationConfiguration.isPagerdutyIntegrationEnabled()) return;
+
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertId);
+        if (alert == null) return;
+
+        int alertLevel, notificationGroupId;
+        
+        if ((alert.isDangerAlertActive() != null) && alert.isDangerAlertActive() && (alert.getDangerNotificationGroupId() != null)) {
+            alertLevel = Alert.DANGER;
+            notificationGroupId = alert.getDangerNotificationGroupId();
+        } 
+        else if ((alert.isCautionAlertActive() != null) && alert.isCautionAlertActive() && (alert.getCautionNotificationGroupId() != null)) {
+            alertLevel = Alert.CAUTION;
+            notificationGroupId = alert.getCautionNotificationGroupId();
+        }
+        else {
+            return;
+        }
+
+        String routingKey = NotificationThread.getPagerdutyRoutingKeyForAlert(notificationGroupId);
+        if (routingKey == null) return;
+        
+        NotificationThread notificationThread = new NotificationThread(alert, alertLevel, new ArrayList<>(), new HashMap<>(), new HashMap<>(), false, false, "");
+        JsonObject event = notificationThread.buildPagerdutyAcknowledgeEvent();
+        notificationThread.sendPagerdutyEvent(routingKey, event);
     }
     
 }

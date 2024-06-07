@@ -1,10 +1,9 @@
 package com.pearson.statsagg.web_ui;
 
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
@@ -16,7 +15,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "ForgetMetrics", urlPatterns = {"/ForgetMetrics"})
 public class ForgetMetrics extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(ForgetMetrics.class.getName());

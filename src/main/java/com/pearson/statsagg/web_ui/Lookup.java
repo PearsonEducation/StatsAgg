@@ -1,14 +1,16 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.notifications.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
+import com.pearson.statsagg.database_objects.notification_groups.NotificationGroupsDao;
+import com.pearson.statsagg.database_objects.pagerduty_services.PagerdutyServicesDao;
+import com.pearson.statsagg.database_objects.variable_set_list.VariableSetListsDao;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.util.List;
 import org.apache.commons.text.StringEscapeUtils;
 import org.slf4j.Logger;
@@ -17,7 +19,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Lookup", urlPatterns = {"/Lookup"})
 public class Lookup extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Lookup.class.getName());
@@ -65,7 +66,7 @@ public class Lookup extends HttpServlet {
         try {  
             request.setCharacterEncoding("UTF-8");
             response.setCharacterEncoding("UTF-8");
-            response.setContentType("text/html");
+            response.setContentType("application/json");
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
@@ -83,6 +84,8 @@ public class Lookup extends HttpServlet {
                 if (type.equals("AlertName")) results = createAlertNamesJson(query);
                 else if (type.equals("MetricGroupName")) results = createMetricGroupNamesJson(query);
                 else if (type.equals("NotificationGroupName")) results = createNotificationGroupNamesJson(query);
+                else if (type.equals("PagerDutyServiceName")) results = createPagerdutyServiceNamesJson(query);
+                else if (type.equals("VariableSetListName")) results = createVariableSetListNamesJson(query);
             }
             
             out = response.getWriter();
@@ -104,8 +107,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        AlertsDao alertsDao = new AlertsDao();
-        List<String> alertNames = alertsDao.getAlertNames(alertNamesQuery, 10);
+        List<String> alertNames = AlertsDao.getAlertNames(DatabaseConnections.getConnection(), true, alertNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         
@@ -135,8 +137,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        List<String> metricGroupsNames = metricGroupsDao.getMetricGroupNames(metricGroupNamesQuery, 10);
+        List<String> metricGroupsNames = MetricGroupsDao.getMetricGroupNames(DatabaseConnections.getConnection(), true, metricGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         
@@ -166,8 +167,7 @@ public class Lookup extends HttpServlet {
             return "";
         }
         
-        NotificationGroupsDao notificationGroupsDao = new NotificationGroupsDao();
-        List<String> notificationGroupsNames = notificationGroupsDao.getNotificationGroupNames(notificationGroupNamesQuery, 10);
+        List<String> notificationGroupsNames = NotificationGroupsDao.getNotificationGroupNames(DatabaseConnections.getConnection(), true, notificationGroupNamesQuery, 10);
         
         StringBuilder json = new StringBuilder();
         
@@ -183,6 +183,66 @@ public class Lookup extends HttpServlet {
             json.append("}");
             
             if (i < notificationGroupsNames.size()) json.append(",");
+            i++;
+        }
+        
+        json.append("]");
+    
+        return json.toString();
+    }
+    
+    protected String createPagerdutyServiceNamesJson(String pagerdutyServiceNamesQuery) {
+        
+        if (pagerdutyServiceNamesQuery == null) {
+            return "";
+        }
+        
+        List<String> pagerdutyServiceNames = PagerdutyServicesDao.getPagerdutyServiceNames(DatabaseConnections.getConnection(), true, pagerdutyServiceNamesQuery, 10);
+        
+        StringBuilder json = new StringBuilder();
+        
+        json.append("[");
+        
+        int i = 1;
+        for (String name : pagerdutyServiceNames) {
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
+            if (i < pagerdutyServiceNames.size()) json.append(",");
+            i++;
+        }
+        
+        json.append("]");
+    
+        return json.toString();
+    }
+    
+    protected String createVariableSetListNamesJson(String variableSetListNamesQuery) {
+        
+        if (variableSetListNamesQuery == null) {
+            return "";
+        }
+        
+        List<String> variableSetListNames = VariableSetListsDao.getVariableSetListNames(DatabaseConnections.getConnection(), true, variableSetListNamesQuery, 10);
+        
+        StringBuilder json = new StringBuilder();
+        
+        json.append("[");
+        
+        int i = 1;
+        for (String name : variableSetListNames) {
+            json.append("{");
+            
+            json.append("\"HtmlValue\":\"").append(StringEscapeUtils.escapeJson(StatsAggHtmlFramework.htmlEncode(name))).append("\",");
+            json.append("\"Value\":\"").append(StringEscapeUtils.escapeJson(name)).append("\"");
+            
+            json.append("}");
+            
+            if (i < variableSetListNames.size()) json.append(",");
             i++;
         }
         

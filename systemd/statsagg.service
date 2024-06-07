@@ -1,0 +1,15 @@
+[Unit]
+Description=StatsAgg service
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=statsagg
+LimitNOFILE=65536
+WorkingDirectory=/opt/statsagg
+ExecStart=/bin/java -XX:InitialRAMPercentage=40 -XX:MaxRAMPercentage=70 -XX:MaxGCPauseMillis=2500 -XX:+UseStringDeduplication  -Djava.net.preferIPv4Stack=true -Djava.net.preferIPv4Addresses=true -jar StatsAgg.jar
+
+[Install]
+WantedBy=multi-user.target
+

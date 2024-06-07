@@ -1,8 +1,8 @@
 package com.pearson.statsagg.database_objects.metric_last_seen;
 
 import com.google.gson.annotations.SerializedName;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import java.sql.Timestamp;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -10,14 +10,16 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class MetricLastSeen extends DatabaseObject<MetricLastSeen> {
+public class MetricLastSeen implements DatabaseObject<MetricLastSeen> {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricLastSeen.class.getName());
    
-    @SerializedName("metric_key_sha1") private final String metricKeySha1_;
-    @SerializedName("metric_key") private final String metricKey_;
-    @SerializedName("last_modified") private final Timestamp lastModified_;
+    @SerializedName("metric_key_sha1") private String metricKeySha1_;
+    @SerializedName("metric_key") private String metricKey_;
+    @SerializedName("last_modified") private Timestamp lastModified_;
     
+    public MetricLastSeen() {}
+     
     public MetricLastSeen(String metricKeySha1, String metricKey, Timestamp lastModified) {
         this.metricKeySha1_ = metricKeySha1;
         this.metricKey_ = metricKey;

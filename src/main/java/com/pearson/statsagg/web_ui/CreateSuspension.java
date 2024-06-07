@@ -1,20 +1,23 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.suspensions.SuspensionsDaoWrapper;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
 import java.util.ArrayList;
@@ -28,7 +31,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "CreateSuspension", urlPatterns = {"/CreateSuspension"})
 public class CreateSuspension extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateSuspension.class.getName());
@@ -93,8 +95,7 @@ public class CreateSuspension extends HttpServlet {
             Suspension suspension = null;
             String name = request.getParameter("Name");
             if (name != null) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                suspension = suspensionsDao.getSuspensionByName(name.trim());
+                suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, name.trim());
             }        
             
             String htmlBodyContents = buildCreateSuspensionHtml(suspension);
@@ -218,7 +219,7 @@ public class CreateSuspension extends HttpServlet {
         // is enabled?
         htmlBody.append("" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Is enabled?&nbsp;&nbsp;</label>\n" +
+            "  <label class=\"label_small_margin\">Is Enabled?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"Enabled\" id=\"Enabled\" type=\"checkbox\" ");
 
         if (((suspension != null) && (suspension.isEnabled() != null) && suspension.isEnabled()) || 
@@ -232,7 +233,7 @@ public class CreateSuspension extends HttpServlet {
         // suspend notification only?
         htmlBody.append("" +
             "<div class=\"form-group\">\n" +
-            "  <label class=\"label_small_margin\">Suspend notification only?&nbsp;&nbsp;</label>\n" +
+            "  <label class=\"label_small_margin\">Suspend Notification Only?&nbsp;&nbsp;</label>\n" +
             "  <input name=\"SuspendNotificationOnly\" id=\"SuspendNotificationOnly\" type=\"checkbox\" ");
 
         if ((suspension != null) && (suspension.isSuspendNotificationOnly() != null) && suspension.isSuspendNotificationOnly() ||
@@ -251,7 +252,7 @@ public class CreateSuspension extends HttpServlet {
         htmlBody.append("" +
             "<div class=\"col-md-4 statsagg_three_panel_second_panel\" > \n" +
             "  <div class=\"panel panel-info\"> \n" +
-            "    <div class=\"panel-heading\"><b>Suspend by...</b>" +
+            "    <div class=\"panel-heading\"><b>Suspend By...</b>" +
             "         <a id=\"SuspensionAssociationsPreview\" name=\"SuspensionAssociationsPreview\" class=\"iframe cboxElement statsagg_suspension_alert_associations_preview pull-right\" href=\"#\" onclick=\"generateSuspensionAssociationsPreviewLink();\">Preview Suspension Associations</a>" + 
             "    </div>" + 
             "    <div class=\"panel-body\"> \n");
@@ -284,8 +285,7 @@ public class CreateSuspension extends HttpServlet {
             "    <input class=\"typeahead form-control-statsagg\" placeholder=\"Enter the name of the alert that you want to suspend.\" autocomplete=\"off\" name=\"AlertName\" id=\"AlertName\" ");
         
         if ((suspension != null) && (suspension.getAlertId() != null)) {
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(suspension.getAlertId());
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, suspension.getAlertId());
             
             if ((alert != null) && (alert.getName() != null)) htmlBody.append("value=\"").append(StatsAggHtmlFramework.htmlEncode(alert.getName(), true)).append("\"");
         }
@@ -539,40 +539,61 @@ public class CreateSuspension extends HttpServlet {
         Suspension suspension = getSuspensionFromRequestParameters(request);
         
         // help determine if the suspension is being renamed by getting the previous name of the suspension (if it exists)
-        String oldName = Common.getSingleParameterAsString(request, "Old_Name");
-        if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
-        if (oldName == null) {
-            String id = Common.getSingleParameterAsString(request, "Id");
-            if (id == null) id = Common.getSingleParameterAsString(request, "id");
-            
-            if (id != null) {
-                try {
-                    Integer id_Integer = Integer.parseInt(id.trim());
-                    SuspensionsDao suspensionsDao = new SuspensionsDao();
-                    Suspension oldSuspension = suspensionsDao.getSuspension(id_Integer);
-                    oldName = oldSuspension.getName();
-                }
-                catch (Exception e){}
-            }
-        }
+        String oldName = getOldSuspensionName(request);
         
         // insert/update/delete records in the database
-        if (suspension != null) {
-            SuspensionsLogic suspensionsLogic = new SuspensionsLogic();
-            returnString = suspensionsLogic.alterRecordInDatabase(suspension, oldName);
-            
-            if (suspensionsLogic.getLastAlterRecordStatus() == SuspensionsLogic.STATUS_CODE_SUCCESS) {
+        DatabaseObjectValidation databaseObjectValidation = Suspension.isValid(suspension);
+        
+        if (suspension == null) {
+            returnString = "Failed to create or alter suspension. Reason=\"One or more invalid suspension fields detected\".";
+            logger.warn(returnString);
+        } 
+        else if (!databaseObjectValidation.isValid()) {
+            returnString = "Failed to create or alter suspension. Reason=\"" + databaseObjectValidation.getReason() + "\".";
+        }
+        else {
+            SuspensionsDaoWrapper suspensionsDaoWrapper = SuspensionsDaoWrapper.alterRecordInDatabase(suspension, oldName);
+            returnString = suspensionsDaoWrapper.getReturnString();
+
+            if (suspensionsDaoWrapper.getLastAlterRecordStatus() == SuspensionsDaoWrapper.STATUS_CODE_SUCCESS) {
                 logger.info("Running suspension routine");
-                com.pearson.statsagg.alerts.Suspensions suspensions = new com.pearson.statsagg.alerts.Suspensions();
+                com.pearson.statsagg.threads.alert_related.Suspensions suspensions = new com.pearson.statsagg.threads.alert_related.Suspensions();
                 suspensions.runSuspensionRoutine();
             }
         }
-        else {
-            returnString = "Failed to add suspension. Reason=\"Field validation failed.\"";
-            logger.warn(returnString);
+
+        return returnString;
+    }
+    
+    protected static String getOldSuspensionName(Object request) {
+        
+        try {
+            if (request == null) return null;
+
+            String oldName = Common.getSingleParameterAsString(request, "Old_Name");
+            if (oldName == null) oldName = Common.getSingleParameterAsString(request, "old_name");
+
+            if (oldName == null) {
+                String id = Common.getSingleParameterAsString(request, "Id");
+                if (id == null) id = Common.getSingleParameterAsString(request, "id");
+
+                if (id != null) {
+                    try {
+                        Integer id_Integer = Integer.parseInt(id.trim());
+                        Suspension oldSuspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id_Integer);
+                        oldName = oldSuspension.getName();
+                    }
+                    catch (Exception e){}
+                }
+            }
+
+            return oldName;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
         }
         
-        return returnString;
     }
     
     private Suspension getSuspensionFromRequestParameters(Object request) {
@@ -580,9 +601,7 @@ public class CreateSuspension extends HttpServlet {
         if (request == null) {
             return null;
         }
-        
-        boolean didEncounterError = false;
-        
+                
         Suspension suspension = new Suspension();
 
         try {
@@ -591,22 +610,14 @@ public class CreateSuspension extends HttpServlet {
             // column #1 parameters
             parameter = Common.getSingleParameterAsString(request, "Name");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "name");
-            String trimmedName = parameter.trim();
+            String trimmedName = (parameter != null) ? parameter.trim() : "";
             suspension.setName(trimmedName);
-            suspension.setUppercaseName(trimmedName.toUpperCase());
-            if ((suspension.getName() == null) || suspension.getName().isEmpty()) didEncounterError = true;
             
             parameter = Common.getSingleParameterAsString(request, "Description");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "description");
-            if (parameter != null) {
-                String trimmedParameter = parameter.trim();
-                String description;
-                if (trimmedParameter.length() > 100000) description = trimmedParameter.substring(0, 99999);
-                else description = trimmedParameter;
-                suspension.setDescription(description);
-            }
-            else suspension.setDescription("");
-            
+            if (parameter == null) suspension.setDescription("");
+            else suspension.setDescription(Common.getTextAreaValue(parameter, 100000, true));
+
             parameter = Common.getSingleParameterAsString(request, "Enabled");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "enabled");
             if ((parameter != null) && (parameter.contains("on") || parameter.contains("true"))) suspension.setIsEnabled(true);
@@ -628,8 +639,7 @@ public class CreateSuspension extends HttpServlet {
 
             parameter = Common.getSingleParameterAsString(request, "AlertName");
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "alert_name");
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(parameter);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = Common.getSingleParameterAsString(request, "MetricGroupTagsInclusive");
@@ -637,15 +647,13 @@ public class CreateSuspension extends HttpServlet {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsInclusive(trimmedTags);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_inclusive");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricGroupTagsInclusive(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_inclusive");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricGroupTagsInclusive(stringBuilder.toString().trim()); 
                 }
             }
             
@@ -654,34 +662,31 @@ public class CreateSuspension extends HttpServlet {
                 String trimmedTags = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricGroupTagsExclusive(trimmedTags);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_exclusive");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricGroupTagsExclusive(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_group_tags_exclusive");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricGroupTagsExclusive(stringBuilder.toString().trim()); 
                 }
             }
-            
+
             parameter = Common.getSingleParameterAsString(request, "MetricSuspensionRegexes");
             if (parameter != null) {
                 String metricSuspensionRegexes = Suspension.trimNewLineDelimitedTags(parameter);
                 suspension.setMetricSuspensionRegexes(metricSuspensionRegexes);
             }
-            else {
-                if (request instanceof JsonObject) {
-                    JsonObject jsonObject = (JsonObject) request;
-                    JsonArray jsonArray = jsonObject.getAsJsonArray("metric_suspension_regexes");
-                    if (jsonArray != null) {
-                        StringBuilder stringBuilder = new StringBuilder();
-                        for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
-                        suspension.setMetricSuspensionRegexes(stringBuilder.toString().trim()); 
-                    }
+            else if (request instanceof JsonObject) {
+                JsonObject jsonObject = (JsonObject) request;
+                JsonArray jsonArray = jsonObject.getAsJsonArray("metric_suspension_regexes");
+                if (jsonArray != null) {
+                    StringBuilder stringBuilder = new StringBuilder();
+                    for (JsonElement jsonElement : jsonArray) stringBuilder.append(jsonElement.getAsString()).append("\n");
+                    suspension.setMetricSuspensionRegexes(stringBuilder.toString().trim()); 
                 }
             }
+            
             
             // column #3 parameters
             parameter = Common.getSingleParameterAsString(request, "Type");
@@ -759,7 +764,7 @@ public class CreateSuspension extends HttpServlet {
             if (parameter == null) parameter = Common.getSingleParameterAsString(request, "duration");
             if (parameter != null) {
                 String parameterTrimmed = parameter.trim();
-                if (!parameterTrimmed.isEmpty()) {    
+                if (!parameterTrimmed.isEmpty() && MathUtilities.isStringABigDecimal(parameterTrimmed)) {    
                     BigDecimal time = new BigDecimal(parameterTrimmed);
                     BigDecimal timeInMs = DatabaseObjectCommon.getMillisecondValueForTime(time, suspension.getDurationTimeUnit());
                     if (timeInMs != null) suspension.setDuration(timeInMs.longValue());
@@ -785,14 +790,10 @@ public class CreateSuspension extends HttpServlet {
             }
         }
         catch (Exception e) {
-            didEncounterError = true;
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            suspension = null;
         }
             
-        if (didEncounterError) suspension = null;
-        boolean isValid = Suspension.isValid(suspension);
-        if (!isValid) suspension = null;
-        
         return suspension;
     }
     

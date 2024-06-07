@@ -1,18 +1,20 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
 import java.util.Set;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
+import java.sql.Connection;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -26,7 +28,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Alert-SuspensionAssociations", urlPatterns = {"/Alert-SuspensionAssociations"})
 public class Alert_SuspensionAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Alert_SuspensionAssociations.class.getName());
@@ -130,8 +131,7 @@ public class Alert_SuspensionAssociations extends HttpServlet {
             return "<b>No alert specified</b>";
         }
  
-        AlertsDao alertsDao = new AlertsDao();
-        Alert alert = alertsDao.getAlertByName(alertName);
+        Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, alertName);
         if (alert == null) return "<b>Alert not found</b>";
         
         StringBuilder outputString = new StringBuilder();
@@ -158,15 +158,13 @@ public class Alert_SuspensionAssociations extends HttpServlet {
 
         Map<String,String> suspensionStrings = new HashMap<>();
         
-        SuspensionsDao suspensionsDao = null;
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
-            suspensionsDao = new SuspensionsDao(false);
-            
             for (Integer suspensionId : suspensionIds) {
                 if (suspensionId == null) continue;
 
-                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                Suspension suspension = SuspensionsDao.getSuspension(connection, false, suspensionId);
                 if ((suspension == null) || (suspension.getName() == null)) continue;
 
                 String suspensionDetailsUrl = "<a href=\"SuspensionDetails?ExcludeNavbar=true&amp;Name=" + 
@@ -189,12 +187,7 @@ public class Alert_SuspensionAssociations extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
         finally {
-            try {
-                if (suspensionsDao != null) suspensionsDao.close();
-            }
-            catch (Exception e) {
-                logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            }
+            DatabaseUtils.cleanup(connection);
         }
         
         List<String> sortedSuspensionStrings = new ArrayList<>(suspensionStrings.keySet());

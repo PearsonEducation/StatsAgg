@@ -9,11 +9,12 @@ import com.google.gson.annotations.SerializedName;
 import java.sql.Timestamp;
 import java.util.Calendar;
 import java.util.List;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
+import com.pearson.statsagg.database_objects.DatabaseObjectValidation;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.utilities.time_utils.DateAndTime;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
 import java.util.Date;
 import org.apache.commons.lang3.builder.EqualsBuilder;
@@ -23,7 +24,7 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Suspension extends DatabaseObject<Suspension> {
+public class Suspension implements DatabaseObject<Suspension> {
     
     private static final Logger logger = LoggerFactory.getLogger(Suspension.class.getName());
 
@@ -128,7 +129,6 @@ public class Suspension extends DatabaseObject<Suspension> {
         
         suspensionCopy.setId(suspension.getId());
         suspensionCopy.setName(suspension.getName());
-        suspensionCopy.setUppercaseName(suspension.getUppercaseName());
         suspensionCopy.setDescription(suspension.getDescription());
         suspensionCopy.setIsEnabled(suspension.isEnabled());
         suspensionCopy.setSuspendBy(suspension.getSuspendBy());
@@ -191,87 +191,110 @@ public class Suspension extends DatabaseObject<Suspension> {
                 .isEquals();
     }
     
-    public static boolean isValid(Suspension suspension) {
+    public static DatabaseObjectValidation isValid(Suspension suspension) {
         
-        if (suspension == null) return false;
+        if (suspension == null) return new DatabaseObjectValidation(false, "Invalid suspension");
 
-        boolean isValid_CheckOptions = isValid_CheckOptions(suspension);
-        if (!isValid_CheckOptions) return false;
+        DatabaseObjectValidation databaseObjectValidation_CheckOptions = isValid_CheckOptions(suspension);
+        if (!databaseObjectValidation_CheckOptions.isValid()) return databaseObjectValidation_CheckOptions;
 
-        boolean isValid_CheckSuspendBy = isValid_CheckSuspendBy(suspension);
-        if (!isValid_CheckSuspendBy) return false;
+        DatabaseObjectValidation databaseObjectValidation_CheckSuspendBy = isValid_CheckSuspendBy(suspension);
+        if (!databaseObjectValidation_CheckSuspendBy.isValid()) return databaseObjectValidation_CheckSuspendBy;
         
-        boolean isValid_SuspensionType = isValid_SuspensionType(suspension);
-        return isValid_SuspensionType;
+        DatabaseObjectValidation databaseObjectValidation_SuspensionType = isValid_SuspensionType(suspension);
+        if (!databaseObjectValidation_SuspensionType.isValid()) return databaseObjectValidation_SuspensionType;
+        
+        return new DatabaseObjectValidation(true);
     }
 
     /*
     Checks to make sure that the 'options' criteria are valid
     */
-    public static boolean isValid_CheckOptions(Suspension suspension) {
-        if (suspension == null) return false;
-        if (suspension.getId() == null) return false;
-        if ((suspension.getName() == null) || (suspension.getName().isEmpty())) return false;
-        if (suspension.isSuspendNotificationOnly() == null) return false;
+    public static DatabaseObjectValidation isValid_CheckOptions(Suspension suspension) {
+        DatabaseObjectValidation databaseObjectValidation_Fail = new DatabaseObjectValidation(false, "Invalid 'options' setting");
         
-        return true;
+        if (suspension == null) return databaseObjectValidation_Fail;
+        if (suspension.getId() == null) return databaseObjectValidation_Fail;
+
+        DatabaseObjectValidation databaseObjectValidation_Name = new DatabaseObjectValidation(false, "Invalid suspension name");
+        if ((suspension.getName() == null) || (suspension.getName().isEmpty())) return databaseObjectValidation_Name;
+        
+        DatabaseObjectValidation databaseObjectValidation_NotificationOnly = new DatabaseObjectValidation(false, "Invalid suspension 'notification only' setting");
+        if (suspension.isSuspendNotificationOnly() == null) return databaseObjectValidation_NotificationOnly;
+
+        return new DatabaseObjectValidation(true);
     }
     
     /*
     Checks to make sure that the 'suspend by' criteria are valid
     */
-    public static boolean isValid_CheckSuspendBy(Suspension suspension) {
+    public static DatabaseObjectValidation isValid_CheckSuspendBy(Suspension suspension) {
         
+        DatabaseObjectValidation databaseObjectValidation_Fail = new DatabaseObjectValidation(false, "Invalid 'suspension by' setting");
+
         if ((suspension == null) || (suspension.getSuspendBy() == null)) {
-            return false;
+            return databaseObjectValidation_Fail;
         }
         
-        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID && (suspension.getAlertId() != null)) return true;
-        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) return true;
-        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) return true;
-        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) return true;
+        if ((suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) && (suspension.getAlertId() != null)) return new DatabaseObjectValidation(true);
+        else if ((suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) && (suspension.getAlertId() == null)) {
+            return new DatabaseObjectValidation(false, "Invalid 'suspension by' setting. Trying to 'suspend by' an alert, but the alert does not exist");
+        }
         
-        return false;
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) return new DatabaseObjectValidation(true);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) return new DatabaseObjectValidation(true);
+        if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRICS) return new DatabaseObjectValidation(true);
+        
+        return databaseObjectValidation_Fail;
     }
     
     /*
     Checks to make sure that the 'suspension type' variables are valid
     */
-    public static boolean isValid_SuspensionType(Suspension suspension) {
+    public static DatabaseObjectValidation isValid_SuspensionType(Suspension suspension) {
         
         if ((suspension == null) || (suspension.isOneTime() == null)) {
-            return false;
+            DatabaseObjectValidation databaseObjectValidation_Fail = new DatabaseObjectValidation(false, "Invalid 'suspension type' setting");
+            return databaseObjectValidation_Fail;
         }
         
         if (!suspension.isOneTime()) {
             // isRecured days of the week can't be null if this is a 'recurring' suspension
-            if (suspension.isRecurSunday() == null) return false;
-            if (suspension.isRecurMonday() == null) return false;
-            if (suspension.isRecurTuesday() == null) return false;
-            if (suspension.isRecurWednesday() == null) return false;
-            if (suspension.isRecurThursday() == null) return false;
-            if (suspension.isRecurFriday() == null) return false;
-            if (suspension.isRecurSaturday() == null) return false;
+            DatabaseObjectValidation databaseObjectValidation_FailRecurringDays = new DatabaseObjectValidation(false, "Invalid 'recurring days' setting");
+            if (suspension.isRecurSunday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurMonday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurTuesday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurWednesday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurThursday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurFriday() == null) return databaseObjectValidation_FailRecurringDays;
+            if (suspension.isRecurSaturday() == null) return databaseObjectValidation_FailRecurringDays;
         
             // can't suspend for more than 24hrs if alert is recurring
-            if (suspension.getDuration() > 86400000) return false; // 86400000ms = 1day
-            if (suspension.getDuration() <= 0) return false; 
+            DatabaseObjectValidation databaseObjectValidation_FailRecurringDaysDurationTooBig = new DatabaseObjectValidation(false, "Duration can't be more than 24 hours when using a recurring suspension");
+            if (suspension.getDuration() > 86400000) return databaseObjectValidation_FailRecurringDaysDurationTooBig; // 86400000ms = 1day
+            
+            DatabaseObjectValidation databaseObjectValidation_FailRecurringDaysDurationTooSmall = new DatabaseObjectValidation(false, "Duration must be greater than 0");
+            if (suspension.getDuration() <= 0) return databaseObjectValidation_FailRecurringDaysDurationTooSmall; 
         }
         
         // start dates/times can't be null
-        if (suspension.getStartDate() == null) return false;
-        if (suspension.getStartTime() == null) return false;
-        if (suspension.getDuration() == null) return false;
+        DatabaseObjectValidation databaseObjectValidation_FailDateAndTime = new DatabaseObjectValidation(false, "Date/time must be set");
+        if (suspension.getStartDate() == null) return databaseObjectValidation_FailDateAndTime;
+        if (suspension.getStartTime() == null) return databaseObjectValidation_FailDateAndTime;
+        if (suspension.getDuration() == null) return databaseObjectValidation_FailDateAndTime;
 
         // a one-time alert can't have a 'delete at' date that is in the past
-        if (suspension.isOneTime() && suspension.getDeleteAtTimestamp() == null) return false;
+        if (suspension.isOneTime() && suspension.getDeleteAtTimestamp() == null) {
+            return databaseObjectValidation_FailDateAndTime;
+        }
         else if (suspension.isOneTime() && suspension.getDeleteAtTimestamp() != null) {
             if (System.currentTimeMillis() >= suspension.getDeleteAtTimestamp().getTime()) {
-                return false;
+                DatabaseObjectValidation databaseObjectValidation_OneTimeInPast = new DatabaseObjectValidation(false, "Date/time/duration for a 'one time' suspension cannot be in the past");
+                return databaseObjectValidation_OneTimeInPast;
             }
         }
 
-        return true;
+        return new DatabaseObjectValidation(true);
     }
     
     public static boolean isSuspensionActive(Suspension suspension) {
@@ -450,23 +473,7 @@ public class Suspension extends DatabaseObject<Suspension> {
     }
 
     public static String trimNewLineDelimitedTags(String newLineDelimitedTags) {
-        
-        if ((newLineDelimitedTags == null) || newLineDelimitedTags.isEmpty()) {
-            return newLineDelimitedTags;
-        }
-        
-        StringBuilder tagStringBuilder = new StringBuilder();
-
-        List<String> tags = StringUtilities.getListOfStringsFromDelimitedString(newLineDelimitedTags, '\n');
-        
-        if ((tags != null) && !tags.isEmpty()) {
-            for (String tag : tags) {
-                String trimmedTag = tag.trim();
-                if (!trimmedTag.isEmpty()) tagStringBuilder.append(trimmedTag).append("\n");
-            }
-        }
-        
-        return tagStringBuilder.toString().trim();
+        return DatabaseObjectCommon.trimNewLineDelimitedString(newLineDelimitedTags);
     }
     
     public static String getSuspendByStringFromCode(Integer suspendByCode) {
@@ -660,14 +667,11 @@ public class Suspension extends DatabaseObject<Suspension> {
 
     public void setName(String name) {
         this.name_ = name;
+        if (name != null) this.uppercaseName_ = name.toUpperCase();
     }
     
     public String getUppercaseName() {
         return uppercaseName_;
-    }
-
-    public void setUppercaseName(String uppercaseName) {
-        this.uppercaseName_ = uppercaseName;
     }
 
     public String getDescription() {

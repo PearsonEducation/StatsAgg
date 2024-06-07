@@ -20,7 +20,7 @@ import org.slf4j.LoggerFactory;
 public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsdbMetricFormat, GenericMetricFormat {
     
     private static final Logger logger = LoggerFactory.getLogger(InfluxdbStandardizedMetric.class.getName());
-
+    
     private long hashKey_ = -1;
     
     private final String metricKey_;
@@ -194,7 +194,7 @@ public class InfluxdbStandardizedMetric implements GraphiteMetricFormat, OpenTsd
                         
         return openTsdbTagsJson.toString();
     }
-   
+    
     public long getHashKey() {
         return hashKey_;
     }

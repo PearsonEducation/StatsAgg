@@ -363,4 +363,24 @@ public class MathUtilities {
         return false;
     }
     
+    public static boolean isStringAnInteger(String input) {
+        try {
+            Integer.parseInt(input);
+            return true;
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+    
+    public static boolean isStringABigDecimal(String input) {
+        try {
+            BigDecimal bigDecimal = new BigDecimal(input);
+            return (bigDecimal != null);
+        }
+        catch (Exception e) {
+            return false;
+        }
+    }
+    
 }

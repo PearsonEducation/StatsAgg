@@ -1,27 +1,26 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDaoWrapper;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
-import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegex;
-import com.pearson.statsagg.database_objects.metric_group_regex.MetricGroupRegexesDao;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTag;
-import com.pearson.statsagg.database_objects.metric_group_tags.MetricGroupTagsDao;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplate;
+import com.pearson.statsagg.database_objects.metric_group_templates.MetricGroupTemplatesDao;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklistDao;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.KeyValue;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
@@ -30,7 +29,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricGroups", urlPatterns = {"/MetricGroups"})
 public class MetricGroups extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricGroups.class.getName());
@@ -148,50 +146,26 @@ public class MetricGroups extends HttpServlet {
             return;
         }
         
+        Connection connection = null;
+        
         try {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao(false);
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
-            List<MetricGroup> allMetricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
-            metricGroupsDao.close();
-
-            if ((metricGroup != null) && (metricGroup.getId() != null) && (metricGroup.getName() != null)) {
-                Set<String> allMetricGroupNames = new HashSet<>();
-                for (MetricGroup currentMetricGroup : allMetricGroups) {
-                    if (currentMetricGroup.getName() != null) {
-                        allMetricGroupNames.add(currentMetricGroup.getName());
-                    }
-                }
-
-                MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-                List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesDao.getMetricGroupRegexesByMetricGroupId(metricGroup.getId());
-                TreeSet<String> allMetricGroupMatchRegexes = new TreeSet<>();
-                TreeSet<String> allMetricGroupBlacklistRegexes = new TreeSet<>();
-                if (metricGroupRegexes != null) {
-                    for (MetricGroupRegex currentMetricGroupRegex : metricGroupRegexes) {
-                        if (!currentMetricGroupRegex.isBlacklistRegex()) allMetricGroupMatchRegexes.add(currentMetricGroupRegex.getPattern());
-                        else allMetricGroupBlacklistRegexes.add(currentMetricGroupRegex.getPattern());
-                    }
-                }
-
-                MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-                List<MetricGroupTag> metricGroupTags = metricGroupTagsDao.getMetricGroupTagsByMetricGroupId(metricGroup.getId());
-                TreeSet<String> allMetricGroupTags = new TreeSet<>();
-                if (metricGroupTags != null) {
-                    for (MetricGroupTag currentMetricGroupTag : metricGroupTags) {
-                        allMetricGroupTags.add(currentMetricGroupTag.getTag());
-                    }
-                }
+            connection = DatabaseConnections.getConnection();
+            
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(connection, false, metricGroupId);
+            boolean isMetricGroupCreatedByMetricGroupTemplate = MetricGroupsDao.isMetricGroupCreatedByMetricGroupTemplate(connection, false, metricGroup, null);
+            if ((metricGroup != null) && isMetricGroupCreatedByMetricGroupTemplate) logger.warn("Can't clone a metric group that was created by an metric group template. MetricGroupName=\"" + metricGroup.getName() + "\".");
+            
+            if ((metricGroup != null) && (metricGroup.getId() != null) && (metricGroup.getName() != null) && !isMetricGroupCreatedByMetricGroupTemplate) {
+                Set<String> allMetricGroupNames = MetricGroupsDao.getMetricGroupNames(connection, true);
 
                 MetricGroup clonedMetricGroup = MetricGroup.copy(metricGroup);
                 clonedMetricGroup.setId(-1);
                 String clonedAlterName = StatsAggHtmlFramework.createCloneName(metricGroup.getName(), allMetricGroupNames);
                 clonedMetricGroup.setName(clonedAlterName);
-                clonedMetricGroup.setUppercaseName(clonedAlterName.toUpperCase());
 
-                MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-                metricGroupsLogic.alterRecordInDatabase(clonedMetricGroup, allMetricGroupMatchRegexes, allMetricGroupBlacklistRegexes, allMetricGroupTags);
+                MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.createRecordInDatabase(clonedMetricGroup);
                 
-                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastAlterRecordStatus())) {
+                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastAlterRecordStatus())) {
                     GlobalVariables.alertInvokerThread.runAlertThread(true, false);
                 }
             }
@@ -199,30 +173,51 @@ public class MetricGroups extends HttpServlet {
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
     }
     
     public String removeMetricGroup(Integer metricGroupId) {
         
-        String returnString = "Metric Group ID field can't be null.";
-        if (metricGroupId == null) return returnString;
+        if (metricGroupId == null) {
+            return "Metric Group ID field can't be null";
+        }
+        
+        String returnString = null;
+        
+        Connection connection = null;
         
         try {
-            MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-            MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);                
-            MetricGroupsLogic metricGroupsLogic = new MetricGroupsLogic();
-            returnString = metricGroupsLogic.deleteRecordInDatabase(metricGroup.getName());
-
-            if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsLogic.STATUS_CODE_SUCCESS == metricGroupsLogic.getLastDeleteRecordStatus())) {
-                GlobalVariables.alertInvokerThread.runAlertThread(true, false);
-            }
+            connection = DatabaseConnections.getConnection(); 
+           
+            MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);   
+            boolean isMetricGroupCreatedByMetricGroupTemplate = MetricGroupsDao.isMetricGroupCreatedByMetricGroupTemplate(connection, false, metricGroup, null);
             
-            return returnString;
+            if (!isMetricGroupCreatedByMetricGroupTemplate) {
+                MetricGroupsDaoWrapper metricGroupsDaoWrapper = MetricGroupsDaoWrapper.deleteRecordInDatabase(metricGroup);
+                returnString = metricGroupsDaoWrapper.getReturnString();
+
+                if ((GlobalVariables.alertInvokerThread != null) && (MetricGroupsDaoWrapper.STATUS_CODE_SUCCESS == metricGroupsDaoWrapper.getLastDeleteRecordStatus())) {
+                    GlobalVariables.alertInvokerThread.runAlertThread(true, false);
+                }
+            }
+            else {
+                String metricGroupName = (metricGroup == null) ? "Unknown" : metricGroup.getName();
+                returnString = "Can't remove a metric group that was created by a metric group template. MetricGroupName=\"" + metricGroupName + "\".";
+                logger.warn(returnString);
+            }
         }
         catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             returnString = "Error removing metric group";
-            return returnString;
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+        
+        return returnString;
     }
     
     private String buildMetricGroupsHtml() {
@@ -247,6 +242,7 @@ public class MetricGroups extends HttpServlet {
             "    <thead>\n" +
             "      <tr>\n" +
             "        <th>Metric Group Name</th>\n" +
+            "        <th>Template</th>\n" +
             "        <th># Regexes</th>\n" +
             "        <th>Tags</th>\n" +
             "        <th># Metric Associations</th>\n" +
@@ -255,107 +251,113 @@ public class MetricGroups extends HttpServlet {
             "    </thead>\n" +
             "    <tbody>\n");
 
-        MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-        List<MetricGroup> metricGroups = metricGroupsDao.getAllDatabaseObjectsInTable();
+        Connection connection = null;
         
-        MetricGroupRegexesDao metricGroupRegexesDao = new MetricGroupRegexesDao();
-        Map<Integer,List<MetricGroupRegex>> metricGroupRegexesByMetricGroupId = metricGroupRegexesDao.getAllMetricGroupRegexesByMetricGroupId();
-        
-        AlertsDao alertsDao = new AlertsDao();
-        Set<Integer> metricGroupIdsAssociatedWithAlerts = alertsDao.getDistinctMetricGroupIds();
-        
-        com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getSingleOutputBlacklistRow();
+        try {
+            connection = DatabaseConnections.getConnection();
+            List<MetricGroup> metricGroups = MetricGroupsDao.getMetricGroups(connection, false);
+            if (metricGroups == null) metricGroups = new ArrayList<>();
+            Set<Integer> metricGroupIdsAssociatedWithAlerts = AlertsDao.getDistinctMetricGroupIdsAssociatedWithAlerts(connection, false);
+            com.pearson.statsagg.database_objects.output_blacklist.OutputBlacklist outputBlacklist = OutputBlacklistDao.getOutputBlacklist_SingleRow(connection, false);
+
+            Set<Integer> metricGroupIdsWithAssociations = new HashSet<>();
+            if (metricGroupIdsAssociatedWithAlerts != null) metricGroupIdsWithAssociations.addAll(metricGroupIdsAssociatedWithAlerts);
+            if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) metricGroupIdsWithAssociations.add(outputBlacklist.getMetricGroupId());
+
+            for (MetricGroup metricGroup : metricGroups) {
+                if ((metricGroup == null) || (metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
+
+                String metricGroupDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
+
+                String metricGroupTemplateNameAndLink;
+                MetricGroupTemplate metricGroupTemplate = MetricGroupTemplatesDao.getMetricGroupTemplate(connection, false, metricGroup.getMetricGroupTemplateId());
+                if ((metricGroupTemplate == null) || (metricGroupTemplate.getName() == null)) metricGroupTemplateNameAndLink = "N/A";
+                else metricGroupTemplateNameAndLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupTemplateDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroupTemplate.getName()) + "\">" + StatsAggHtmlFramework.htmlEncode(metricGroupTemplate.getName()) + "</a>";     
                 
-        Set<Integer> metricGroupIdsWithAssociations = new HashSet<>();
-        if (metricGroupIdsAssociatedWithAlerts != null) metricGroupIdsWithAssociations.addAll(metricGroupIdsAssociatedWithAlerts);
-        if ((outputBlacklist != null) && (outputBlacklist.getMetricGroupId() != null)) metricGroupIdsWithAssociations.add(outputBlacklist.getMetricGroupId());
-        
-        MetricGroupTagsDao metricGroupTagsDao = new MetricGroupTagsDao();
-        Map<Integer, List<MetricGroupTag>> tagsByMetricGroupId = metricGroupTagsDao.getAllMetricGroupTagsByMetricGroupId();
-        
-        for (MetricGroup metricGroup : metricGroups) {
-            if ((metricGroup.getId() == null) || (metricGroup.getName() == null)) continue;
-            
-            List<MetricGroupRegex> metricGroupRegexes = metricGroupRegexesByMetricGroupId.get(metricGroup.getId());
-            
-            String metricGroupDetails = "<a class=\"iframe cboxElement\" href=\"MetricGroupDetails?ExcludeNavbar=true&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(metricGroup.getName()) + "</a>";
-            
-            int regexCount;
-            if (metricGroupRegexes == null) regexCount = 0;
-            else regexCount = metricGroupRegexes.size();
-            
-            StringBuilder tagsCsv = new StringBuilder();
-            if (tagsByMetricGroupId != null) {
-                List<MetricGroupTag> metricGroupTags = tagsByMetricGroupId.get(metricGroup.getId());
-                
-                if (metricGroupTags != null) {
-                    for (int i = 0; i < metricGroupTags.size(); i++) {
-                        MetricGroupTag metricGroupTag = metricGroupTags.get(i);
-                        tagsCsv = tagsCsv.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTag.getTag())).append("</u>");
-                        if ((i + 1) < metricGroupTags.size()) tagsCsv.append(" &nbsp;");
+                int regexCount = 0;
+                if (metricGroup.getMatchRegexes() != null) regexCount += metricGroup.getMatchRegexes().size();
+                if (metricGroup.getBlacklistRegexes() != null) regexCount += metricGroup.getBlacklistRegexes().size();
+
+                StringBuilder metricGroupTagsCsv = new StringBuilder();
+                if (metricGroup.getTags() != null) {
+                    List<String> metricGroupTagsList = new ArrayList<>(metricGroup.getTags());
+                    for (int i = 0; i < metricGroupTagsList.size(); i++) {
+                        metricGroupTagsCsv = metricGroupTagsCsv.append("<u>").append(StatsAggHtmlFramework.htmlEncode(metricGroupTagsList.get(i).trim())).append("</u>");
+                        if ((i + 1) < metricGroupTagsList.size()) metricGroupTagsCsv.append(" &nbsp;");
                     }
                 }
+
+                Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
+                int matchingMetricKeysAssociatedWithMetricGroup_Count = 0;
+                if (matchingMetricKeysAssociatedWithMetricGroup != null) matchingMetricKeysAssociatedWithMetricGroup_Count = matchingMetricKeysAssociatedWithMetricGroup.size();
+                String metricAssociationsLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupMetricKeyAssociations?ExcludeNavbar=true&amp;Name=" + 
+                        StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
+                        StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithMetricGroup_Count)) + "</a>";
+
+                String alter = "<a href=\"CreateMetricGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">alter</a>";
+
+                List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
+                cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
+                cloneKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
+                String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + metricGroup.getName(), "MetricGroups", "clone", cloneKeysAndValues);
+
+                List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
+                removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
+                removeKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
+                String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroup.getName(), "MetricGroups", "remove", 
+                        removeKeysAndValues, true, "Are you sure you want to remove this metric group?");
+
+                htmlBodyStringBuilder
+                    .append("<tr>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupDetails).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTemplateNameAndLink).append("</td>\n")
+                    .append("<td>").append(regexCount).append("</td>\n")
+                    .append("<td class=\"statsagg_force_word_break\">").append(metricGroupTagsCsv.toString()).append("</td>\n")
+                    .append("<td>").append(metricAssociationsLink).append("</td>\n")    
+                    .append("<td>");
+
+                if (metricGroup.getMetricGroupTemplateId() == null) htmlBodyStringBuilder.append(alter).append(", ").append(clone);
+                if ((metricGroup.getMetricGroupTemplateId() == null) && !metricGroupIdsWithAssociations.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
+
+                htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
             }
-            
-            Set<String> matchingMetricKeysAssociatedWithMetricGroup = GlobalVariables.matchingMetricKeysAssociatedWithMetricGroup.get(metricGroup.getId());
-            int matchingMetricKeysAssociatedWithMetricGroup_Count = 0;
-            if (matchingMetricKeysAssociatedWithMetricGroup != null) matchingMetricKeysAssociatedWithMetricGroup_Count = matchingMetricKeysAssociatedWithMetricGroup.size();
-            String metricAssociationsLink = "<a class=\"iframe cboxElement\" href=\"MetricGroupMetricKeyAssociations?ExcludeNavbar=true&amp;Name=" + 
-                    StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">" + 
-                    StatsAggHtmlFramework.htmlEncode(Integer.toString(matchingMetricKeysAssociatedWithMetricGroup_Count)) + "</a>";
 
-            String alter = "<a href=\"CreateMetricGroup?Operation=Alter&amp;Name=" + StatsAggHtmlFramework.urlEncode(metricGroup.getName()) + "\">alter</a>";
-            
-            List<KeyValue<String,String>> cloneKeysAndValues = new ArrayList<>();
-            cloneKeysAndValues.add(new KeyValue("Operation", "Clone"));
-            cloneKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
-            String clone = StatsAggHtmlFramework.buildJavaScriptPostLink("Clone_" + metricGroup.getName(), "MetricGroups", "clone", cloneKeysAndValues);
-            
-            List<KeyValue<String,String>> removeKeysAndValues = new ArrayList<>();
-            removeKeysAndValues.add(new KeyValue("Operation", "Remove"));
-            removeKeysAndValues.add(new KeyValue("Id", metricGroup.getId().toString()));
-            String remove = StatsAggHtmlFramework.buildJavaScriptPostLink("Remove_" + metricGroup.getName(), "MetricGroups", "remove", 
-                    removeKeysAndValues, true, "Are you sure you want to remove this metric group?");
-            
-            htmlBodyStringBuilder
-                .append("<tr>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(metricGroupDetails).append("</td>\n")
-                .append("<td>").append(regexCount).append("</td>\n")
-                .append("<td class=\"statsagg_force_word_break\">").append(tagsCsv.toString()).append("</td>\n")
-                .append("<td>").append(metricAssociationsLink).append("</td>\n")    
-                .append("<td>").append(alter).append(", ").append(clone);
-            
-            if (!metricGroupIdsWithAssociations.contains(metricGroup.getId())) htmlBodyStringBuilder.append(", ").append(remove);
-            
-            htmlBodyStringBuilder.append("</td>\n").append("</tr>\n");
+            htmlBodyStringBuilder.append(""
+                    + "</tbody>\n"
+                    + "<tfoot> \n"
+                    + "  <tr>\n" 
+                    + "    <th></th>\n"
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "    <th></th>\n" 
+                    + "  </tr>\n" 
+                    + "</tfoot>" 
+                    + "</table>\n"
+                    + "</div>\n"
+                    + "</div>\n");
+
+            String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
+
+            html.append(""
+                    + "<!DOCTYPE html>\n"
+                    + "<html>\n")
+                    .append(htmlHeader)
+                    .append(htmlBody)
+                    .append("</html>");
+
+            return html.toString();
         }
-        
-        htmlBodyStringBuilder.append(""
-                + "</tbody>\n"
-                + "<tfoot> \n"
-                + "  <tr>\n" 
-                + "    <th></th>\n"
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "    <th></th>\n" 
-                + "  </tr>\n" 
-                + "</tfoot>" 
-                + "</table>\n"
-                + "</div>\n"
-                + "</div>\n");
-
-        String htmlBody = (statsAggHtmlFramework.createHtmlBody(htmlBodyStringBuilder.toString()));
-
-        html.append(""
-                + "<!DOCTYPE html>\n"
-                + "<html>\n")
-                .append(htmlHeader)
-                .append(htmlBody)
-                .append("</html>");
-        
-        return html.toString();
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return "Fatal error encountered";
+        }
+        finally {
+            DatabaseUtils.cleanup(connection);
+        }
+                
     }
 
 }

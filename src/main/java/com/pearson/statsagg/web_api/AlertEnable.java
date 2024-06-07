@@ -1,15 +1,15 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,7 +17,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant4nov (Prashant Kumar)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Alert_Enable", urlPatterns = {"/api/alert-enable"})
 public class AlertEnable extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(AlertEnable.class.getName());
@@ -89,17 +88,14 @@ public class AlertEnable extends HttpServlet {
             Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
             if ((id == null) && (name != null)) {
-                AlertsDao alertsDao = new AlertsDao();
-                Alert alert = alertsDao.getAlertByName(name);
+                Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, name);
                 id = alert.getId();
             }
             
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlert(id);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, id);
             if (alert == null) return Helper.ERROR_NOTFOUND_JSON;
             
-            com.pearson.statsagg.web_ui.Alerts alerts = new com.pearson.statsagg.web_ui.Alerts();
-            String result = alerts.changeAlertEnabled(alert.getId(), isEnabled);
+            String result = com.pearson.statsagg.web_ui.Alerts.changeAlertEnabled(alert.getId(), isEnabled);
             
             return Helper.createSimpleJsonResponse(result);
         }

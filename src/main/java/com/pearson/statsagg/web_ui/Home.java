@@ -1,19 +1,20 @@
 package com.pearson.statsagg.web_ui;
 
+import com.pearson.statsagg.globals.DatabaseConnections;
 import java.io.PrintWriter;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.List;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.globals.ApplicationConfiguration;
+import com.pearson.statsagg.configuration.ApplicationConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
-import static com.pearson.statsagg.utilities.db_utils.DatabaseUtils.isConnectionValid;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
 import java.util.ArrayList;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -23,7 +24,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Home", urlPatterns = {"/Home"})
 public class Home extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Home.class.getName());
@@ -126,18 +126,18 @@ public class Home extends HttpServlet {
         
         List<Alert> alerts = new ArrayList<>();
         boolean isConnectionValid = false;
-        AlertsDao alertsDao = null;
+        Connection connection = DatabaseConnections.getConnection();
         
         try {
-            alertsDao = new AlertsDao(false);
-            alerts = alertsDao.getAllDatabaseObjectsInTable();
-            isConnectionValid = alertsDao.getDatabaseInterface().isConnectionValid();
+            isConnectionValid = connection.isValid(5);
+            alerts = AlertsDao.getAlerts(connection, false);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         } 
         finally {
-            if (alertsDao != null) alertsDao.close();
+            if (alerts == null) alerts = new ArrayList<>();
+            DatabaseUtils.cleanup(connection);
         }
         
         int numCautionAlertsActive = 0;

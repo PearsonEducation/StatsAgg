@@ -2,11 +2,11 @@ package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.web_ui.CreateAlert;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -14,7 +14,6 @@ import org.slf4j.LoggerFactory;
  * @author prashant kumar(prashant4nov)
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Alert_Create", urlPatterns = {"/api/alert-create"})
 public class AlertCreate extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(AlertCreate.class.getName());
@@ -75,9 +74,8 @@ public class AlertCreate extends HttpServlet {
      * @return success or error message
      */
     protected String processPostRequest(HttpServletRequest request) {
-        com.pearson.statsagg.web_ui.CreateAlert createAlert = new com.pearson.statsagg.web_ui.CreateAlert();
-        JsonObject alertJsonObject = Helper.getJsonObjectFromRequestBody(request);
-        String result = createAlert.parseAndAlterAlert(alertJsonObject);
+        JsonObject jsonObject = Helper.getJsonObjectFromRequestBody(request);
+        String result = CreateAlert.parseAndAlterAlert(jsonObject);
         return Helper.createSimpleJsonResponse(result);
     }
     

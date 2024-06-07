@@ -1,12 +1,12 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.DatabaseObjectCommon;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
@@ -26,7 +26,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "SuspensionAssociationsPreview", urlPatterns = {"/SuspensionAssociationsPreview"})
 public class SuspensionAssociationsPreview extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(SuspensionAssociationsPreview.class.getName());
@@ -146,8 +145,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             
             parameter = request.getParameter("AlertName");
             if (parameter != null) parameter = parameter.trim();
-            AlertsDao alertsDao = new AlertsDao();
-            Alert alert = alertsDao.getAlertByName(parameter);
+            Alert alert = AlertsDao.getAlert(DatabaseConnections.getConnection(), true, parameter);
             if (alert != null) suspension.setAlertId(alert.getId());
 
             parameter = request.getParameter("MetricGroupTagsInclusive");
@@ -173,7 +171,7 @@ public class SuspensionAssociationsPreview extends HttpServlet {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
-        if (Suspension.isValid_CheckSuspendBy(suspension)) return suspension;
+        if (Suspension.isValid_CheckSuspendBy(suspension).isValid()) return suspension;
         else return null;
     }
    
@@ -193,22 +191,22 @@ public class SuspensionAssociationsPreview extends HttpServlet {
     private String getAlertSuspension_AlertAssociations_ResponseHtml(Suspension suspension) {
         List<String> alertNames = new ArrayList<>();
         
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
-        
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
+        if (alerts == null) alerts = new ArrayList<>();
+
         for (Alert alert : alerts) {
             if ((alert.getName() == null) || alert.getName().isEmpty()) continue;
             
             boolean outputAlert = false;
             
             if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_ALERT_ID) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendByAlertName(alert, suspension);
             }
             else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_METRIC_GROUP_TAGS) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendedByMetricGroupTags(alert, suspension);
             }
             else if (suspension.getSuspendBy() == Suspension.SUSPEND_BY_EVERYTHING) {
-                outputAlert = com.pearson.statsagg.alerts.Suspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
+                outputAlert = com.pearson.statsagg.threads.alert_related.Suspensions.isSuspensionCriteriaMet_SuspendedByEverything(alert, suspension);
             }
 
             if (outputAlert) {

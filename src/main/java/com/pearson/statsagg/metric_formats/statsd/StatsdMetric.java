@@ -23,6 +23,8 @@ public final class StatsdMetric {
     public static final byte SET_TYPE = 4;
     public static final byte UNDEFINED_TYPE = 5;
     
+    private static boolean logMetricFormatErrors_ = true;
+    
     private long hashKey_ = -1;
 
     private final String bucket_;
@@ -124,7 +126,7 @@ public final class StatsdMetric {
                 String metricValueString = unparsedMetric.substring(bucketIndexRange + 1, metricValueIndexRange);
                 doesContainOperator = StringUtils.containsAny(metricValueString, "+-");
                 
-                if (metricValueString.length() > 100) {
+                if ((metricValueString.length() > 100) && logMetricFormatErrors_) {
                     logger.debug("Metric parse error. Metric value can't be more than 100 characters long. Metric value was \"" + metricValueString.length() + "\" characters long.");
                 }
                 else {
@@ -146,7 +148,7 @@ public final class StatsdMetric {
             
             if ((bucketValue == null) || bucketValue.isEmpty() || (metricValue == null) || (metricType == null) || metricType.isEmpty() || 
                     (metricType.equals("ms") && (metricValue.compareTo(BigDecimal.ZERO) == -1))) {
-                logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
+                if (logMetricFormatErrors_) logger.warn("Metric parse error: \"" + unparsedMetric + "\"");
                 return null;
             }
             else {
@@ -155,7 +157,7 @@ public final class StatsdMetric {
             }
         }
         catch (Exception e) {
-            logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
+            if (logMetricFormatErrors_) logger.error("Error on " + unparsedMetric + System.lineSeparator() + e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));  
             return null;
         }
     }
@@ -284,6 +286,14 @@ public final class StatsdMetric {
     
     public long getMetricReceivedTimestampInMilliseconds() {
         return metricReceivedTimestampInMilliseconds_;
+    }
+    
+    public static boolean isLogMetricFormatErrors() {
+        return logMetricFormatErrors_;
+    }
+
+    public static void setLogMetricFormatErrors(boolean isLogMetricFormatErrors) {
+        logMetricFormatErrors_ = isLogMetricFormatErrors;
     }
     
 }

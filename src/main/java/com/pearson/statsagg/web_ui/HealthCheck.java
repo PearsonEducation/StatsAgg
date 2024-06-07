@@ -1,21 +1,21 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.database_objects.alerts.AlertsDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.configuration.DatabaseConfiguration;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import java.sql.Connection;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name="HealthCheck", urlPatterns={"/HealthCheck"})
 public class HealthCheck extends HttpServlet {
    
     private static final Logger logger = LoggerFactory.getLogger(HealthCheck.class.getName());
@@ -72,9 +72,9 @@ public class HealthCheck extends HttpServlet {
         PrintWriter out = null;
 
         try {
-            AlertsDao alertsDao = new AlertsDao();
-            boolean isDatabaseConnected = alertsDao.isConnectionValid();
-            alertsDao.close();
+            Connection connection = DatabaseConnections.getConnection();
+            boolean isDatabaseConnected = connection.isValid(5);
+            DatabaseUtils.cleanup(connection);
             
             if (!isDatabaseConnected) response.setStatus(500);
             if (!GlobalVariables.isApplicationInitializeSuccess.get()) response.setStatus(500);

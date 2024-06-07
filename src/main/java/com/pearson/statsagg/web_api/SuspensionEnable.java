@@ -1,22 +1,21 @@
 package com.pearson.statsagg.web_api;
 
 import com.google.gson.JsonObject;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "API_Suspension_Enable", urlPatterns = {"/api/suspension-enable"})
 public class SuspensionEnable extends HttpServlet {
     
     private static final Logger logger = LoggerFactory.getLogger(SuspensionEnable.class.getName());
@@ -89,13 +88,11 @@ public class SuspensionEnable extends HttpServlet {
             Boolean isEnabled = JsonUtils.getBooleanFieldFromJsonObject(jsonObject, "enabled");
             
             if ((id == null) && (name != null)) {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspensionByName(name);
+                Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, name);
                 id = suspension.getId();
             }
             
-            SuspensionsDao suspensionsDao = new SuspensionsDao();
-            Suspension suspension = suspensionsDao.getSuspension(id);
+            Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, id);
             if (suspension == null) return Helper.ERROR_NOTFOUND_JSON;
             
             com.pearson.statsagg.web_ui.Suspensions suspensions = new com.pearson.statsagg.web_ui.Suspensions();

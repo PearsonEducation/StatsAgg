@@ -1,15 +1,15 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroup;
-import com.pearson.statsagg.database_objects.metric_group.MetricGroupsDao;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
+import com.pearson.statsagg.globals.DatabaseConnections;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroup;
+import com.pearson.statsagg.database_objects.metric_groups.MetricGroupsDao;
 import com.pearson.statsagg.database_objects.suspensions.Suspension;
 import com.pearson.statsagg.database_objects.suspensions.SuspensionsDao;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.util.ArrayList;
@@ -30,7 +30,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "Benchmark", urlPatterns = {"/Benchmark"})
 public class Benchmark extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(Benchmark.class.getName());
@@ -218,8 +217,7 @@ public class Benchmark extends HttpServlet {
         // run benchmark
         for (Integer metricGroupId : mergedMatchRegexesByMetricGroupId_Local.keySet()) {
             try {
-                MetricGroupsDao metricGroupsDao = new MetricGroupsDao();
-                MetricGroup metricGroup = metricGroupsDao.getMetricGroup(metricGroupId);
+                MetricGroup metricGroup = MetricGroupsDao.getMetricGroup(DatabaseConnections.getConnection(), true, metricGroupId);
                 if ((metricGroup == null) || (metricGroup.getName() == null)) continue;
 
                 long startTime = System.currentTimeMillis();
@@ -265,8 +263,7 @@ public class Benchmark extends HttpServlet {
         // run benchmark
         for (Integer suspensionId : mergedMatchRegexesBySuspensionId_Local.keySet()) {
             try {
-                SuspensionsDao suspensionsDao = new SuspensionsDao();
-                Suspension suspension = suspensionsDao.getSuspension(suspensionId);
+                Suspension suspension = SuspensionsDao.getSuspension(DatabaseConnections.getConnection(), true, suspensionId);
                 if ((suspension == null) || (suspension.getName() == null)) continue;
 
                 long startTime = System.currentTimeMillis();

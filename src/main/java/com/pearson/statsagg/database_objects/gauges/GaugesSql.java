@@ -10,33 +10,8 @@ public class GaugesSql {
     
     private static final Logger logger = LoggerFactory.getLogger(GaugesSql.class.getName());
     
-    protected final static String DropTable_Gauges = 
-                    "DROP TABLE GAUGES";
-    
     protected final static String TruncateTable_Gauges = 
                     "TRUNCATE TABLE GAUGES";
-    
-    protected final static String CreateTable_Gauges_Derby =  
-                    "CREATE TABLE GAUGES (" + 
-                    "BUCKET_SHA1 VARCHAR(50) NOT NULL, " + 
-                    "BUCKET CLOB(1048576) NOT NULL, " + 
-                    "METRIC_VALUE DECIMAL(31,7) NOT NULL, " +
-                    "LAST_MODIFIED TIMESTAMP NOT NULL " + 
-                    ")";
-    
-    protected final static String CreateTable_Gauges_MySQL =  
-                    "CREATE TABLE GAUGES (" + 
-                    "BUCKET_SHA1 VARCHAR(50) NOT NULL, " + 
-                    "BUCKET MEDIUMTEXT NOT NULL, " + 
-                    "METRIC_VALUE DECIMAL(65,7) NOT NULL, " +
-                    "LAST_MODIFIED TIMESTAMP NULL DEFAULT NULL " + 
-                    ") " +
-                    "ROW_FORMAT=DYNAMIC";
-    
-    protected final static String CreateIndex_Gauges_PrimaryKey =
-                    "ALTER TABLE GAUGES ADD CONSTRAINT G_PK PRIMARY KEY (" + 
-                    "BUCKET_SHA1" + 
-                    ")";
     
     protected final static String Select_Gauge_ByPrimaryKey = 
                     "SELECT * FROM GAUGES " +
@@ -58,8 +33,6 @@ public class GaugesSql {
     protected final static String Delete_Gauge_ByPrimaryKey =
                     "DELETE FROM GAUGES " +
                     "WHERE BUCKET_SHA1 = ?";
-    
-    
     
     public static String generateBatchUpsert(Integer numRows) {
         

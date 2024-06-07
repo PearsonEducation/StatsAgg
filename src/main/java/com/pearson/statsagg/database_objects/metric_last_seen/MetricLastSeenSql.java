@@ -10,29 +10,6 @@ public class MetricLastSeenSql {
     
     private static final Logger logger = LoggerFactory.getLogger(MetricLastSeenSql.class.getName());
     
-    protected final static String DropTable_MetricLastSeen = 
-                    "DROP TABLE METRIC_LAST_SEEN";
-    
-    protected final static String CreateTable_MetricLastSeen_Derby =  
-                    "CREATE TABLE METRIC_LAST_SEEN (" + 
-                    "METRIC_KEY_SHA1 VARCHAR(50) NOT NULL, " + 
-                    "METRIC_KEY CLOB(1048576) NOT NULL, " + 
-                    "LAST_MODIFIED TIMESTAMP NOT NULL " + 
-                    ")";
-    
-    protected final static String CreateTable_MetricLastSeen_MySQL =  
-                    "CREATE TABLE METRIC_LAST_SEEN (" + 
-                    "METRIC_KEY_SHA1 VARCHAR(50) NOT NULL, " + 
-                    "METRIC_KEY MEDIUMTEXT NOT NULL, " + 
-                    "LAST_MODIFIED TIMESTAMP NULL DEFAULT NULL" + 
-                    ") " +
-                    "ROW_FORMAT=DYNAMIC";
-    
-    protected final static String CreateIndex_MetricLastSeen_PrimaryKey =
-                    "ALTER TABLE METRIC_LAST_SEEN ADD CONSTRAINT MLS_PK PRIMARY KEY (" + 
-                    "METRIC_KEY_SHA1" + 
-                    ")";
-    
     protected final static String Select_MetricLastSeen_ByPrimaryKey = 
                     "SELECT * FROM METRIC_LAST_SEEN " +
                     "WHERE METRIC_KEY_SHA1 = ?";

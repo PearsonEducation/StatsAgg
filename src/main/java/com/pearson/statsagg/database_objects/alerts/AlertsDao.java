@@ -1,325 +1,427 @@
 package com.pearson.statsagg.database_objects.alerts;
 
-import com.pearson.statsagg.database_engine.DatabaseInterface;
-import java.math.BigDecimal;
-import java.sql.ResultSet;
-import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import com.pearson.statsagg.database_engine.DatabaseObjectDao;
-import com.pearson.statsagg.globals.DatabaseConfiguration;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
+import com.pearson.statsagg.utilities.db_utils.DatabaseUtils;
+import java.sql.Connection;
+import java.util.HashMap;
+import java.util.Map;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * @author Jeffrey Schmidt
  */
-public class AlertsDao extends DatabaseObjectDao<Alert> {
+public class AlertsDao {
     
     private static final Logger logger = LoggerFactory.getLogger(AlertsDao.class.getName());
-   
-    private final String tableName_ = "ALERTS";
-    
-    public AlertsDao(){}
+  
+    public static boolean insert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert) {
+        
+        try {                   
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    AlertsSql.Insert_Alert, 
+                    alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getAlertTemplateId(), alert.getVariableSetId(), alert.getMetricGroupId(), 
+                    alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
+                    alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
+                    alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
+                    alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
+                    alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
+                    alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
+                    alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
+                    alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
+                    alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
+                    alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt());
             
-    public AlertsDao(boolean closeConnectionAfterOperation) {
-        databaseInterface_.setCloseConnectionAfterOperation(closeConnectionAfterOperation);
-    }
-    
-    public AlertsDao(DatabaseInterface databaseInterface) {
-        super(databaseInterface);
-    }
-    
-    public boolean dropTable() {
-        return dropTable(AlertsSql.DropTable_Alerts);
-    }
-    
-    public boolean createTable() {
-        List<String> databaseCreationSqlStatements = new ArrayList<>();
-        
-        if (DatabaseConfiguration.getType() == DatabaseConfiguration.MYSQL) {
-            databaseCreationSqlStatements.add(AlertsSql.CreateTable_Alerts_MySQL);
+            return (result >= 0);
         }
-        else {
-            databaseCreationSqlStatements.add(AlertsSql.CreateTable_Alerts_Derby);
-            databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_PrimaryKey);
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
         }
         
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_Name);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_Unique_UppercaseName);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_MetricGroupId);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_CautionNotificationGroupId);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_DangerNotificationGroupId);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_CautionPositiveNotificationGroupId);
-        databaseCreationSqlStatements.add(AlertsSql.CreateIndex_Alerts_ForeignKey_DangerPositiveNotificationGroupId);
-        
-        return createTable(databaseCreationSqlStatements);
     }
+    
+    public static boolean update(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    AlertsSql.Update_Alert_ByPrimaryKey, 
+                    alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getAlertTemplateId(), alert.getVariableSetId(), alert.getMetricGroupId(), 
+                    alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
+                    alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
+                    alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
+                    alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
+                    alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
+                    alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
+                    alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
+                    alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
+                    alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
+                    alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt(), 
+                    alert.getId());
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean update_Name(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, int alertId, String newAlertName) {
+        
+        try {                    
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    AlertsSql.Update_Alert_Name, 
+                    newAlertName, newAlertName.toUpperCase(), 
+                    alertId);
+            
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert) {
+        
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            Alert alertFromDb = AlertsDao.getAlert(connection, false, alert.getId());
 
-    @Override
-    public Alert getDatabaseObject(Alert alert) {
-        if (alert == null) {
-            databaseInterface_.cleanupAutomatic();
-            return null;
-        }
-        
-        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, alert.getId()); 
-    }
-    
-    @Override
-    public boolean insert(Alert alert) {
-        if (alert == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return insert(AlertsSql.Insert_Alert, 
-                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
-                alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
-                alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
-                alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
-                alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
-                alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
-                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
-                alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
-                alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
-                alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
-                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt()
-        );
-    }
-    
-    @Override
-    public boolean update(Alert alert) {
-        if (alert == null) {
-            databaseInterface_.cleanupAutomatic();
-            return false;
-        }
-        
-        return update(AlertsSql.Update_Alert_ByPrimaryKey, 
-                alert.getName(), alert.getUppercaseName(), alert.getDescription(), alert.getMetricGroupId(), 
-                alert.isEnabled(), alert.isCautionEnabled(), alert.isDangerEnabled(), alert.getAlertType(), alert.isAlertOnPositive(),
-                alert.isAllowResendAlert(), alert.getResendAlertEvery(), alert.getResendAlertEveryTimeUnit(), 
-                alert.getCautionNotificationGroupId(), alert.getCautionPositiveNotificationGroupId(), alert.getCautionOperator(), alert.getCautionCombination(),   
-                alert.getCautionCombinationCount(), alert.getCautionThreshold(), alert.getCautionWindowDuration(), alert.getCautionWindowDurationTimeUnit(),   
-                alert.getCautionStopTrackingAfter(), alert.getCautionStopTrackingAfterTimeUnit(), alert.getCautionMinimumSampleCount(), alert.isCautionAlertActive(),  
-                alert.getCautionAlertLastSentTimestamp(), alert.isCautionAlertAcknowledged(),alert.getCautionActiveAlertsSet(), alert.getCautionFirstActiveAt(),
-                alert.getDangerNotificationGroupId(), alert.getDangerPositiveNotificationGroupId(), alert.getDangerOperator(), alert.getDangerCombination(),   
-                alert.getDangerCombinationCount(), alert.getDangerThreshold(), alert.getDangerWindowDuration(), alert.getDangerWindowDurationTimeUnit(), 
-                alert.getDangerStopTrackingAfter(), alert.getDangerStopTrackingAfterTimeUnit(), alert.getDangerMinimumSampleCount(), alert.isDangerAlertActive(), 
-                alert.getDangerAlertLastSentTimestamp(), alert.isDangerAlertAcknowledged(), alert.getDangerActiveAlertsSet(), alert.getDangerFirstActiveAt(), 
-                alert.getId());
-    }
+            boolean upsertSuccess = true;
+            if (alertFromDb == null) upsertSuccess = insert(connection, false, commitOnCompletion, alert);
+            else if (!alertFromDb.isEqual(alert)) upsertSuccess = update(connection, false, commitOnCompletion, alert);
 
-    @Override
-    public boolean delete(Alert alert) {
-        if (alert == null) {
-            databaseInterface_.cleanupAutomatic();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
+            
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return false;
         }
-        
-        return delete(AlertsSql.Delete_Alert_ByPrimaryKey, alert.getId()); 
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+
     }
     
-    @Override
-    public Alert processSingleResultAllColumns(ResultSet resultSet) {
+    public static boolean upsert(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert, String oldAlertName) {
         
-        try {     
-            if ((resultSet == null) || resultSet.isClosed()) {
-                return null;
+        try {                   
+            boolean isConnectionInitiallyAutoCommit = connection.getAutoCommit();
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, false);
+            
+            Alert alertFromDb = AlertsDao.getAlert(connection, false, oldAlertName);
+
+            boolean upsertSuccess = true;
+            if (alertFromDb == null) {
+                upsertSuccess = insert(connection, false, commitOnCompletion, alert);
+            }
+            else {
+                alert.setId(alertFromDb.getId());
+                if (!alertFromDb.isEqual(alert)) upsertSuccess = update(connection, false, commitOnCompletion, alert);
             }
 
-            Integer id = resultSet.getInt("ID");
-            if (resultSet.wasNull()) id = null;
+            if (isConnectionInitiallyAutoCommit) DatabaseUtils.setAutoCommit(connection, true);
             
-            String name = resultSet.getString("NAME");
-            if (resultSet.wasNull()) name = null;
-            
-            String uppercaseName = resultSet.getString("UPPERCASE_NAME");
-            if (resultSet.wasNull()) uppercaseName = null;
-            
-            String description = resultSet.getString("DESCRIPTION");
-            if (resultSet.wasNull()) description = null;
-            
-            Integer metricGroupId = resultSet.getInt("METRIC_GROUP_ID");
-            if (resultSet.wasNull()) metricGroupId = null;
-            
-            Boolean isEnabled = resultSet.getBoolean("IS_ENABLED");
-            if (resultSet.wasNull()) isEnabled = null;
+            return upsertSuccess;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
 
-            Boolean isCautionEnabled = resultSet.getBoolean("IS_CAUTION_ENABLED");
-            if (resultSet.wasNull()) isCautionEnabled = null;
-            
-            Boolean isDangerEnabled = resultSet.getBoolean("IS_DANGER_ENABLED");
-            if (resultSet.wasNull()) isDangerEnabled = null;
-            
-            Integer alertType = resultSet.getInt("ALERT_TYPE");
-            if (resultSet.wasNull()) alertType = null;
-            
-            Boolean alertOnPositive = resultSet.getBoolean("ALERT_ON_POSITIIVE");
-            if (resultSet.wasNull()) alertOnPositive = null;
-            
-            Boolean allowResendAlert = resultSet.getBoolean("ALLOW_RESEND_ALERT");
-            if (resultSet.wasNull()) allowResendAlert = null;
-            
-            Long resendAlertEvery = resultSet.getLong("RESEND_ALERT_EVERY");
-            if (resultSet.wasNull()) resendAlertEvery = null;
-            
-            Integer resendAlertEveryTimeUnit = resultSet.getInt("RESEND_ALERT_EVERY_TIME_UNIT");
-            if (resultSet.wasNull()) resendAlertEveryTimeUnit = null;
-            
-            Integer cautionNotificationGroupId = resultSet.getInt("CAUTION_NOTIFICATION_GROUP_ID");
-            if (resultSet.wasNull()) cautionNotificationGroupId = null;
-            
-            Integer cautionPositiveNotificationGroupId = resultSet.getInt("CAUTION_POSITIVE_NOTIFICATION_GROUP_ID");
-            if (resultSet.wasNull()) cautionPositiveNotificationGroupId = null;
-            
-            Integer cautionOperator = resultSet.getInt("CAUTION_OPERATOR");
-            if (resultSet.wasNull()) cautionOperator = null;
-            
-            Integer cautionCombination = resultSet.getInt("CAUTION_COMBINATION");
-            if (resultSet.wasNull()) cautionCombination = null;
-            
-            Integer cautionCombinationCount = resultSet.getInt("CAUTION_COMBINATION_COUNT");
-            if (resultSet.wasNull()) cautionCombinationCount = null;
-            
-            BigDecimal cautionThreshold = resultSet.getBigDecimal("CAUTION_THRESHOLD");
-            if (resultSet.wasNull()) cautionThreshold = null;
-
-            Long cautionWindowDuration = resultSet.getLong("CAUTION_WINDOW_DURATION");
-            if (resultSet.wasNull()) cautionWindowDuration = null;
-            
-            Integer cautionWindowDurationTimeUnit = resultSet.getInt("CAUTION_WINDOW_DURATION_TIME_UNIT");
-            if (resultSet.wasNull()) cautionWindowDurationTimeUnit = null;
-            
-            Long cautionStopTrackingAfter = resultSet.getLong("CAUTION_STOP_TRACKING_AFTER");
-            if (resultSet.wasNull()) cautionStopTrackingAfter = null;
-            
-            Integer cautionStopTrackingAfterTimeUnit = resultSet.getInt("CAUTION_STOP_TRACKING_AFTER_TIME_UNIT");
-            if (resultSet.wasNull()) cautionStopTrackingAfterTimeUnit = null;
-            
-            Integer cautionMinimumSampleCount = resultSet.getInt("CAUTION_MINIMUM_SAMPLE_COUNT");
-            if (resultSet.wasNull()) cautionMinimumSampleCount = null;
-            
-            Boolean isCautionAlertActive = resultSet.getBoolean("IS_CAUTION_ALERT_ACTIVE");
-            if (resultSet.wasNull()) isCautionAlertActive = null;
-            
-            Timestamp cautionAlertLastSentTimestamp = resultSet.getTimestamp("CAUTION_ALERT_LAST_SENT_TIMESTAMP");
-            if (resultSet.wasNull()) cautionAlertLastSentTimestamp = null;
-            
-            Boolean isCautionAcknowledged = resultSet.getBoolean("IS_CAUTION_ACKNOWLEDGED");
-            if (resultSet.wasNull()) isCautionAcknowledged = null;
-            
-            String cautionActiveAlertsSet = resultSet.getString("CAUTION_ACTIVE_ALERTS_SET");
-            if (resultSet.wasNull()) cautionActiveAlertsSet = null;
-
-            Timestamp cautionFirstActiveAt = resultSet.getTimestamp("CAUTION_FIRST_ACTIVE_AT");
-            if (resultSet.wasNull()) cautionFirstActiveAt = null;
-            
-            Integer dangerNotificationGroupId = resultSet.getInt("DANGER_NOTIFICATION_GROUP_ID");
-            if (resultSet.wasNull()) dangerNotificationGroupId = null;
-            
-            Integer dangerPositiveNotificationGroupId = resultSet.getInt("DANGER_POSITIVE_NOTIFICATION_GROUP_ID");
-            if (resultSet.wasNull()) dangerPositiveNotificationGroupId = null;
-            
-            Integer dangerOperator = resultSet.getInt("DANGER_OPERATOR");
-            if (resultSet.wasNull()) dangerOperator = null;
-            
-            Integer dangerCombination = resultSet.getInt("DANGER_COMBINATION");
-            if (resultSet.wasNull()) dangerCombination = null;
-            
-            Integer dangerCombinationCount = resultSet.getInt("DANGER_COMBINATION_COUNT");
-            if (resultSet.wasNull()) dangerCombinationCount = null;
-            
-            BigDecimal dangerThreshold = resultSet.getBigDecimal("DANGER_THRESHOLD");
-            if (resultSet.wasNull()) dangerThreshold = null;
-
-            Long dangerWindowDuration = resultSet.getLong("DANGER_WINDOW_DURATION");
-            if (resultSet.wasNull()) dangerWindowDuration = null;
-
-            Integer dangerWindowDurationTimeUnit = resultSet.getInt("DANGER_WINDOW_DURATION_TIME_UNIT");
-            if (resultSet.wasNull()) dangerWindowDurationTimeUnit = null;
-            
-            Long dangerStopTrackingAfter = resultSet.getLong("DANGER_STOP_TRACKING_AFTER");
-            if (resultSet.wasNull()) dangerStopTrackingAfter = null;
-            
-            Integer dangerStopTrackingAfterTimeUnit = resultSet.getInt("DANGER_STOP_TRACKING_AFTER_TIME_UNIT");
-            if (resultSet.wasNull()) dangerStopTrackingAfterTimeUnit = null;
-                    
-            Integer dangerMinimumSampleCount = resultSet.getInt("DANGER_MINIMUM_SAMPLE_COUNT");
-            if (resultSet.wasNull()) dangerMinimumSampleCount = null;
-            
-            Boolean isDangerAlertActive = resultSet.getBoolean("IS_DANGER_ALERT_ACTIVE");
-            if (resultSet.wasNull()) isDangerAlertActive = null;
-            
-            Timestamp dangerAlertLastSentTimestamp = resultSet.getTimestamp("DANGER_ALERT_LAST_SENT_TIMESTAMP");
-            if (resultSet.wasNull()) dangerAlertLastSentTimestamp = null;
-            
-            Boolean isDangerAcknowledged = resultSet.getBoolean("IS_DANGER_ACKNOWLEDGED");
-            if (resultSet.wasNull()) isDangerAcknowledged = null;
-            
-            String dangerActiveAlertsSet = resultSet.getString("DANGER_ACTIVE_ALERTS_SET");
-            if (resultSet.wasNull()) dangerActiveAlertsSet = null;
-
-            Timestamp dangerFirstActiveAt = resultSet.getTimestamp("DANGER_FIRST_ACTIVE_AT");
-            if (resultSet.wasNull()) dangerFirstActiveAt = null;
+    }
     
-            Alert alert = new Alert(id, name, uppercaseName, description, metricGroupId, isEnabled, isCautionEnabled, isDangerEnabled,
-                    alertType, alertOnPositive, allowResendAlert, resendAlertEvery, resendAlertEveryTimeUnit, 
-                    cautionNotificationGroupId, cautionPositiveNotificationGroupId, cautionOperator, cautionCombination, cautionCombinationCount, cautionThreshold, 
-                    cautionWindowDuration, cautionWindowDurationTimeUnit, cautionStopTrackingAfter, cautionStopTrackingAfterTimeUnit, cautionMinimumSampleCount, 
-                    isCautionAlertActive, cautionAlertLastSentTimestamp, isCautionAcknowledged, cautionActiveAlertsSet, cautionFirstActiveAt,
-                    dangerNotificationGroupId, dangerPositiveNotificationGroupId, dangerOperator, dangerCombination, dangerCombinationCount,  dangerThreshold, 
-                    dangerWindowDuration, dangerWindowDurationTimeUnit, dangerStopTrackingAfter, dangerStopTrackingAfterTimeUnit, dangerMinimumSampleCount,  
-                    isDangerAlertActive, dangerAlertLastSentTimestamp, isDangerAcknowledged, dangerActiveAlertsSet, dangerFirstActiveAt);
+    public static boolean delete(Connection connection, boolean closeConnectionOnCompletion, boolean commitOnCompletion, Alert alert) {
+        
+        try {                 
+            long result = DatabaseUtils.dml_PreparedStatement(connection, closeConnectionOnCompletion, commitOnCompletion, 
+                    AlertsSql.Delete_Alert_ByPrimaryKey, 
+                    alert.getId());
             
-            return alert;
+            return (result >= 0);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return false;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+
+    public static Alert getAlert(Connection connection, boolean closeConnectionOnCompletion, Integer alertId) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_Alert_ByPrimaryKey, alertId);
+            
+            return DatabaseUtils.getSingleResultFromList(alerts);
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
     }
 
-    @Override
-    public String getTableName() {
-        return tableName_;
-    }
-
-    public Alert getAlert(Integer id) {
-        return getDatabaseObject(AlertsSql.Select_Alert_ByPrimaryKey, id); 
-    }  
-    
-    public List<String> getAlertNames(String filter, Integer resultSetLimit) {
+    public static List<Alert> getAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_AllAlerts);
+            
+            return alerts;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+        
+    public static Alert getAlert(Connection connection, boolean closeConnectionOnCompletion, String alertName) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_Alert_ByName, alertName);
+            
+            return DatabaseUtils.getSingleResultFromList(alerts);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Alert getAlert_FilterByUppercaseName(Connection connection, boolean closeConnectionOnCompletion, String alertName) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_Alert_ByUppercaseName, alertName.toUpperCase());
+            
+            return DatabaseUtils.getSingleResultFromList(alerts);
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<Alert> getAlerts_FilterByAlertTemplateId(Connection connection, boolean closeConnectionOnCompletion, Integer alertTemplateId) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_Alert_ByAlertTemplateId, 
+                    alertTemplateId);
+            
+            return alerts;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Map<String,Alert> getAlerts_FilterByAlertTemplateId_ByName(Connection connection, boolean closeConnectionOnCompletion, Integer alertTemplateId) {
+        
+        try {
+            List<Alert> alerts = getAlerts_FilterByAlertTemplateId(connection, false, alertTemplateId);
+            if (alerts == null) return null;
+            
+            Map<String,Alert> alerts_ByName = new HashMap<>();
 
-            if (!isConnectionValid()) {
-                return new ArrayList<>();
+            for (Alert alert : alerts) {
+                if ((alert == null) || (alert.getName() == null)) continue;
+                alerts_ByName.put(alert.getName(), alert);
             }
 
+            return alerts_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Set<String> getAlertNames(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                        new AlertsResultSetHandler(), 
+                        AlertsSql.Select_AlertNames);
+            
+            Set<String> alertNames = new HashSet<>();
+            if (alerts == null) return alertNames;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) alertNames.add(alert.getName());
+            }
+            
+            return alertNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Map<String,Alert> getAlerts_ByName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            Map<String,Alert> alerts_ByName = new HashMap<>();
+            
+            List<Alert> alerts = getAlerts(connection, false);
+            
+            if (alerts != null) {
+                for (Alert alert : alerts) {
+                    if ((alert == null) || (alert.getName() == null)) continue;
+                    alerts_ByName.put(alert.getName(), alert);
+                }
+            }
+
+            return alerts_ByName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static Map<String,Alert> getAlerts_ByUppercaseName(Connection connection, boolean closeConnectionOnCompletion) {
+        
+        try {
+            List<Alert> alerts = getAlerts(connection, false);
+            if (alerts == null) return null;
+            
+            Map<String,Alert> alerts_ByUppercaseName = new HashMap<>();
+
+            for (Alert alert : alerts) {
+                if ((alert == null) || (alert.getName() == null)) continue;
+                alerts_ByUppercaseName.put(alert.getName().toUpperCase(), alert);
+            }
+
+            return alerts_ByUppercaseName;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+    
+    public static List<String> getAlertNames(Connection connection, boolean closeConnectionOnCompletion, String filter, Integer resultSetLimit) {
+        
+        try {
             List<String> alertNames = new ArrayList<>();
             
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alert_Names_OrderByName, 1000);
-            databaseInterface_.addPreparedStatementParameters("%" + filter + "%");
-            databaseInterface_.executePreparedStatement();
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    (resultSetLimit + 5), 
+                    AlertsSql.Select_Alert_Names_OrderByName,
+                    ("%" + filter + "%"));
             
-            if (!databaseInterface_.isResultSetValid()) {
-                return new ArrayList<>();
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
+            if ((alerts == null) || alerts.isEmpty()) return alertNames;
             
             int rowCounter = 0;
-            while (resultSet.next() && (rowCounter < resultSetLimit)) {
-                String name = resultSet.getString("NAME");
-                if (resultSet.wasNull()) name = null;
-                
-                if (name != null) {
-                    alertNames.add(name);
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) {
+                    alertNames.add(alert.getName());
                     rowCounter++;
+                }
+                
+                if (rowCounter >= resultSetLimit) break;
+            }
+            
+            return alertNames;
+        }
+        catch (Exception e) {
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            return null;
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
+        
+    }
+      
+    public static List<String> getAlertNamesAssociatedWithMetricGroupId(Connection connection, boolean closeConnectionOnCompletion, Integer metricGroupId) {
+        
+        try {            
+            List<String> alertNames = new ArrayList<>();
+            
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_AlertNamesAssociatedWithMetricGroupId,
+                    metricGroupId);
+            
+            if (alerts == null) return null;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) {
+                    alertNames.add(alert.getName());
                 }
             }
             
@@ -327,82 +429,30 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
         }
         catch (Exception e) {
             logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
-            return new ArrayList<>();
-        }
-        finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
-        
-    }
-    
-    public Alert getAlertByName(String name) {
-        
-        try {
-
-            if (name == null) {
-                return null;
-            }
-            
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_Alert_ByName, 1);
-            databaseInterface_.addPreparedStatementParameters(name);
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-
-            ResultSet resultSet = databaseInterface_.getResults();
-            
-            if (resultSet.next()) {
-                Alert alert = processSingleResultAllColumns(resultSet);
-                return alert;
-            }
-            else {
-                return null;
-            }
-        }
-        catch (Exception e) {
-            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public List<String> getAlertsAssociatedWithMetricGroupId(Integer metricGroupId) {
+    public static List<String> getAlertNamesAssociatedWithNotificationGroupId(Connection connection, boolean closeConnectionOnCompletion, Integer notificationGroupId) {
         
-        try {
-
-            if (metricGroupId == null) {
-                return null;
-            }
-            
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_AlertNamesAssociatedWithMetricGroupId, 1000);
-            databaseInterface_.addPreparedStatementParameters(metricGroupId);
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-            
+        try {            
             List<String> alertNames = new ArrayList<>();
-
-            ResultSet resultSet = databaseInterface_.getResults();
             
-            while (resultSet.next()) {
-                String alertName = resultSet.getString("NAME");
-                if (resultSet.wasNull()) alertName = null;
-                if (alertName != null) alertNames.add(alertName);
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_AlertNamesAssociatedWithNotificationGroupId,
+                    notificationGroupId, notificationGroupId, notificationGroupId, notificationGroupId);
+            
+            if (alerts == null) return null;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getName() != null)) {
+                    alertNames.add(alert.getName());
+                }
             }
             
             return alertNames;
@@ -412,38 +462,28 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
     
-    public Set<Integer> getDistinctMetricGroupIds() {
+    public static Set<Integer> getDistinctMetricGroupIdsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_DistinctMetricGroupIds, 100);
-            databaseInterface_.addPreparedStatementParameters();
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-            
             Set<Integer> metricGroupIds = new HashSet<>();
             
-            ResultSet resultSet = databaseInterface_.getResults();
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_DistinctMetricGroupIds);
             
-            while (resultSet.next()) {
-                Integer metricGroupId = resultSet.getInt(1);
-                if (resultSet.wasNull()) metricGroupId = null;
-                
-                if (metricGroupId != null) metricGroupIds.add(metricGroupId);
+            if (alerts == null) return null;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getMetricGroupId() != null)) {
+                    metricGroupIds.add(alert.getMetricGroupId());
+                }
             }
-
+            
             return metricGroupIds;
         }
         catch (Exception e) {
@@ -451,38 +491,28 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
     }
-
-    public Set<Integer> getAllDistinctNotificationGroupIds() {
+    
+    public static Set<Integer> getDistinctNotificationGroupIdsAssociatedWithAlerts(Connection connection, boolean closeConnectionOnCompletion) {
         
         try {
-
-            if (!isConnectionValid()) {
-                return null;
-            }
-
-            databaseInterface_.createPreparedStatement(AlertsSql.Select_AllDistinctNotificationGroupIds, 100);
-            databaseInterface_.addPreparedStatementParameters();
-            databaseInterface_.executePreparedStatement();
-            
-            if (!databaseInterface_.isResultSetValid()) {
-                return null;
-            }
-            
             Set<Integer> notificationGroupIds = new HashSet<>();
             
-            ResultSet resultSet = databaseInterface_.getResults();
+            List<Alert> alerts = DatabaseUtils.query_PreparedStatement(connection, closeConnectionOnCompletion, 
+                    new AlertsResultSetHandler(), 
+                    AlertsSql.Select_AllDistinctNotificationGroupIds);
             
-            while (resultSet.next()) {
-                Integer notificationGroupId = resultSet.getInt(1);
-                if (resultSet.wasNull()) notificationGroupId = null;
-                
-                if (notificationGroupId != null) notificationGroupIds.add(notificationGroupId);
+            if (alerts == null) return null;
+            
+            for (Alert alert : alerts) {
+                if ((alert != null) && (alert.getCautionNotificationGroupId() != null)) {
+                    notificationGroupIds.add(alert.getCautionNotificationGroupId());
+                }
             }
-
+            
             return notificationGroupIds;
         }
         catch (Exception e) {
@@ -490,9 +520,34 @@ public class AlertsDao extends DatabaseObjectDao<Alert> {
             return null;
         }
         finally {
-            databaseInterface_.cleanupAutomatic();
-        } 
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }
         
+    }
+    
+    public static boolean isAlertCreatedByAlertTemplate(Connection connection, boolean closeConnectionOnCompletion, Alert alert, String oldAlertName) {
+        
+        try {
+            Alert alertFromDb;
+            
+            if (oldAlertName != null) {
+                alertFromDb = AlertsDao.getAlert(connection, closeConnectionOnCompletion, oldAlertName);
+            }
+            else {
+                if ((alert == null) || (alert.getName() == null)) return false;
+                alertFromDb = AlertsDao.getAlert(connection, closeConnectionOnCompletion, alert.getName());
+            }
+
+            if ((alertFromDb != null) && (alertFromDb.getAlertTemplateId() != null)) return true;
+        }
+        catch (Exception e){
+            logger.error(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+        }
+        finally {
+            if (closeConnectionOnCompletion) DatabaseUtils.cleanup(connection);
+        }    
+        
+        return false;
     }
 
 }

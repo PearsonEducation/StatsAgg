@@ -6,7 +6,6 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.JsonPrimitive;
 import com.pearson.statsagg.globals.GlobalVariables;
-import com.pearson.statsagg.utilities.json_utils.JsonUtils;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import java.math.BigDecimal;
@@ -25,6 +24,8 @@ import org.slf4j.LoggerFactory;
 public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
     
     private static final Logger logger = LoggerFactory.getLogger(InfluxdbMetric_v1.class.getName());
+
+    private static boolean logMetricFormatErrors_ = true;
 
     private long hashKey_ = -1;
     
@@ -420,7 +421,7 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
             jsonArray = jsonElement.getAsJsonArray();
         }
         catch (Exception e) {
-            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+            if (logMetricFormatErrors_) logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
         }
             
         if (jsonArray == null) return influxdbMetrics;
@@ -477,16 +478,18 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
 
             }
             catch (Exception e) {
-                if (jsonElementOfArray != null) {
-                    try {
-                        logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                if (logMetricFormatErrors_) {
+                    if (jsonElementOfArray != null) {
+                        try {
+                            logger.warn("Metric parse error: " + jsonElementOfArray.getAsString());
+                        }
+                        catch (Exception e2) {
+                            logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
+                        }
                     }
-                    catch (Exception e2) {
+                    else {
                         logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                     }
-                }
-                else {
-                    logger.warn(e.toString() + System.lineSeparator() + StackTrace.getStringFromStackTrace(e));
                 }
             }
         }
@@ -550,4 +553,12 @@ public class InfluxdbMetric_v1 implements InfluxdbMetricFormat_v1 {
         return includeDatabaseInNonNativeInfluxdbStandardizedMetricsOutput_;
     }
 
+    public static boolean isLogMetricFormatErrors() {
+        return logMetricFormatErrors_;
+    }
+
+    public static void setLogMetricFormatErrors(boolean isLogMetricFormatErrors) {
+        logMetricFormatErrors_ = isLogMetricFormatErrors;
+    }
+    
 }

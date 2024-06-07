@@ -130,11 +130,17 @@ public class StringUtilities {
             return new HashSet<>();
         }
         
-        String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
-        if (stringArray.length == 0) return new HashSet<>();
-        Set<String> stringSet = new HashSet<>();
-        stringSet.addAll(Arrays.asList(stringArray));
-        return stringSet;
+        try {
+            String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
+            if (stringArray.length == 0) return new HashSet<>();
+            Set<String> stringSet = new HashSet<>();
+            stringSet.addAll(Arrays.asList(stringArray));
+            return stringSet;
+        }
+        catch (Exception e) {
+            return new HashSet<>();
+        }
+        
     }
     
     public static List<String> getListOfStringsFromDelimitedString(String newlineDelimitedString, char delimiter) {
@@ -143,11 +149,17 @@ public class StringUtilities {
             return new ArrayList<>();
         }
         
-        String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
-        if (stringArray.length == 0) return new ArrayList<>();
-        List<String> stringList = new ArrayList<>();
-        stringList.addAll(Arrays.asList(stringArray));
-        return stringList;
+        try {
+            String[] stringArray = org.apache.commons.lang.StringUtils.split(newlineDelimitedString, delimiter);
+            if (stringArray.length == 0) return new ArrayList<>();
+            List<String> stringList = new ArrayList<>();
+            stringList.addAll(Arrays.asList(stringArray));
+            return stringList;
+        }
+        catch (Exception e) {
+            return new ArrayList<>();
+        }
+        
     }
     
     public static boolean isStringValueBooleanTrue(String booleanString) {

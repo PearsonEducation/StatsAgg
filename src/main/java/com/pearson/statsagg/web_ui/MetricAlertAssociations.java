@@ -1,13 +1,13 @@
 package com.pearson.statsagg.web_ui;
 
-import com.pearson.statsagg.alerts.MetricAssociation;
+import com.pearson.statsagg.threads.alert_related.MetricAssociation;
+import com.pearson.statsagg.globals.DatabaseConnections;
 import com.pearson.statsagg.database_objects.alerts.Alert;
 import com.pearson.statsagg.database_objects.alerts.AlertsDao;
 import java.io.PrintWriter;
-import javax.servlet.annotation.WebServlet;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import com.pearson.statsagg.globals.GlobalVariables;
 import com.pearson.statsagg.utilities.core_utils.StackTrace;
 import com.pearson.statsagg.utilities.string_utils.StringUtilities;
@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-@WebServlet(name = "MetricAlertAssociations", urlPatterns = {"/MetricAlertAssociations"})
 public class MetricAlertAssociations extends HttpServlet {
 
     private static final Logger logger = LoggerFactory.getLogger(MetricAlertAssociations.class.getName());
@@ -212,8 +211,7 @@ public class MetricAlertAssociations extends HttpServlet {
             }
         }
                 
-        AlertsDao alertsDao = new AlertsDao();
-        List<Alert> alerts = alertsDao.getAllDatabaseObjectsInTable();
+        List<Alert> alerts = AlertsDao.getAlerts(DatabaseConnections.getConnection(), true);
         if ((alerts == null) || alerts.isEmpty()) return null;
         
         Set<Alert> alertsAssociatedWithMetrics = new HashSet<>();

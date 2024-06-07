@@ -1,9 +1,9 @@
 package com.pearson.statsagg.database_objects.gauges;
 
 import com.google.gson.annotations.SerializedName;
+import com.pearson.statsagg.utilities.db_utils.DatabaseObject;
 import java.math.BigDecimal;
 import java.sql.Timestamp;
-import com.pearson.statsagg.database_engine.DatabaseObject;
 import com.pearson.statsagg.utilities.math_utils.MathUtilities;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.slf4j.Logger;
@@ -12,14 +12,16 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Jeffrey Schmidt
  */
-public class Gauge extends DatabaseObject<Gauge> {
+public class Gauge implements DatabaseObject<Gauge> {
     
     private static final Logger logger = LoggerFactory.getLogger(Gauge.class.getName());
    
-    @SerializedName("bucket_sha1") private final String bucketSha1_;
-    @SerializedName("bucket") private final String bucket_;
-    @SerializedName("metric_value") private final BigDecimal metricValue_;
-    @SerializedName("last_modified") private final Timestamp lastModified_;
+    @SerializedName("bucket_sha1") private String bucketSha1_;
+    @SerializedName("bucket") private String bucket_;
+    @SerializedName("metric_value") private BigDecimal metricValue_;
+    @SerializedName("last_modified") private Timestamp lastModified_;
+    
+    public Gauge() {}
     
     public Gauge(String bucketSha1, String bucket, BigDecimal metricValue, Timestamp lastModified) {
         this.bucketSha1_ = bucketSha1;
