@@ -102,6 +102,8 @@ public class Driver {
             String successOutput = "Successfully initialized @ " + new Date();
             System.out.println(successOutput);
             logger.info(successOutput);
+			
+			GlobalVariables.isApplicationInitializeSuccess.set(true);
         }
 
         // maintainance loop -- sit in here forever to keep main from exiting. 
